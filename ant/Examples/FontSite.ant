@@ -1,0 +1,12 @@
+
+\declarefont{fsgarg__.pfb}{builtin}{FontSite Garamond}{medium}{normal}    {-}{}
+\declarefont{fsgai___.pfb}{builtin}{FontSite Garamond}{medium}{italic}    {-}{}
+\declarefont{fsgab___.pfb}{builtin}{FontSite Garamond}{bold}  {normal}    {-}{}
+\declarefont{fsgabi__.pfb}{builtin}{FontSite Garamond}{bold}  {italic}    {-}{}
+\declarefont{fsgascrg.pfb}{builtin}{FontSite Garamond}{medium}{small caps}{-}{}
+\declarefont{fsgascb_.pfb}{builtin}{FontSite Garamond}{bold}  {small caps}{-}{}
+
+\definecommand\FontFamilyRoman{FontSite Garamond}
+\rmfamily
+
+% vim:set ft=tex fenc=utf8:

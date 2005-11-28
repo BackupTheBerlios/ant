@@ -1,0 +1,106 @@
+
+\declarefont{MinionPro-SemiboldCapt.otf}  {builtin}{MinionPro}{medium}  {normal}    {  - 6}{}
+\declarefont{MinionPro-Capt.otf}          {builtin}{MinionPro}{medium}  {normal}    { 6- 9}{}
+\declarefont{MinionPro-Regular.otf}       {builtin}{MinionPro}{medium}  {normal}    { 9-12}{}
+\declarefont{MinionPro-Subh.otf}          {builtin}{MinionPro}{medium}  {normal}    {12-15}{}
+\declarefont{MinionPro-Disp.otf}          {builtin}{MinionPro}{medium}  {normal}    {15-  }{}
+\declarefont{MinionPro-SemiboldItCapt.otf}{builtin}{MinionPro}{medium}  {italic}    {  - 6}{}
+\declarefont{MinionPro-ItCapt.otf}        {builtin}{MinionPro}{medium}  {italic}    { 6- 9}{}
+\declarefont{MinionPro-It.otf}            {builtin}{MinionPro}{medium}  {italic}    { 9-12}{}
+\declarefont{MinionPro-ItSubh.otf}        {builtin}{MinionPro}{medium}  {italic}    {12-15}{}
+\declarefont{MinionPro-ItDisp.otf}        {builtin}{MinionPro}{medium}  {italic}    {15-  }{}
+\declarefont{MinionPro-BoldCapt.otf}      {builtin}{MinionPro}{semibold}{normal}    {  - 6}{}
+\declarefont{MinionPro-SemiboldCapt.otf}  {builtin}{MinionPro}{semibold}{normal}    { 6- 9}{}
+\declarefont{MinionPro-Semibold.otf}      {builtin}{MinionPro}{semibold}{normal}    { 9-12}{}
+\declarefont{MinionPro-SemiboldSubh.otf}  {builtin}{MinionPro}{semibold}{normal}    {12-15}{}
+\declarefont{MinionPro-SemiboldDisp.otf}  {builtin}{MinionPro}{semibold}{normal}    {15-  }{}
+\declarefont{MinionPro-BoldItCapt.otf}    {builtin}{MinionPro}{semibold}{italic}    {  - 6}{}
+\declarefont{MinionPro-SemiboldItCapt.otf}{builtin}{MinionPro}{semibold}{italic}    { 6- 9}{}
+\declarefont{MinionPro-SemiboldIt.otf}    {builtin}{MinionPro}{semibold}{italic}    { 9-12}{}
+\declarefont{MinionPro-SemiboldItSubh.otf}{builtin}{MinionPro}{semibold}{italic}    {12-15}{}
+\declarefont{MinionPro-SemiboldItDisp.otf}{builtin}{MinionPro}{semibold}{italic}    {15-  }{}
+\declarefont{MinionPro-BoldCapt.otf}      {builtin}{MinionPro}{bold}    {normal}    {  - 9}{}
+\declarefont{MinionPro-Bold.otf}          {builtin}{MinionPro}{bold}    {normal}    { 9-12}{}
+\declarefont{MinionPro-BoldSubh.otf}      {builtin}{MinionPro}{bold}    {normal}    {12-15}{}
+\declarefont{MinionPro-BoldDisp.otf}      {builtin}{MinionPro}{bold}    {normal}    {15-  }{}
+\declarefont{MinionPro-BoldItCapt.otf}    {builtin}{MinionPro}{bold}    {italic}    {  - 9}{}
+\declarefont{MinionPro-BoldIt.otf}        {builtin}{MinionPro}{bold}    {italic}    { 9-12}{}
+\declarefont{MinionPro-BoldItSubh.otf}    {builtin}{MinionPro}{bold}    {italic}    {12-15}{}
+\declarefont{MinionPro-BoldItDisp.otf}    {builtin}{MinionPro}{bold}    {italic}    {15-  }{}
+
+\definecommand\FontFamilyRoman{MinionPro}
+\rmfamily
+
+\setmathfont{ math-family = 0; family = MinionPro; series = medium; shape = normal }
+\setmathfont{ math-family = 1; family = MinionPro; series = medium; shape = italic }
+
+\ALcommand{
+  ps_define_math_symbol "\\ldotp" Punct 1 0x0f >>
+
+  ps_set_math_code '!' Ordinary 0 0x02 0 0x02 >>
+  ps_set_math_code ',' Punct    1 0x0d 1 0x0d >>
+  ps_set_math_code '.' Ordinary 1 0x0f 1 0x0f >>
+  ps_set_math_code '/' Ordinary 1 0x10 1 0x10 >>
+  ps_set_math_code '0' Ordinary 0 0x11 0 0x11 >>
+  ps_set_math_code '1' Ordinary 0 0x12 0 0x12 >>
+  ps_set_math_code '2' Ordinary 0 0x13 0 0x13 >>
+  ps_set_math_code '3' Ordinary 0 0x14 0 0x14 >>
+  ps_set_math_code '4' Ordinary 0 0x15 0 0x15 >>
+  ps_set_math_code '5' Ordinary 0 0x16 0 0x16 >>
+  ps_set_math_code '6' Ordinary 0 0x17 0 0x17 >>
+  ps_set_math_code '7' Ordinary 0 0x18 0 0x18 >>
+  ps_set_math_code '8' Ordinary 0 0x19 0 0x19 >>
+  ps_set_math_code '9' Ordinary 0 0x1a 0 0x1a >>
+  ps_set_math_code ':' Relation 0 0x1b 0 0x1b >>
+  ps_set_math_code ';' Punct    0 0x1c 0 0x1c >>
+  ps_set_math_code '?' Ordinary 0 0x20 0 0x20 >>
+  ps_set_math_code '@' Ordinary 0 0x21 0 0x21 >>
+  ps_set_math_code '`' Ordinary 0 0x41 0 0x41 >>
+
+  ps_define_math_symbol "\\alpha"            NoMath 1 0x03b1 >>
+  ps_define_math_symbol "\\beta"             NoMath 1 0x03b2 >>
+  ps_define_math_symbol "\\gamma"            NoMath 1 0x03b3 >>
+  ps_define_math_symbol "\\delta"            NoMath 1 0x03b4 >>
+  ps_define_math_symbol "\\epsilon"          NoMath 1 0x03b5 >>
+  ps_define_math_symbol "\\zeta"             NoMath 1 0x03b6 >>
+  ps_define_math_symbol "\\eta"              NoMath 1 0x03b7 >>
+  ps_define_math_symbol "\\theta"            NoMath 1 0x03b8 >>
+  ps_define_math_symbol "\\iota"             NoMath 1 0x03b9 >>
+  ps_define_math_symbol "\\kappa"            NoMath 1 0x03ba >>
+  ps_define_math_symbol "\\lambda"           NoMath 1 0x03bb >>
+  ps_define_math_symbol "\\mu"               NoMath 1 0x03bc >>
+  ps_define_math_symbol "\\nu"               NoMath 1 0x03bd >>
+  ps_define_math_symbol "\\xi"               NoMath 1 0x03be >>
+  ps_define_math_symbol "\\pi"               NoMath 1 0x03c0 >>
+  ps_define_math_symbol "\\rho"              NoMath 1 0x03c1 >>
+  ps_define_math_symbol "\\sigma"            NoMath 1 0x03c3 >>
+  ps_define_math_symbol "\\tau"              NoMath 1 0x03c4 >>
+  ps_define_math_symbol "\\upsilon"          NoMath 1 0x03c5 >>
+  ps_define_math_symbol "\\phi"              NoMath 1 0x03d5 >>
+  ps_define_math_symbol "\\chi"              NoMath 1 0x03c7 >>
+  ps_define_math_symbol "\\psi"              NoMath 1 0x03c8 >>
+  ps_define_math_symbol "\\omega"            NoMath 1 0x03c9 >>
+  ps_define_math_symbol "\\varepsilon"       NoMath 1 0x03b5 >>
+  ps_define_math_symbol "\\vartheta"         NoMath 1 0x03d1 >>
+  ps_define_math_symbol "\\varpi"            NoMath 1 0x03d6 >>
+  ps_define_math_symbol "\\varrho"           NoMath 1 0x03c1 >>
+  ps_define_math_symbol "\\varsigma"         NoMath 1 0x03c2 >>
+  ps_define_math_symbol "\\varphi"           NoMath 1 0x03c6 >>
+  ps_define_math_symbol "\\varkappa"         NoMath 1 0x03f0 >>
+  ps_define_math_symbol "\\Gamma"            NoMath 1 0x0393 >>
+  ps_define_math_symbol "\\Delta"            NoMath 1 0x0394 >>
+  ps_define_math_symbol "\\Theta"            NoMath 1 0x0398 >>
+  ps_define_math_symbol "\\Lambda"           NoMath 1 0x039b >>
+  ps_define_math_symbol "\\Xi"               NoMath 1 0x039e >>
+  ps_define_math_symbol "\\Pi"               NoMath 1 0x03a0 >>
+  ps_define_math_symbol "\\Sigma"            NoMath 1 0x03a3 >>
+  ps_define_math_symbol "\\Upsilon"          NoMath 1 0x03a5 >>
+  ps_define_math_symbol "\\Phi"              NoMath 1 0x03a6 >>
+  ps_define_math_symbol "\\Psi"              NoMath 1 0x03a8 >>
+  ps_define_math_symbol "\\Omega"            NoMath 1 0x03a9 >>
+  ps_define_math_symbol "\\imath"            NoMath 1 0x0131 >>
+  ps_define_math_symbol "\\ell"              NoMath 1 0x2113 >>
+  ps_define_math_symbol "\\partial"          NoMath 1 0x2202
+}
+
+% vim:set ft=tex fenc=utf8:

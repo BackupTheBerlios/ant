@@ -1,0 +1,190 @@
+% Computer Modern
+
+\declarefont{cmr5.tfm}    {OT1}{Computer Modern Roman}{medium}       {normal}        {  - 6}{}
+\declarefont{cmr6.tfm}    {OT1}{Computer Modern Roman}{medium}       {normal}        { 6- 7}{}
+\declarefont{cmr7.tfm}    {OT1}{Computer Modern Roman}{medium}       {normal}        { 7- 8}{}
+\declarefont{cmr8.tfm}    {OT1}{Computer Modern Roman}{medium}       {normal}        { 8- 9}{}
+\declarefont{cmr9.tfm}    {OT1}{Computer Modern Roman}{medium}       {normal}        { 9-10}{}
+\declarefont{cmr10.tfm}   {OT1}{Computer Modern Roman}{medium}       {normal}        {10-12}{}
+\declarefont{cmr12.tfm}   {OT1}{Computer Modern Roman}{medium}       {normal}        {12-17}{}
+\declarefont{cmr17.tfm}   {OT1}{Computer Modern Roman}{medium}       {normal}        {17-  }{}
+\declarefont{cmti7.tfm}   {OT1}{Computer Modern Roman}{medium}       {italic}        {  - 8}{}
+\declarefont{cmti8.tfm}   {OT1}{Computer Modern Roman}{medium}       {italic}        { 8- 9}{}
+\declarefont{cmti9.tfm}   {OT1}{Computer Modern Roman}{medium}       {italic}        { 9-10}{}
+\declarefont{cmti10.tfm}  {OT1}{Computer Modern Roman}{medium}       {italic}        {10-12}{}
+\declarefont{cmti12.tfm}  {OT1}{Computer Modern Roman}{medium}       {italic}        {12-  }{}
+\declarefont{cmcsc8.tfm}  {OT1}{Computer Modern Roman}{medium}       {small caps}    {  - 9}{}
+\declarefont{cmcsc9.tfm}  {OT1}{Computer Modern Roman}{medium}       {small caps}    { 9-10}{}
+\declarefont{cmcsc10.tfm} {OT1}{Computer Modern Roman}{medium}       {small caps}    {10-  }{}
+\declarefont{cmsl6.tfm}   {OT1}{Computer Modern Roman}{medium}       {slanted}       {  - 8}{}
+\declarefont{cmsl8.tfm}   {OT1}{Computer Modern Roman}{medium}       {slanted}       { 8- 9}{}
+\declarefont{cmsl9.tfm}   {OT1}{Computer Modern Roman}{medium}       {slanted}       { 9-10}{}
+\declarefont{cmsl10.tfm}  {OT1}{Computer Modern Roman}{medium}       {slanted}       {10-12}{}
+\declarefont{cmsl12.tfm}  {OT1}{Computer Modern Roman}{medium}       {slanted}       {12-  }{}
+\declarefont{cmu10.tfm}   {OT1}{Computer Modern Roman}{medium}       {upright italic}{  -  }{}
+\declarefont{cmb10.tfm}   {OT1}{Computer Modern Roman}{bold}         {normal}        {  -  }{}
+\declarefont{cmbx5.tfm}   {OT1}{Computer Modern Roman}{bold extended}{normal}        {  - 6}{}
+\declarefont{cmbx6.tfm}   {OT1}{Computer Modern Roman}{bold extended}{normal}        { 6- 7}{}
+\declarefont{cmbx7.tfm}   {OT1}{Computer Modern Roman}{bold extended}{normal}        { 7- 8}{}
+\declarefont{cmbx8.tfm}   {OT1}{Computer Modern Roman}{bold extended}{normal}        { 8- 9}{}
+\declarefont{cmbx9.tfm}   {OT1}{Computer Modern Roman}{bold extended}{normal}        { 9-10}{}
+\declarefont{cmbx10.tfm}  {OT1}{Computer Modern Roman}{bold extended}{normal}        {10-12}{}
+\declarefont{cmbx12.tfm}  {OT1}{Computer Modern Roman}{bold extended}{normal}        {12-  }{}
+\declarefont{cmbxti7.tfm} {OT1}{Computer Modern Roman}{bold extended}{italic}        {  -10}{}
+\declarefont{cmbxti10.tfm}{OT1}{Computer Modern Roman}{bold extended}{italic}        {10-12}{}
+\declarefont{cmbxti12.tfm}{OT1}{Computer Modern Roman}{bold extended}{italic}        {12-  }{}
+\declarefont{cmbxsl10.tfm}{OT1}{Computer Modern Roman}{bold extended}{slanted}       {  -  }{}
+
+\declarefont{cmss8.tfm}   {OT1}{Computer Modern Sans Serif}{medium}             {normal} {  - 9}{}
+\declarefont{cmss9.tfm}   {OT1}{Computer Modern Sans Serif}{medium}             {normal} { 9-10}{}
+\declarefont{cmss10.tfm}  {OT1}{Computer Modern Sans Serif}{medium}             {normal} {10-12}{}
+\declarefont{cmss12.tfm}  {OT1}{Computer Modern Sans Serif}{medium}             {normal} {12-17}{}
+\declarefont{cmss17.tfm}  {OT1}{Computer Modern Sans Serif}{medium}             {normal} {17-  }{}
+\declarefont{cmssi8.tfm}  {OT1}{Computer Modern Sans Serif}{medium}             {slanted}{  - 9}{}
+\declarefont{cmssi9.tfm}  {OT1}{Computer Modern Sans Serif}{medium}             {slanted}{ 9-10}{}
+\declarefont{cmssi10.tfm} {OT1}{Computer Modern Sans Serif}{medium}             {slanted}{10-12}{}
+\declarefont{cmssi12.tfm} {OT1}{Computer Modern Sans Serif}{medium}             {slanted}{12-17}{}
+\declarefont{cmssi17.tfm} {OT1}{Computer Modern Sans Serif}{medium}             {slanted}{17-  }{}
+\declarefont{cmssdc10.tfm}{OT1}{Computer Modern Sans Serif}{semi-bold condensed}{normal} {  -  }{}
+\declarefont{cmssbx10.tfm}{OT1}{Computer Modern Sans Serif}{bold extended}      {normal} {  -  }{}
+
+\declarefont{cmtt8.tfm}   {OTT}{Computer Modern Typewriter}{medium}{normal}    {  - 9}{ hyphen = -1}
+\declarefont{cmtt9.tfm}   {OTT}{Computer Modern Typewriter}{medium}{normal}    { 9-10}{ hyphen = -1}
+\declarefont{cmtt10.tfm}  {OTT}{Computer Modern Typewriter}{medium}{normal}    {10-12}{ hyphen = -1}
+\declarefont{cmtt12.tfm}  {OTT}{Computer Modern Typewriter}{medium}{normal}    {12-  }{ hyphen = -1}
+\declarefont{cmitt9.tfm}  {OTT}{Computer Modern Typewriter}{medium}{italic}    {  -10}{ hyphen = -1}
+\declarefont{cmitt10.tfm} {OTT}{Computer Modern Typewriter}{medium}{italic}    {10-12}{ hyphen = -1}
+\declarefont{cmitt12.tfm} {OTT}{Computer Modern Typewriter}{medium}{italic}    {12-  }{ hyphen = -1}
+\declarefont{cmsltt9.tfm} {OTT}{Computer Modern Typewriter}{medium}{slanted}   {  -10}{ hyphen = -1}
+\declarefont{cmsltt10.tfm}{OTT}{Computer Modern Typewriter}{medium}{slanted}   {10-  }{ hyphen = -1}
+\declarefont{cmtcsc10.tfm}{OTT}{Computer Modern Typewriter}{medium}{small caps}{  -  }{ hyphen = -1}
+
+\declarefont{cmvtt10.tfm} {OT1}{Computer Modern Variable Typewriter}{medium}{normal}{-}{}
+\declarefont{cmvtti10.tfm}{OT1}{Computer Modern Variable Typewriter}{medium}{italic}{-}{}
+
+\declarefont{cmdunh10.tfm}{OT1}{Computer Modern Dunhill}  {medium}{normal}{-}{}
+\declarefont{cmfib8.tfm}  {OT1}{Computer Modern Fibonacci}{medium}{normal}{-}{}
+\declarefont{cmff10.tfm}  {OT1}{Computer Modern Funny}    {medium}{normal}{-}{}
+\declarefont{cmfi10.tfm}  {OT1}{Computer Modern Funny}    {medium}{italic}{-}{}
+
+\declarefont{cmmi5.tfm}  {OML}{Computer Modern Math Italic}{medium}{italic}{  - 6}{ skew = 127}
+\declarefont{cmmi6.tfm}  {OML}{Computer Modern Math Italic}{medium}{italic}{ 6- 7}{ skew = 127}
+\declarefont{cmmi7.tfm}  {OML}{Computer Modern Math Italic}{medium}{italic}{ 7- 8}{ skew = 127}
+\declarefont{cmmi8.tfm}  {OML}{Computer Modern Math Italic}{medium}{italic}{ 8- 9}{ skew = 127}
+\declarefont{cmmi9.tfm}  {OML}{Computer Modern Math Italic}{medium}{italic}{ 9-10}{ skew = 127}
+\declarefont{cmmi10.tfm} {OML}{Computer Modern Math Italic}{medium}{italic}{10-12}{ skew = 127}
+\declarefont{cmmi12.tfm} {OML}{Computer Modern Math Italic}{medium}{italic}{12-  }{ skew = 127}
+\declarefont{cmmib5.tfm} {OML}{Computer Modern Math Italic}{bold}  {italic}{  - 6}{ skew = 127}
+\declarefont{cmmib6.tfm} {OML}{Computer Modern Math Italic}{bold}  {italic}{ 6- 7}{ skew = 127}
+\declarefont{cmmib7.tfm} {OML}{Computer Modern Math Italic}{bold}  {italic}{ 7- 8}{ skew = 127}
+\declarefont{cmmib8.tfm} {OML}{Computer Modern Math Italic}{bold}  {italic}{ 8- 9}{ skew = 127}
+\declarefont{cmmib9.tfm} {OML}{Computer Modern Math Italic}{bold}  {italic}{ 9-10}{ skew = 127}
+\declarefont{cmmib10.tfm}{OML}{Computer Modern Math Italic}{bold}  {italic}{10-  }{ skew = 127}
+
+\declarefont{cmsy5.tfm}  {OMS}{Computer Modern Math Symbols}{medium}{normal}{  - 6}{ skew = 48}
+\declarefont{cmsy6.tfm}  {OMS}{Computer Modern Math Symbols}{medium}{normal}{ 6- 7}{ skew = 48}
+\declarefont{cmsy7.tfm}  {OMS}{Computer Modern Math Symbols}{medium}{normal}{ 7- 8}{ skew = 48}
+\declarefont{cmsy8.tfm}  {OMS}{Computer Modern Math Symbols}{medium}{normal}{ 8- 9}{ skew = 48}
+\declarefont{cmsy9.tfm}  {OMS}{Computer Modern Math Symbols}{medium}{normal}{ 9-10}{ skew = 48}
+\declarefont{cmsy10.tfm} {OMS}{Computer Modern Math Symbols}{medium}{normal}{10-  }{ skew = 48}
+\declarefont{cmbsy5.tfm} {OMS}{Computer Modern Math Symbols}{bold}  {normal}{  - 6}{ skew = 48}
+\declarefont{cmbsy6.tfm} {OMS}{Computer Modern Math Symbols}{bold}  {normal}{ 6- 7}{ skew = 48}
+\declarefont{cmbsy7.tfm} {OMS}{Computer Modern Math Symbols}{bold}  {normal}{ 7- 8}{ skew = 48}
+\declarefont{cmbsy8.tfm} {OMS}{Computer Modern Math Symbols}{bold}  {normal}{ 8- 9}{ skew = 48}
+\declarefont{cmbsy9.tfm} {OMS}{Computer Modern Math Symbols}{bold}  {normal}{ 9-10}{ skew = 48}
+\declarefont{cmbsy10.tfm}{OMS}{Computer Modern Math Symbols}{bold}  {normal}{10-  }{ skew = 48}
+
+\declarefont{cmex7.tfm} {raw}{Computer Modern Math Extensions}{medium}{normal}{  - 8}{}
+\declarefont{cmex8.tfm} {raw}{Computer Modern Math Extensions}{medium}{normal}{ 8- 9}{}
+\declarefont{cmex9.tfm} {raw}{Computer Modern Math Extensions}{medium}{normal}{ 9-10}{}
+\declarefont{cmex10.tfm}{raw}{Computer Modern Math Extensions}{medium}{normal}{10-  }{}
+
+% AMS fonts
+
+\declarefont{eufm5.tfm} {OT1}{Euler Fraktur}{medium}{normal}{  - 6}{}
+\declarefont{eufm6.tfm} {OT1}{Euler Fraktur}{medium}{normal}{ 6- 7}{}
+\declarefont{eufm7.tfm} {OT1}{Euler Fraktur}{medium}{normal}{ 7- 8}{}
+\declarefont{eufm8.tfm} {OT1}{Euler Fraktur}{medium}{normal}{ 8- 9}{}
+\declarefont{eufm9.tfm} {OT1}{Euler Fraktur}{medium}{normal}{ 9-10}{}
+\declarefont{eufm10.tfm}{OT1}{Euler Fraktur}{medium}{normal}{10-  }{}
+\declarefont{eufb5.tfm} {OT1}{Euler Fraktur}{bold}  {normal}{  - 6}{}
+\declarefont{eufb6.tfm} {OT1}{Euler Fraktur}{bold}  {normal}{ 6- 7}{}
+\declarefont{eufb7.tfm} {OT1}{Euler Fraktur}{bold}  {normal}{ 7- 8}{}
+\declarefont{eufb8.tfm} {OT1}{Euler Fraktur}{bold}  {normal}{ 8- 9}{}
+\declarefont{eufb9.tfm} {OT1}{Euler Fraktur}{bold}  {normal}{ 9-10}{}
+\declarefont{eufb10.tfm}{OT1}{Euler Fraktur}{bold}  {normal}{10-  }{}
+
+\declarefont{eurm5.tfm} {OML}{Euler Roman}  {medium}{normal}{  - 6}{}
+\declarefont{eurm6.tfm} {OML}{Euler Roman}  {medium}{normal}{ 6- 7}{}
+\declarefont{eurm7.tfm} {OML}{Euler Roman}  {medium}{normal}{ 7- 8}{}
+\declarefont{eurm8.tfm} {OML}{Euler Roman}  {medium}{normal}{ 8- 9}{}
+\declarefont{eurm9.tfm} {OML}{Euler Roman}  {medium}{normal}{ 9-10}{}
+\declarefont{eurm10.tfm}{OML}{Euler Roman}  {medium}{normal}{10-  }{}
+\declarefont{eurb5.tfm} {OML}{Euler Roman}  {bold}  {normal}{  - 6}{}
+\declarefont{eurb6.tfm} {OML}{Euler Roman}  {bold}  {normal}{ 6- 7}{}
+\declarefont{eurb7.tfm} {OML}{Euler Roman}  {bold}  {normal}{ 7- 8}{}
+\declarefont{eurb8.tfm} {OML}{Euler Roman}  {bold}  {normal}{ 8- 9}{}
+\declarefont{eurb9.tfm} {OML}{Euler Roman}  {bold}  {normal}{ 9-10}{}
+\declarefont{eurb10.tfm}{OML}{Euler Roman}  {bold}  {normal}{10-  }{}
+
+\declarefont{eusm5.tfm} {OMS}{Euler Script} {medium}{normal}{  - 6}{}
+\declarefont{eusm6.tfm} {OMS}{Euler Script} {medium}{normal}{ 6- 7}{}
+\declarefont{eusm7.tfm} {OMS}{Euler Script} {medium}{normal}{ 7- 8}{}
+\declarefont{eusm8.tfm} {OMS}{Euler Script} {medium}{normal}{ 8- 9}{}
+\declarefont{eusm9.tfm} {OMS}{Euler Script} {medium}{normal}{ 9-10}{}
+\declarefont{eusm10.tfm}{OMS}{Euler Script} {medium}{normal}{10-  }{}
+\declarefont{eusb5.tfm} {OMS}{Euler Script} {bold}  {normal}{  - 6}{}
+\declarefont{eusb6.tfm} {OMS}{Euler Script} {bold}  {normal}{ 6- 7}{}
+\declarefont{eusb7.tfm} {OMS}{Euler Script} {bold}  {normal}{ 7- 8}{}
+\declarefont{eusb8.tfm} {OMS}{Euler Script} {bold}  {normal}{ 8- 9}{}
+\declarefont{eusb9.tfm} {OMS}{Euler Script} {bold}  {normal}{ 9-10}{}
+\declarefont{eusb10.tfm}{OMS}{Euler Script} {bold}  {normal}{10-  }{}
+
+\declarefont{euex7.tfm} {raw}{Euler Math Extensions}{medium}{normal}{  - 8}{}
+\declarefont{euex8.tfm} {raw}{Euler Math Extensions}{medium}{normal}{ 8- 9}{}
+\declarefont{euex9.tfm} {raw}{Euler Math Extensions}{medium}{normal}{ 9-10}{}
+\declarefont{euex10.tfm}{raw}{Euler Math Extensions}{medium}{normal}{10-  }{}
+
+\declarefont{msam5.tfm} {raw}{AMS Symbol A}{medium}{normal}{  - 6}{}
+\declarefont{msam6.tfm} {raw}{AMS Symbol A}{medium}{normal}{ 6- 7}{}
+\declarefont{msam7.tfm} {raw}{AMS Symbol A}{medium}{normal}{ 7- 8}{}
+\declarefont{msam8.tfm} {raw}{AMS Symbol A}{medium}{normal}{ 8- 9}{}
+\declarefont{msam9.tfm} {raw}{AMS Symbol A}{medium}{normal}{ 9-10}{}
+\declarefont{msam10.tfm}{raw}{AMS Symbol A}{medium}{normal}{10-  }{}
+\declarefont{msbm5.tfm} {raw}{AMS Symbol B}{medium}{normal}{  - 6}{}
+\declarefont{msbm6.tfm} {raw}{AMS Symbol B}{medium}{normal}{ 6- 7}{}
+\declarefont{msbm7.tfm} {raw}{AMS Symbol B}{medium}{normal}{ 7- 8}{}
+\declarefont{msbm8.tfm} {raw}{AMS Symbol B}{medium}{normal}{ 8- 9}{}
+\declarefont{msbm9.tfm} {raw}{AMS Symbol B}{medium}{normal}{ 9-10}{}
+\declarefont{msbm10.tfm}{raw}{AMS Symbol B}{medium}{normal}{10-  }{}
+
+\declarefont{wncyr5.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{  - 6}{}
+\declarefont{wncyr6.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{ 6- 7}{}
+\declarefont{wncyr7.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{ 7- 8}{}
+\declarefont{wncyr8.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{ 8- 9}{}
+\declarefont{wncyr9.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{ 9-10}{}
+\declarefont{wncyr10.tfm} {OT1}{Washington Computer Modern Cyrillic}{medium}{normal}{10-  }{}
+\declarefont{wncyb5.tfm}  {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{  - 6}{}
+\declarefont{wncyb6.tfm}  {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{ 6- 7}{}
+\declarefont{wncyb7.tfm}  {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{ 7- 8}{}
+\declarefont{wncyb8.tfm}  {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{ 8- 9}{}
+\declarefont{wncyb9.tfm}  {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{ 9-10}{}
+\declarefont{wncyb10.tfm} {OT1}{Washington Computer Modern Cyrillic}{bold}  {normal}{10-  }{}
+\declarefont{wncyi5.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{  - 6}{}
+\declarefont{wncyi6.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{ 6- 7}{}
+\declarefont{wncyi7.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{ 7- 8}{}
+\declarefont{wncyi8.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{ 8- 9}{}
+\declarefont{wncyi9.tfm}  {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{ 9-10}{}
+\declarefont{wncyi10.tfm} {OT1}{Washington Computer Modern Cyrillic}{medium}{italic}{10-  }{}
+\declarefont{wncysc10.tfm}{OT1}{Washington Computer Modern Cyrillic}{medium}{small caps}{-}{}
+
+\declarefont{wncyss8.tfm} {OT1}{Washington Computer Modern Cyrillic Sans Serif}{medium}{normal}{  - 9}{}
+\declarefont{wncyss9.tfm} {OT1}{Washington Computer Modern Cyrillic Sans Serif}{medium}{normal}{ 9-10}{}
+\declarefont{wncyss10.tfm}{OT1}{Washington Computer Modern Cyrillic Sans Serif}{medium}{normal}{10-  }{}
+
+\setmathfont{ math-family = 0; family = {Computer Modern Roman};           series = medium; shape = normal }
+\setmathfont{ math-family = 1; family = {Computer Modern Math Italic};     series = medium; shape = italic }
+\setmathfont{ math-family = 2; family = {Computer Modern Math Symbols};    series = medium; shape = normal }
+\setmathfont{ math-family = 3; family = {Computer Modern Math Extensions}; series = medium; shape = normal }
+
+% vim:set ft=tex fenc=utf8:

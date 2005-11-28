@@ -1,0 +1,35 @@
+In order to compile ant you need:
+
+ o OCaml version 3.08,
+ o kpathsea version 3.2,
+ o FreeType version 2,
+ o mlgmp version 20021123,
+ o CamlImages version 2.2.
+
+(1) You might want to edit `Config.mk'. In particular, the variables
+KPATHSEA_LFLAGS and KPATHSEA_CFLAGS probably need adjustment.
+
+(2) Type
+
+  $ make depend
+  $ make
+
+To speed up the compilation you can create a native version of the
+preprocessor camlp4 by typing
+
+  $ make depend NATIVE_CAMLP4=1
+  $ make NATIVE_CAMLP4=1
+
+instead, or you can uncomment the corresponding line in `Config.mk'. If you
+prefer to compile to bytecode instead of native code use
+
+  $ make NATIVE=
+
+By default the makefile will use the native compilers. If these are
+unsupported use
+
+  $ make OPT=
+
+Further documentation can be found in the file `manual.ps', the
+directory `Examples' contains some example ant sources including the
+source of the manual.

@@ -1,0 +1,1629 @@
+%\DeclareMathAlphabet\mathcal  {OMS}{MnSymbolS}{m}{n}
+%\SetMathAlphabet\mathcal{bold}{OMS}{MnSymbolS}{b}{n}
+%\RequirePackage{eufrak}
+%
+%\def\Decl@Mn@Op#1#2#3{\def#1{\DOTSB#3\slimits@}}
+%\def\Decl@Mn@Int#1#2#3{\def#1{\DOTSI#3\ilimits@}}
+%
+%\def\Decl@Mn@Delim#1#2#3#4{%
+%  \if\relax\noexpand#1%
+%    \let#1\undefined
+%  \fi
+%  \DeclareMathDelimiter{#1}{#2}{#3}{#4}{#3}{#4}}
+%\def\Decl@Mn@Open#1#2#3{\Decl@Mn@Delim{#1}{\mathopen}{#2}{#3}}
+%\def\Decl@Mn@Close#1#2#3{\Decl@Mn@Delim{#1}{\mathclose}{#2}{#3}}
+
+\declarefont{MnSymbolA5.tfm}      {raw}{MnSymbolA}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolA6.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolA7.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolA8.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolA9.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolA10.tfm}     {raw}{MnSymbolA}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolA12.tfm}     {raw}{MnSymbolA}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolA-Bold5.tfm} {raw}{MnSymbolA}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolA-Bold6.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolA-Bold7.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolA-Bold8.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolA-Bold9.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolA-Bold10.tfm}{raw}{MnSymbolA}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolA-Bold12.tfm}{raw}{MnSymbolA}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolB5.tfm}      {raw}{MnSymbolB}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolB6.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolB7.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolB8.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolB9.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolB10.tfm}     {raw}{MnSymbolB}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolB12.tfm}     {raw}{MnSymbolB}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolB-Bold5.tfm} {raw}{MnSymbolB}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolB-Bold6.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolB-Bold7.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolB-Bold8.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolB-Bold9.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolB-Bold10.tfm}{raw}{MnSymbolB}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolB-Bold12.tfm}{raw}{MnSymbolB}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolC5.tfm}      {raw}{MnSymbolC}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolC6.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolC7.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolC8.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolC9.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolC10.tfm}     {raw}{MnSymbolC}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolC12.tfm}     {raw}{MnSymbolC}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolC-Bold5.tfm} {raw}{MnSymbolC}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolC-Bold6.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolC-Bold7.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolC-Bold8.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolC-Bold9.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolC-Bold10.tfm}{raw}{MnSymbolC}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolC-Bold12.tfm}{raw}{MnSymbolC}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolD5.tfm}      {raw}{MnSymbolD}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolD6.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolD7.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolD8.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolD9.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolD10.tfm}     {raw}{MnSymbolD}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolD12.tfm}     {raw}{MnSymbolD}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolD-Bold5.tfm} {raw}{MnSymbolD}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolD-Bold6.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolD-Bold7.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolD-Bold8.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolD-Bold9.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolD-Bold10.tfm}{raw}{MnSymbolD}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolD-Bold12.tfm}{raw}{MnSymbolD}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolE5.tfm}      {raw}{MnSymbolE}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolE6.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolE7.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolE8.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolE9.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolE10.tfm}     {raw}{MnSymbolE}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolE12.tfm}     {raw}{MnSymbolE}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolE-Bold5.tfm} {raw}{MnSymbolE}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolE-Bold6.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolE-Bold7.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolE-Bold8.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolE-Bold9.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolE-Bold10.tfm}{raw}{MnSymbolE}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolE-Bold12.tfm}{raw}{MnSymbolE}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolF5.tfm}      {raw}{MnSymbolF}{medium}{normal}    {  - 6}{}
+\declarefont{MnSymbolF6.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 6- 7}{}
+\declarefont{MnSymbolF7.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 7- 8}{}
+\declarefont{MnSymbolF8.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 8- 9}{}
+\declarefont{MnSymbolF9.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 9-10}{}
+\declarefont{MnSymbolF10.tfm}     {raw}{MnSymbolF}{medium}{normal}    {10-12}{}
+\declarefont{MnSymbolF12.tfm}     {raw}{MnSymbolF}{medium}{normal}    {12-  }{}
+\declarefont{MnSymbolF-Bold5.tfm} {raw}{MnSymbolF}{bold}  {normal}    {  - 6}{}
+\declarefont{MnSymbolF-Bold6.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 6- 7}{}
+\declarefont{MnSymbolF-Bold7.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 7- 8}{}
+\declarefont{MnSymbolF-Bold8.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 8- 9}{}
+\declarefont{MnSymbolF-Bold9.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 9-10}{}
+\declarefont{MnSymbolF-Bold10.tfm}{raw}{MnSymbolF}{bold}  {normal}    {10-12}{}
+\declarefont{MnSymbolF-Bold12.tfm}{raw}{MnSymbolF}{bold}  {normal}    {12-  }{}
+\declarefont{MnSymbolS5.tfm}      {OT1}{MnSymbolS}{medium}{normal}    {  - 6}{ skew = 0 }
+\declarefont{MnSymbolS6.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 6- 7}{ skew = 0 }
+\declarefont{MnSymbolS7.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 7- 8}{ skew = 0 }
+\declarefont{MnSymbolS8.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 8- 9}{ skew = 0 }
+\declarefont{MnSymbolS9.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 9-10}{ skew = 0 }
+\declarefont{MnSymbolS10.tfm}     {OT1}{MnSymbolS}{medium}{normal}    {10-12}{ skew = 0 }
+\declarefont{MnSymbolS12.tfm}     {OT1}{MnSymbolS}{medium}{normal}    {12-  }{ skew = 0 }
+\declarefont{MnSymbolS-Bold5.tfm} {OT1}{MnSymbolS}{bold}  {normal}    {  - 6}{ skew = 0 }
+\declarefont{MnSymbolS-Bold6.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 6- 7}{ skew = 0 }
+\declarefont{MnSymbolS-Bold7.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 7- 8}{ skew = 0 }
+\declarefont{MnSymbolS-Bold8.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 8- 9}{ skew = 0 }
+\declarefont{MnSymbolS-Bold9.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 9-10}{ skew = 0 }
+\declarefont{MnSymbolS-Bold10.tfm}{OT1}{MnSymbolS}{bold}  {normal}    {10-12}{ skew = 0 }
+\declarefont{MnSymbolS-Bold12.tfm}{OT1}{MnSymbolS}{bold}  {normal}    {12-  }{ skew = 0 }
+
+\setmathfont{ math-family = 2; family = MnSymbolF; series = medium; shape = normal }
+\setmathfont{ math-family = 3; family = MnSymbolE; series = medium; shape = normal }
+\setmathfont{ math-family = 4; family = MnSymbolA; series = medium; shape = normal }
+\setmathfont{ math-family = 5; family = MnSymbolB; series = medium; shape = normal }
+\setmathfont{ math-family = 6; family = MnSymbolC; series = medium; shape = normal }
+\setmathfont{ math-family = 7; family = MnSymbolD; series = medium; shape = normal }
+
+\beginALdeclarations
+
+;; define a single math symbol
+
+;; declare_math_symbol name font glyph math_code :=
+;;   ps_define_command
+;;     name
+;;     { ps := local loc in
+;;             (ps_location loc >>
+;;              ps_add_node (MathChar, loc, (math_code, font, glyph, font, glyph)))
+;;             ps
+;;     }
+;;     None;
+
+declare_math_accent  name font glyph math_code := { ps := ps };
+
+;; define a list of math symbols
+
+declare_symbols font n []          ps := ps;
+declare_symbols font n [s, c : ss] ps := (declare_symbols font (n+1) ss
+                                           (ps_define_math_symbol s c font n ps));
+
+\endALdeclarations
+
+\ALcommand{
+  declare_symbols 4 0
+    ["\\rightarrow",                 Relation,
+     "\\uparrow",                    Relation,
+     "\\leftarrow",                  Relation,
+     "\\downarrow",                  Relation,
+     "\\nearrow",                    Relation,
+     "\\nwarrow",                    Relation,
+     "\\swarrow",                    Relation,
+     "\\searrow",                    Relation,
+     "\\Rightarrow",                 Relation,
+     "\\Uparrow",                    Relation,
+     "\\Leftarrow",                  Relation,
+     "\\Downarrow",                  Relation,
+     "\\Nearrow",                    Relation,
+     "\\Nwarrow",                    Relation,
+     "\\Swarrow",                    Relation,
+     "\\Searrow",                    Relation,
+     "\\leftrightarrow",             Relation,
+     "\\updownarrow",                Relation,
+     "\\neswarrow",                  Relation,
+     "\\nwsearrow",                  Relation,
+     "\\Leftrightarrow",             Relation,
+     "\\Updownarrow",                Relation,
+     "\\Neswarrow",                  Relation,
+     "\\Nwsearrow",                  Relation,
+     "\\twoheadrightarrow",          Relation,
+     "\\twoheaduparrow",             Relation,
+     "\\twoheadleftarrow",           Relation,
+     "\\twoheaddownarrow",           Relation,
+     "\\twoheadnearrow",             Relation,
+     "\\twoheadnwarrow",             Relation,
+     "\\twoheadswarrow",             Relation,
+     "\\twoheadsearrow",             Relation,
+     "\\rightarrowtail",             Relation,
+     "\\uparrowtail",                Relation,
+     "\\leftarrowtail",              Relation,
+     "\\downarrowtail",              Relation,
+     "\\nearrowtail",                Relation,
+     "\\nwarrowtail",                Relation,
+     "\\swarrowtail",                Relation,
+     "\\searrowtail",                Relation,
+     "\\rightmapsto",                Relation,
+     "\\upmapsto",                   Relation,
+     "\\leftmapsto",                 Relation,
+     "\\downmapsto",                 Relation,
+     "\\nemapsto",                   Relation,
+     "\\nwmapsto",                   Relation,
+     "\\swmapsto",                   Relation,
+     "\\semapsto",                   Relation,
+     "\\lhookrightarrow",            Relation,
+     "\\lhookuparrow",               Relation,
+     "\\lhookleftarrow",             Relation,
+     "\\lhookdownarrow",             Relation,
+     "\\lhooknearrow",               Relation,
+     "\\lhooknwarrow",               Relation,
+     "\\lhookswarrow",               Relation,
+     "\\lhooksearrow",               Relation,
+     "\\rhookrightarrow",            Relation,
+     "\\rhookuparrow",               Relation,
+     "\\rhookleftarrow",             Relation,
+     "\\rhookdownarrow",             Relation,
+     "\\rhooknearrow",               Relation,
+     "\\rhooknwarrow",               Relation,
+     "\\rhookswarrow",               Relation,
+     "\\rhooksearrow",               Relation,
+     "\\rightharpoonup",             Relation,
+     "\\upharpoonup",                Relation,
+     "\\leftharpoonup",              Relation,
+     "\\downharpoonup",              Relation,
+     "\\neharpoonup",                Relation,
+     "\\nwharpoonup",                Relation,
+     "\\swharpoonup",                Relation,
+     "\\seharpoonup",                Relation,
+     "\\rightharpoondown",           Relation,
+     "\\upharpoondown",              Relation,
+     "\\leftharpoondown",            Relation,
+     "\\downharpoondown",            Relation,
+     "\\neharpoondown",              Relation,
+     "\\nwharpoondown",              Relation,
+     "\\swharpoondown",              Relation,
+     "\\seharpoondown",              Relation,
+     "\\leftrightharpoonupdown",     Relation,
+     "\\updownharpoonleftright",     Relation,
+     "\\neswharpoonnwse",            Relation,
+     "\\nwseharpoonnesw",            Relation,
+     "\\leftrightharpoondownup",     Relation,
+     "\\updownharpoonrightleft",     Relation,
+     "\\neswharpoonsenw",            Relation,
+     "\\nwseharpoonswne",            Relation,
+     "\\rightleftharpoons",          Relation,
+     "\\updownharpoons",             Relation,
+     "\\neswharpoons",               Relation,
+     "\\senwharpoons",               Relation,
+     "\\leftrightharpoons",          Relation,
+     "\\downupharpoons",             Relation,
+     "\\swneharpoons",               Relation,
+     "\\nwseharpoons",               Relation,
+     "\\dashedrightarrow",           Relation,
+     "\\dasheduparrow",              Relation,
+     "\\dashedleftarrow",            Relation,
+     "\\dasheddownarrow",            Relation,
+     "\\dashednearrow",              Relation,
+     "\\dashednwarrow",              Relation,
+     "\\dashedswarrow",              Relation,
+     "\\dashedsearrow",              Relation,
+     "\\rightspoon",                 Relation,
+     "\\upspoon",                    Relation,
+     "\\leftspoon",                  Relation,
+     "\\downspoon",                  Relation,
+     "\\nespoon",                    Relation,
+     "\\nwspoon",                    Relation,
+     "\\swspoon",                    Relation,
+     "\\sespoon",                    Relation,
+     "\\rightfilledspoon",           Relation,
+     "\\upfilledspoon",              Relation,
+     "\\leftfilledspoon",            Relation,
+     "\\downfilledspoon",            Relation,
+     "\\nefilledspoon",              Relation,
+     "\\nwfilledspoon",              Relation,
+     "\\swfilledspoon",              Relation,
+     "\\sefilledspoon",              Relation,
+     "\\rightfootline",              Relation,
+     "\\upfootline",                 Relation,
+     "\\leftfootline",               Relation,
+     "\\downfootline",               Relation,
+     "\\nefootline",                 Relation,
+     "\\nwfootline",                 Relation,
+     "\\swfootline",                 Relation,
+     "\\sefootline",                 Relation,
+     "\\rightfree",                  Relation,
+     "\\upfree",                     Relation,
+     "\\leftfree",                   Relation,
+     "\\downfree",                   Relation,
+     "\\nefree",                     Relation,
+     "\\nwfree",                     Relation,
+     "\\swfree",                     Relation,
+     "\\sefree",                     Relation,
+     "\\rightpitchfork",             Relation,
+     "\\uppitchfork",                Relation,
+     "\\leftpitchfork",              Relation,
+     "\\downpitchfork",              Relation,
+     "\\nepitchfork",                Relation,
+     "\\nwpitchfork",                Relation,
+     "\\swpitchfork",                Relation,
+     "\\sepitchfork",                Relation,
+     "\\rightrightarrows",           Relation,
+     "\\upuparrows",                 Relation,
+     "\\leftleftarrows",             Relation,
+     "\\downdownarrows",             Relation,
+     "\\nenearrows",                 Relation,
+     "\\nwnwarrows",                 Relation,
+     "\\swswarrows",                 Relation,
+     "\\sesearrows",                 Relation,
+     "\\rightleftarrows",            Relation,
+     "\\updownarrows",               Relation,
+     "\\neswarrows",                 Relation,
+     "\\nwsearrows",                 Relation,
+     "\\leftrightarrows",            Relation,
+     "\\downuparrows",               Relation,
+     "\\swnearrows",                 Relation,
+     "\\senwarrows",                 Relation,
+     "\\rightlsquigarrow",           Relation,
+     "\\uplsquigarrow",              Relation,
+     "\\leftlsquigarrow",            Relation,
+     "\\downlsquigarrow",            Relation,
+     "\\nelsquigarrow",              Relation,
+     "\\nwlsquigarrow",              Relation,
+     "\\swlsquigarrow",              Relation,
+     "\\selsquigarrow",              Relation,
+     "\\rightrsquigarrow",           Relation,
+     "\\uprsquigarrow",              Relation,
+     "\\leftrsquigarrow",            Relation,
+     "\\downrsquigarrow",            Relation,
+     "\\nersquigarrow",              Relation,
+     "\\nwrsquigarrow",              Relation,
+     "\\swrsquigarrow",              Relation,
+     "\\sersquigarrow",              Relation,
+     "\\squigarrowleftright",        Relation,
+     "\\squigarrowupdown",           Relation,
+     "\\squigarrowrightleft",        Relation,
+     "\\squigarrowdownup",           Relation,
+     "\\squigarrownesw",             Relation,
+     "\\squigarrownwse",             Relation,
+     "\\squigarrowswne",             Relation,
+     "\\squigarrowsenw",             Relation,
+     "\\lcurvearrowright",           Relation,
+     "\\lcurvearrowup",              Relation,
+     "\\lcurvearrowleft",            Relation,
+     "\\lcurvearrowdown",            Relation,
+     "\\lcurvearrowne",              Relation,
+     "\\lcurvearrownw",              Relation,
+     "\\lcurvearrowsw",              Relation,
+     "\\lcurvearrowse",              Relation,
+     "\\rcurvearrowright",           Relation,
+     "\\rcurvearrowup",              Relation,
+     "\\rcurvearrowleft",            Relation,
+     "\\rcurvearrowdown",            Relation,
+     "\\rcurvearrowne",              Relation,
+     "\\rcurvearrownw",              Relation,
+     "\\rcurvearrowsw",              Relation,
+     "\\rcurvearrowse",              Relation,
+     "\\curvearrowleftright",        Relation,
+     "\\curvearrowupdown",           Relation,
+     "\\curvearrowrightleft",        Relation,
+     "\\curvearrowdownup",           Relation,
+     "\\curvearrownesw",             Relation,
+     "\\curvearrownwse",             Relation,
+     "\\curvearrowswne",             Relation,
+     "\\curvearrowsenw",             Relation,
+     "\\leftrightline",              Relation,
+     "\\updownline",                 Relation,
+     "\\neswline",                   Relation,
+     "\\nwseline",                   Relation,
+     "\\Leftrightline",              Relation,
+     "\\Updownline",                 Relation,
+     "\\Neswline",                   Relation,
+     "\\Nwseline",                   Relation,
+     "\\rightvdash",                 Relation,
+     "\\upvdash",                    Relation,
+     "\\leftvdash",                  Relation,
+     "\\downvdash",                  Relation,
+     "\\nevdash",                    Relation,
+     "\\nwvdash",                    Relation,
+     "\\swvdash",                    Relation,
+     "\\sevdash",                    Relation,
+     "\\rightmodels",                Relation,
+     "\\upmodels",                   Relation,
+     "\\leftmodels",                 Relation,
+     "\\downmodels",                 Relation,
+     "\\nemodels",                   Relation,
+     "\\nwmodels",                   Relation,
+     "\\swmodels",                   Relation,
+     "\\semodels",                   Relation,
+     "\\rightVdash",                 Relation,
+     "\\upVdash",                    Relation,
+     "\\leftVdash",                  Relation,
+     "\\downVdash",                  Relation,
+     "\\neVdash",                    Relation,
+     "\\nwVdash",                    Relation,
+     "\\swVdash",                    Relation,
+     "\\seVdash",                    Relation,
+     "\\rightModels",                Relation,
+     "\\upModels",                   Relation,
+     "\\leftModels",                 Relation,
+     "\\downModels",                 Relation,
+     "\\neModels",                   Relation,
+     "\\nwModels",                   Relation,
+     "\\swModels",                   Relation,
+     "\\seModels",                   Relation,
+     "\\rcirclearrowright",          Relation,
+     "\\rcirclearrowup",             Relation,
+     "\\rcirclearrowleft",           Relation,
+     "\\rcirclearrowdown",           Relation,
+     "\\lcirclearrowright",          Relation,
+     "\\lcirclearrowup",             Relation,
+     "\\lcirclearrowleft",           Relation,
+     "\\lcirclearrowdown",           Relation]}
+\ALcommand{
+  declare_symbols 5 0
+    ["\\nrightarrow",                Relation,
+     "\\nuparrow",                   Relation,
+     "\\nleftarrow",                 Relation,
+     "\\ndownarrow",                 Relation,
+     "\\nnearrow",                   Relation,
+     "\\nnwarrow",                   Relation,
+     "\\nswarrow",                   Relation,
+     "\\nsearrow",                   Relation,
+     "\\nRightarrow",                Relation,
+     "\\nUparrow",                   Relation,
+     "\\nLeftarrow",                 Relation,
+     "\\nDownarrow",                 Relation,
+     "\\nNearrow",                   Relation,
+     "\\nNwarrow",                   Relation,
+     "\\nSwarrow",                   Relation,
+     "\\nSearrow",                   Relation,
+     "\\nleftrightarrow",            Relation,
+     "\\nupdownarrow",               Relation,
+     "\\nneswarrow",                 Relation,
+     "\\nnwsearrow",                 Relation,
+     "\\nLeftrightarrow",            Relation,
+     "\\nUpdownarrow",               Relation,
+     "\\nNeswarrow",                 Relation,
+     "\\nNwsearrow",                 Relation,
+     "\\ntwoheadrightarrow",         Relation,
+     "\\ntwoheaduparrow",            Relation,
+     "\\ntwoheadleftarrow",          Relation,
+     "\\ntwoheaddownarrow",          Relation,
+     "\\ntwoheadnearrow",            Relation,
+     "\\ntwoheadnwarrow",            Relation,
+     "\\ntwoheadswarrow",            Relation,
+     "\\ntwoheadsearrow",            Relation,
+     "\\nrightarrowtail",            Relation,
+     "\\nuparrowtail",               Relation,
+     "\\nleftarrowtail",             Relation,
+     "\\ndownarrowtail",             Relation,
+     "\\nnearrowtail",               Relation,
+     "\\nnwarrowtail",               Relation,
+     "\\nswarrowtail",               Relation,
+     "\\nsearrowtail",               Relation,
+     "\\nrightmapsto",               Relation,
+     "\\nupmapsto",                  Relation,
+     "\\nleftmapsto",                Relation,
+     "\\ndownmapsto",                Relation,
+     "\\nnemapsto",                  Relation,
+     "\\nnwmapsto",                  Relation,
+     "\\nswmapsto",                  Relation,
+     "\\nsemapsto",                  Relation,
+     "\\nlhookrightarrow",           Relation,
+     "\\nlhookuparrow",              Relation,
+     "\\nlhookleftarrow",            Relation,
+     "\\nlhookdownarrow",            Relation,
+     "\\nlhooknearrow",              Relation,
+     "\\nlhooknwarrow",              Relation,
+     "\\nlhookswarrow",              Relation,
+     "\\nlhooksearrow",              Relation,
+     "\\nrhookrightarrow",           Relation,
+     "\\nrhookuparrow",              Relation,
+     "\\nrhookleftarrow",            Relation,
+     "\\nrhookdownarrow",            Relation,
+     "\\nrhooknearrow",              Relation,
+     "\\nrhooknwarrow",              Relation,
+     "\\nrhookswarrow",              Relation,
+     "\\nrhooksearrow",              Relation,
+     "\\nrightharpoonup",            Relation,
+     "\\nupharpoonup",               Relation,
+     "\\nleftharpoonup",             Relation,
+     "\\ndownharpoonup",             Relation,
+     "\\nneharpoonup",               Relation,
+     "\\nnwharpoonup",               Relation,
+     "\\nswharpoonup",               Relation,
+     "\\nseharpoonup",               Relation,
+     "\\nrightharpoondown",          Relation,
+     "\\nupharpoondown",             Relation,
+     "\\nleftharpoondown",           Relation,
+     "\\ndownharpoondown",           Relation,
+     "\\nneharpoondown",             Relation,
+     "\\nnwharpoondown",             Relation,
+     "\\nswharpoondown",             Relation,
+     "\\nseharpoondown",             Relation,
+     "\\nleftrightharpoonupdown",    Relation,
+     "\\nupdownharpoonleftright",    Relation,
+     "\\nneswharpoonnwse",           Relation,
+     "\\nnwseharpoonnesw",           Relation,
+     "\\nleftrightharpoondownup",    Relation,
+     "\\nupdownharpoonrightleft",    Relation,
+     "\\nneswharpoonsenw",           Relation,
+     "\\nnwseharpoonswne",           Relation,
+     "\\nrightleftharpoons",         Relation,
+     "\\nupdownharpoons",            Relation,
+     "\\nneswharpoons",              Relation,
+     "\\nsenwharpoons",              Relation,
+     "\\nleftrightharpoons",         Relation,
+     "\\ndownupharpoons",            Relation,
+     "\\nswneharpoons",              Relation,
+     "\\nnwseharpoons",              Relation,
+     "\\ndashedrightarrow",          Relation,
+     "\\ndasheduparrow",             Relation,
+     "\\ndashedleftarrow",           Relation,
+     "\\ndasheddownarrow",           Relation,
+     "\\ndashednearrow",             Relation,
+     "\\ndashednwarrow",             Relation,
+     "\\ndashedswarrow",             Relation,
+     "\\ndashedsearrow",             Relation,
+     "\\nrightspoon",                Relation,
+     "\\nupspoon",                   Relation,
+     "\\nleftspoon",                 Relation,
+     "\\ndownspoon",                 Relation,
+     "\\nnespoon",                   Relation,
+     "\\nnwspoon",                   Relation,
+     "\\nswspoon",                   Relation,
+     "\\nsespoon",                   Relation,
+     "\\nrightfilledspoon",          Relation,
+     "\\nupfilledspoon",             Relation,
+     "\\nleftfilledspoon",           Relation,
+     "\\ndownfilledspoon",           Relation,
+     "\\nnefilledspoon",             Relation,
+     "\\nnwfilledspoon",             Relation,
+     "\\nswfilledspoon",             Relation,
+     "\\nsefilledspoon",             Relation,
+     "\\nrightfootline",             Relation,
+     "\\nupfootline",                Relation,
+     "\\nleftfootline",              Relation,
+     "\\ndownfootline",              Relation,
+     "\\nnefootline",                Relation,
+     "\\nnwfootline",                Relation,
+     "\\nswfootline",                Relation,
+     "\\nsefootline",                Relation,
+     "\\nrightfree",                 Relation,
+     "\\nupfree",                    Relation,
+     "\\nleftfree",                  Relation,
+     "\\ndownfree",                  Relation,
+     "\\nnefree",                    Relation,
+     "\\nnwfree",                    Relation,
+     "\\nswfree",                    Relation,
+     "\\nsefree",                    Relation,
+     "\\nrightpitchfork",            Relation,
+     "\\nuppitchfork",               Relation,
+     "\\nleftpitchfork",             Relation,
+     "\\ndownpitchfork",             Relation,
+     "\\nnepitchfork",               Relation,
+     "\\nnwpitchfork",               Relation,
+     "\\nswpitchfork",               Relation,
+     "\\nsepitchfork",               Relation,
+     "\\nrightrightarrows",          Relation,
+     "\\nupuparrows",                Relation,
+     "\\nleftleftarrows",            Relation,
+     "\\ndowndownarrows",            Relation,
+     "\\nnenearrows",                Relation,
+     "\\nnwnwarrows",                Relation,
+     "\\nswswarrows",                Relation,
+     "\\nsesearrows",                Relation,
+     "\\nrightleftarrows",           Relation,
+     "\\nupdownarrows",              Relation,
+     "\\nneswarrows",                Relation,
+     "\\nnwsearrows",                Relation,
+     "\\nleftrightarrows",           Relation,
+     "\\ndownuparrows",              Relation,
+     "\\nswnearrows",                Relation,
+     "\\nsenwarrows",                Relation,
+     "\\nrightlsquigarrow",          Relation,
+     "\\nuplsquigarrow",             Relation,
+     "\\nleftlsquigarrow",           Relation,
+     "\\ndownlsquigarrow",           Relation,
+     "\\nnelsquigarrow",             Relation,
+     "\\nnwlsquigarrow",             Relation,
+     "\\nswlsquigarrow",             Relation,
+     "\\nselsquigarrow",             Relation,
+     "\\nrightrsquigarrow",          Relation,
+     "\\nuprsquigarrow",             Relation,
+     "\\nleftrsquigarrow",           Relation,
+     "\\ndownrsquigarrow",           Relation,
+     "\\nnersquigarrow",             Relation,
+     "\\nnwrsquigarrow",             Relation,
+     "\\nswrsquigarrow",             Relation,
+     "\\nsersquigarrow",             Relation,
+     "\\nsquigarrowleftright",       Relation,
+     "\\nsquigarrowupdown",          Relation,
+     "\\nsquigarrowrightleft",       Relation,
+     "\\nsquigarrowdownup",          Relation,
+     "\\nsquigarrownesw",            Relation,
+     "\\nsquigarrownwse",            Relation,
+     "\\nsquigarrowswne",            Relation,
+     "\\nsquigarrowsenw",            Relation,
+     "\\nlcurvearrowright",          Relation,
+     "\\nlcurvearrowup",             Relation,
+     "\\nlcurvearrowleft",           Relation,
+     "\\nlcurvearrowdown",           Relation,
+     "\\nlcurvearrowne",             Relation,
+     "\\nlcurvearrownw",             Relation,
+     "\\nlcurvearrowsw",             Relation,
+     "\\nlcurvearrowse",             Relation,
+     "\\nrcurvearrowright",          Relation,
+     "\\nrcurvearrowup",             Relation,
+     "\\nrcurvearrowleft",           Relation,
+     "\\nrcurvearrowdown",           Relation,
+     "\\nrcurvearrowne",             Relation,
+     "\\nrcurvearrownw",             Relation,
+     "\\nrcurvearrowsw",             Relation,
+     "\\nrcurvearrowse",             Relation,
+     "\\ncurvearrowleftright",       Relation,
+     "\\ncurvearrowupdown",          Relation,
+     "\\ncurvearrowrightleft",       Relation,
+     "\\ncurvearrowdownup",          Relation,
+     "\\ncurvearrownesw",            Relation,
+     "\\ncurvearrownwse",            Relation,
+     "\\ncurvearrowswne",            Relation,
+     "\\ncurvearrowsenw",            Relation,
+     "\\nleftrightline",             Relation,
+     "\\nupdownline",                Relation,
+     "\\nneswline",                  Relation,
+     "\\nnwseline",                  Relation,
+     "\\nLeftrightline",             Relation,
+     "\\nUpdownline",                Relation,
+     "\\nNeswline",                  Relation,
+     "\\nNwseline",                  Relation,
+     "\\nrightvdash",                Relation,
+     "\\nupvdash",                   Relation,
+     "\\nleftvdash",                 Relation,
+     "\\ndownvdash",                 Relation,
+     "\\nnevdash",                   Relation,
+     "\\nnwvdash",                   Relation,
+     "\\nswvdash",                   Relation,
+     "\\nsevdash",                   Relation,
+     "\\nrightmodels",               Relation,
+     "\\nupmodels",                  Relation,
+     "\\nleftmodels",                Relation,
+     "\\ndownmodels",                Relation,
+     "\\nnemodels",                  Relation,
+     "\\nnwmodels",                  Relation,
+     "\\nswmodels",                  Relation,
+     "\\nsemodels",                  Relation,
+     "\\nrightVdash",                Relation,
+     "\\nupVdash",                   Relation,
+     "\\nleftVdash",                 Relation,
+     "\\ndownVdash",                 Relation,
+     "\\nneVdash",                   Relation,
+     "\\nnwVdash",                   Relation,
+     "\\nswVdash",                   Relation,
+     "\\nseVdash",                   Relation,
+     "\\nrightModels",               Relation,
+     "\\nupModels",                  Relation,
+     "\\nleftModels",                Relation,
+     "\\ndownModels",                Relation,
+     "\\nneModels",                  Relation,
+     "\\nnwModels",                  Relation,
+     "\\nswModels",                  Relation,
+     "\\nseModels",                  Relation,
+     "\\nrcirclearrowright",         Relation,
+     "\\nrcirclearrowup",            Relation,
+     "\\nrcirclearrowleft",          Relation,
+     "\\nrcirclearrowdown",          Relation,
+     "\\nlcirclearrowright",         Relation,
+     "\\nlcirclearrowup",            Relation,
+     "\\nlcirclearrowleft",          Relation,
+     "\\nlcirclearrowdown",          Relation]}
+\ALcommand{
+  declare_symbols 6 0
+    ["\\cdot",                       BinOp,
+     "\\hdotdot",                    BinOp,
+     "\\vdotdot",                    BinOp,
+     "\\udotdot",                    BinOp,
+     "\\ddotdot",                    BinOp,
+     "\\hdots",                      Ordinary,
+     "\\vdots",                      Ordinary,
+     "\\udots",                      Ordinary,
+     "\\ddots",                      Ordinary,
+     "\\righttherefore",             BinOp,
+     "\\uptherefore",                BinOp,
+     "\\lefttherefore",              BinOp,
+     "\\downtherefore",              BinOp,
+     "\\diamonddots",                BinOp,
+     "\\squaredots",                 BinOp,
+     "\\fivedots",                   BinOp,
+     "\\minus",                      BinOp,
+     "\\medvert",                    BinOp,
+     "\\medslash",                   BinOp,
+     "\\medbackslash",               BinOp,
+     "\\plus",                       BinOp,
+     "\\times",                      BinOp,
+     "\\pm",                         BinOp,
+     "\\mp",                         BinOp,
+     "\\dotminus",                   BinOp,
+     "\\dotmedvert",                 BinOp,
+     "\\minusdot",                   BinOp,
+     "\\medvertdot",                 BinOp,
+     "\\div",                        BinOp,
+     "\\slashdiv",                   BinOp,
+     "\\vertdiv",                    BinOp,
+     "\\backslashdiv",               BinOp,
+     "\\neg",                        Ordinary,
+     "\\backneg",                    Ordinary,
+     "\\dtimes",                     BinOp,
+     "\\rtimes",                     BinOp,
+     "\\utimes",                     BinOp,
+     "\\ltimes",                     BinOp,
+     "\\bowtie",                     BinOp,
+     "\\vertbowtie",                 BinOp,
+     "\\rightY",                     BinOp,
+     "\\upY",                        BinOp,
+     "\\leftY",                      BinOp,
+     "\\downY",                      BinOp,
+     "\\wedge",                      BinOp,
+     "\\vee",                        BinOp,
+     "\\wedgedot",                   BinOp,
+     "\\veedot",                     BinOp,
+     "\\doublewedge",                BinOp,
+     "\\doublevee",                  BinOp,
+     "\\curlywedge",                 BinOp,
+     "\\curlyvee",                   BinOp,
+     "\\curlywedgedot",              BinOp,
+     "\\curlyveedot",                BinOp,
+     "\\doublecurlywedge",           BinOp,
+     "\\doublecurlyvee",             BinOp,
+     "\\cup",                        BinOp,
+     "\\cap",                        BinOp,
+     "\\doublecup",                  BinOp,
+     "\\doublecap",                  BinOp,
+     "\\cupdot",                     BinOp,
+     "\\capdot",                     BinOp,
+     "\\cupplus",                    BinOp,
+     "\\capplus",                    BinOp,
+     "\\sqcup",                      BinOp,
+     "\\sqcap",                      BinOp,
+     "\\doublesqcup",                BinOp,
+     "\\doublesqcap",                BinOp,
+     "\\sqcupdot",                   BinOp,
+     "\\sqcapdot",                   BinOp,
+     "\\sqcupplus",                  BinOp,
+     "\\sqcapplus",                  BinOp,
+     "\\smalltriangleright",         BinOp,
+     "\\smalltriangleup",            BinOp,
+     "\\smalltriangleleft",          BinOp,
+     "\\smalltriangledown",          BinOp,
+     "\\filledtriangleright",        BinOp,
+     "\\filledtriangleup",           BinOp,
+     "\\filledtriangleleft",         BinOp,
+     "\\filledtriangledown",         BinOp,
+     "\\medtriangleright",           BinOp,
+     "\\medtriangleup",              BinOp,
+     "\\medtriangleleft",            BinOp,
+     "\\medtriangledown",            BinOp,
+     "\\largetriangleright",         Ordinary,
+     "\\largetriangleup",            Ordinary,
+     "\\largetriangleleft",          Ordinary,
+     "\\largetriangledown",          Ordinary,
+     "\\circ",                       BinOp,
+     "\\bullet",                     BinOp,
+     "\\medcircle",                  BinOp,
+     "\\largecircle",                Ordinary,
+     "\\ominus",                     BinOp,
+     "\\overt",                      BinOp,
+     "\\oslash",                     BinOp,
+     "\\obackslash",                 BinOp,
+     "\\oplus",                      BinOp,
+     "\\otimes",                     BinOp,
+     "\\odot",                       BinOp,
+     "\\ocirc",                      BinOp,
+     "\\otriangle",                  BinOp,
+     "\\oast",                       BinOp,
+     "\\ostar",                      BinOp,
+     "\\diameter",                   Ordinary,
+     "\\smallsquare",                BinOp,
+     "\\filledsquare",               BinOp,
+     "\\medsquare",                  BinOp,
+     "\\largesquare",                Ordinary,
+     "\\smalldiamond",               BinOp,
+     "\\filleddiamond",              BinOp,
+     "\\meddiamond",                 BinOp,
+     "\\largediamond",               Ordinary,
+     "\\boxminus",                   BinOp,
+     "\\boxvert",                    BinOp,
+     "\\boxslash",                   BinOp,
+     "\\boxbackslash",               BinOp,
+     "\\boxplus",                    BinOp,
+     "\\boxtimes",                   BinOp,
+     "\\boxdot",                     BinOp,
+     "\\boxbox",                     BinOp,
+     "\\diamondminus",               BinOp,
+     "\\diamondvert",                BinOp,
+     "\\diamondslash",               BinOp,
+     "\\diamondbackslash",           BinOp,
+     "\\diamondplus",                BinOp,
+     "\\diamondtimes",               BinOp,
+     "\\diamonddot",                 BinOp,
+     "\\diamonddiamond",             BinOp,
+     "\\smallstar",                  BinOp,
+     "\\filledstar",                 BinOp,
+     "\\medstar",                    BinOp,
+     "\\largestar",                  Ordinary,
+     "\\pentagram",                  BinOp,
+     "\\largepentagram",             Ordinary,
+     "\\thinstar",                   BinOp,
+     "\\ast",                        BinOp,
+     "\\hbipropto",                  BinOp,
+     "\\neswbipropto",               BinOp,
+     "\\vbipropto",                  BinOp,
+     "\\nwsebipropto",               BinOp,
+     "\\leftpropto",                 Relation,
+     "\\downpropto",                 Relation,
+     "\\rightpropto",                Relation,
+     "\\uppropto",                   Relation,
+     "\\hcrossing",                  Relation,
+     "\\neswcrossing",               Relation,
+     "\\vcrossing",                  Relation,
+     "\\nwsecrossing",               Relation,
+     "\\between",                    Relation,
+     "\\separated",                  Relation,
+     "\\bot",                        Ordinary,
+     "\\top",                        Ordinary,
+     "\\wreath",                     BinOp,
+     "\\angle",                      Ordinary,
+     "\\measuredangle",              Ordinary,
+     "\\sphericalangle",             Ordinary,
+     "\\prime",                      Ordinary,
+     "\\backprime",                  Ordinary,
+     "\\smallprod",                  BinOp,
+     "\\amalg",                      BinOp,
+     "\\checkmark",                  Ordinary,
+     "\\lightning",                  Ordinary,
+     "\\diamondsuit",                Ordinary,
+     "\\heartsuit",                  Ordinary,
+     "\\spadesuit",                  Ordinary,
+     "\\clubsuit",                   Ordinary,
+     "\\forall",                     Ordinary,
+     "\\exists",                     Ordinary,
+     "\\nexists",                    Ordinary,
+     "\\nabla",                      Ordinary,
+     "\\infty",                      Ordinary,
+     "\\smallint",                   Operator,
+     "\\flat",                       Operator,
+     "\\natural",                    Operator,
+     "\\sharp",                      Operator,
+     "\\aleph",                      Ordinary,
+     "\\beth",                       Ordinary,
+     "\\gimel",                      Ordinary,
+     "\\daleth",                     Ordinary,
+     "\\wp",                         Ordinary,
+     "\\powerset",                   Ordinary]}
+\ALcommand{
+  declare_symbols 7 0
+    ["\\equal",                      Relation,
+     "\\equiv",                      Relation,
+     "\\sim",                        Relation,
+     "\\backsim",                    Relation,
+     "\\approx",                     Relation,
+     "\\backapprox",                 Relation,
+     "\\triplesim",                  Relation,
+     "\\backtriplesim",              Relation,
+     "\\simeq",                      Relation,
+     "\\backsimeq",                  Relation,
+     "\\eqsim",                      Relation,
+     "\\backeqsim",                  Relation,
+     "\\cong",                       Relation,
+     "\\backcong",                   Relation,
+     "\\approxeq",                   Relation,
+     "\\backapproxeq",               Relation,
+     "\\bumpeq",                     Relation,
+     "\\eqbump",                     Relation,
+     "\\Bumpeq",                     Relation,
+     "\\doteq",                      Relation,
+     "\\eqdot",                      Relation,
+     "\\Doteq",                      Relation,
+     "\\fallingdotseq",              Relation,
+     "\\risingdotseq",               Relation,
+     "\\smile",                      Relation,
+     "\\frown",                      Relation,
+     "\\doublesmile",                Relation,
+     "\\doublefrown",                Relation,
+     "\\triplesmile",                Relation,
+     "\\triplefrown",                Relation,
+     "\\smilefrown",                 Relation,
+     "\\frownsmile",                 Relation,
+     "\\smileeq",                    Relation,
+     "\\frowneq",                    Relation,
+     "\\eqsmile",                    Relation,
+     "\\eqfrown",                    Relation,
+     "\\doublesmileeq",              Relation,
+     "\\doublefrowneq",              Relation,
+     "\\smileeqfrown",               Relation,
+     "\\frowneqsmile",               Relation,
+     "\\smilefrowneq",               Relation,
+     "\\frownsmileeq",               Relation,
+     "\\sqsmile",                    Relation,
+     "\\sqfrown",                    Relation,
+     "\\sqdoublesmile",              Relation,
+     "\\sqdoublefrown",              Relation,
+     "\\sqtriplesmile",              Relation,
+     "\\sqtriplefrown",              Relation,
+     "\\sqsmilefrown",               Relation,
+     "\\sqfrownsmile",               Relation,
+     "\\sqsmileeq",                  Relation,
+     "\\sqfrowneq",                  Relation,
+     "\\sqeqsmile",                  Relation,
+     "\\sqeqfrown",                  Relation,
+     "\\sqdoublesmileeq",            Relation,
+     "\\sqdoublefrowneq",            Relation,
+     "\\sqsmileeqfrown",             Relation,
+     "\\sqfrowneqsmile",             Relation,
+     "\\eqcirc",                     Relation,
+     "\\circeq",                     Relation,
+     "\\triangleeq",                 Relation,
+     "\\hateq",                      Relation,
+     "\\in",                         Relation,
+     "\\owns",                       Relation,
+     "\\less",                       Relation,
+     "\\gtr",                        Relation,
+     "\\leq",                        Relation,
+     "\\geq",                        Relation,
+     "\\leqslant",                   Relation,
+     "\\geqslant",                   Relation,
+     "\\leqq",                       Relation,
+     "\\geqq",                       Relation,
+     "\\lessgtr",                    Relation,
+     "\\gtrless",                    Relation,
+     "\\lesseqgtr",                  Relation,
+     "\\gtreqless",                  Relation,
+     "\\lesseqqgtr",                 Relation,
+     "\\gtreqqless",                 Relation,
+     "\\lesseqgtrslant",             Relation,
+     "\\gtreqlessslant",             Relation,
+     "\\ll",                         Relation,
+     "\\gg",                         Relation,
+     "\\lll",                        Relation,
+     "\\ggg",                        Relation,
+     "\\lessclosed",                 Relation,
+     "\\gtrclosed",                  Relation,
+     "\\leqclosed",                  Relation,
+     "\\geqclosed",                  Relation,
+     "\\sqsubset",                   Relation,
+     "\\sqsupset",                   Relation,
+     "\\sqsubseteq",                 Relation,
+     "\\sqsupseteq",                 Relation,
+     "\\sqsubseteqq",                Relation,
+     "\\sqsupseteqq",                Relation,
+     "\\Sqsubset",                   Relation,
+     "\\Sqsupset",                   Relation,
+     "\\subset",                     Relation,
+     "\\supset",                     Relation,
+     "\\subseteq",                   Relation,
+     "\\supseteq",                   Relation,
+     "\\subseteqq",                  Relation,
+     "\\supseteqq",                  Relation,
+     "\\Subset",                     Relation,
+     "\\Supset",                     Relation,
+     "\\prec",                       Relation,
+     "\\succ",                       Relation,
+     "\\preceq",                     Relation,
+     "\\succeq",                     Relation,
+     "\\preccurlyeq",                Relation,
+     "\\succcurlyeq",                Relation,
+     "\\precsim",                    Relation,
+     "\\succsim",                    Relation,
+     "\\precapprox",                 Relation,
+     "\\succapprox",                 Relation,
+     "\\lessdot",                    Relation,
+     "\\gtrdot",                     Relation,
+     "\\leqdot",                     Relation,
+     "\\geqdot",                     Relation,
+     "\\leqslantdot",                Relation,
+     "\\geqslantdot",                Relation,
+     "\\nequal",                     Relation,
+     "\\nequiv",                     Relation,
+     "\\nsim",                       Relation,
+     "\\nbacksim",                   Relation,
+     "\\napprox",                    Relation,
+     "\\nbackapprox",                Relation,
+     "\\ntriplesim",                 Relation,
+     "\\nbacktriplesim",             Relation,
+     "\\nsimeq",                     Relation,
+     "\\nbacksimeq",                 Relation,
+     "\\neqsim",                     Relation,
+     "\\nbackeqsim",                 Relation,
+     "\\ncong",                      Relation,
+     "\\nbackcong",                  Relation,
+     "\\napproxeq",                  Relation,
+     "\\nbackapproxeq",              Relation,
+     "\\nbumpeq",                    Relation,
+     "\\neqbump",                    Relation,
+     "\\nBumpeq",                    Relation,
+     "\\ndoteq",                     Relation,
+     "\\neqdot",                     Relation,
+     "\\nDoteq",                     Relation,
+     "\\nfallingdotseq",             Relation,
+     "\\nrisingdotseq",              Relation,
+     "\\nsmile",                     Relation,
+     "\\nfrown",                     Relation,
+     "\\ndoublesmile",               Relation,
+     "\\ndoublefrown",               Relation,
+     "\\ntriplesmile",               Relation,
+     "\\ntriplefrown",               Relation,
+     "\\nsmilefrown",                Relation,
+     "\\nfrownsmile",                Relation,
+     "\\nsmileeq",                   Relation,
+     "\\nfrowneq",                   Relation,
+     "\\neqsmile",                   Relation,
+     "\\neqfrown",                   Relation,
+     "\\ndoublesmileeq",             Relation,
+     "\\ndoublefrowneq",             Relation,
+     "\\nsmileeqfrown",              Relation,
+     "\\nfrowneqsmile",              Relation,
+     "\\nsmilefrowneq",              Relation,
+     "\\nfrownsmileeq",              Relation,
+     "\\nsqsmile",                   Relation,
+     "\\nsqfrown",                   Relation,
+     "\\nsqdoublesmile",             Relation,
+     "\\nsqdoublefrown",             Relation,
+     "\\nsqtriplesmile",             Relation,
+     "\\nsqtriplefrown",             Relation,
+     "\\nsqsmilefrown",              Relation,
+     "\\nsqfrownsmile",              Relation,
+     "\\nsqsmileeq",                 Relation,
+     "\\nsqfrowneq",                 Relation,
+     "\\nsqeqsmile",                 Relation,
+     "\\nsqeqfrown",                 Relation,
+     "\\nsqdoublesmileeq",           Relation,
+     "\\nsqdoublefrowneq",           Relation,
+     "\\nsqsmileeqfrown",            Relation,
+     "\\nsqfrowneqsmile",            Relation,
+     "\\neqcirc",                    Relation,
+     "\\ncirceq",                    Relation,
+     "\\ntriangleeq",                Relation,
+     "\\nhateq",                     Relation,
+     "\\nin",                        Relation,
+     "\\nowns",                      Relation,
+     "\\nless",                      Relation,
+     "\\ngtr",                       Relation,
+     "\\nleq",                       Relation,
+     "\\ngeq",                       Relation,
+     "\\nleqslant",                  Relation,
+     "\\ngeqslant",                  Relation,
+     "\\nleqq",                      Relation,
+     "\\ngeqq",                      Relation,
+     "\\nlessgtr",                   Relation,
+     "\\ngtrless",                   Relation,
+     "\\nlesseqgtr",                 Relation,
+     "\\ngtreqless",                 Relation,
+     "\\nlesseqqgtr",                Relation,
+     "\\ngtreqqless",                Relation,
+     "\\nlesseqgtrslant",            Relation,
+     "\\ngtreqlessslant",            Relation,
+     "\\nll",                        Relation,
+     "\\ngg",                        Relation,
+     "\\nlll",                       Relation,
+     "\\nggg",                       Relation,
+     "\\nlessclosed",                Relation,
+     "\\ngtrclosed",                 Relation,
+     "\\nleqclosed",                 Relation,
+     "\\ngeqclosed",                 Relation,
+     "\\nsqsubset",                  Relation,
+     "\\nsqsupset",                  Relation,
+     "\\nsqsubseteq",                Relation,
+     "\\nsqsupseteq",                Relation,
+     "\\nsqsubseteqq",               Relation,
+     "\\nsqsupseteqq",               Relation,
+     "\\nSqsubset",                  Relation,
+     "\\nSqsupset",                  Relation,
+     "\\nsubset",                    Relation,
+     "\\nsupset",                    Relation,
+     "\\nsubseteq",                  Relation,
+     "\\nsupseteq ",                 Relation,
+     "\\nsubseteqq",                 Relation,
+     "\\nsupseteqq",                 Relation,
+     "\\nSubset",                    Relation,
+     "\\nSupset",                    Relation,
+     "\\nprec",                      Relation,
+     "\\nsucc",                      Relation,
+     "\\npreceq",                    Relation,
+     "\\nsucceq",                    Relation,
+     "\\npreccurlyeq",               Relation,
+     "\\nsucccurlyeq",               Relation,
+     "\\nprecsim",                   Relation,
+     "\\nsuccsim",                   Relation,
+     "\\nprecapprox",                Relation,
+     "\\nsuccapprox",                Relation,
+     "\\nlessdot",                   Relation,
+     "\\ngtrdot",                    Relation,
+     "\\nleqdot",                    Relation,
+     "\\ngeqdot",                    Relation,
+     "\\nleqslantdot",               Relation,
+     "\\ngeqslantdot",               Relation,
+     "\\lneqq",                      Relation,
+     "\\gneqq",                      Relation,
+     "\\lessneqqgtr",                Relation,
+     "\\gtrneqqless",                Relation,
+     "\\sqsubsetneq",                Relation,
+     "\\sqsupsetneq",                Relation,
+     "\\sqsubsetneqq",               Relation,
+     "\\sqsupsetneqq",               Relation,
+     "\\subsetneq",                  Relation,
+     "\\supsetneq",                  Relation,
+     "\\subsetneqq",                 Relation,
+     "\\supsetneqq",                 Relation,
+     "\\precnsim",                   Relation,
+     "\\succnsim",                   Relation,
+     "\\precnapprox",                Relation,
+     "\\succnapprox",                Relation]}
+\ALcommand{
+  declare_symbols 2 0
+    ["\\tbigplus",                   Operator,
+     "\\dbigplus",                   Operator,
+     "\\tbigtimes",                  Operator,
+     "\\dbigtimes",                  Operator,
+     "\\tbigwedge",                  Operator,
+     "\\dbigwedge",                  Operator,
+     "\\tbigvee",                    Operator,
+     "\\dbigvee",                    Operator,
+     "\\tbigwedgedot",               Operator,
+     "\\dbigwedgedot",               Operator,
+     "\\tbigveedot",                 Operator,
+     "\\dbigveedot",                 Operator,
+     "\\tbigdoublewedge",            Operator,
+     "\\dbigdoublewedge",            Operator,
+     "\\tbigdoublevee",              Operator,
+     "\\dbigdoublevee",              Operator,
+     "\\tbigcurlywedge",             Operator,
+     "\\dbigcurlywedge",             Operator,
+     "\\tbigcurlyvee",               Operator,
+     "\\dbigcurlyvee",               Operator,
+     "\\tbigcurlywedgedot",          Operator,
+     "\\dbigcurlywedgedot",          Operator,
+     "\\tbigcurlyveedot",            Operator,
+     "\\dbigcurlyveedot",            Operator,
+     "\\tbigdoublecurlywedge",       Operator,
+     "\\dbigdoublecurlywedge",       Operator,
+     "\\tbigdoublecurlyvee",         Operator,
+     "\\dbigdoublecurlyvee",         Operator,
+     "\\tbigcap",                    Operator,
+     "\\dbigcap",                    Operator,
+     "\\tbigcup",                    Operator,
+     "\\dbigcup",                    Operator,
+     "\\tbigcapdot",                 Operator,
+     "\\dbigcapdot",                 Operator,
+     "\\tbigcupdot",                 Operator,
+     "\\dbigcupdot",                 Operator,
+     "\\tbigcapplus",                Operator,
+     "\\dbigcapplus",                Operator,
+     "\\tbigcupplus",                Operator,
+     "\\dbigcupplus",                Operator,
+     "\\tbigsqcap",                  Operator,
+     "\\dbigsqcap",                  Operator,
+     "\\tbigsqcup",                  Operator,
+     "\\dbigsqcup",                  Operator,
+     "\\tbigsqcapdot",               Operator,
+     "\\dbigsqcapdot",               Operator,
+     "\\tbigsqcupdot",               Operator,
+     "\\dbigsqcupdot",               Operator,
+     "\\tbigsqcapplus",              Operator,
+     "\\dbigsqcapplus",              Operator,
+     "\\tbigsqcupplus",              Operator,
+     "\\dbigsqcupplus",              Operator,
+     "\\tbigcircle",                 Operator,
+     "\\dbigcircle",                 Operator,
+     "\\tbigominus",                 Operator,
+     "\\dbigominus",                 Operator,
+     "\\tbigovert",                  Operator,
+     "\\dbigovert",                  Operator,
+     "\\tbigoslash",                 Operator,
+     "\\dbigoslash",                 Operator,
+     "\\tbigobackslash",             Operator,
+     "\\dbigobackslash",             Operator,
+     "\\tbigoplus",                  Operator,
+     "\\dbigoplus",                  Operator,
+     "\\tbigotimes",                 Operator,
+     "\\dbigotimes",                 Operator,
+     "\\tbigodot",                   Operator,
+     "\\dbigodot",                   Operator,
+     "\\tbigocirc",                  Operator,
+     "\\dbigocirc",                  Operator,
+     "\\tbigotriangle",              Operator,
+     "\\dbigotriangle",              Operator,
+     "\\tbigoast",                   Operator,
+     "\\dbigoast",                   Operator,
+     "\\tbigostar",                  Operator,
+     "\\dbigostar",                  Operator,
+     "\\tprod",                      Operator,
+     "\\dprod",                      Operator,
+     "\\tcoprod",                    Operator,
+     "\\dcoprod",                    Operator,
+     "\\tsum",                       Operator,
+     "\\dsum",                       Operator,
+     "\\tint",                       Operator,
+     "\\dint",                       Operator,
+     "\\tiint",                      Operator,
+     "\\diint",                      Operator,
+     "\\tiiint",                     Operator,
+     "\\diiint",                     Operator,
+     "\\tiiiint",                    Operator,
+     "\\diiiint",                    Operator,
+     "\\tidotsint",                  Operator,
+     "\\didotsint",                  Operator,
+     "\\tlandupint",                 Operator,
+     "\\dlandupint",                 Operator,
+     "\\tlanddownint",               Operator,
+     "\\dlanddownint",               Operator,
+     "\\tstrokedint",                Operator,
+     "\\dstrokedint",                Operator,
+     "\\toint",                      Operator,
+     "\\doint",                      Operator,
+     "\\toiint",                     Operator,
+     "\\doiint",                     Operator,
+     "\\trcirclerightint",           Operator,
+     "\\drcirclerightint",           Operator,
+     "\\tlcirclerightint",           Operator,
+     "\\dlcirclerightint",           Operator,
+     "\\trcircleleftint",            Operator,
+     "\\drcircleleftint",            Operator,
+     "\\tlcircleleftint ",           Operator,
+     "\\dlcircleleftint",            Operator,
+     "\\tsumint",                    Operator,
+     "\\dsumint",                    Operator,
+     "\\partialvartint",             Operator,
+     "\\partialvardint",             Operator,
+     "\\partialvartlandupint",       Operator,
+     "\\partialvardlandupint",       Operator,
+     "\\partialvartlanddownint",     Operator,
+     "\\partialvardlanddownint",     Operator,
+     "\\partialvartstrokedint",      Operator,
+     "\\partialvardstrokedint",      Operator,
+     "\\partialvartoint",            Operator,
+     "\\partialvardoint",            Operator,
+     "\\partialvartoiint",           Operator,
+     "\\partialvardoiint",           Operator,
+     "\\partialvartrcirclerightint", Operator,
+     "\\partialvardrcirclerightint", Operator,
+     "\\partialvartlcirclerightint", Operator,
+     "\\partialvardlcirclerightint", Operator,
+     "\\partialvartrcircleleftint",  Operator,
+     "\\partialvardrcircleleftint",  Operator,
+     "\\partialvartlcircleleftint",  Operator,
+     "\\partialvardlcircleleftint",  Operator,
+     "\\partialvartsumint",          Operator,
+     "\\partialvardsumint",          Operator]}
+\ALcommand{
+  ps_define_math_symbol "\\lfloor"        Open     3 0x0a >>
+  ps_define_math_symbol "\\rfloor"        Close    3 0x0f >>
+  ps_define_math_symbol "\\lceil"         Open     3 0x14 >>
+  ps_define_math_symbol "\\rceil"         Close    3 0x19 >>
+  ps_define_math_symbol "\\ulcorner"      Open     3 0x1e >>
+  ps_define_math_symbol "\\urcorner"      Close    3 0x23 >>
+  ps_define_math_symbol "\\llcorner"      Open     3 0x28 >>
+  ps_define_math_symbol "\\lrcorner"      Close    3 0x2d >>
+  ps_define_math_symbol "\\ullcorner"     Open     3 0x32 >>
+  ps_define_math_symbol "\\ulrcorner"     Close    3 0x37 >>
+  ps_define_math_symbol "\\lsem"          Open     3 0x42 >>
+  ps_define_math_symbol "\\rsem"          Close    3 0x47 >>
+  ps_define_math_symbol "\\vert"          Ordinary 3 0x53 >>
+  ps_define_math_symbol "\\mvert"         Relation 3 0x53 >>
+  ps_define_math_symbol "\\lvert"         Open     3 0x53 >>
+  ps_define_math_symbol "\\rvert"         Close    3 0x53 >>
+  ps_define_math_symbol "\\Vert"          Ordinary 3 0x59 >>
+  ps_define_math_symbol "\\mVert"         Relation 3 0x59 >>
+  ps_define_math_symbol "\\lVert"         Open     3 0x59 >>
+  ps_define_math_symbol "\\rVert"         Close    3 0x59 >>
+  ps_define_math_symbol "\\arrowvert"     Ordinary 3 0x52 >>
+  ps_define_math_symbol "\\Arrowvert"     Ordinary 3 0x58 >>
+  ps_define_math_symbol "\\lwavy"         Open     3 0x5e >>
+  ps_define_math_symbol "\\rwavy"         Close    3 0x5e >>
+  ps_define_math_symbol "\\lWavy"         Open     3 0x5f >>
+  ps_define_math_symbol "\\rWavy"         Close    3 0x5f >>
+  ps_define_math_symbol "\\langle"        Open     3 0x60 >>
+  ps_define_math_symbol "\\rangle"        Close    3 0x65 >>
+  ps_define_math_symbol "\\langlebar"     Open     3 0x6a >>
+  ps_define_math_symbol "\\ranglebar"     Close    3 0x6f >>
+  ps_define_math_symbol "\\llangle"       Open     3 0x74 >>
+  ps_define_math_symbol "\\rrangle"       Close    3 0x79 >>
+  ps_define_math_symbol "\\backslash"     Ordinary 3 0x83 >>
+  ps_define_math_symbol "\\lbrace"        Open     3 0x98 >>
+  ps_define_math_symbol "\\rbrace"        Close    3 0x9d >>
+  ps_define_math_symbol "\\lgroup"        Close    3 0xa2 >>
+  ps_define_math_symbol "\\rgroup"        Open     3 0xa3 >>
+  ps_define_math_symbol "\\rmoustache"    Close    3 0xa4 >>
+  ps_define_math_symbol "\\lmoustache"    Open     3 0xa5 >>
+  ps_define_math_symbol "\\bracevert"     Ordinary 3 0xa8 >>
+  ps_define_math_symbol "\\divides"       BinOp    3 0x53 >>
+  ps_define_math_symbol "\\downbrace"     Ordinary 3 0xa9 >>
+  ps_define_math_symbol "\\downbraceg"    Ordinary 3 0xaa >>
+  ps_define_math_symbol "\\downbracegg"   Ordinary 3 0xab >>
+  ps_define_math_symbol "\\downbraceggg"  Ordinary 3 0xac >>
+  ps_define_math_symbol "\\downbracegggg" Ordinary 3 0xad >>
+  ps_define_math_symbol "\\upbrace"       Ordinary 3 0xae >>
+  ps_define_math_symbol "\\upbraceg"      Ordinary 3 0xaf >>
+  ps_define_math_symbol "\\upbracegg"     Ordinary 3 0xb0 >>
+  ps_define_math_symbol "\\upbraceggg"    Ordinary 3 0xb1 >>
+  ps_define_math_symbol "\\upbracegggg"   Ordinary 3 0xb2 >>
+  ps_define_math_symbol "\\braceld"       Ordinary 3 0xb3 >>
+  ps_define_math_symbol "\\bracelu"       Ordinary 3 0xb4 >>
+  ps_define_math_symbol "\\bracerd"       Ordinary 3 0xb5 >>
+  ps_define_math_symbol "\\braceru"       Ordinary 3 0xb6 >>
+  ps_define_math_symbol "\\bracemd"       Ordinary 3 0xb7 >>
+  ps_define_math_symbol "\\bracemu"       Ordinary 3 0xb8 >>
+  ps_define_math_symbol "\\bracemid"      Ordinary 3 0xb9 >>
+
+  ps_set_math_code '='  Relation 7 0x00 7 0x00 >>
+  ps_set_math_code '<'  Relation 7 0x40 7 0x40 >>
+  ps_set_math_code '>'  Relation 7 0x41 7 0x41 >>
+  ps_set_math_code '+'  BinOp    6 0x14 6 0x14 >>
+  ps_set_math_code '-'  BinOp    6 0x10 6 0x10 >>
+  ps_set_math_code '*'  BinOp    6 0x87 6 0x87 >>
+  ps_set_math_code '|'  Ordinary 3 0x53 3 0x53 >>
+  ps_set_math_code '('  Open     3 0x88 3 0x88 >>
+  ps_set_math_code ')'  Close    3 0x8d 3 0x8d >>
+  ps_set_math_code ':'  Relation 6 0x02 6 0x02 >>
+  ps_set_math_code '['  Open     3 0x00 3 0x00 >>
+  ps_set_math_code ']'  Close    3 0x05 3 0x05 >>
+  ps_set_math_code '/'  Ordinary 3 0x7e 3 0x7e >>
+  ps_set_math_code '|'  Ordinary 3 0x53 3 0x53 >>
+  ps_set_math_code '<'  Open     3 0x60 3 0x60 >>
+  ps_set_math_code '>'  Close    3 0x65 3 0x65 >>
+  ps_set_math_code '/'  Ordinary 3 0x7e 3 0x7e >>
+  ps_set_math_code '('  Open     3 0x88 3 0x88 >>
+  ps_set_math_code ')'  Close    3 0x8d 3 0x8d >>
+  ps_set_math_code '['  Open     3 0x00 3 0x00 >>
+  ps_set_math_code ']'  Close    3 0x05 3 0x05 >>
+
+  ps_define_root_symbol "\\sqrt" 3 0xba 3 0xba >>
+
+  ps_define_math_accent "\\widehat"     3 0xc2 >>
+  ps_define_math_accent "\\widetilde"   3 0xc7 >>
+  ps_define_math_accent "\\wideparen"   3 0xcc >>
+  ps_define_math_accent "\\vec"         3 0xd1}
+
+\definecommand\to{\rightarrow }
+\definecommand\gets{\leftarrow }
+\definecommand\mapsto{\rightmapsto }
+\definecommand\hookrightarrow{\lhookrightarrow }
+\definecommand\hookleftarrow{\rhookleftarrow }
+\definecommand\upharpoonleft{\upharpoonup }
+\definecommand\downharpoonright{\downharpoonup }
+\definecommand\upharpoonright{\upharpoondown }
+\definecommand\restriction{\upharpoondown }
+\definecommand\downharpoonleft{\downharpoondown }
+\definecommand\dashrightarrow{\dashedrightarrow }
+\definecommand\dasharrow{\dashedrightarrow }
+\definecommand\dashleftarrow{\dashedleftarrow }
+\definecommand\multimap{\rightspoon }
+\definecommand\pitchfork{\uppitchfork }
+\definecommand\leadsto{\rightlsquigarrow }
+\definecommand\rightsquigarrow{\rightlsquigarrow }
+\definecommand\leftrightsquigarrow{\squigarrowleftright }
+\definecommand\curvearrowright{\lcurvearrowright }
+\definecommand\curvearrowleft{\rcurvearrowleft }
+\definecommand\relbar{\leftrightline }
+\definecommand\diagup{\neswline }
+\definecommand\diagdown{\nwseline }
+\definecommand\Relbar{\Leftrightline }
+\definecommand\vdash{\rightvdash }
+\definecommand\perp{\upvdash }
+\definecommand\dashv{\leftvdash }
+\definecommand\models{\rightmodels }
+\definecommand\vDash{\models }
+\definecommand\Vdash{\rightVdash }
+\definecommand\VDash{\rightModels }
+\definecommand\circlearrowleft{\rcirclearrowup }
+\definecommand\circlearrowright{\rcirclearrowup }
+
+\definecommand\joinrel{\mathrel{\mkern-3.1mu}}
+\definecommand\longrightarrow{\leftrightline\joinrel\rightarrow }
+\definecommand\longleftarrow{\leftarrow\joinrel\leftrightline }
+\definecommand\longleftrightarrow{\leftarrow\joinrel\rightarrow }
+\definecommand\Longrightarrow{\Leftrightline\joinrel\Rightarrow }
+\definecommand\Longleftarrow{\Leftarrow\joinrel\Leftrightline }
+\definecommand\Longleftrightarrow{\Leftarrow\joinrel\Rightarrow }
+\definecommand\longmapsto{\leftfootline\joinrel\rightarrow }
+\definecommand\emptyfilledspoon{\leftspoon\mkern-14mu\rightfilledspoon }
+\definecommand\filledemptyspoon{\leftfilledspoon\mkern-14mu\rightspoon }
+\definecommand\largeemptyfilledspoon{\mathrel{\circ\mkern-8mu\relbar\mkern-8mu\bullet}}
+\definecommand\largefilledemptyspoon{\mathrel{\bullet\mkern-8mu\relbar\mkern-8mu\circ}}
+
+\definecommand\nmid{\nupdownline }
+\definecommand\nparallel{\nUpdownline }
+\definecommand\nvdash{\nrightvdash }
+\definecommand\nmodels{\nrightmodels }
+\definecommand\nvDash{\nmodels }
+\definecommand\nVdash{\nrightVdash }
+\definecommand\nVDash{\nrightModels }
+\definecommand\cdotp{\mathpunct{\cdot}}
+\definecommand\colon{\mathpunct{\vdotdot}}
+\definecommand\cdots{\mathinner{\hdots}}
+\definecommand\therefore{\uptherefore }
+\definecommand\because{\downtherefore }
+\definecommand\shortmid{\mathrel{\medvert}}
+\definecommand\setminus{\medbackslash }
+\definecommand\smallsetminus{\medbackslash }
+\definecommand\lnot{\neg }
+\definecommand\Join{\bowtie }
+\definecommand\land{\wedge }
+\definecommand\lor{\vee }
+\definecommand\Cup{\doublecup }
+\definecommand\Cap{\doublecap }
+\definecommand\uplus{\cupplus }
+\definecommand\blacktriangleright{\filledtriangleright }
+\definecommand\blacktriangleleft{\filledtriangleleft }
+\definecommand\triangleright{\medtriangleright }
+\definecommand\triangle{\medtriangleup }
+\definecommand\vartriangle{\medtriangleup }
+\definecommand\bigtriangleup{\medtriangleup }
+\definecommand\triangleleft{\medtriangleleft }
+\definecommand\bigtriangledown{\medtriangledown }
+\definecommand\triangledown{\medtriangledown }
+\definecommand\bigcirc{\largecircle }
+\definecommand\circleddash{\ominus }
+\definecommand\circledcirc{\ocirc }
+\definecommand\circledast{\oast }
+\definecommand\emptyset{\diameter }
+\definecommand\varnothing{\diameter }
+\definecommand\square{\medsquare }
+\definecommand\Box{\medsquare }
+\definecommand\diamond{\smalldiamond }
+\definecommand\Diamond{\meddiamond }
+\definecommand\lozenge{\meddiamond }
+\definecommand\star{\thinstar }
+\definecommand\propto{\leftpropto }
+\definecommand\varpropto{\propto }
+\definecommand\wr{\wreath }
+\definecommand\doteqdot{\Doteq }
+\definecommand\smallsmile{\smile }
+\definecommand\smallfrown{\frown }
+\definecommand\asymp{\smilefrown }
+\definecommand\triangleq{\triangleeq }
+\definecommand\ni{\owns }
+\definecommand\le{\leq }
+\definecommand\ge{\geq }
+\definecommand\llless{\lll }
+\definecommand\gggtr{\ggg }
+\definecommand\lhd{\lessclosed }
+\definecommand\vartriangleleft{\lessclosed }
+\definecommand\rhd{\gtrclosed }
+\definecommand\vartriangleright{\gtrclosed }
+\definecommand\unlhd{\leqclosed }
+\definecommand\trianglelefteq{\leqclosed }
+\definecommand\unrhd{\geqclosed }
+\definecommand\trianglerighteq{\geqclosed }
+\definecommand\neq{\nequal }
+\definecommand\ne{\nequal }
+\definecommand\nasymp{\nsmilefrown }
+\definecommand\notin{\nin }
+\definecommand\ntriangleleft{\nlessclosed }
+\definecommand\ntriangleright{\ngtrclosed }
+\definecommand\ntrianglelefteq{\nleqclosed }
+\definecommand\ntrianglerighteq{\ngeqclosed }
+\definecommand\lvertneqq{\lneqq }
+\definecommand\gvertneqq{\gneqq }
+\definecommand\varsubsetneq{\subsetneq }
+\definecommand\varsupsetneq{\supsetneq }
+\definecommand\varsubsetneqq{\subsetneqq }
+\definecommand\varsupsetneqq{\supsetneqq }
+
+%\let\intop\tint
+%\let\ointop\toint
+%\Decl@Mn@Int\iint\diint\tiint
+%\Decl@Mn@Int\iiint\diiint\tiiint
+%\Decl@Mn@Int\iiiint\diiiint\tiiiint
+%\Decl@Mn@Int\idotsint\didotsint\tidotsint
+%\Decl@Mn@Int\landupint\dlandupint\tlandupint
+%\Decl@Mn@Int\landdownint\dlanddownint\tlanddownint
+%\Decl@Mn@Int\strokedint\dstrokedint\tstrokedint
+%\Decl@Mn@Int\oiint\doiint\toiint
+%\Decl@Mn@Int\rcirclerightint\drcirclerightint\trcirclerightint
+%\Decl@Mn@Int\lcirclerightint\dlcirclerightint\tlcirclerightint
+%\Decl@Mn@Int\rcircleleftint\drcircleleftint\trcircleleftint
+%\Decl@Mn@Int\lcircleleftint\dlcircleleftint\tlcircleleftint
+%\Decl@Mn@Int\sumint\dsumint\tsumint
+%
+%\def\intkern@{\mkern-10mu\mathchoice{\mkern-6mu}{}{}{}}
+%\def\intdots@{\mkern-7mu%
+%  \mathchoice{\mkern-3mu\@cdots\mkern-3mu}%
+%  {{\cdotp}\mkern0.5mu{\cdotp}\mkern0.5mu{\cdotp}}%
+%  {{\cdotp}{\cdotp}{\cdotp}}%
+%  {{\cdotp}{\cdotp}{\cdotp}}%
+%  \mkern-6mu}
+
+\definecommand\bigplus{\tbigplus\indexposition{vert}}
+\definecommand\bigtimes{\tbigtimes\indexposition{vert}}
+\definecommand\bigwedge{\tbigwedge\indexposition{vert}}
+\definecommand\bigvee{\tbigvee\indexposition{vert}}
+\definecommand\bigwedgedot{\tbigwedgedot\indexposition{vert}}
+\definecommand\bigveedot{\tbigveedot\indexposition{vert}}
+\definecommand\bigdoublewedge{\tbigdoublewedge\indexposition{vert}}
+\definecommand\bigdoublevee{\tbigdoublevee\indexposition{vert}}
+\definecommand\bigcurlywedge{\tbigcurlywedge\indexposition{vert}}
+\definecommand\bigcurlyvee{\tbigcurlyvee\indexposition{vert}}
+\definecommand\bigcurlywedgedot{\tbigcurlywedgedot\indexposition{vert}}
+\definecommand\bigcurlyveedot{\tbigcurlyveedot\indexposition{vert}}
+\definecommand\bigdoublecurlywedge{\tbigdoublecurlywedge\indexposition{vert}}
+\definecommand\bigdoublecurlyvee{\tbigdoublecurlyvee\indexposition{vert}}
+\definecommand\bigcap{\tbigcap\indexposition{vert}}
+\definecommand\bigcup{\tbigcup\indexposition{vert}}
+\definecommand\bigcapdot{\tbigcapdot\indexposition{vert}}
+\definecommand\bigcupdot{\tbigcupdot\indexposition{vert}}
+\definecommand\bigcapplus{\tbigcapplus\indexposition{vert}}
+\definecommand\bigcupplus{\tbigcupplus\indexposition{vert}}
+\definecommand\bigsqcap{\tbigsqcap\indexposition{vert}}
+\definecommand\bigsqcup{\tbigsqcup\indexposition{vert}}
+\definecommand\bigsqcapdot{\tbigsqcapdot\indexposition{vert}}
+\definecommand\bigsqcupdot{\tbigsqcupdot\indexposition{vert}}
+\definecommand\bigsqcapplus{\tbigsqcapplus\indexposition{vert}}
+\definecommand\bigsqcupplus{\tbigsqcupplus\indexposition{vert}}
+\definecommand\bigcircle{\tbigcircle\indexposition{vert}}
+\definecommand\bigominus{\tbigominus\indexposition{vert}}
+\definecommand\bigovert{\tbigovert\indexposition{vert}}
+\definecommand\bigoslash{\tbigoslash\indexposition{vert}}
+\definecommand\bigobackslash{\tbigobackslash\indexposition{vert}}
+\definecommand\bigoplus{\tbigoplus\indexposition{vert}}
+\definecommand\bigotimes{\tbigotimes\indexposition{vert}}
+\definecommand\bigodot{\tbigodot\indexposition{vert}}
+\definecommand\bigocirc{\tbigocirc\indexposition{vert}}
+\definecommand\bigotriangle{\tbigotriangle\indexposition{vert}}
+\definecommand\bigoast{\tbigoast\indexposition{vert}}
+\definecommand\bigostar{\tbigostar\indexposition{vert}}
+\definecommand\sum{\tsum\indexposition{vert}}
+\definecommand\prod{\tprod\indexposition{vert}}
+\definecommand\coprod{\tcoprod\indexposition{vert}}
+
+\definecommand\biguplus{\bigcupplus }
+\definecommand\mid{\mvert }
+\definecommand\|{\Vert }
+\definecommand\parallel{\mVert }
+
+%\expandafter\DeclareMathDelimiter\@backslashchar
+%                          {\mathord}{largesymbols}{'203}{largesymbols}{'203}
+%
+%\def\horiz@expandable#1#2#3#4#5#6#7#8{%
+%  \@mathmeasure\z@#7{#8}%
+%  \@tempdima=\wd\z@
+%  \@mathmeasure\z@#7{#1}%
+%  \ifdim\noexpand\wd\z@>\@tempdima
+%    $\m@th#7#1$%
+%  \else
+%    \@mathmeasure\z@#7{#2}%
+%    \ifdim\noexpand\wd\z@>\@tempdima
+%      $\m@th#7#2$%
+%    \else
+%      \@mathmeasure\z@#7{#3}%
+%      \ifdim\noexpand\wd\z@>\@tempdima
+%        $\m@th#7#3$%
+%      \else
+%        \@mathmeasure\z@#7{#4}%
+%        \ifdim\noexpand\wd\z@>\@tempdima
+%          $\m@th#7#4$%
+%        \else
+%          \@mathmeasure\z@#7{#5}%
+%          \ifdim\noexpand\wd\z@>\@tempdima
+%            $\m@th#7#5$%
+%          \else
+%           #6#7%
+%          \fi
+%        \fi
+%      \fi
+%    \fi
+%  \fi}
+%
+%\def\overbrace@expandable#1#2#3{\vbox{\m@th\ialign{##\crcr
+%  #1#2{#3}\crcr\noalign{\kern2\p@\nointerlineskip}%
+%  $\m@th\hfil#2#3\hfil$\crcr}}}
+%\def\underbrace@expandable#1#2#3{\vtop{\m@th\ialign{##\crcr
+%  $\m@th\hfil#2#3\hfil$\crcr
+%  \noalign{\kern2\p@\nointerlineskip}%
+%  #1#2{#3}\crcr}}}
+%
+%\def\overbrace@#1#2#3{\vbox{\m@th\ialign{##\crcr
+%  #1#2\crcr\noalign{\kern2\p@\nointerlineskip}%
+%  $\m@th\hfil#2#3\hfil$\crcr}}}
+%\def\underbrace@#1#2#3{\vtop{\m@th\ialign{##\crcr
+%  $\m@th\hfil#2#3\hfil$\crcr
+%  \noalign{\kern2\p@\nointerlineskip}%
+%  #1#2\crcr}}}
+%
+%\definecommand\bracefill@[mmmmm]{$\m@th#5#1\leaders\hbox{$#4$}\hfill#2\leaders\hbox{$#4$}\hfill#3$}
+%
+%\definecommand\downbracefill{\bracefill@\braceld\bracemd\bracerd\bracemid}
+%\definecommand\upbracefill{\bracefill@\bracelu\bracemu\braceru\bracemid}
+%\definecommand\downgroupfill@{\bracefill@\braceld{}\bracerd\bracemid}
+%\definecommand\upgroupfill@{\bracefill@\bracelu{}\braceru\bracemid}
+%\definecommand\linesegmentfill@{\arrowfill@\leftfootline\relbar\rightfootline}
+%\definecommand\leftharpoonfill@{\arrowfill@\leftharpoondown\relbar\relbar}
+%\definecommand\rightharpoonfill@{\arrowfill@\relbar\relbar\rightharpoonup}
+%
+%\def\upbrace@expandable{%
+%  \horiz@expandable
+%    \upbrace
+%    \upbraceg
+%    \upbracegg
+%    \upbraceggg
+%    \upbracegggg
+%    \upbracefill}
+%\def\downbrace@expandable{%
+%  \horiz@expandable
+%    \downbrace
+%    \downbraceg
+%    \downbracegg
+%    \downbraceggg
+%    \downbracegggg
+%    \downbracefill}
+%
+%\DeclareRobustCommand{\overbrace}[1]{\mathop{\mathpalette{\overbrace@expandable\downbrace@expandable}{#1}}\limits}
+%\DeclareRobustCommand{\underbrace}[1]{\mathop{\mathpalette{\underbrace@expandable\upbrace@expandable}{#1}}\limits}
+%
+%\DeclareRobustCommand{\overgroup}{\mathpalette{\overbrace@\downgroupfill@}}
+%\DeclareRobustCommand{\undergroup}{\mathpalette{\underbrace@\upgroupfill@}}
+%\DeclareRobustCommand{\overlinesegment}{\mathpalette{\overarrow@\linesegmentfill@}}
+%\DeclareRobustCommand{\overleftharpoon}{\mathpalette{\overarrow@\leftharpoonfill@}}
+%\DeclareRobustCommand{\overrightharpoon}{\mathpalette{\overarrow@\rightharpoonfill@}}
+%\DeclareRobustCommand{\underlinesegment}{\mathpalette{\underarrow@\linesegmentfill@}}
+%
+%\DeclareRobustCommand{\surd}{{\mathchar'11672}}
+%
+%\def\c@ncel#1#2{\m@th\ooalign{$\hfil#1/\hfil$\crcr$#1#2$}}
+%\def\not#1{\mathrel{\m@th\mathpalette\c@ncel{#1}}}
+%\DeclareRobustCommand{\coloneq}{\mathrel{{\vdotdot}{\equal}}}
+%\DeclareRobustCommand{\dagger}{\Mn@Text@With@MathVersion{\textdagger}}
+%\DeclareRobustCommand{\ddagger}{\Mn@Text@With@MathVersion{\textdaggerdbl}}
+%\DeclareRobustCommand{\mathparagraph}{\Mn@Text@With@MathVersion{\textparagraph}}
+%\DeclareRobustCommand{\mathsection}{\Mn@Text@With@MathVersion{\textsection}}
+%\DeclareRobustCommand{\mathdollar}{\Mn@Text@With@MathVersion{\textdollar}}
+%\DeclareRobustCommand{\mathsterling}{\Mn@Text@With@MathVersion{\textsterling}}
+%\DeclareRobustCommand{\yen}{\Mn@Text@With@MathVersion{\textyen}}
+%\DeclareRobustCommand{\Re}{\mathfrak{R}}
+%\DeclareRobustCommand{\Im}{\mathfrak{I}}
+%\DeclareRobustCommand{\dotplus}{\dot{+}}
+%\DeclareRobustCommand{\thicksim}{\mathrel{\text{\boldmath$\m@th\sim$}}}
+%\DeclareRobustCommand{\thickapprox}{\mathrel{\text{\boldmath$\m@th\approx$}}}
+
+% vim:set ft=tex fenc=utf8:
