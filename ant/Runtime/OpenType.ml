@@ -642,7 +642,7 @@ value read_context_subrule table table_off read_lookup first i = do
    read_pos_rule_record table sl_off read_lookup num2)
 };
 
-value read_context_1 read read_lookup table table_off is_gpos = do
+value read_context_1 _read read_lookup table table_off is_gpos = do
 {
   let read_rule glyphs i = do
   {
@@ -666,14 +666,6 @@ value read_context_1 read read_lookup table table_off is_gpos = do
 
   let rules = Array.init num_rules (read_rule glyphs) in
 
-  let num_psr =
-    Array.fold_left
-      (fun n sr -> n + Array.length sr)
-      0
-      rules
-  in
-  let cmds = Array.make num_psr { psr_data = [||]; psr_lookups = [||] } in
-
   iter 0 0 DynUCTrie.empty
 
   where rec iter i k trie = do
@@ -696,7 +688,7 @@ value read_context_1 read read_lookup table table_off is_gpos = do
   }
 };
 
-value read_context_2 read read_lookup table table_off is_gpos = do
+value read_context_2 _read read_lookup table table_off is_gpos = do
 {
   let read_rule table_off i = do
   {
@@ -758,7 +750,7 @@ value read_context_2 read read_lookup table table_off is_gpos = do
   }
 };
 
-value read_context_3 read read_lookup table table_off is_gpos = do
+value read_context_3 _read read_lookup table table_off is_gpos = do
 {
   let num_glyphs = read_u16 table (table_off + 2) in
   let num_sl     = read_u16 table (table_off + 4) in
@@ -828,7 +820,7 @@ value read_chaining_subrule table table_off read_lookup first i = do
    read_pos_rule_record table (p_off + 2) read_lookup num_p)
 };
 
-value read_chaining_1 read read_lookup table table_off is_gpos = do
+value read_chaining_1 _read read_lookup table table_off is_gpos = do
 {
   let read_rule glyphs i = do
   {
@@ -888,7 +880,7 @@ value read_chaining_1 read read_lookup table table_off is_gpos = do
   }
 };
 
-value read_chaining_2 read read_lookup table table_off is_gpos = do
+value read_chaining_2 _read read_lookup table table_off is_gpos = do
 {
   let read_rule table_off i = do
   {
@@ -954,7 +946,7 @@ value read_chaining_2 read read_lookup table table_off is_gpos = do
   }
 };
 
-value read_chaining_3 read read_lookup table table_off is_gpos = do
+value read_chaining_3 _read read_lookup table table_off is_gpos = do
 {
   let num_b      = read_u16 table (table_off + 2)             in
   let b_coverage = read_u16_array table (table_off + 4) num_b in
@@ -1012,8 +1004,6 @@ value read_extension read read_lookup table table_off = do
 {
   let lu_type = read_u16 table (table_off + 2) in
   let offset  = read_u16 table (table_off + 4) in
-
-  let off = table_off + offset in
 
   read read_lookup table (table_off + offset) lu_type
 };
@@ -1804,7 +1794,7 @@ value parse_ttf_font tables num_glyphs units_per_em index_to_loc_format advance_
   font
 };
 
-value read_pos_subst tables num_glyphs = do
+value read_pos_subst tables = do
 {
   let gpos_table =
     try
@@ -1824,13 +1814,8 @@ value read_pos_subst tables num_glyphs = do
 
 value parse_pos_subst tables = do
 {
-  try do
-  {
-    let maxp_table = TagMap.find maxp_tag tables in
-    let num_glyphs = Parse_Simple_Tables.parse_maxp maxp_table in
-
-    read_pos_subst tables num_glyphs
-  }
+  try
+    read_pos_subst tables
   with
   [ Not_found -> (None,None) ]
 };
@@ -1853,7 +1838,7 @@ value parse_font is = do
     let num_glyphs     = Parse_Simple_Tables.parse_maxp maxp_table in
     let advance_widths = Parse_Simple_Tables.parse_hmtx hmtx_table num_glyphs num_h_metrics in
 
-    let (gpos, gsub)   = read_pos_subst tables num_glyphs in
+    let (gpos, gsub)   = read_pos_subst tables in
 
     let font =
       if TagMap.mem glyf_tag tables then
@@ -2015,7 +2000,7 @@ value write_tables os tables ttf = do
   }
 };
 
-value make_head_table font encoding = do
+value make_head_table font = do
 {
   (* Just copy the table but set the checksum to 0.*)
 
@@ -2095,7 +2080,7 @@ value make_maxp_table font encoding = do
   IO.to_string s
 };
 
-value make_cmap_table font encoding = do
+value make_cmap_table encoding = do
 {
   let cmap = IO.make_buffer_stream 0x100 in
 
@@ -2121,17 +2106,17 @@ value make_cmap_table font encoding = do
   IO.to_string cmap
 };
 
-value make_name_table font encoding = do
+value make_name_table font = do
 {
   TagMap.find name_tag font
 };
 
-value make_os2_table  font encoding = do
+value make_os2_table  font = do
 {
   TagMap.find os2_tag font
 };
 
-value make_post_table font encoding = do
+value make_post_table font = do
 {
   let post = IO.make_string_stream (TagMap.find post_tag font) in
 
@@ -2146,17 +2131,17 @@ value make_post_table font encoding = do
   IO.to_string os
 };
 
-value make_cvt_table  font encoding = do
+value make_cvt_table  font = do
 {
   TagMap.find cvt_tag font
 };
 
-value make_fpgm_table font encoding = do
+value make_fpgm_table font = do
 {
   TagMap.find fpgm_tag font
 };
 
-value make_prep_table font encoding = do
+value make_prep_table font = do
 {
   TagMap.find prep_tag font
 };
@@ -2215,17 +2200,17 @@ value make_cff_table font encoding = do
 
 value write_ttf_subset stream font encoding = do
 {
-  let cmap = make_cmap_table font encoding in
-  let head = make_head_table font encoding in
+  let cmap = make_cmap_table encoding in
+  let head = make_head_table font in
   let hhea = make_hhea_table font encoding in
   let hmtx = make_hmtx_table font encoding in
   let maxp = make_maxp_table font encoding in
-  let name = make_name_table font encoding in
-  let os2  = make_os2_table  font encoding in
-  let post = make_post_table font encoding in
-  let cvt  = make_cvt_table  font encoding in
-  let prep = make_prep_table font encoding in
-  let fpgm = make_fpgm_table font encoding in
+  let name = make_name_table font in
+  let os2  = make_os2_table  font in
+  let post = make_post_table font in
+  let cvt  = make_cvt_table  font in
+  let prep = make_prep_table font in
+  let fpgm = make_fpgm_table font in
 
   let (glyf, loca) = make_glyf_loca_tables font encoding in
 
@@ -2250,14 +2235,14 @@ value write_ttf_subset stream font encoding = do
 
 value write_cff_subset stream font encoding = do
 {
-  let cmap = make_cmap_table font encoding in
-  let head = make_head_table font encoding in
+  let cmap = make_cmap_table encoding in
+  let head = make_head_table font in
   let hhea = make_hhea_table font encoding in
   let hmtx = make_hmtx_table font encoding in
   let maxp = make_maxp_table font encoding in
-  let name = make_name_table font encoding in
-  let os2  = make_os2_table  font encoding in
-  let post = make_post_table font encoding in
+  let name = make_name_table font in
+  let os2  = make_os2_table  font in
+  let post = make_post_table font in
   let cff  = make_cff_table  font encoding in
 
   write_tables stream

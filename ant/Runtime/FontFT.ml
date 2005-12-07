@@ -557,7 +557,7 @@ value pos_rule_to_repl scale glyphs rule = do
   ]
 };
 
-value subst_rule_to_repl scale glyphs rule = do
+value subst_rule_to_repl glyphs rule = do
 {
   let lookups = Array.make
                   (List.length glyphs)
@@ -708,7 +708,7 @@ value command_to_repl scale cmd glyphs = match cmd with
     try
       let rule = DynUCTrie.find_list glyphs rules in
 
-      Some (subst_rule_to_repl scale glyphs rule)
+      Some (subst_rule_to_repl glyphs rule)
     with
     [ Not_found -> None ]
   }
@@ -794,7 +794,7 @@ value make_matcher memo_table scale pos_subst script features = do
 
         let is_empty (n, _)        = (n > max_depth) in
         let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
-        let root_value (n, glyphs) = lookup_repl scale lookups (List.rev glyphs) in
+        let root_value (_, glyphs) = lookup_repl scale lookups (List.rev glyphs) in
 
         let trie    = (is_empty, prefix, root_value) in
 
@@ -887,7 +887,7 @@ value read_ft file name size = do
   | _ -> ()
   ];
 
-  let (em, asc, desc, height, ul_pos, ul_thick) =
+  let (em, asc, desc, _height, _ul_pos, _ul_thick) =
     face_metrics face
   in
 

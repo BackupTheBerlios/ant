@@ -13,6 +13,12 @@ RUNTIME_CMI = $(addsuffix .cmi,$(RUNTIME_MOD))
 RUNTIME_C   = Runtime/kpathsea-stubs.c Runtime/freetype-stubs.c # Runtime/otf-stubs.cc
 RUNTIME_O   = Runtime/kpathsea-stubs.o Runtime/freetype-stubs.o # Runtime/otf-stubs.o
 
+ifdef NATIVE
+  MLFLAGS_Runtime_ = #-for-pack Runtime
+else
+  MLFLAGS_Runtime_ =
+endif
+
 Runtime/kpathsea-stubs.o: Runtime/kpathsea-stubs.c
 	$(MLC) -c $(KPATHSEA_CFLAGS) $(SELFAUTO_FLAGS) -o $@ $^
 	mv kpathsea-stubs.o $@  # BUG: ocaml creates the object file in the current directory
@@ -25,7 +31,7 @@ Runtime/freetype-stubs.o: Runtime/freetype-stubs.c
 #	$(CXX) -c -I$(CAML_LIB_DIR) $(OTF_CFLAGS) -o $@ $^
 
 Runtime/Runtime.$(CMO): $(RUNTIME_CMO) $(RUNTIME_O)
-	$(MLC) -pack $(DEBUGFLAGS) -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -I Runtime -o $@ $(CUSTOM) $^
 
 Runtime/Runtime.cmi: Runtime/Runtime.$(CMO)
 	touch $@

@@ -762,7 +762,7 @@ value image ps = do
   let file    = arg_expanded ps in
 
   try
-    let (fmt, header) = CamlImages.Images.file_format (UString.bytes_to_string file) in
+    let (_, header) = CamlImages.Images.file_format (UString.bytes_to_string file) in
 
     match DynUCTrie.lookup_string str_width options with
     [ Some (Some w) -> do
@@ -796,7 +796,7 @@ value image ps = do
           let width  = inch */ num_of_int header.CamlImages.Images.header_width // dpi  in
           let height = inch */ num_of_int header.CamlImages.Images.header_height // dpi in
 
-          add_image file (fun _ -> width) (fun _ -> width)
+          add_image file (fun _ -> width) (fun _ -> height)
         }
       ]
     ]
@@ -1365,46 +1365,13 @@ value next_page_layout ps = do
 
 value new_area ps = do
 {
-  let make_arr x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Array.of_list z
-    ]
-  ]
-  in
-  let make_num x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Parser.str_to_num z
-    ]
-  ]
-  in
-  let make_skip x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Parser.str_expr_to_skip z
-    ]
-  ]
-  in
-  let make_dim x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Parser.str_expr_to_dim z
-    ]
-  ]
-  in
-
   let name       = Array.of_list (arg_expanded ps) in
-  let pos_x      = arg_skip     ps in
-  let pos_y      = arg_skip     ps in
-  let width      = arg_skip     ps in
-  let height     = arg_skip     ps in
-  let max_top    = arg_skip     ps in
-  let max_bot    = arg_skip     ps in
+  let pos_x      = arg_skip ps in
+  let pos_y      = arg_skip ps in
+  let width      = arg_skip ps in
+  let height     = arg_skip ps in
+  let max_top    = arg_skip ps in
+  let max_bot    = arg_skip ps in
   let area_type  = Array.of_list (arg_expanded ps) in
 
   if area_type = str_galley then do
@@ -1563,28 +1530,6 @@ value annotate_paragraph ps = do
 
 value set_par_shape ps = do
 {
-  let get_interval stream = do
-  {
-    Parser.skip_spaces stream;
-
-    let (n1, _) = Parser.read_unsigned_int stream in
-
-    Parser.skip_spaces stream;
-
-    if UCStream.next_char stream = 45 then do
-    {
-      UCStream.remove stream 1;
-
-      let (n2, _) = Parser.read_unsigned_int stream in
-
-      Parser.skip_spaces stream;
-
-      (n1,n2)
-    }
-    else
-      (n1, n1)
-  }
-  in
   let read_next stream = do
   {
     let (a,b) = Parser.read_range stream in
@@ -2594,23 +2539,6 @@ value initialise ps = do
     def_expandable_cmd name
       (Macro.execute_macro t (UString.of_ascii body))
       (Macro.expand_macro  t (UString.of_ascii body))
-  }
-  in
-  let def_env name begin_cmd begin_exp end_cmd end_exp = do
-  {
-    ParseState.define_env ps
-      (UString.of_ascii name)
-      { ParseState.execute = begin_cmd; ParseState.expand = begin_exp }
-      { ParseState.execute = end_cmd;   ParseState.expand = end_exp   }
-  }
-  in
-  let def_env_macro name begin_cmd end_cmd = do
-  {
-    def_env name
-      (Macro.execute_macro [] (UString.of_ascii begin_cmd))
-      (Macro.expand_macro  [] (UString.of_ascii begin_cmd))
-      (Macro.execute_end_environment (UString.of_ascii end_cmd))
-      (Macro.expand_end_environment  (UString.of_ascii end_cmd))
   }
   in
   let def_math_char name code family char = do

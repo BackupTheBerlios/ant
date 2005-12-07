@@ -548,7 +548,7 @@ and parse_simple_expr first_tok lexer = match first_tok with
 | PARENOPEN   -> do
   {
     match read_token lexer with
-    [ BINOP x p a -> match read_token lexer with
+    [ BINOP x p _ -> match read_token lexer with
       [ PARENCLOSE -> TId x
       | tok        -> match parse_expr_pri p tok lexer with
         [ (e, PARENCLOSE) -> do
@@ -563,7 +563,7 @@ and parse_simple_expr first_tok lexer = match first_tok with
     | tok -> match parse_expr_comma_list tok lexer with
       [ ([e], PARENCLOSE)  -> e
       | (e, PARENCLOSE)    -> TTuple e
-      | ([e], BINOP x p a) -> match read_token lexer with
+      | ([e], BINOP x _ _) -> match read_token lexer with
         [ PARENCLOSE -> TApp (TId x) [e]
         | _          -> syntax_error lexer ") expected"
         ]

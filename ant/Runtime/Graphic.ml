@@ -11,7 +11,7 @@ type bezier 'a = ('a * 'a * 'a * 'a * 'a * 'a * 'a * 'a);
 
 type path 'a = list (bezier 'a);
 
-type path_cmd   = [ Stroke | Fill | Clip ];
+type path_cmd  = [ Stroke | Fill | Clip ];
 
 type line_cap  = [ Butt  | Circle | Square ];
 type line_join = [ Miter | Round  | Bevel  ];

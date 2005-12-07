@@ -534,7 +534,7 @@ and compile_local_declarations scope decls = do
               else
                 init.(var) := t
             }
-          | TTrigger s -> do
+          | TTrigger _ -> do
             {
               let (_, var) = Scope.lookup_local new_scope name in
 

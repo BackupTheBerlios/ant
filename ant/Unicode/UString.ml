@@ -3,8 +3,8 @@
 
 open Types;
 
-value read_uc     = ref (fun cs -> -1);
-value write_uc    = ref (fun cs x -> ());
+value read_uc     = ref (fun _ -> -1);
+value write_uc    = ref (fun _ _ -> ());
 value to_u_conv   = ref (fun s -> s);
 value from_u_conv = ref (fun s -> s);
 

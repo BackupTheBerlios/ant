@@ -59,7 +59,7 @@ value evaluate_monad_expr scope stream init = do
   !result
 };
 
-value evaluate_function name f args = do
+value evaluate_function _name f args = do
 {
   let result = ref (UnevalT [] (TApplication
                                   (TGlobal f)

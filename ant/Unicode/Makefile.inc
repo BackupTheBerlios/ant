@@ -6,6 +6,12 @@ UNICODE_CMO = $(addsuffix .$(CMO),$(UNICODE_MOD))
 UNICODE_C   = Unicode/Tables.c
 UNICODE_O   = Unicode/Tables.o
 
+ifdef NATIVE
+  MLFLAGS_Unicode_ = #-for-pack Unicode
+else
+  MLFLAGS_Unicode_ =
+endif
+
 DATAFILE = data/UnicodeData.txt
 
 Unicode/GenUnicodeTable.$(CMO): Unicode/GenUnicodeTable.ml Tools/XNum.cmi Tools/ListBuilder.cmi
@@ -33,7 +39,7 @@ Unicode/Tables.o: Unicode/Tables.c
 	mv Tables.o $@  # BUG: ocaml creates the object file in the current directory
 
 Unicode/Unicode.$(CMO): $(UNICODE_CMO) $(UNICODE_O)
-	$(MLC) -pack $(DEBUGFLAGS) -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -I Unicode -o $@ $(CUSTOM) $^
 
 Unicode/Unicode.cmi Unicode/Unicode.o: Unicode/Unicode.$(CMO)
 	touch $@

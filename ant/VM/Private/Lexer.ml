@@ -442,6 +442,7 @@ value symbols = do
     Hashtbl.add t ustr (PREOP (string_to_symbol ustr))
   }
   in
+(*
   let add_post_op str = do
   {
     let ustr = UString.uc_string_of_ascii str in
@@ -449,6 +450,7 @@ value symbols = do
     Hashtbl.add t ustr (POSTOP (string_to_symbol ustr))
   }
   in
+*)
 
   add_token "="  EQUAL;
   add_token ":=" COLON_EQUAL;

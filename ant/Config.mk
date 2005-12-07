@@ -24,9 +24,6 @@ SELFAUTO_FLAGS  = -ccopt -DSELFAUTOLOC='\"$(SELFAUTOLOC)\"' \
                   -ccopt -DSELFAUTOPARENT='\"$(SELFAUTOPARENT)\"'
 FREETYPE_FLAGS := $(addprefix -ccopt ,$(shell freetype-config --cflags))
 X11_LFLAGS      = -cclib -L/usr/X11/lib
-#OTF_DIR         = ../lcdf-typetools-2.20
-#OTF_CFLAGS      = -I$(OTF_DIR) -I$(OTF_DIR)/include
-#OTF_LFLAGS      = -cclib -L$(OTF_DIR)/libefont -cclib -L$(OTF_DIR)/liblcdf
 
 # select compiler
 
@@ -77,8 +74,8 @@ endif
 INCFLAGS   = -I . -I Tools $(addprefix -I ,$(dir $@)) -I lib #$(addprefix -I ,$(DIRECTORIES))
 WARNFLAGS  = -w Aes -warn-error P
 MLFLAGS    = -rectypes $(INCFLAGS) $(WARNFLAGS) $(DEBUGFLAGS)
-MLLIBS     = $(NUMLIB) unix.$(CMA) $(KPATHSEA_LFLAGS) $(X11_LFLAGS) -cclib -lkpathsea -cclib -lfreetype \
-             -cclib -lz $(addprefix -cclib , $(CAMLIMAGES_LIBS)) -cclib -lstdc++
+MLLIBS     = $(NUMLIB) unix.$(CMA) -I +camlimages $(CAMLIMAGES_MLLIBS) $(KPATHSEA_LFLAGS) $(X11_LFLAGS) \
+             -cclib -lkpathsea -cclib -lfreetype -cclib -lz $(addprefix -cclib , $(CAMLIMAGES_CLIBS)) -cclib -lstdc++
 
 ML_DEPEND = ocamldep -pp $(MLPP) $(INCFLAGS) $(DEPFLAGS)
 
@@ -90,16 +87,16 @@ OTAGS = otags -r -vi -o $@ -pa pa_r.cmo -pa ./Tools/pa_Num.cmo -pa ./Tools/pa_ex
 # rules
 
 %.cmi: %.mli $(PARSERS)
-	$(MLC) -pp $(MLPP) $(MLFLAGS) -c $<
+	$(MLC) -pp $(MLPP) $(MLFLAGS) $(value MLFLAGS_$(subst /,_,$(dir $@))) -c $<
 
 %.cmo: %.ml $(PARSERS)
-	$(MLC_BIN) -pp $(MLPP) $(MLFLAGS) -c $<
+	$(MLC_BIN) -pp $(MLPP) $(MLFLAGS) $(value MLFLAGS_$(subst /,_,$(dir $@))) -c $<
 
 %.cmx: %.ml $(PARSERS)
-	$(MLC_NAT) -pp $(MLPP) $(MLFLAGS) -c $<
+	$(MLC_NAT) -pp $(MLPP) $(MLFLAGS) $(value MLFLAGS_$(subst /,_,$(dir $@))) -c $<
 
-%.$(CMO) %.cmi: %.ml $(PARSERS)
-	$(MLC) -pp $(MLPP) $(MLFLAGS) -c $<
+#%.$(CMO) %.cmi: %.ml $(PARSERS)
+#	$(MLC) -pp $(MLPP) $(MLFLAGS) -c $<
 
 %: %.$(CMO)
 	$(MLC) -o $@ $(MLLIBS) $(wordlist 3,$(words $+),$+)

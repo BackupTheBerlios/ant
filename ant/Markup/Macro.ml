@@ -186,7 +186,7 @@ value execute_macro args body ps = do
     (substitute (parse_args ps ps.input_stream args) body)
 };
 
-value expand_macro args body ps tok = do
+value expand_macro args body ps _tok = do
 {
   let str = substitute (parse_args ps ps.input_stream args) body in
 
@@ -286,7 +286,7 @@ value execute_begin_environment name args body ps = do
   push_env ps name params       (* store the arguments for the \end{...} command *)
 };
 
-value expand_begin_environment name args body ps tok = do
+value expand_begin_environment name args body ps _tok = do
 {
   (* As above we remove spaces after the |\begin{...}| command. *)
 
@@ -316,7 +316,7 @@ value execute_end_environment body ps = do
   ParseState.execute_stream ps stream
 };
 
-value expand_end_environment body ps tok = do
+value expand_end_environment body ps _tok = do
 {
   let (_, args) = pop_env ps in
 

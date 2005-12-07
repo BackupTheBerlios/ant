@@ -9,8 +9,14 @@ TYPESETTING_ML  = $(addsuffix .ml,$(TYPESETTING_MOD))
 TYPESETTING_MLI = $(addsuffix .mli,$(TYPESETTING_MOD))
 TYPESETTING_CMO = $(addsuffix .$(CMO),$(TYPESETTING_MOD))
 
+ifdef NATIVE
+  MLFLAGS_Typesetting_ = #-for-pack Typesetting
+else
+  MLFLAGS_Typesetting_ =
+endif
+
 Typesetting/Typesetting.$(CMO): $(TYPESETTING_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -I Typesetting -o $@ $(CUSTOM) $^
 
 Typesetting/Typesetting.cmi Typesetting/Typesetting.o: Typesetting/Typesetting.$(CMO)
 	touch $@

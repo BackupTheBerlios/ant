@@ -14,20 +14,31 @@ type font_ref =
 
 type image_ref = (string * int);  (* filename, object id    *)
 
+type text_state =
+{
+  font_major : int;
+  font_minor : int;
+  font_size  : float;
+  x_pos      : float;
+  y_pos      : float
+};
+
 type state =
 {
-  pdf    : PDF.pdf_file IO.ostream;
-  os     : mutable IO.iorstream;
-  fonts  : mutable list font_ref;
-  images : mutable list image_ref
+  pdf        : PDF.pdf_file IO.ostream;
+  os         : mutable IO.iorstream;
+  fonts      : mutable list font_ref;
+  images     : mutable list image_ref;
+  text_state : mutable option text_state
 };
 
 value new_state filename =
 {
-  pdf    = PDF.create_pdf_file filename 1.4;
-  os     = IO.make_buffer_stream 0x10000;
-  fonts  = [];
-  images = []
+  pdf        = PDF.create_pdf_file filename 1.4;
+  os         = IO.make_buffer_stream 0x10000;
+  fonts      = [];
+  images     = [];
+  text_state = None
 };
 
 value pt_to_bp x = float_of_num (num_of_ints 7227 7200 */ x);
@@ -509,14 +520,16 @@ value new_image state file = do
   in
   let get_colourmap x = do
   {
-    let cs = IO.make_buffer_stream 0x100 in
+    let cs = IO.make_buffer_stream 0x100  in
     let cm = x.CamlImages.Index8.colormap in
 
     for i = 0 to cm.CamlImages.Color.max do
     {
-      IO.write_byte cs cm.CamlImages.Color.map.(i).CamlImages.Color.r;
-      IO.write_byte cs cm.CamlImages.Color.map.(i).CamlImages.Color.g;
-      IO.write_byte cs cm.CamlImages.Color.map.(i).CamlImages.Color.b
+      let (r,g,b) = CamlImages.get_index8_colourmap x i in
+
+      IO.write_byte cs r;
+      IO.write_byte cs g;
+      IO.write_byte cs b
     };
     cs
   }
@@ -610,6 +623,45 @@ value select_image state file = do
   IO.printf state.os " /G%d " n
 };
 
+(* text mode *)
+
+value begin_text_mode state font_major font_minor font_size x_pos y_pos = do
+{
+  let x    = pt_to_bp x_pos     in
+  let y    = pt_to_bp y_pos     in
+  let size = pt_to_bp font_size in
+
+  match state.text_state with
+  [ None    -> IO.printf state.os "BT /F%d.%d %f Tf %f %f Td " font_major font_minor size x y
+  | Some ts -> do
+    {
+      if ts.font_major <> font_major || ts.font_minor <> font_minor || ts.font_size <> size then
+        IO.printf state.os "/F%d.%d %f Tf " font_major font_minor size
+      else ();
+
+      IO.printf state.os "%f %f Td " (x -. ts.x_pos) (y -. ts.y_pos)
+    }
+  ];
+
+  state.text_state :=
+    Some {
+           font_major = font_major;
+           font_minor = font_minor;
+           font_size  = size;
+           x_pos      = x;
+           y_pos      = y
+         }
+};
+
+value end_text_mode state = match state.text_state with
+[ None   -> ()
+| Some _ -> do
+  {
+    IO.write_string state.os "ET ";
+    state.text_state := None
+  }
+];
+
 (* page contents *)
 
 value rec write_box state x y box = match box with
@@ -624,6 +676,8 @@ value rec write_box state x y box = match box with
 ]
 and write_rule state x y width height = do
 {
+  end_text_mode state;
+
   IO.printf state.os "%f %f %f %f re f "
       (pt_to_bp x) (pt_to_bp y) (pt_to_bp width) (pt_to_bp height)
   ; ()
@@ -632,12 +686,15 @@ and write_char state x y c f = do
 {
   let (fn, cn) = load_font state f c in
 
-  IO.printf state.os "BT /F%d.%d %f Tf %f %f Td <%02x> Tj ET "
-    fn (cn / 0x100) (pt_to_bp f.at_size) (pt_to_bp x) (pt_to_bp y) (cn land 0xff);
+  begin_text_mode state fn (cn / 0x100) f.at_size x y;
+
+  IO.printf state.os "<%02x> Tj " (cn land 0xff);
   ()
 }
 and write_image state x y width height file = do
 {
+  end_text_mode state;
+
   IO.printf       state.os "q %f 0 0 %f %f %f cm "
                            (pt_to_bp width) (pt_to_bp height) (pt_to_bp x) (pt_to_bp y);
   select_image    state    file;
@@ -745,8 +802,14 @@ and write_group state x y gfx_cmds = do
   ]
   in
 
+  end_text_mode state;
+
   IO.write_string state.os "q ";
+
   List.iter write_gfx gfx_cmds;
+
+  end_text_mode state;
+
   IO.write_string state.os "Q "
 };
 

@@ -20,7 +20,7 @@ module SymbolMap   = SymbolTable.SymbolMap;
   Opaque type for parse-states: A parse-command is a function of type |parse_state -> unit|.
 *)
 
-value apply_ps ps x = Types.runtime_error "application of non-function";
+value apply_ps _ _ = Types.runtime_error "application of non-function";
 
 value cmp_ps p1 p2 = p1 == p2;
 
@@ -1195,6 +1195,174 @@ value ps_set_math_code args = match args with
 | _ -> assert False
 ];
 
+(* graphics *)
+
+value decode_coord name z = do
+{
+  Machine.evaluate z;
+
+  match !z with
+  [ Types.Tuple [|x;y|] -> (Machine.evaluate_num name x,
+                            Machine.evaluate_num name y)
+  | _                   -> Types.runtime_error (name ^ ": pair expected")
+  ]
+};
+
+value decode_bezier name z = do
+{
+  Machine.evaluate z;
+
+  match !z with
+  [ Types.Tuple [|a;b;c;d|] -> do
+    {
+      let (ax,ay) = decode_coord name a in
+      let (bx,by) = decode_coord name b in
+      let (cx,cy) = decode_coord name c in
+      let (dx,dy) = decode_coord name d in
+
+      (fun _ -> Dim.fixed_dim ax, fun _ -> Dim.fixed_dim ay,
+       fun _ -> Dim.fixed_dim bx, fun _ -> Dim.fixed_dim by,
+       fun _ -> Dim.fixed_dim cx, fun _ -> Dim.fixed_dim cy,
+       fun _ -> Dim.fixed_dim dx, fun _ -> Dim.fixed_dim dy)
+    }
+  | _ -> Types.runtime_error (name ^ ": 4-tuple expected")
+  ]
+};
+
+value decode_path name p = do
+{
+  List.map (decode_bezier name)
+    (Machine.evaluate_list name p)
+};
+
+value ps_set_colour colour parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_colour" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let c = decode_colour "ps_set_colour" colour in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetColour c))
+      })
+};
+
+value ps_set_bg_colour colour parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_bg_colour" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let c = decode_colour "ps_set_bg_colour" colour in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetBgColour c))
+      })
+};
+
+value ps_set_alpha alpha parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_alpha" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let a = Machine.evaluate_num "ps_set_alpha" alpha in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetAlpha a))
+      })
+};
+
+value ps_draw name mode path parse_command = do
+{
+  let cmd = unwrap_ps name parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let p = decode_path name path in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.Draw mode p))
+      })
+};
+
+value ps_set_line_width width parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_line_width" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let w = Machine.evaluate_num "ps_set_line_width" width in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetLineWidth w))
+      })
+};
+
+value ps_set_line_cap cap parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_line_cap" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let c = decode_line_cap "ps_set_line_cap" cap in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetLineCap c))
+      })
+};
+
+value ps_set_line_join join parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_line_join" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let j = decode_line_join "ps_set_line_join" join in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetLineJoin j))
+      })
+};
+
+value ps_set_miter_limit limit parse_command = do
+{
+  let cmd = unwrap_ps "ps_set_miter_limit" parse_command in
+
+  wrap_ps
+    (fun ps -> do
+      {
+        cmd ps;
+
+        let l = Machine.evaluate_num "ps_set_miter_limit" limit in
+
+        ParseState.add_node ps
+          (`GfxCommand (location ps) (Graphic.SetMiterLimit l))
+      })
+};
+
 (* counters *)
 
 value ps_new_counter args = match args with
@@ -1444,20 +1612,4 @@ value ps_run_parser args = match args with
   }
 | _ -> assert False
 ];
-
-value ps_add_gfx_command gfx parse_command = do
-{
-  let cmd = unwrap_ps "ps_add_gfx_command" parse_command in
-
-  wrap_ps
-    (fun ps -> do
-      {
-        cmd ps;
-
-        let c = decode_gfx_cmd "ps_add_gfx_command" gfx in
-
-        ParseState.add_node ps
-          (`GfxCommand (ParseState.location ps) c)
-      });
-};
 

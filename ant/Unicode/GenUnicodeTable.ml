@@ -275,15 +275,15 @@ value compile_tables () = do
   print_tables
     "lowercase" 
     "int"
-    (fun (_, _, _, _, _, _, _, _, _, (uc, lc, tc)) -> Printf.printf "%d" lc)
-    (fun (_, _, _, _, _, _, _, _, _, (uc, lc, tc)) -> lc = -1)
+    (fun (_, _, _, _, _, _, _, _, _, (_, lc, _)) -> Printf.printf "%d" lc)
+    (fun (_, _, _, _, _, _, _, _, _, (_, lc, _)) -> lc = -1)
     "-1"
     table;
   print_tables
     "titlecase" 
     "int"
-    (fun (_, _, _, _, _, _, _, _, _, (uc, lc, tc)) -> Printf.printf "%d" tc)
-    (fun (_, _, _, _, _, _, _, _, _, (uc, lc, tc)) -> tc = -1)
+    (fun (_, _, _, _, _, _, _, _, _, (_, _, tc)) -> Printf.printf "%d" tc)
+    (fun (_, _, _, _, _, _, _, _, _, (_, _, tc)) -> tc = -1)
     "-1"
     table;
 };

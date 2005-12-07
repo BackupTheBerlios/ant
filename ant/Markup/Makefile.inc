@@ -7,8 +7,14 @@ MARKUP_ML  = $(addsuffix .ml,$(MARKUP_MOD))
 MARKUP_MLI = $(addsuffix .mli,$(MARKUP_MOD))
 MARKUP_CMO = $(addsuffix .$(CMO),$(MARKUP_MOD))
 
+ifdef NATIVE
+  MLFLAGS_Markup_ = #-for-pack Markup
+else
+  MLFLAGS_Markup_ =
+endif
+
 Markup/Markup.$(CMO): $(MARKUP_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -I Markup -o $@ $(CUSTOM) $^
 
 Markup/Markup.cmi Markup/Markup.o: Markup/Markup.$(CMO)
 	touch $@

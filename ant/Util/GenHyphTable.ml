@@ -252,13 +252,12 @@ value build_table data = do
 
   where rec iter i entries = match entries with
   [ []                      -> []
-  | [(_, l, c, p, e) :: xs] ->
+  | [(_, l, c, _, _) :: xs] ->
       [(l,
         {
           Hyphenation.ht_char_classes  = c;
           Hyphenation.ht_pattern_trie  = trie;
           Hyphenation.ht_pattern_start = Trie.get_offset trie i
-(*          Hyphenation.ht_exceptions    = Trie.build max_code e *)
         })
        :: iter (i+1) xs]
   ]

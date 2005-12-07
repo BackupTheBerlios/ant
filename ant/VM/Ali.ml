@@ -185,9 +185,9 @@ value rec print_partial x = match x with
 | Primitive1 _    -> Printf.printf " <primitive>"
 | Primitive2 _    -> Printf.printf " <primitive>"
 | PrimitiveN _ _  -> Printf.printf " <primitive>"
-| SimpleFunction a e t -> Printf.printf " <sfun>"
-| PatternFunction a e s n p -> Printf.printf " <pfun>"
-| Relation a s -> Printf.printf " <rel>"
+| SimpleFunction _ _ _ -> Printf.printf " <sfun>"
+| PatternFunction _ _ _ _ _ -> Printf.printf " <pfun>"
+| Relation _ _ -> Printf.printf " <rel>"
 | Nil -> Printf.printf " []"
 | List a b -> do
   {
@@ -220,7 +220,7 @@ value rec print_partial x = match x with
       (Array.to_list y);
     Printf.printf ")"
   }
-| Dictionary d -> do
+| Dictionary _ -> do
   {
     Printf.printf " <dict>"
   }

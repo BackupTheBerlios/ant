@@ -6,19 +6,25 @@ ENGINE_CMO = $(addsuffix .$(CMO),$(ENGINE_MOD))
 
 HYPHEN_FILES = $(addprefix data/hyphen/, $(addsuffix .hyphen, $(HYPHEN_PATTERNS)))
 
+ifdef NATIVE
+  MLFLAGS_Engine_ = #-for-pack Engine
+else
+  MLFLAGS_Engine_ =
+endif
+
 Engine/HyphenTable.ml: Util/GenHyphTable
 	./Util/GenHyphTable $(HYPHEN_FILES) >$@
 
 Engine/HyphenTable.cmi: Engine/HyphenTable.mli lib/Runtime.cmi
 
 Engine/HyphenTable.cmo: Engine/HyphenTable.ml Engine/HyphenTable.cmi
-	$(MLC_BIN) $(MLFLAGS) -c $<
+	$(MLC_BIN) $(MLFLAGS) $(MLFLAGS_Engine_) -c $<
 
 Engine/HyphenTable.cmx: Engine/HyphenTable.ml Engine/HyphenTable.cmi
-	$(MLC_NAT) $(MLFLAGS) -c $<
+	$(MLC_NAT) $(MLFLAGS) $(MLFLAGS_Engine_) -c $<
 
 Engine/Engine.$(CMO): Engine/HyphenTable.$(CMO) $(ENGINE_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -I Engine -o $@ $(CUSTOM) $^
 
 Engine/Engine.cmi Engine/Engine.o: Engine/Engine.$(CMO)
 	touch $@

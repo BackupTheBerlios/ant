@@ -1654,8 +1654,6 @@ Modes and nodes\?:
   \cs{ps_close_node_list} \nterm{nodes} \nterm{mode} \nterm{ps}
 
   \cs{ps_add_node} \nterm{node} \nterm{ps}
-
-  \cs{ps_last_node} \nterm{node} \nterm{pos} \nterm{ps}
 \end{code}
 Commands and environments\?:
 \begin{code}
@@ -1687,6 +1685,51 @@ Commands and environments\?:
 
   \cs{ps_define_env} \nterm{name} \nterm{execute-begin} \nterm{expand-begin} \nterm{execute-end}
     \nterm{expand-end} \nterm{ps}
+\end{code}
+Page layout\?:
+\begin{code}
+  \cs{ps_shipout_pages} \nterm{number} \nterm{even} \nterm{odd} \nterm{ps}
+
+  \cs{ps_new_page_layout} \nterm{name} \nterm{width} \nterm{height} \nterm{ps}
+
+  \cs{ps_new_galley} \nterm{name} \nterm{measure} \nterm{ps}
+
+  \cs{ps_new_area} \nterm{name} \nterm{pos-x} \nterm{pos-y} \nterm{width} \nterm{height}
+    \nterm{max-top} \nterm{max-bot} \nterm{type} \nterm{param} \nterm{ps}
+\end{code}
+Math symbols\?:
+\begin{code}
+  \cs{ps_define_math_symbol} \nterm{name} \nterm{math-code} \nterm{font} \nterm{glyph} \nterm{ps}
+
+  \cs{ps_define_root_symbol} \nterm{name} \nterm{small-font} \nterm{small-glyph}
+     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+
+  \cs{ps_define_math_accent} \nterm{name} \nterm{font} \nterm{glyph} \nterm{ps}
+
+  \cs{ps_set_math_code} \nterm{char} \nterm{math-code} \nterm{small-font} \nterm{small-glyph}
+     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+\end{code}
+Graphics\?:
+\begin{code}
+  \cs{ps_set_colour} \nterm{colour} \nterm{ps}
+
+  \cs{ps_set_bg_colour} \nterm{colour} \nterm{ps}
+
+  \cs{ps_set_alpha} \nterm{alpha} \nterm{ps}
+
+  \cs{ps_stroke} \nterm{path} \nterm{ps}
+
+  \cs{ps_fill} \nterm{path} \nterm{ps}
+
+  \cs{ps_clip} \nterm{path} \nterm{ps}
+
+  \cs{ps_set_line_width} \nterm{width} \nterm{ps}
+
+  \cs{ps_set_line_cap} \nterm{line-cap} \nterm{ps}
+
+  \cs{ps_set_line_join} \nterm{line-join} \nterm{ps}
+
+  \cs{ps_set_miter_limit} \nterm{limit} \nterm{ps}
 \end{code}
 Counters\?:
 \begin{code}
@@ -1739,11 +1782,11 @@ Most of the functions below return environment commands, i.e., functions of type
 
 Font parameters\?:
 \begin{code}
-  \cs{env_quad} \nterm{env}
+  \cs{em} \nterm{env}
 
-  \cs{env_x_height} \nterm{env}
+  \cs{ex} \nterm{env}
 
-  \cs{env_math_unit} \nterm{env}
+  \cs{mu} \nterm{env}
 \end{code}
 Galleys\?:
 \begin{code}
@@ -1789,10 +1832,10 @@ Page layout\?:
 \end{code}
 Fonts\?:
 \begin{code}
-  \cs{set_font} \nterm{definition}
-
-  \cs{get_math_font} \nterm{env} \nterm{style} \nterm{family}
-
+%  \cs{set_font} \nterm{definition}
+%
+%  \cs{get_math_font} \nterm{env} \nterm{style} \nterm{family}
+%
   \cs{set_math_font} \nterm{definition}
 
   \cs{adapt_fonts_to_math_style}

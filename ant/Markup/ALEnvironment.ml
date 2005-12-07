@@ -335,9 +335,10 @@ value decode_leading name leading = match leading with
     try
       Some (SymbolMap.find sym leading_map)
     with
-    [ Not_found -> 
+    [ Not_found ->
         Types.runtime_error
-          ("unknown leading `"
+          (name
+           ^ ": unknown leading `"
            ^ UString.to_string (Array.to_list (Machine.symbol_to_string sym))
            ^ "'.")
     ]

@@ -74,10 +74,6 @@ value add table key element = do
   let t = sync table in
 
   {
-    (t)
-
-    with
-
     key     = key;
     current = element;
     table   = DynUCTrie.add_string key element t.table

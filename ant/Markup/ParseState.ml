@@ -163,7 +163,7 @@ value close_node_list ps mode = do
 value add_node ps node = do
 {
   try
-    let (m,n) = Stack.top ps.parse_stack in
+    let (_,n) = Stack.top ps.parse_stack in
 
     ListBuilder.add n node
   with

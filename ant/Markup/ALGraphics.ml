@@ -15,6 +15,18 @@ module SymbolMap = Unicode.SymbolTable.SymbolMap;
 
 (* gfx-commands *)
 
+value encode_line_cap cap = match cap with
+[ Graphic.Butt   -> Types.Symbol sym_Butt
+| Graphic.Circle -> Types.Symbol sym_Circle
+| Graphic.Square -> Types.Symbol sym_Square
+];
+
+value encode_line_join join = match join with
+[ Graphic.Miter -> Types.Symbol sym_Miter
+| Graphic.Round -> Types.Symbol sym_Round
+| Graphic.Bevel -> Types.Symbol sym_Bevel
+];
+
 value encode_gfx_cmd cmd = match cmd with
 [ Graphic.PutBox x y b  -> Types.Tuple [|ref (Types.Symbol sym_PutBox);
                                          ref (encode_dim_arg x);
@@ -39,30 +51,10 @@ value encode_gfx_cmd cmd = match cmd with
                                            ref (Types.Number a)|]
 | Graphic.SetLineWidth  w -> Types.Tuple [|ref (Types.Symbol sym_SetLineWidth);
                                            ref (Types.Number w)|]
-| Graphic.SetLineCap    c -> do
-  {
-    let cap = match c with
-    [ Graphic.Butt   -> sym_Butt
-    | Graphic.Circle -> sym_Circle
-    | Graphic.Square -> sym_Square
-    ]
-    in
-
-    Types.Tuple [|ref (Types.Symbol sym_SetLineCap);
-                  ref (Types.Symbol cap)|]
-  }
-| Graphic.SetLineJoin   j -> do
-  {
-    let join = match j with
-    [ Graphic.Miter -> sym_Miter
-    | Graphic.Round -> sym_Round
-    | Graphic.Bevel -> sym_Bevel
-    ]
-    in
-
-    Types.Tuple [|ref (Types.Symbol sym_SetLineJoin);
-                  ref (Types.Symbol join)|]
-  }
+| Graphic.SetLineCap    c -> Types.Tuple [|ref (Types.Symbol sym_SetLineCap);
+                                           ref (encode_line_cap c)|]
+| Graphic.SetLineJoin   j -> Types.Tuple [|ref (Types.Symbol sym_SetLineJoin);
+                                           ref (encode_line_join j)|]
 | Graphic.SetMiterLimit l -> Types.Tuple [|ref (Types.Symbol sym_SetMiterLimit);
                                            ref (Types.Number l)|]
 ]
@@ -76,6 +68,34 @@ where rec encode_path path = match path with
                         ref (encode_dim_arg dx); ref (encode_dim_arg dy)|]))
     (ref (encode_path ps))
 ];
+
+value decode_line_cap name cap = do
+{
+  let s = decode_symbol name cap in
+
+  if s = sym_Butt then
+    Graphic.Butt
+  else if s = sym_Circle then
+    Graphic.Circle
+  else if s = sym_Square then
+    Graphic.Square
+  else
+    Types.runtime_error (name ^ ": invalid line cap")
+};
+
+value decode_line_join name join = do
+{
+  let s = decode_symbol name join in
+
+  if s = sym_Miter then
+    Graphic.Miter
+  else if s = sym_Round then
+    Graphic.Round
+  else if s = sym_Bevel then
+    Graphic.Bevel
+  else
+    Types.runtime_error (name ^ ": invalid line join")
+};
 
 value decode_gfx_cmd name cmd = do
 {
@@ -148,37 +168,15 @@ value decode_gfx_cmd name cmd = do
     {
       if Array.length arr <> 2 then
         Types.runtime_error (name ^ ": SetLineCap expects 1 argument")
-      else do
-      {
-        let s = decode_symbol name arr.(1) in
-
-        if s = sym_Butt then
-          Graphic.SetLineCap Graphic.Butt
-        else if s = sym_Circle then
-          Graphic.SetLineCap Graphic.Circle
-        else if s = sym_Square then
-          Graphic.SetLineCap Graphic.Square
-        else
-          Types.runtime_error (name ^ ": invalid line cap")
-      }
+      else
+        Graphic.SetLineCap (decode_line_cap name arr.(1))
     }
     else if s = sym_SetLineJoin then do
     {
       if Array.length arr <> 2 then
         Types.runtime_error (name ^ ": SetLineJoin expects 1 argument")
-      else do
-      {
-        let s = decode_symbol name arr.(1) in
-
-        if s = sym_Miter then
-          Graphic.SetLineJoin Graphic.Miter
-        else if s = sym_Round then
-          Graphic.SetLineJoin Graphic.Round
-        else if s = sym_Bevel then
-          Graphic.SetLineJoin Graphic.Bevel
-        else
-          Types.runtime_error (name ^ ": invalid line join")
-      }
+      else
+        Graphic.SetLineJoin (decode_line_join name arr.(1))
     }
     else if s = sym_SetMiterLimit then do
     {
