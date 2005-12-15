@@ -1,4 +1,5 @@
 
+open XNum;
 open Types;
 open VMPrivate;
 open Runtime;
@@ -21,14 +22,24 @@ value uc_string_to_char_list = Primitives.uc_string_to_char_list;
 value uc_list_to_char_list   = Primitives.uc_list_to_char_list;
 value ascii_to_char_list     = Primitives.ascii_to_char_list;
 
-value evaluate_list          = Evaluate.evaluate_list;
-value evaluate_string        = Primitives.evaluate_char_list;
 value execute_declarations   = Compile.compile_declarations;
-value evaluate               = Evaluate.evaluate;
+value evaluate_unknown       = Evaluate.evaluate_unknown;
 value evaluate_lin_form      = Evaluate.evaluate_lin_form;
 value unify                  = Evaluate.unify;
+value continue               = CStack.cont;
+value continue2              = CStack.cont2;
+value continue3              = CStack.cont3;
 
 value set_unknown x v = Evaluate.forced_unify x (ref v);
+
+value evaluate x = do
+{
+  CStack.start_vm ();
+
+  Evaluate.evaluate_unknown x;
+
+  CStack.end_vm ()
+};
 
 value evaluate_expression scope stream = do
 {
@@ -36,7 +47,7 @@ value evaluate_expression scope stream = do
 
   let result = ref (UnevalT [] e) in
 
-  Evaluate.evaluate result;
+  evaluate result;
 
   !result
 };
@@ -44,8 +55,18 @@ value evaluate_expression scope stream = do
 value evaluate_string_expr name scope stream = do
 {
   let term = Compile.compile_expression scope stream in
+  let lst  = ref [] in
+  let x    = ref (UnevalT [] term) in
 
-  Primitives.evaluate_char_list name (ref (UnevalT [] term))
+  CStack.start_vm ();
+
+  CStack.cont2
+    (fun () -> Evaluate.evaluate_unknown x)
+    (fun () -> Primitives.evaluate_char_list name lst x);
+
+  CStack.end_vm ();
+
+  !lst
 };
 
 value evaluate_monad_expr scope stream init = do
@@ -54,39 +75,79 @@ value evaluate_monad_expr scope stream init = do
 
   let result = ref (UnevalT [] (TApplication term [TConstant init])) in
 
-  Evaluate.evaluate result;
+  evaluate result;
 
   !result
 };
 
 value evaluate_function _name f args = do
 {
-  let result = ref (UnevalT [] (TApplication
-                                  (TGlobal f)
-                                  (List.map (fun a -> TGlobal a) args)))
-  in
+  let result = ref Unbound in
 
-  Evaluate.evaluate result;
+  CStack.start_vm ();
+
+  CStack.cont2
+    (fun () -> Evaluate.evaluate_unknown f)
+    (fun () -> Evaluate.evaluate_application result !f args);
+
+  CStack.end_vm ();
 
   result
 };
 
+value evaluate_string name str = do
+{
+  let lst = ref [] in
+
+  CStack.start_vm ();
+
+  CStack.cont2
+    (fun () -> Evaluate.evaluate_unknown str)
+    (fun () -> Primitives.evaluate_char_list name lst str);
+
+  CStack.end_vm ();
+
+  !lst
+};
+
+value evaluate_list name lst = do
+{
+  let l = ref [] in
+
+  CStack.start_vm ();
+
+  CStack.cont2
+    (fun () -> Evaluate.evaluate_unknown lst)
+    (fun () -> Evaluate.evaluate_list name l lst);
+
+  CStack.end_vm ();
+
+  !l
+};
+
 value evaluate_num name x = do
 {
-  evaluate x;
+  let result = ref num_zero in
 
-  match !x with
-  [ Number n  -> n
-  | LinForm l -> do
-    {
-      evaluate_lin_form x l;
+  CStack.start_vm ();
 
-      match !x with
-      [ Number n -> n
-      | _        -> runtime_error (name ^ ": number expected")
-      ]
-    }
-  | _ -> runtime_error (name ^ ": number expected")
-  ]
+  CStack.cont2
+    (fun () -> Evaluate.evaluate_unknown x)
+    (fun () -> match !x with
+    [ Number n  -> !result := n
+    | LinForm l -> do
+      {
+        CStack.cont2
+          (fun () -> evaluate_lin_form x l)
+          (fun () -> match !x with
+          [ Number n -> !result := n
+          | _        -> runtime_error (name ^ ": number expected")
+          ])
+      }
+    | _ -> runtime_error (name ^ ": number expected")
+    ]);
+  CStack.end_vm ();
+
+  !result
 };
 

@@ -146,7 +146,7 @@ value match_substitution_trie (is_empty, prefix_trie, root_value) subst_trie ite
           let next       = prefix_trie trie x in
 
           match root_value next with
-          [ Some x as val -> iter (new_prefix, is, val) new_prefix is next
+          [ Some _ as val -> iter (new_prefix, is, val) new_prefix is next
           | None          -> iter found                 new_prefix is next
           ]
         }
@@ -273,20 +273,17 @@ value substitute font find_subst items = do
   iter items
 
   where rec iter items = match items with
-  [ []        -> ListBuilder.get result
-  | [i :: is] -> do
-    {
-      match find_subst items with
-      [ Some (prefix, rest, (replacement, skip)) -> do
-        {
-          let (glyphs, cmds) = separate_items prefix                                in
-          let new_items      = apply_substitution font glyphs cmds rest replacement in
+  [ [] -> ListBuilder.get result
+  | _  -> match find_subst items with
+    [ Some (prefix, rest, (replacement, skip)) -> do
+      {
+        let (glyphs, cmds) = separate_items prefix                                in
+        let new_items      = apply_substitution font glyphs cmds rest replacement in
 
-          iter (skip_prefix skip new_items)
-        }
-      | None -> iter (skip_prefix 1 items)
-      ]
-    }
+        iter (skip_prefix skip new_items)
+      }
+    | None -> iter (skip_prefix 1 items)
+    ]
   ]
 };
 

@@ -85,7 +85,7 @@ value rec process_marks marks page_state = match marks with
           }
     | CallFunction _ -> process_marks ms page_state
     ]
-  | `GfxCmd cmd -> process_marks ms page_state
+  | `GfxCmd _ -> process_marks ms page_state
   ]
 ];
 
@@ -460,7 +460,7 @@ value layout_interval page page_state x y interval lines line_params = do
 
 (* |contents_from_galley <params> <page> <area> <floats> <page-state>| fills <area> from a galley. *)
 
-value contents_from_galley params page area floats page_state = do
+value contents_from_galley params page area _floats page_state = do
 {
   match DynUCTrie.lookup_string params.galley page_state.ps_galleys with
   [ None -> do

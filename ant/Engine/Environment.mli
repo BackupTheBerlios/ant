@@ -100,7 +100,7 @@ value modify_line_params       : line_param_modifier -> environment ->
                                  Galley.line_params -> Galley.line_params;
 value modify_line_break_params : line_break_param_modifier -> environment ->
                                  ParLayout.line_break_params -> ParLayout.line_break_params;
-value modify_hyphen_params     : hyphen_param_modifier -> UCStream.location -> environment ->
+value modify_hyphen_params     : hyphen_param_modifier -> UCStream.location ->
                                  JustHyph.hyphen_params -> JustHyph.hyphen_params;
 value modify_space_params      : space_param_modifier -> environment ->
                                  Galley.space_params -> Galley.space_params;

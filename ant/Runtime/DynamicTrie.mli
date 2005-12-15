@@ -11,6 +11,7 @@ sig
   value is_empty              : t 'a -> bool;
   value prefix                : t 'a -> elt -> t 'a;
   value root_value            : t 'a -> option 'a;
+  value depth                 : t 'a -> int;
 
   value find_array            : array elt -> t 'a -> 'a;
   value mem_array             : array elt -> t 'a -> bool;

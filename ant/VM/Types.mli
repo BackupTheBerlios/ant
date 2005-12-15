@@ -26,9 +26,9 @@ and partial_value =
 | Symbol of symbol
 | LinForm of LinForm.lin_form unknown
 | UnevalT of environment and term           (* unevaluated term      *)
-| Primitive1 of unknown -> partial_value
-| Primitive2 of unknown -> unknown -> partial_value
-| PrimitiveN of int and (list unknown -> partial_value)
+| Primitive1 of unknown -> unknown -> unit
+| Primitive2 of unknown -> unknown -> unknown -> unit
+| PrimitiveN of int and (unknown -> list unknown -> unit)
 | SimpleFunction of int and environment and term
                                             (* arity, environment, and body           *)
 | PatternFunction of int and environment and int and int and
@@ -93,6 +93,7 @@ and environment = list (array unknown);
 value identical         : unknown -> unknown -> bool;
 value compare_unknowns  : unknown -> unknown -> LinForm.compare_result;
 
+value create_unbound    : 'a -> unknown;
 value create_unknown    : partial_value -> unknown;
 value add_constraint    : unknown -> list unknown -> list unknown;
 value merge_constraints : list unknown -> list unknown -> list unknown;

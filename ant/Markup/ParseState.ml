@@ -510,7 +510,7 @@ value lookup_reference ps name = do
     with
     [ Not_found -> do
       {
-        log_warn (location ps) "Unkown reference `";
+        log_warn (location ps) "Unknown reference `";
         log_uc_list name;
         log_string "'!";
 

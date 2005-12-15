@@ -55,7 +55,7 @@ value rec process_options file args = match args with
       {
         if String.length v = 6 || v.[6] <> '=' then do
         {
-          print_string "Unkown option!\n\n";
+          print_string "Unknown option!\n\n";
           print_help ();
           None
         }
@@ -97,7 +97,7 @@ value rec process_options file args = match args with
         }
         else if v.[5] <> '=' then do
         {
-          print_string "Unkown option!\n\n";
+          print_string "Unknown option!\n\n";
           print_help ();
           None
         }
@@ -121,7 +121,7 @@ value rec process_options file args = match args with
       }
       else do
       {
-        print_string "Unkown option!\n\n";
+        print_string "Unknown option!\n\n";
         print_help ();
         None
       }

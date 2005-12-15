@@ -705,11 +705,11 @@ value read_context_2 _read read_lookup table table_off is_gpos = do
   }
   in
 
-  let coverage  = read_u16 table (table_off + 2) in
+(*  let coverage = read_u16 table (table_off + 2) in *)
   let class_off = read_u16 table (table_off + 4) in
   let num_rules = read_u16 table (table_off + 6) in
 
-  let glyphs      = get_coverage_table table (table_off + coverage) in
+(*  let glyphs    = get_coverage_table table (table_off + coverage) in *)
   let class_table = read_class_table table (table_off + class_off) in
 
   let rules = Array.init num_rules (read_rule (table_off + 8)) in
@@ -897,13 +897,13 @@ value read_chaining_2 _read read_lookup table table_off is_gpos = do
   }
   in
 
-  let coverage    = read_u16 table (table_off +  2) in
+(*  let coverage  = read_u16 table (table_off +  2) in *)
   let b_class_off = read_u16 table (table_off +  4) in
   let g_class_off = read_u16 table (table_off +  6) in
   let f_class_off = read_u16 table (table_off +  8) in
   let num_rules   = read_u16 table (table_off + 10) in
 
-  let glyphs    = get_coverage_table table (table_off + coverage)  in
+(*  let glyphs  = get_coverage_table table (table_off + coverage)  in *)
   let b_classes = read_class_table table (table_off + b_class_off) in
   let g_classes = read_class_table table (table_off + g_class_off) in
   let f_classes = read_class_table table (table_off + f_class_off) in
@@ -1152,21 +1152,12 @@ value gpos_kern table table_off = do
         let offsets = read_u16_array table (table_off + 10) num       in
         let glyphs  = get_coverage_table table (table_off + coverage) in
 
-        let base_off   = table_off + 2 * num + 10 in
         let record_len = vr1_len + vr2_len + 2    in
 
         let num_pairs = Array.map
                           (fun off -> read_u16 table (table_off + off))
                           offsets
         in
-(*
-        let total_num = Array.fold_left
-                          (fun a b -> a + b)
-                          0
-                          num_pairs
-        in
-        let cmds = Array.make total_num (Substitution 0 0) in
-        *)
 
         let read_sub_table i = do
         {
@@ -1266,7 +1257,7 @@ value gpos_cursive table table_off = do
   }
 };
 
-value read_marks table table_off mark_glyphs num_classes = do
+value read_marks table table_off mark_glyphs = do
 {
   let num = read_u16 table table_off in
 
@@ -1360,16 +1351,16 @@ value read_ligs table table_off base_glyphs num_classes = do
 
 value gpos_mark read_base table table_off = do
 {
-  let mark_coverage = read_u16 table (table_off + 2) in
-  let base_coverage = read_u16 table (table_off + 4) in
-  let num_classes   = read_u16 table (table_off + 6) in
-  let mark_offset   = read_u16 table (table_off + 8) in
+  let mark_coverage = read_u16 table (table_off +  2) in
+  let base_coverage = read_u16 table (table_off +  4) in
+  let num_classes   = read_u16 table (table_off +  6) in
+  let mark_offset   = read_u16 table (table_off +  8) in
   let base_offset   = read_u16 table (table_off + 10) in
 
   let mark_glyphs = get_coverage_table table (table_off + mark_coverage) in
   let base_glyphs = get_coverage_table table (table_off + base_coverage) in
 
-  let marks = read_marks table (table_off + mark_offset) mark_glyphs num_classes in
+  let marks = read_marks table (table_off + mark_offset) mark_glyphs in
   let bases = read_base  table (table_off + base_offset) base_glyphs num_classes in
 
   (marks, bases)

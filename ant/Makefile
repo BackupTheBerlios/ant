@@ -2,7 +2,7 @@
 # packages to be compiled into ant:
 PACKAGES_USED = #german advi
 
-DIRECTORIES   = Images Unicode Runtime Typesetting Engine VM Markup Main Packages Util Examples
+DIRECTORIES   = Images Unicode Runtime Typesetting Engine VM VM/Private Markup Main Packages Util Examples
 
 HYPHEN_PATTERNS = british us #deutsch-traditional deutsch-new français
 

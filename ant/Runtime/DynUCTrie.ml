@@ -372,3 +372,19 @@ value fold f trie e = do
   }
 };
 
+value rec depth trie = do
+{
+  if DynamicCharMap.is_empty trie.children then
+    0
+  else do
+  {
+    let d = DynamicCharMap.fold
+              (fun _ t d -> max d (depth t))
+              trie.children
+              0
+    in
+
+    d + 1
+  }
+};
+

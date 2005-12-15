@@ -366,7 +366,7 @@ value main () = do
           let e = Compile.compile_expression scope (UCStream.of_list (UString.of_string expr)) in
 
           let result = ref (UnevalT [] e) in
-          Evaluate.evaluate result;
+          Machine.evaluate result;
 
           print_partial !result;
           print_newline ();

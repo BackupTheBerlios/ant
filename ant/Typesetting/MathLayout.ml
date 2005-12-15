@@ -47,10 +47,10 @@ value sub_style style = match style with
 ];
 
 value super_style style = match style with
-[ Display        | Text        -> Script
-| CrampedDisplay | CrampedText -> CrampedScript
-| Script         | Script2     -> Script2
-| _                            -> CrampedScript2
+[ Display        | Text           -> Script
+| CrampedDisplay | CrampedText    -> CrampedScript
+| Script         | Script2        -> Script2
+| CrampedScript  | CrampedScript2 -> CrampedScript2
 ];
 
 value numerator_style style = match style with
@@ -222,7 +222,7 @@ value center_on_axis box axis_height = do
 
 value attach_scripts mbox (lt, lb, vt, vb, rt, rb) style super_shift font_params math_params = do
 {
-  let make_script style script = do
+  let make_script script = do
   {
     if script = [] then
       empty_box
@@ -242,149 +242,148 @@ value attach_scripts mbox (lt, lb, vt, vb, rt, rb) style super_shift font_params
     mbox
   else do
   {
-    let box          = remove_math_box mbox in
-    let body_params  = get_font_params font_params style               in
-    let sub_params   = get_font_params font_params (sub_style style)   in
-    let super_params = get_font_params font_params (super_style style) in
-    let lt_script    = make_script (super_style style) lt              in
-    let lb_script    = make_script (sub_style style)   lb              in
-    let vt_script    = make_script (super_style style) vt              in
-    let vb_script    = make_script (sub_style style)   vb              in
-    let rt_script    = make_script (super_style style) rt              in
-    let rb_script    = make_script (sub_style style)   rb              in
-    let super_h_pos  = dim_add box.b_width (fixed_dim super_shift)     in
-    let shift_up_1   = if is_char_box box then
-                         num_zero
-                       else
-                         box.b_height.d_base -/ sub_params.super_drop
-                       in
-    let shift_down_1 = if is_char_box box then
-                         num_zero
-                       else
-                         box.b_depth.d_base +/ sub_params.sub_drop
-                       in
-    let shift_up_2   = max_num
-                         (max_num
-                           shift_up_1
-                           (get_super_shift body_params style)
-                         )
-                         (max_num lt_script.b_depth.d_base rt_script.b_depth.d_base
-                           +/ abs_num body_params.x_height // num_of_int 4)
-                       in
-    let shift_down_2 = if lt <> [] || rt <> [] then
-                         max_num shift_down_1 body_params.sub_shift_2
-                       else
-                         max_num
-                           (max_num shift_down_1 body_params.sub_shift_1)
-                           (max_num lb_script.b_height.d_base rb_script.b_height.d_base
-                             -/ num_of_int 4 */ abs_num body_params.x_height // num_of_int 5)
-                       in
-    let lseparator   = num_of_int 4 */ body_params.rule_thickness +/
-                       lt_script.b_depth.d_base -/ shift_up_2  +/
-                       lb_script.b_height.d_base  -/ shift_down_2 in
-    let rseparator   = num_of_int 4 */ body_params.rule_thickness +/
-                       rt_script.b_depth.d_base -/ shift_up_2  +/
-                       rb_script.b_height.d_base  -/ shift_down_2 in
-    let final_lshift = if lseparator >/ num_zero then
-                         min_num
-                           num_zero
-                           (shift_up_2 -/ lt_script.b_depth.d_base
-                                       -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
-                       else
-                         num_zero
-                       in
-    let final_rshift = if rseparator >/ num_zero then
-                         min_num
-                           num_zero
-                           (shift_up_2 -/ rt_script.b_depth.d_base
-                                       -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
-                       else
-                         num_zero
-                       in
-    let lt_v_pos     = fixed_dim (shift_up_2 -/ final_lshift) in
-    let rt_v_pos     = fixed_dim (shift_up_2 -/ final_rshift) in
-    let lb_v_pos     = if lt <> [] && lseparator >/ num_zero then
-                         fixed_dim (minus_num (shift_down_2 +/ lseparator +/ final_lshift))
-                       else
-                         fixed_dim (minus_num shift_down_2)
-                       in
-    let rb_v_pos     = if rt <> [] && rseparator >/ num_zero then
-                         fixed_dim (minus_num (shift_down_2 +/ rseparator +/ final_rshift))
-                       else
-                         fixed_dim (minus_num shift_down_2)
-                       in
-    let vt_shift     = max_num (body_params.big_op_spacing_3 -/ vt_script.b_depth.d_base)
-                               body_params.big_op_spacing_1 in
-    let vb_shift     = max_num (body_params.big_op_spacing_4 -/ vb_script.b_height.d_base)
-                               body_params.big_op_spacing_2 in
-    let vt_h_pos     = fixed_dim ((box.b_width.d_base -/ vt_script.b_width.d_base +/ super_shift)
-                                  // num_two) in
-    let vb_h_pos     = fixed_dim ((box.b_width.d_base -/ vb_script.b_width.d_base -/ super_shift)
-                                  // num_two) in
-    let vt_v_pos     = fixed_dim (box.b_height.d_base +/ vt_script.b_depth.d_base +/ vt_shift) in
-    let vb_v_pos     = fixed_dim (minus_num (box.b_depth.d_base +/ vb_script.b_height.d_base +/ vb_shift)) in
-    let vt_height    = if vt <> [] then
-                         vt_script.b_height.d_base +/ vt_script.b_depth.d_base
-                          +/ vt_shift +/ body_params.big_op_spacing_5
-                       else
-                         num_zero
-                       in
-    let vb_height    = if vb <> [] then
-                         vb_script.b_height.d_base +/ vb_script.b_depth.d_base
-                          +/ vb_shift +/ body_params.big_op_spacing_5
-                       else
-                         num_zero
-                       in
-    let total_rwidth = dim_max
-                         (dim_max (dim_add box.b_width rb_script.b_width)
-                                  (dim_add super_h_pos rt_script.b_width))
-                         (dim_max (dim_add vt_h_pos vt_script.b_width)
-                                  (dim_add vb_h_pos vb_script.b_width))
-                       in
-    let total_lwidth = dim_max
-                         (dim_max lb_script.b_width
-                                  (dim_sub lt_script.b_width (fixed_dim super_shift)))
-                         (dim_max (dim_neg vt_h_pos) (dim_neg vb_h_pos))
-                       in
-    let total_height = dim_max (dim_add box.b_height (fixed_dim vt_height))
-                         (dim_max (dim_add lt_v_pos lt_script.b_height)
-                                  (dim_add rt_v_pos rt_script.b_height)) in
-    let total_depth  = dim_max (dim_add box.b_depth (fixed_dim vb_height))
-                         (dim_max (dim_sub lb_script.b_depth lb_v_pos)
-                                  (dim_sub rb_script.b_depth rb_v_pos))  in
-    let formula      = new_compound_box
-                         (dim_add total_lwidth total_rwidth)
-                         total_height total_depth
-                         ( [Graphic.PutBox total_lwidth dim_zero box]
-                         @ (if lb <> [] then
-                              [Graphic.PutBox (dim_sub total_lwidth lb_script.b_width) lb_v_pos lb_script]
-                            else
-                              [])
-                         @ (if lt <> [] then
-                              [Graphic.PutBox (dim_add (dim_sub total_lwidth rb_script.b_width)
-                                                       (fixed_dim super_shift))
-                                              lt_v_pos
-                                              lt_script]
-                            else
-                              [])
-                         @ (if vb <> [] then
-                              [Graphic.PutBox (dim_add total_lwidth vb_h_pos) vb_v_pos vb_script]
-                            else
-                              [])
-                         @ (if vt <> [] then
-                              [Graphic.PutBox (dim_add total_lwidth vt_h_pos) vt_v_pos vt_script]
-                            else
-                              [])
-                         @ (if rb <> [] then
-                              [Graphic.PutBox (dim_add total_lwidth box.b_width) rb_v_pos rb_script]
-                            else
-                              [])
-                         @ (if rt <> [] then
-                              [Graphic.PutBox (dim_add total_lwidth super_h_pos) rt_v_pos rt_script]
-                            else
-                              [])
-                         )
-                       in
+    let box           = remove_math_box mbox in
+    let body_params   = get_font_params font_params style             in
+    let script_params = get_font_params font_params (sub_style style) in
+    let lt_script     = make_script lt in
+    let lb_script     = make_script lb in
+    let vt_script     = make_script vt in
+    let vb_script     = make_script vb in
+    let rt_script     = make_script rt in
+    let rb_script     = make_script rb in
+    let super_h_pos   = dim_add box.b_width (fixed_dim super_shift) in
+    let shift_up_1    = if is_char_box box then
+                          num_zero
+                        else
+                          box.b_height.d_base -/ script_params.super_drop
+                        in
+    let shift_down_1  = if is_char_box box then
+                          num_zero
+                        else
+                          box.b_depth.d_base +/ script_params.sub_drop
+                        in
+    let shift_up_2    = max_num
+                          (max_num
+                            shift_up_1
+                            (get_super_shift body_params style)
+                          )
+                          (max_num lt_script.b_depth.d_base rt_script.b_depth.d_base
+                            +/ abs_num body_params.x_height // num_of_int 4)
+                        in
+    let shift_down_2  = if lt <> [] || rt <> [] then
+                          max_num shift_down_1 body_params.sub_shift_2
+                        else
+                          max_num
+                            (max_num shift_down_1 body_params.sub_shift_1)
+                            (max_num lb_script.b_height.d_base rb_script.b_height.d_base
+                              -/ num_of_int 4 */ abs_num body_params.x_height // num_of_int 5)
+                        in
+    let lseparator    = num_of_int 4 */ body_params.rule_thickness +/
+                        lt_script.b_depth.d_base -/ shift_up_2  +/
+                        lb_script.b_height.d_base  -/ shift_down_2 in
+    let rseparator    = num_of_int 4 */ body_params.rule_thickness +/
+                        rt_script.b_depth.d_base -/ shift_up_2  +/
+                        rb_script.b_height.d_base  -/ shift_down_2 in
+    let final_lshift  = if lseparator >/ num_zero then
+                          min_num
+                            num_zero
+                            (shift_up_2 -/ lt_script.b_depth.d_base
+                                        -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
+                        else
+                          num_zero
+                        in
+    let final_rshift  = if rseparator >/ num_zero then
+                          min_num
+                            num_zero
+                            (shift_up_2 -/ rt_script.b_depth.d_base
+                                        -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
+                        else
+                          num_zero
+                        in
+    let lt_v_pos      = fixed_dim (shift_up_2 -/ final_lshift) in
+    let rt_v_pos      = fixed_dim (shift_up_2 -/ final_rshift) in
+    let lb_v_pos      = if lt <> [] && lseparator >/ num_zero then
+                          fixed_dim (minus_num (shift_down_2 +/ lseparator +/ final_lshift))
+                        else
+                          fixed_dim (minus_num shift_down_2)
+                        in
+    let rb_v_pos      = if rt <> [] && rseparator >/ num_zero then
+                          fixed_dim (minus_num (shift_down_2 +/ rseparator +/ final_rshift))
+                        else
+                          fixed_dim (minus_num shift_down_2)
+                        in
+    let vt_shift      = max_num (body_params.big_op_spacing_3 -/ vt_script.b_depth.d_base)
+                                body_params.big_op_spacing_1 in
+    let vb_shift      = max_num (body_params.big_op_spacing_4 -/ vb_script.b_height.d_base)
+                                body_params.big_op_spacing_2 in
+    let vt_h_pos      = fixed_dim ((box.b_width.d_base -/ vt_script.b_width.d_base +/ super_shift)
+                                   // num_two) in
+    let vb_h_pos      = fixed_dim ((box.b_width.d_base -/ vb_script.b_width.d_base -/ super_shift)
+                                   // num_two) in
+    let vt_v_pos      = fixed_dim (box.b_height.d_base +/ vt_script.b_depth.d_base +/ vt_shift) in
+    let vb_v_pos      = fixed_dim (minus_num (box.b_depth.d_base +/ vb_script.b_height.d_base +/ vb_shift)) in
+    let vt_height     = if vt <> [] then
+                          vt_script.b_height.d_base +/ vt_script.b_depth.d_base
+                           +/ vt_shift +/ body_params.big_op_spacing_5
+                        else
+                          num_zero
+                        in
+    let vb_height     = if vb <> [] then
+                          vb_script.b_height.d_base +/ vb_script.b_depth.d_base
+                           +/ vb_shift +/ body_params.big_op_spacing_5
+                        else
+                          num_zero
+                        in
+    let total_rwidth  = dim_max
+                          (dim_max (dim_add box.b_width rb_script.b_width)
+                                   (dim_add super_h_pos rt_script.b_width))
+                          (dim_max (dim_add vt_h_pos vt_script.b_width)
+                                   (dim_add vb_h_pos vb_script.b_width))
+                        in
+    let total_lwidth  = dim_max
+                          (dim_max lb_script.b_width
+                                   (dim_sub lt_script.b_width (fixed_dim super_shift)))
+                          (dim_max (dim_neg vt_h_pos) (dim_neg vb_h_pos))
+                        in
+    let total_height  = dim_max (dim_add box.b_height (fixed_dim vt_height))
+                          (dim_max (dim_add lt_v_pos lt_script.b_height)
+                                   (dim_add rt_v_pos rt_script.b_height)) in
+    let total_depth   = dim_max (dim_add box.b_depth (fixed_dim vb_height))
+                          (dim_max (dim_sub lb_script.b_depth lb_v_pos)
+                                   (dim_sub rb_script.b_depth rb_v_pos))  in
+    let formula       = new_compound_box
+                          (dim_add total_lwidth total_rwidth)
+                          total_height total_depth
+                          ( [Graphic.PutBox total_lwidth dim_zero box]
+                          @ (if lb <> [] then
+                               [Graphic.PutBox (dim_sub total_lwidth lb_script.b_width) lb_v_pos lb_script]
+                             else
+                               [])
+                          @ (if lt <> [] then
+                               [Graphic.PutBox (dim_add (dim_sub total_lwidth rb_script.b_width)
+                                                        (fixed_dim super_shift))
+                                               lt_v_pos
+                                               lt_script]
+                             else
+                               [])
+                          @ (if vb <> [] then
+                               [Graphic.PutBox (dim_add total_lwidth vb_h_pos) vb_v_pos vb_script]
+                             else
+                               [])
+                          @ (if vt <> [] then
+                               [Graphic.PutBox (dim_add total_lwidth vt_h_pos) vt_v_pos vt_script]
+                             else
+                               [])
+                          @ (if rb <> [] then
+                               [Graphic.PutBox (dim_add total_lwidth box.b_width) rb_v_pos rb_script]
+                             else
+                               [])
+                          @ (if rt <> [] then
+                               [Graphic.PutBox (dim_add total_lwidth super_h_pos) rt_v_pos rt_script]
+                             else
+                               [])
+                          )
+                        in
 
     match mbox.b_contents with
     [ MathBox c _ -> new_math_box c formula
@@ -660,7 +659,7 @@ value add_spaces style boxes font_params math_params = do
   let rec add_italic boxes = match boxes with
   [ []        -> []
   | [box::bs] -> match box.b_contents with
-    [ MathBox _ ({ b_contents = CharBox c f } as char_box) -> do
+    [ MathBox _ { b_contents = CharBox c f } -> do
       {
         let italic = (FontMetric.get_glyph_metric f c).gm_italic in
 
@@ -708,14 +707,10 @@ value layout style boxes font_params math_params = do
 (* layout routines *)
 
 value construct_delimiter
-  style
   delim_height
   (small_char, small_fonts, large_char, large_fonts)
-  font_params
   math_params = do
 {
-  let param = get_font_params font_params style in
-
   let total_height gm = gm.gm_height +/ gm.gm_depth in
 
   let make_delim font glyph = match glyph with
@@ -776,7 +771,7 @@ value make_delimiter style delim_height delim font_params math_params = do
   let params = get_font_params font_params style in
 
   center_on_axis
-    (construct_delimiter style delim_height delim font_params math_params)
+    (construct_delimiter delim_height delim math_params)
     params.axis_height
 };
 
@@ -831,8 +826,6 @@ value make_operator style glyph font font_params = do
 
   if is_display style then do
   {
-    let gm = FontMetric.get_glyph_metric font glyph in
-
     match FontMetric.next_glyph font glyph with
     [ Undef -> make_op glyph
     | g     -> make_op g
@@ -1009,10 +1002,8 @@ value make_root style box delim font_params math_params = do
                      in
   let total_height = box.b_height.d_base +/ box.b_depth.d_base +/ clearance in
   let root         = construct_delimiter
-                       style
                        (total_height +/ param.rule_thickness)
                        delim
-                       font_params
                        math_params
                      in
   let delta        = root.b_depth.d_base -/ total_height in
@@ -1057,16 +1048,16 @@ value make_accent style char font boxes font_params math_params = do
 
   let find_char char = do
   {
-    iter char (FontMetric.get_glyph_metric font char)
+    iter char
 
-    where rec iter char gm = match FontMetric.next_glyph font char with
+    where rec iter char = match FontMetric.next_glyph font char with
     [ Undef -> char
     | next  -> do
       {
         let new_gm = FontMetric.get_glyph_metric font next in
 
         if new_gm.gm_width <=/ width then
-          iter next new_gm
+          iter next
         else
           char
       }

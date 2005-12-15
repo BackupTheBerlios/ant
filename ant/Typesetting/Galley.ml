@@ -58,7 +58,7 @@ value skyline_dist line1 line2 = do
   (* <off> is the vertical offset of <b2> w.r.t. <b1> *)
 
   let rec dist off b1 b2 = match (b1.b_contents, b2.b_contents) with
-  [ (CompBox c1, CompBox c2) -> dist_comp_comp     off c1 b2
+  [ (CompBox c1, CompBox _)  -> dist_comp_comp     off c1 b2
   | (CompBox c1, _)          -> dist_comp_simple   off c1 b2
   | (_,          CompBox c2) -> dist_simple_comp   off b1 c2
   | (_,          _)          -> dist_simple_simple off b1 b2
@@ -197,8 +197,8 @@ value keep_lines galley lines =
 };
 
 value last_line galley = match galley.lines with
-[ []      -> empty_box
-| [b::bs] -> b
+[ []     -> empty_box
+| [b::_] -> b
 ];
 
 value modify_glue galley f =
@@ -330,8 +330,8 @@ value add_line galley line = do
   in
 
   let leading = match galley.lines with
-                [ []      -> dim_zero
-                | [b::bs] -> galley.current_line_params.leading b line galley.current_line_params
+                [ []     -> dim_zero
+                | [b::_] -> galley.current_line_params.leading b line galley.current_line_params
                 ]
                 in
   let gfx     = match line.b_contents with

@@ -89,12 +89,11 @@ value write_font_defs state font_number font_def = do
         encoding.(k) := encoding.(0)            (* fill remainder with dummy value *)
       };
 
-      let obj = match font_def.font.font_type with
+      match font_def.font.font_type with
       [ (* "type1"    -> new_type1_font    state n obj fm
       | "truetype" -> new_cidtype2_font state n obj fm
       | *) _          -> new_type3_font    state (Printf.sprintf "F%d-%d" font_number i) font_def.font encoding
-      ]
-      in
+      ];
 
       iter (i + 0x100)
     }
@@ -266,7 +265,7 @@ value write_page state no page = do
       ]
     }
     in
-    let set_alpha a = do
+    let set_alpha _ = do
     {
       log_string "Warning: PostScript does not support transparency."
     }

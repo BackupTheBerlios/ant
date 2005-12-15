@@ -308,7 +308,7 @@ value lookup_dict   name dict key = lookup (decode_dict           name) dict key
 
 (* generic unwrapper for opaque types *)
 
-value evaluate_opaque type_name unwrapper name x = do
+value decode_opaque type_name unwrapper name x = do
 {
   Machine.evaluate x;
 
@@ -318,6 +318,23 @@ value evaluate_opaque type_name unwrapper name x = do
   | _ -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x)
   ]
 };
+
+value rec evaluate_opaque type_name unwrapper name res x = match !x with
+[ Types.Opaque y -> do
+  {
+    try !res := unwrapper y with
+    [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected") ]
+  }
+| Types.UnevalT _ _ -> do
+  {
+    Machine.continue2
+      (fun () -> Machine.evaluate_unknown x)
+      (fun () -> evaluate_opaque type_name unwrapper name res x)
+  }
+| Types.Unbound
+| Types.Constraint _ -> Types.runtime_error (name ^ ": argument not defined")
+| _                  -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x)
+];
 
 (* locations *)
 

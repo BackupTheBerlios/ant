@@ -303,7 +303,7 @@ value rec write_pages state pages = do
                                         stack_depth = 0 }
     }
   }
-  and write_boxes_rule width height box_h box_v state = do
+  and write_boxes_rule width height _box_h _box_v state = do
   {
     IO.write_be_u8 state.os 137;
     write_rat      state.os height;
@@ -311,9 +311,9 @@ value rec write_pages state pages = do
 
     clear_stack state
   }
-  and write_boxes_image width height file_name box_h box_v state = do
+  and write_boxes_image width height file_name _box_h _box_v state = do
   {
-    let (fmt, header) = CamlImages.Images.file_format file_name in
+    let (fmt, _) = CamlImages.Images.file_format file_name in
 
     match fmt with
     [ CamlImages.Images.Ps -> do
@@ -444,7 +444,7 @@ value rec write_pages state pages = do
       write_special state.os ("color push " ^ color_spec)
     }
     in
-    let set_alpha col state = do
+    let set_alpha _col _state = do
     {
       log_string "Warning: The DVI driver does not support transparency!"
     }

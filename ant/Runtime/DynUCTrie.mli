@@ -7,6 +7,7 @@ value empty                 : t 'a;
 value is_empty              : t 'a -> bool;
 value prefix                : t 'a -> uc_char -> t 'a;
 value root_value            : t 'a -> option 'a;
+value depth                 : t 'a -> int;
 
 value find_string           : uc_string -> t 'a -> 'a;
 value mem_string            : uc_string -> t 'a -> bool;

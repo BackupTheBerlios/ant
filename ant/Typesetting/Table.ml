@@ -158,8 +158,7 @@ value make num_columns num_rows entries line_params = do
   };
   row_start.(num_rows) := xdim_add_dim row_start.(num_rows - 1) depths.(num_rows - 1);
 
-  let sum_widths  first last = xdim_to_dim (xdim_sub col_start.(last + 1) col_start.(first)) in
-  let sum_heights first last = xdim_to_dim (xdim_sub row_start.(last + 1) row_start.(first)) in
+  let sum_widths first last = xdim_to_dim (xdim_sub col_start.(last + 1) col_start.(first)) in
 
   new_compound_box
     (xdim_to_dim col_start.(num_columns))

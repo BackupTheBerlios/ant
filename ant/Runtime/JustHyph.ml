@@ -175,7 +175,7 @@ value rec convert_to_glyphs_and_add_breaks hyphen_params font composer items = d
 (* high-level interfaces to add ligatures and kerning *)
 
 value rec strip_composer item = match item with
-[ `Glyph (g,(f,c))             -> `Glyph (g,f)
+[ `Glyph (g,(f,_))             -> `Glyph (g,f)
 | `Break (p, h, pre, post, no) -> `Break (p, h,
                                           Array.map strip_composer pre,
                                           Array.map strip_composer post,
@@ -384,7 +384,7 @@ value add_lig_kern_finish prefix from_pos to_pos items = do
   if from_pos > to_pos then
     prefix
   else match items.(from_pos) with
-  [ `Glyph (_,(f, composer)) -> do
+  [ `Glyph (_, (_, composer)) -> do
     {
       List.rev_append (composer (get_word [] to_pos)) prefix
     }

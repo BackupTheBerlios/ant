@@ -229,7 +229,7 @@ type break_state =
   bs_passive    : list break_delta
 };
 
-value break_lines loc boxes par_params line_break_params hyphen_params = do
+value break_lines loc boxes par_params line_break_params = do
 {
   (* FIX: check that left- and right-skip don't contain infinite shrinkability *)
 
@@ -311,10 +311,10 @@ value break_lines loc boxes par_params line_break_params hyphen_params = do
 
   let try_break threshold hyphen_demerits background_width force_active break_box state = do
   {
-    let (penalty, hyph, pre_break, post_break, no_break) =
+    let (penalty, hyph, pre_break, post_break) =
       match break_box.b_contents with
-      [ BreakBox p h pre post no -> (p,h,pre,post,no)
-      | _                        -> assert False
+      [ BreakBox p h pre post _ -> (p,h,pre,post)
+      | _                       -> assert False
       ]
     in
     let no_break_width   = break_box.b_width            in
@@ -748,7 +748,7 @@ value break_lines loc boxes par_params line_break_params hyphen_params = do
   in
 
   if !tracing_line_breaks then
-    log_string "\n@firstpass\n"
+    log_info loc "@firstpass\n"
   else ();
 
   match pass line_break_params.pre_tolerance left_right_skip False False initial_state boxes with
@@ -756,7 +756,7 @@ value break_lines loc boxes par_params line_break_params hyphen_params = do
   | None   -> do
     {
       if !tracing_line_breaks then
-        log_string "\n\n@secondpass\n"
+        log_info loc "@secondpass\n"
       else ();
 
       match pass line_break_params.tolerance left_right_skip True False initial_state boxes with
@@ -764,7 +764,7 @@ value break_lines loc boxes par_params line_break_params hyphen_params = do
       | None   -> do
         {
           if !tracing_line_breaks then
-            log_string "\n\n@emergencypass\n"
+            log_info loc "@emergencypass\n"
           else ();
 
           match
@@ -1119,8 +1119,6 @@ value compute_line graph partial_line previous current = do
       let (width1, rivers1) = HBox.calc_width_and_glue boxes1 in
       let (width2, rivers2) = HBox.calc_width_and_glue boxes2 in
 
-      let new_width = xdim_add partial_line.pl_width width1 in
-
       let rivers = rev_append_rivers
                      partial_line.pl_rivers
                      (rev_append_rivers rivers1 rivers2)
@@ -1378,7 +1376,7 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
           in
           let forced_break = penalty <=/ minus_infinite in
 
-          let (line, rivers, line_width, new_p_line) = match !new_line with
+          let (line, rivers, line_width, _) = match !new_line with
           [ Some l -> l
           | None   -> do
             {
@@ -1673,7 +1671,6 @@ value break_paragraph loc items par_params line_break_params hyphen_params = do
       (List.map simple_item_to_box (JustHyph.add_lig_kern True par))
       par_params
       line_break_params
-      hyphen_params
   else
     Good.break_lines
       loc

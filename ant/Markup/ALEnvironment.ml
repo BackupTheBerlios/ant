@@ -34,9 +34,12 @@ value (env_wrapper, env_unwrapper) = Opaque.declare_type "environment" apply_env
 
 value wrap_env env = Types.Opaque (env_wrapper env);
 
-value unwrap_env = evaluate_opaque "environment" env_unwrapper;
+value unwrap_env = decode_opaque "environment" env_unwrapper;
 
-value wrap_env_cmd name f loc env = wrap_env (f (decode_location name loc) (unwrap_env name env));
+value wrap_env_cmd name f res loc env = do
+{
+  !res := wrap_env (f (decode_location name loc) (unwrap_env name env))
+};
 
 value decode_env_cmd name f loc env = do
 {
@@ -54,11 +57,11 @@ value encode_env_cmd name cmd = Types.Primitive2 (wrap_env_cmd name cmd);
 
 value encode_skip_arg s = do
 {
-  let f e = do
+  let f res e = do
   {
     let env = unwrap_env "<unnamed>" e in
 
-    Types.Number (s env)
+    !res := Types.Number (s env)
   }
   in
 
@@ -89,11 +92,11 @@ value decode_skip_arg name s = do
 
 value encode_dim_arg d = do
 {
-  let f e = do
+  let f res e = do
   {
     let env = unwrap_env "<unnamed>" e in
 
-    wrap_dim (d env)
+    !res := wrap_dim (d env)
   }
   in
 
@@ -128,47 +131,47 @@ value lookup_dim    name dict key = lookup (decode_dim_arg  name) dict key;
 
 (* primitives *)
 
-value env_quad env = do
+value env_quad res env = do
 {
   let e = unwrap_env "env_quad" env in
 
-  Types.Number (Evaluate.const_em num_one e)
+  !res := Types.Number (Evaluate.const_em num_one e)
 };
 
-value env_x_height env = do
+value env_x_height res env = do
 {
   let e = unwrap_env "env_x_height" env in
 
-  Types.Number (Evaluate.const_ex num_one e)
+  !res := Types.Number (Evaluate.const_ex num_one e)
 };
 
-value env_math_unit env = do
+value env_math_unit res env = do
 {
   let e = unwrap_env "env_math_unit" env in
 
-  Types.Number (Evaluate.const_mu num_one e)
+  !res := Types.Number (Evaluate.const_mu num_one e)
 };
 
-value prim_new_galley name width = do
+value prim_new_galley res name width = do
 {
   let n = decode_uc_string     "new_galley" name  in
   let w = Machine.evaluate_num "new_galley" width in
 
-  encode_env_cmd "new_galley" (Environment.new_galley n w)
+  !res := encode_env_cmd "new_galley" (Environment.new_galley n w)
 };
 
-value prim_select_galley name = do
+value prim_select_galley res name = do
 {
   let n = decode_uc_string "select_galley" name in
 
-  encode_env_cmd "select_galley" (Environment.select_galley n)
+  !res := encode_env_cmd "select_galley" (Environment.select_galley n)
 };
 (*
 value prim_set_galley         : Galley.galley box_cmd -> env_cmd;
 value prim_galley_set_leading : (box -> box -> Galley.line_params box_cmd -> dim) -> env_cmd;
 *)
 
-value prim_set_par_shape shape = do
+value prim_set_par_shape res shape = do
 {
   let s env line = do
   {
@@ -188,43 +191,43 @@ value prim_set_par_shape shape = do
   }
   in
 
-  encode_env_cmd "galley_set_par_shape"
-    (Environment.set_par_params
-      (None, None, None, None, None, Some s, None, None))
+  !res := encode_env_cmd "galley_set_par_shape"
+            (Environment.set_par_params
+              (None, None, None, None, None, Some s, None, None))
 };
 
 (*
 value prim_galley_set_post_process_line : (environment -> list box -> list box) -> env_cmd;
 *)
 
-value prim_set_colour col = do
+value prim_set_colour res col = do
 {
   let c = decode_colour "set_colour" col in
 
-  encode_env_cmd "set_colour" (Environment.set_colour c)
+  !res := encode_env_cmd "set_colour" (Environment.set_colour c)
 };
 
 (*
 value prim_adjust_graphics_state : environment -> environment -> list box;
 *)
 
-value prim_new_page_layout args = match args with
+value prim_new_page_layout res args = match args with
 [ [name; width; height] -> do
   {
     let n = decode_uc_string     "new_page_layout" name   in
     let w = Machine.evaluate_num "new_page_layout" width  in
     let h = Machine.evaluate_num "new_page_layout" height in
 
-    encode_env_cmd "new_page_layout" (Environment.new_page_layout n w h)
+    !res := encode_env_cmd "new_page_layout" (Environment.new_page_layout n w h)
   }
 | _ -> assert False
 ];
 
-value prim_select_page_layout name = do
+value prim_select_page_layout res name = do
 {
   let n = decode_uc_string "select_page_layout" name in
 
-  encode_env_cmd "select_page_layout" (Environment.select_page_layout n)
+  !res := encode_env_cmd "select_page_layout" (Environment.select_page_layout n)
 };
 
 (*
@@ -267,7 +270,7 @@ value prim_get_math_font args = match args with
 ];
 *)
 
-value prim_set_math_font def = do
+value prim_set_math_font res def = do
 {
   Machine.evaluate def;
 
@@ -282,7 +285,7 @@ value prim_set_math_font def = do
       let ss  = decode_option "set_math_font" Machine.evaluate_num script_size  in
       let s2s = decode_option "set_math_font" Machine.evaluate_num script2_size in
 
-      encode_env_cmd "set_math_font" (Environment.set_math_font (mf, fam, ser, sha, ts, ss, s2s))
+      !res := encode_env_cmd "set_math_font" (Environment.set_math_font (mf, fam, ser, sha, ts, ss, s2s))
     }
   | _ -> Types.runtime_error "set_math_font: invalid argument"
   ]
@@ -309,16 +312,16 @@ value decode_par_params name params = do
   ]
 };
 
-value prim_set_par_params params = do
+value prim_set_par_params res params = do
 {
-  encode_env_cmd "set_par_params"
-    (Environment.set_par_params (decode_par_params "set_par_params" params))
+  !res := encode_env_cmd "set_par_params"
+            (Environment.set_par_params (decode_par_params "set_par_params" params))
 };
 
-value prim_set_current_par_params params = do
+value prim_set_current_par_params res params = do
 {
-  encode_env_cmd "set_current_par_params"
-    (Environment.set_current_par_params (decode_par_params "set_current_par_params" params))
+  !res := encode_env_cmd "set_current_par_params"
+            (Environment.set_current_par_params (decode_par_params "set_current_par_params" params))
 };
 
 value leading_map =
@@ -360,16 +363,16 @@ value decode_line_params name params = do
   ]
 };
 
-value prim_set_line_params params = do
+value prim_set_line_params res params = do
 {
-  encode_env_cmd "set_line_params"
-    (Environment.set_line_params (decode_line_params "set_line_params" params))
+  !res := encode_env_cmd "set_line_params"
+            (Environment.set_line_params (decode_line_params "set_line_params" params))
 };
 
-value prim_set_current_line_params params = do
+value prim_set_current_line_params res params = do
 {
-  encode_env_cmd "set_current_line_params"
-    (Environment.set_current_line_params (decode_line_params "set_current_line_params" params))
+  !res := encode_env_cmd "set_current_line_params"
+            (Environment.set_current_line_params (decode_line_params "set_current_line_params" params))
 };
 
 value decode_line_break_params name params = do
@@ -393,16 +396,16 @@ value decode_line_break_params name params = do
   ]
 };
 
-value prim_set_line_break_params params = do
+value prim_set_line_break_params res params = do
 {
-  encode_env_cmd "set_line_break_params"
-    (Environment.set_line_break_params (decode_line_break_params "set_line_break_params" params))
+  !res := encode_env_cmd "set_line_break_params"
+            (Environment.set_line_break_params (decode_line_break_params "set_line_break_params" params))
 };
 
-value prim_set_current_line_break_params params = do
+value prim_set_current_line_break_params res params = do
 {
-  encode_env_cmd "set_current_line_break_params"
-    (Environment.set_current_line_break_params (decode_line_break_params "set_current_line_break_params" params))
+  !res := encode_env_cmd "set_current_line_break_params"
+            (Environment.set_current_line_break_params (decode_line_break_params "set_current_line_break_params" params))
 };
 
 value decode_hyphen_params name params = do
@@ -421,16 +424,16 @@ value decode_hyphen_params name params = do
   ]
 };
 
-value prim_set_hyphen_params params = do
+value prim_set_hyphen_params res params = do
 {
-  encode_env_cmd "set_hyphen_params"
-    (Environment.set_hyphen_params (decode_hyphen_params "set_hyphen_params" params))
+  !res := encode_env_cmd "set_hyphen_params"
+            (Environment.set_hyphen_params (decode_hyphen_params "set_hyphen_params" params))
 };
 
-value prim_set_current_hyphen_params params = do
+value prim_set_current_hyphen_params res params = do
 {
-  encode_env_cmd "set_current_hyphen_params"
-    (Environment.set_current_hyphen_params (decode_hyphen_params "set_current_hyphen_params" params))
+  !res := encode_env_cmd "set_current_hyphen_params"
+            (Environment.set_current_hyphen_params (decode_hyphen_params "set_current_hyphen_params" params))
 };
 
 value decode_space_params name params = do
@@ -447,16 +450,16 @@ value decode_space_params name params = do
   ]
 };
 
-value prim_set_space_params params = do
+value prim_set_space_params res params = do
 {
-  encode_env_cmd "set_space_params"
-    (Environment.set_space_params (decode_space_params "set_space_params" params))
+  !res := encode_env_cmd "set_space_params"
+            (Environment.set_space_params (decode_space_params "set_space_params" params))
 };
 
-value prim_set_current_space_params params = do
+value prim_set_current_space_params res params = do
 {
-  encode_env_cmd "set_current_space_params"
-    (Environment.set_current_space_params (decode_space_params "set_current_space_params" params))
+  !res := encode_env_cmd "set_current_space_params"
+            (Environment.set_current_space_params (decode_space_params "set_current_space_params" params))
 };
 
 value decode_math_params name params = do
@@ -478,31 +481,31 @@ value decode_math_params name params = do
   ]
 };
 
-value prim_set_math_params params = do
+value prim_set_math_params res params = do
 {
-  encode_env_cmd "set_math_params"
-    (Environment.set_math_params (decode_math_params "set_math_params" params))
+  !res := encode_env_cmd "set_math_params"
+            (Environment.set_math_params (decode_math_params "set_math_params" params))
 };
 
-value prim_set_current_math_params params = do
+value prim_set_current_math_params res params = do
 {
-  encode_env_cmd "set_current_math_params"
-    (Environment.set_current_math_params (decode_math_params "set_current_math_params" params))
+  !res := encode_env_cmd "set_current_math_params"
+            (Environment.set_current_math_params (decode_math_params "set_current_math_params" params))
 };
 
 
-value prim_get_space_factor env char = do
+value prim_get_space_factor res env char = do
 {
   let e = unwrap_env  "get_space_factor" env  in
   let c = decode_char "get_space_factor" char in
 
-  Types.Number (Environment.get_space_factor e c)
+  !res := Types.Number (Environment.get_space_factor e c)
 };
 
-value prim_adjust_space_factor char = do
+value prim_adjust_space_factor res char = do
 {
   let x = decode_char "adjust_space_factor" char in
 
-  encode_env_cmd "adjust_space_factor" (Environment.adjust_space_factor x)
+  !res := encode_env_cmd "adjust_space_factor" (Environment.adjust_space_factor x)
 };
 

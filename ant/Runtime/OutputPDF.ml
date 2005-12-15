@@ -896,7 +896,7 @@ value create_pdf state pages = do
       ])
 };
 
-value write_pdf_file name comment pages = do
+value write_pdf_file name _comment pages = do
 {
   let state = new_state name in
 

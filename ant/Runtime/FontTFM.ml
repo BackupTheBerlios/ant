@@ -272,7 +272,7 @@ value read_tfm file name size = do
 {
   let ic = IO.make_in_stream file in
 
-  let file_length   = IO.read_be_u16 ic in
+  let _file_length  = IO.read_be_u16 ic in
   let header_length = IO.read_be_u16 ic in
   let first_char    = IO.read_be_u16 ic in
   let last_char     = IO.read_be_u16 ic in

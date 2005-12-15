@@ -324,11 +324,10 @@ value collect_floats run_state page_state = do
 };
 
 (*
-  |build_page <run-state> <num-old-floats> <layout-result>| creates a page and
-  updates <run-state> accordingly.
+  |build_page <run-state> <layout-result>| creates a page and updates <run-state> accordingly.
 *)
 
-value build_page run_state num_old_floats (page, state, num_floats) = do
+value build_page run_state (page, state, num_floats) = do
 {
   let remaining_floats = XList.drop num_floats (collect_floats run_state state) in
 
@@ -450,7 +449,7 @@ value break_page layout run_state = do
 
       (* FIX: layout a float page *)
 
-      build_page run_state num_old_floats
+      build_page run_state
         (choose_best_layout run_state.rs_float_misplacement_demerits num_old_floats
           (iter 1 [(p,s,0)] [] floats))
 

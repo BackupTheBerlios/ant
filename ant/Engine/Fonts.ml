@@ -95,7 +95,7 @@ value load_font fd size = do
   | [|98; 117; 105; 108; 116; 105; 110|] -> font                           (* builtin *)
   | _ -> do
     {
-      log_warn ("",0,0) "Unkown font encoding: ";
+      log_warn ("",0,0) "Unknown font encoding: ";
       log_uc_string fd.fd_encoding;
       log_string "\n";
       font

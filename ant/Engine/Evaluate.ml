@@ -417,15 +417,15 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                          Footnote.grid_size         = g env;
                          Footnote.line_params       = modify_line_params l env
                                                         (Galley.line_params galley);
-                         Footnote.par_params        = modify_par_params p env 
+                         Footnote.par_params        = modify_par_params p env
                                                         (Galley.par_params galley);
-                         Footnote.line_break_params = modify_line_break_params lb env 
+                         Footnote.line_break_params = modify_line_break_params lb env
                                                         (Galley.line_break_params galley);
-                         Footnote.hyphen_params     = modify_hyphen_params h loc env 
+                         Footnote.hyphen_params     = modify_hyphen_params h loc
                                                         (Galley.hyphen_params galley);
-                         Footnote.space_params      = modify_space_params s env 
+                         Footnote.space_params      = modify_space_params s env
                                                         (Galley.space_params galley);
-                         Footnote.math_params       = modify_math_params m env 
+                         Footnote.math_params       = modify_math_params m env
                                                         (Galley.math_params galley)
                        }
                  | `Direct f ->

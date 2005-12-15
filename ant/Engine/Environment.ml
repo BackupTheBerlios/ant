@@ -209,7 +209,7 @@ value select_galley name loc env = do
   with
   [ Not_found -> do
     {
-      log_warn loc "Unkown galley ";
+      log_warn loc "Unknown galley ";
       log_uc_string name;
       log_string "!";
 
@@ -430,7 +430,7 @@ value set_current_line_break_params params loc env = do
 value modify_hyphen_params
   (hyphen_table, hyphen_penalty, ex_hyphen_penalty,
    left_hyphen_min, right_hyphen_min, script_lang)
-  loc env h =
+  loc h =
 {
   JustHyph.hyphen_table = match hyphen_table with
     [ Some x -> get_hyphen_table loc x
@@ -468,8 +468,8 @@ value set_hyphen_params params loc env = do
     (Galley.set_current_hyphen_params
       (Galley.set_hyphen_params
         galley
-        (modify_hyphen_params params loc env h))
-      (modify_hyphen_params params loc env ch))
+        (modify_hyphen_params params loc h))
+      (modify_hyphen_params params loc ch))
   loc
   env
 };
@@ -482,7 +482,7 @@ value set_current_hyphen_params params loc env = do
   set_galley
     (Galley.set_current_hyphen_params
       galley
-      (modify_hyphen_params params loc env ch))
+      (modify_hyphen_params params loc ch))
   loc
   env
 };
@@ -684,7 +684,7 @@ value select_page_layout name loc env = do
   with
   [ Not_found -> do
     {
-      log_warn loc "Unkown page layout ";
+      log_warn loc "Unknown page layout ";
       log_uc_string name;
       log_string "!";
 
@@ -1089,7 +1089,7 @@ value initialise_environment () = do
       Galley.line_skip_limit    = num_zero;
       Galley.line_skip          = dim_1pt;
       Galley.leading            = Galley.leading_TeX;
-      Galley.club_widow_penalty = fun i k -> if k > 1 then
+      Galley.club_widow_penalty = fun _ k -> if k > 1 then
                                     num_zero
                                   else
                                     num_of_int 1000

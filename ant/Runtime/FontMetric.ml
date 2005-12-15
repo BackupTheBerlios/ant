@@ -238,7 +238,7 @@ and construct_accent acc_font acc chr_font chr = do
   let acc_gm = get_glyph_metric acc_font acc in
   let chr_gm = get_glyph_metric chr_font chr in
 
-  let (pos_x, pos_y) = accent_position acc_font acc_gm chr_font chr_gm in
+  let (_, pos_y) = accent_position acc_font acc_gm chr_font chr_gm in
   {
     gm_width  = chr_gm.gm_width;
     gm_height = max_num chr_gm.gm_height (acc_gm.gm_height +/ pos_y);
@@ -326,8 +326,8 @@ value simple_ligature_substitution font items = do
   | [i :: is]        -> find_first_glyph [i :: prefix] is
   ]
   in
-  let (p1, ((g1,f1) as gf1), rest1) = find_first_glyph []                 items in
-  let (p2, ((g2,f2) as gf2), rest2) = find_first_glyph [`Glyph gf1 :: p1] rest1 in
+  let (p1, ((g1,_) as gf1), rest1) = find_first_glyph []                 items in
+  let (p2, ((g2,_) as gf2), rest2) = find_first_glyph [`Glyph gf1 :: p1] rest1 in
 
   match get_lig_kern font g1 g2 with
   [ Ligature c s k1 k2 -> do

@@ -13,6 +13,7 @@ sig
   value is_empty              : t 'a -> bool;
   value prefix                : t 'a -> elt -> t 'a;
   value root_value            : t 'a -> option 'a;
+  value depth                 : t 'a -> int;
 
   value find_array            : array elt -> t 'a -> 'a;
   value mem_array             : array elt -> t 'a -> bool;
@@ -375,6 +376,22 @@ struct
       [ Some y -> f (XList.rev_to_array str) y x
       | None   -> x
       ]
+    }
+  };
+
+  value rec depth trie = do
+  {
+    if ChildMap.is_empty trie.children then
+      0
+    else do
+    {
+      let d = ChildMap.fold
+                (fun _ t d -> max d (depth t))
+                trie.children
+                0
+      in
+
+      d + 1
     }
   };
 

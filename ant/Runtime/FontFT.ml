@@ -142,295 +142,6 @@ value rec lookup_composer table script lang features = match table with
                        lookup_composer xs script lang features
 ];
 
-(*
-value add_lookup_to_trie scale trie l = do
-{
-  (* move the next glyph by |pos.p_x_off| and |pos.p_y_off| *)
-  let pos_to_pre_kern pos =
-    ConstKern (scale */ num_of_int pos.OTF_Pos_Subst.p_x_off)
-              (scale */ num_of_int pos.OTF_Pos_Subst.p_y_off)
-  in
-
-  (* increase the advance width of the preceding glyph by |pos.p_x_adv| *)
-  let pos_to_post_kern pos =
-    ConstKern (scale */ num_of_int pos.OTF_Pos_Subst.p_h_adv_off)
-              num_zero
-  in
-
-  Array.fold_left (add l.OTF_Pos_Subst.l_flags) trie l.OTF_Pos_Subst.l_commands
-
-  where add flags trie cmd = match cmd with
-  [ OTF_Pos_Subst.Position pos -> do
-    {
-      Tag.IntMap.fold
-        (fun g p trie ->
-          DynUCTrie.add_list
-            [g]
-            ([CopyCommands 0 0;
-              pos_to_pre_kern p;
-              ConstGlyph (Simple g);
-              pos_to_post_kern p;
-              CopyCommands 1 1],
-              1)
-            trie)
-        pos
-        trie
-    }
-  | OTF_Pos_Subst.CursiveAnchors anchors -> trie (* FIX *)
-  | OTF_Pos_Subst.MarkToBaseAnchors _ _
-  | OTF_Pos_Subst.MarkToLigAnchors  _ _
-  | OTF_Pos_Subst.MarkToMarkAnchors _ _ -> trie
-  | OTF_Pos_Subst.Kern kerns -> do (* g1 g2 pos1 pos2 -> do *)
-    {
-      let add_kern g1 g2 p1 p2 trie =
-        DynUCTrie.add_list
-          [g1; g2]
-          ([CopyCommands 0 0;
-            pos_to_pre_kern p1;
-            ConstGlyph (Simple g1);
-            pos_to_post_kern p1;
-            CopyCommands 1 1;
-            pos_to_pre_kern p2;
-            ConstGlyph (Simple g2);
-            pos_to_post_kern p2;
-            CopyCommands 2 2],
-            1)
-          trie
-      in
-
-      Tag.IntMap.fold
-        (fun g1 k trie ->
-          Tag.IntMap.fold
-            (fun g2 (p1,p2) trie -> add_kern g1 g2 p1 p2 trie)
-            k
-            trie)
-        kerns
-        trie
-    }
-  | OTF_Pos_Subst.KernClass classes1 classes2 pos1 pos2 -> do
-    {
-      let n = 1 + Tag.IntMap.fold (fun _ c n -> max c n) classes2 0 in
-
-      Tag.IntMap.fold
-        (fun g1 c1 trie ->
-          Tag.IntMap.fold
-            (fun g2 c2 trie -> do
-              {
-                let p1 = pos1.(n * c1 + c2) in
-                let p2 = pos2.(n * c1 + c2) in
-
-                DynUCTrie.add_list
-                  [g1; g2]
-                  ([CopyCommands 0 0;
-                    pos_to_pre_kern p1;
-                    ConstGlyph (Simple g1);
-                    pos_to_post_kern p1;
-                    CopyCommands 1 1;
-                    pos_to_pre_kern p2;
-                    ConstGlyph (Simple g2);
-                    pos_to_post_kern p2;
-                    CopyCommands 2 2],
-                    1)
-                  trie
-              })
-            classes2
-            trie)
-        classes1
-        trie
-    }
-  | OTF_Pos_Subst.Substitution subst -> do
-    {
-      Tag.IntMap.fold
-        (fun g1 g2 trie ->
-          DynUCTrie.add_list
-            [g1]
-            ([CopyCommands 0 0;
-              ConstGlyph (Simple g2);
-              CopyCommands 1 1],
-              0)
-            trie)
-        subst
-        trie
-    }
-  | OTF_Pos_Subst.Multiple map -> do
-    {
-      Tag.IntMap.fold
-        (fun g gs trie ->
-          DynUCTrie.add_list
-            [g]
-            ([CopyCommands 0 0 ::
-              Array.fold_right
-                (fun g2 cmds ->
-                   [ConstGlyph (Simple g2) :: cmds])
-                gs
-                [CopyCommands 1 1]],
-              0)
-            trie)
-        map
-        trie
-    }
-  | OTF_Pos_Subst.Alternate map -> trie (* FIX *)
-  | OTF_Pos_Subst.Ligature ligs -> do
-    {
-      Array.fold_left
-        (fun trie (lig, glyphs) -> do
-          {
-            DynUCTrie.add_string
-              glyphs
-              ([CopyCommands 0 0;
-                ConstGlyph (Simple lig);
-                CopyCommands 1 1],
-                0)
-              trie
-          })
-          trie
-          ligs
-    }
-  | OTF_Pos_Subst.ContextGlyphPos rules -> do
-    {
-      let make_repl lookups g (r, i) = do
-      {
-        let cmds = lookups.(i).OTF_Pos_Subst.l_commands in
-
-        iter 0
-
-        where rec iter k = do
-        {
-          if k >= Array.length cmds then
-            ([ConstGlyph (Simple g);
-              CopyCommands i i
-              :: r],
-             i - 1)
-          else match cmds.(k) with
-          [ OTF_Pos_Subst.Position pos -> do
-            {
-              try
-                let p = Tag.IntMap.find g pos in
-
-                ([pos_to_pre_kern p;
-                  ConstGlyph (Simple g);
-                  pos_to_post_kern p;
-                  CopyCommands i i
-                  :: r],
-                 i - 1)
-              with
-              [ Not_found -> iter (k+1) ]
-            }
-          | _ -> iter (k+1)
-          ]
-        }
-      }
-      in
-      let add_rule rule trie = do
-      {
-        let lookups = Array.make
-                        (Array.length rule.OTF_Pos_Subst.psr_data)
-                        { OTF_Pos_Subst.l_flags = 0; OTF_Pos_Subst.l_commands = [||] }
-                      in
-
-        Array.iter
-          (fun l -> do
-            {
-              lookups.(l.OTF_Pos_Subst.prr_seq_idx) := l.OTF_Pos_Subst.prr_lookup;
-            })
-          rule.OTF_Pos_Subst.psr_lookups;
-
-        let (repl, _) = Array.fold_right
-                          (make_repl lookups)
-                          rule.OTF_Pos_Subst.psr_data
-                          ([], Array.length rule.OTF_Pos_Subst.psr_data)
-                        in
-
-        DynUCTrie.add_string
-          rule.OTF_Pos_Subst.psr_data
-          ([CopyCommands 0 0 :: repl], 0)
-          trie
-      }
-      in
-
-      Array.fold_right add_rule rules trie
-    }
-  | OTF_Pos_Subst.ContextGlyphSubst rules -> do
-    {
-      let make_repl lookups g (r, i) = do
-      {
-        let cmds = lookups.(i).OTF_Pos_Subst.l_commands in
-
-        iter 0
-
-        where rec iter k = do
-        {
-          if k >= Array.length cmds then
-            ([ConstGlyph (Simple g);
-              CopyCommands i i
-              :: r],
-             i - 1)
-          else match cmds.(k) with
-          [ OTF_Pos_Subst.Substitution subst -> do
-            {
-              try
-                let g2 = Tag.IntMap.find g subst in
-                ([ConstGlyph (Simple g2);
-                  CopyCommands i i
-                  :: r],
-                 i - 1)
-              with
-              [ Not_found -> iter (k+1) ]
-            }
-          | _ -> iter (k+1)
-          ]
-        }
-      }
-      in
-      let add_rule rule trie = do
-      {
-        let lookups = Array.make
-                        (Array.length rule.OTF_Pos_Subst.psr_data)
-                        { OTF_Pos_Subst.l_flags = 0; OTF_Pos_Subst.l_commands = [||] }
-                      in
-
-        Array.iter
-          (fun l -> do
-            {
-              lookups.(l.OTF_Pos_Subst.prr_seq_idx) := l.OTF_Pos_Subst.prr_lookup;
-            })
-          rule.OTF_Pos_Subst.psr_lookups;
-
-        let (repl, _) = Array.fold_right
-                          (make_repl lookups)
-                          rule.OTF_Pos_Subst.psr_data
-                          ([], Array.length rule.OTF_Pos_Subst.psr_data)
-                        in
-
-        DynUCTrie.add_string
-          rule.OTF_Pos_Subst.psr_data
-          ([CopyCommands 0 0 :: repl], 0)
-          trie
-      }
-      in
-
-      Array.fold_right add_rule rules trie
-    }
-(*
-  | OTF_Pos_Subst.ContextClassPos      of IntMap.t int and array (pos_subst_rule (array int))
-  | OTF_Pos_Subst.ContextClassSubst    of IntMap.t int and array (pos_subst_rule (array int))
-  | OTF_Pos_Subst.ContextCoveragePos   of array (pos_subst_rule (array (array int)))
-  | OTF_Pos_Subst.ContextCoverageSubst of array (pos_subst_rule (array (array int)))
-  | OTF_Pos_Subst.ChainGlyphPos        of (array (pos_subst_rule (array int * array int * array int)))
-  | OTF_Pos_Subst.ChainGlyphSubst      of (array (pos_subst_rule (array int * array int * array int)))
-  | OTF_Pos_Subst.ChainClassPos        of IntMap.t int and IntMap.t int and IntMap.t int and
-                                          array (pos_subst_rule (array int * array int * array int))
-  | OTF_Pos_Subst.ChainClassSubst      of IntMap.t int and IntMap.t int and IntMap.t int and
-                                          array (pos_subst_rule (array int * array int * array int))
-  | OTF_Pos_Subst.ChainCoveragePos     of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
-  | OTF_Pos_Subst.ChainCoverageSubst   of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
-  | OTF_Pos_Subst.ReverseSubst         of array int and array int and array (array int) and array (array int)
-*)
-  | _ -> trie
-  ]
-};
-*)
-
 (* move the next glyph by |pos.p_x_off| and |pos.p_y_off| *)
 
 value pos_to_pre_kern scale pos = do
@@ -730,6 +441,39 @@ value command_to_repl scale cmd glyphs = match cmd with
 | _ -> None
 ];
 
+value get_lookup_depth cmd = match cmd with
+[ OTF_Pos_Subst.NoCommand               -> 0
+| OTF_Pos_Subst.Position _              -> 1
+| OTF_Pos_Subst.CursiveAnchors _        -> 0 (* FIX *)
+| OTF_Pos_Subst.MarkToBaseAnchors _ _
+| OTF_Pos_Subst.MarkToLigAnchors  _ _
+| OTF_Pos_Subst.MarkToMarkAnchors _ _   -> 0
+| OTF_Pos_Subst.Kern _                  -> 2
+| OTF_Pos_Subst.KernClass _ _ _ _ _     -> 2
+| OTF_Pos_Subst.Substitution _          -> 1
+| OTF_Pos_Subst.Multiple _              -> 1
+| OTF_Pos_Subst.Alternate _             -> 1 (* FIX *)
+| OTF_Pos_Subst.Ligature ligs           -> DynUCTrie.depth ligs
+| OTF_Pos_Subst.ContextGlyphPos rules   -> DynUCTrie.depth rules
+| OTF_Pos_Subst.ContextGlyphSubst rules -> DynUCTrie.depth rules
+(*
+| OTF_Pos_Subst.ContextClassPos      of IntMap.t int and array (pos_subst_rule (array int))
+| OTF_Pos_Subst.ContextClassSubst    of IntMap.t int and array (pos_subst_rule (array int))
+| OTF_Pos_Subst.ContextCoveragePos   of array (pos_subst_rule (array (array int)))
+| OTF_Pos_Subst.ContextCoverageSubst of array (pos_subst_rule (array (array int)))
+| OTF_Pos_Subst.ChainGlyphPos        of (array (pos_subst_rule (array int * array int * array int)))
+| OTF_Pos_Subst.ChainGlyphSubst      of (array (pos_subst_rule (array int * array int * array int)))
+| OTF_Pos_Subst.ChainClassPos        of IntMap.t int and IntMap.t int and IntMap.t int and
+                                        array (pos_subst_rule (array int * array int * array int))
+| OTF_Pos_Subst.ChainClassSubst      of IntMap.t int and IntMap.t int and IntMap.t int and
+                                        array (pos_subst_rule (array int * array int * array int))
+| OTF_Pos_Subst.ChainCoveragePos     of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
+| OTF_Pos_Subst.ChainCoverageSubst   of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
+| OTF_Pos_Subst.ReverseSubst         of array int and array int and array (array int) and array (array int)
+*)
+| _ -> 0
+];
+
 value lookup_repl scale lookups glyphs = do
 {
   iter_lookups lookups
@@ -757,7 +501,17 @@ value lookup_repl scale lookups glyphs = do
 
 value max_lookup_depth lookups = do
 {
-  5
+  List.fold_left
+    (fun depth l -> do
+      {
+        Array.fold_left
+          (fun depth cmd ->
+             max depth (get_lookup_depth cmd))
+          depth
+          l.OTF_Pos_Subst.l_commands
+      })
+    0
+    lookups
 };
 
 value make_matcher memo_table scale pos_subst script features = do
@@ -792,11 +546,13 @@ value make_matcher memo_table scale pos_subst script features = do
 
         let max_depth = max_lookup_depth lookups in
 
-        let is_empty (n, _)        = (n > max_depth) in
+        let is_empty (n, _)        = (n > max_depth)      in
         let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
-        let root_value (_, glyphs) = lookup_repl scale lookups (List.rev glyphs) in
+        let root_value (_, glyphs) =
+          lookup_repl scale lookups (List.rev glyphs)
+        in
 
-        let trie    = (is_empty, prefix, root_value) in
+        let trie = (is_empty, prefix, root_value) in
 
         !memo_table := add_composer !memo_table s_tag l_tag features trie;
 

@@ -232,7 +232,7 @@ value parse_glyph glyph dyn_f width height paint_switch nybbles = do
 
 value read_glyph ic fm (hppp, vppp, _) glyphs = do
 {
-  let read_preamble flag_byte low_bits = do
+  let read_preamble low_bits = do
   {
     if low_bits = 7 then
       let len  = int_of_num (IO.read_be_u32 ic) - 28     in
@@ -279,7 +279,7 @@ value read_glyph ic fm (hppp, vppp, _) glyphs = do
     ()
   else do
   {
-    let (len, char, _, _, _, width, height, h_off, v_off) = read_preamble flag_byte low_bits in
+    let (len, char, _, _, _, width, height, h_off, v_off) = read_preamble low_bits in
 
     let nybbles = read_nybbles ic len in
     let gm      = FontMetric.get_glyph_metric fm (Simple char) in

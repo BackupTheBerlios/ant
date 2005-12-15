@@ -122,7 +122,7 @@ value rec long_dump_box box = do
   in
 
   match box.b_contents with
-  [ CharBox c f -> do
+  [ CharBox c _ -> do
     {
       log_string "\n(char-box ";
       dump_dims box;

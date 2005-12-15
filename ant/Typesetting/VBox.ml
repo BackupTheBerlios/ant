@@ -131,7 +131,7 @@ value to_top box = do
 
 value make_to height boxes = do
 {
-  let (h, d) = calc_height boxes             in
+  let (h, _) = calc_height boxes         in
   let ratio  = adjustment_ratio h height in
 
   layout_scaled ratio boxes
@@ -139,7 +139,7 @@ value make_to height boxes = do
 
 value make_scaled factor boxes = do
 {
-  let (h, d) = calc_height boxes         in
+  let (h, _) = calc_height boxes         in
   let height = factor */ h.d_base        in
   let ratio  = adjustment_ratio h height in
 
@@ -148,7 +148,7 @@ value make_scaled factor boxes = do
 
 value make_spread amount boxes = do
 {
-  let (h, d) = calc_height boxes         in
+  let (h, _) = calc_height boxes         in
   let height = amount +/ h.d_base        in
   let ratio  = adjustment_ratio h height in
 
@@ -159,7 +159,7 @@ value make_top boxes = to_top (make boxes);
 
 value make_top_to height boxes = do
 {
-  let (h, d) = calc_height boxes         in
+  let (h, _) = calc_height boxes         in
   let ratio  = adjustment_ratio h height in
 
   to_top (layout_scaled ratio boxes)
@@ -176,7 +176,7 @@ value make_top_scaled factor boxes = do
 
 value make_top_spread amount boxes = do
 {
-  let (h, d) = calc_height boxes         in
+  let (h, _) = calc_height boxes         in
   let height = amount +/ h.d_base        in
   let ratio  = adjustment_ratio h height in
 

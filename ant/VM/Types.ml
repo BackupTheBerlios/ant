@@ -28,9 +28,9 @@ and partial_value =
 | Symbol of symbol
 | LinForm of LinForm.lin_form unknown
 | UnevalT of environment and term           (* unevaluated term      *)
-| Primitive1 of unknown -> partial_value
-| Primitive2 of unknown -> unknown -> partial_value
-| PrimitiveN of int and (list unknown -> partial_value)
+| Primitive1 of unknown -> unknown -> unit
+| Primitive2 of unknown -> unknown -> unknown -> unit
+| PrimitiveN of int and (unknown -> list unknown -> unit)
 | SimpleFunction of int and environment and term
                                             (* arity, environment, and body           *)
 | PatternFunction of int and environment and int and int and
@@ -92,9 +92,10 @@ and pattern_check =
 ]
 and environment = list (array unknown);
 
+value create_unbound _ = ref Unbound;
 value create_unknown v = ref v;
 
-(* |identical <x> <y>| checks whether too unknowns are identical. Unkowns are considered identical
+(* |identical <x> <y>| checks whether too unknowns are identical. Unknowns are considered identical
    if the constraint <x = y> exists. *)
 
 value identical x y = do

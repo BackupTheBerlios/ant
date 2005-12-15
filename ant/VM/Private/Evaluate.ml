@@ -4,6 +4,7 @@ open Types;
 open Runtime;
 open Unicode.Types;
 open Unicode.SymbolTable;
+open CStack;
 
 module UString = Unicode.UString;  (* we cannot open Unicode because of the name clash with Types *)
 
@@ -16,11 +17,7 @@ value empty () = [];
 
 value push env arr = [arr :: env];
 
-value push_unbound env n =
-  [Array.init
-     n
-     (fun _ -> create_unknown Unbound)
-   :: env];
+value push_unbound env n = [Array.init n create_unbound :: env];
 
 value lookup env lvl idx = do
 {
@@ -53,8 +50,8 @@ value rec binom n k = do
 (* defer evaluation of <term> but check first whether it is already evaluated *)
 
 value constant env term = match term with
-[ TConstant x       -> term
-| TGlobal x         -> term
+[ TConstant _       -> term
+| TGlobal _         -> term
 | TVariable lvl idx -> TGlobal (Environment.lookup env lvl idx)
 | _                 -> TConstant (UnevalT env term)
 ];
@@ -74,10 +71,11 @@ value make_tuple elements = match elements with
 
 value env_push_terms env terms = do
 {
-  (* Since the terms are evaluated w.r.t. to new environment we have to create
+  (* Since the terms are evaluated w.r.t. to the new environment we have to create
      a cyclic structure. *)
 
-  let vars    = Array.make (Array.length terms) (create_unknown Unbound) in
+  let vars    = Array.make (Array.length terms) (create_unbound ()) in
+                (* We can use the same unknown here since the entries will be replaced below. *)
   let new_env = [vars :: env] in
 
   Array.iteri
@@ -87,12 +85,13 @@ value env_push_terms env terms = do
   new_env
 };
 
-(* |evaluate <x>| evaluates the given unknown. *)
+(* |evaluate_unkown <x>| performs one evaluation step for the given unknown. *)
 
-value rec evaluate x = match !x with
+value rec evaluate_unknown x = match !x with
 [ UnevalT env term -> evaluate_term x env term
-| _ -> ()
+| _                -> ()
 ]
+
 and evaluate_term x env term = do
 {
   (*
@@ -106,28 +105,34 @@ and evaluate_term x env term = do
   [ TConstant v -> !x := v
   | TGlobal y   -> do
     {
-      evaluate y;
-      bind_unknown x y
+      cont2
+        (fun () -> evaluate_unknown y)
+        (fun () -> bind_unknown x y);
     }
   | TVariable lvl idx -> do
     {
       let y = Environment.lookup env lvl idx in
 
-      evaluate y;
-      bind_unknown x y
+      cont2
+        (fun () -> evaluate_unknown y)
+        (fun () -> bind_unknown x y);
     }
   | TLinForm lin -> do
     {
-      !x := LinForm
-              (LinForm.map
-                compare_unknowns
-                (fun t -> do
-                  {
-                    let y = ref Unbound in
-                    evaluate_term y env t;
-                    y
-                  })
-                lin)
+      let lf = LinForm.map
+                 compare_unknowns
+                 (fun t -> do
+                   {
+                     let y = ref Unbound in
+
+                     cont (fun () -> evaluate_term y env t);
+
+                     y
+                   })
+                 lin
+      in
+
+      !x := LinForm lf
     }
   | TConsTuple xs -> do
     {
@@ -150,21 +155,23 @@ and evaluate_term x env term = do
     {
       let f1 = ref Unbound in
 
-      evaluate_term f1 env f;
-
-      evaluate_application x !f1 (List.map (unevaluated env) args)
+      cont2
+        (fun () -> evaluate_term f1 env f)
+        (fun () -> evaluate_application x !f1 (List.map (unevaluated env) args));
     }
   | TIfThenElse p e0 e1 -> do
     {
       let y = ref Unbound in
 
-      evaluate_term y env p;
-
-      match !y with
-      [ Bool True  -> evaluate_term x env e0
-      | Bool False -> evaluate_term x env e1
-      | _          -> runtime_error "type error: boolean expected"
-      ]
+      cont2
+        (fun () -> evaluate_term y env p)
+        (fun () -> match !y with
+                   [ Bool True    -> evaluate_term x env e0
+                   | Bool False   -> evaluate_term x env e1
+                   | Unbound
+                   | Constraint _ -> runtime_error "unknown condition"
+                   | _            -> runtime_error "type error: boolean expected"
+                   ]);
     }
   | TLocalScope defs term -> do
     {
@@ -174,54 +181,62 @@ and evaluate_term x env term = do
     }
   | TSequence stmts term -> do
     {
+      let len = Array.length stmts in
+
       !x := UnevalT env term;
 
-      Array.iter (execute env) stmts;
+      cont (fun () -> evaluate_unknown x);
 
-      evaluate x
+      for i = 1 to len do
+      {
+        cont (fun () -> execute env stmts.(len - i))
+      }
     }
   | TMatch term stack_depth num_vars patterns -> do
     {
-      let stack = Array.init
-                    stack_depth
-                    (fun _ -> create_unknown Unbound)
-                  in
-      let vars  = Array.init
-                    num_vars
-                    (fun _ -> create_unknown Unbound)
-                  in
+      let stack = Array.init stack_depth create_unbound in
+      let vars  = Array.init num_vars    create_unbound in
       let expr  = ref Unbound in
 
-      evaluate_term expr env term;
-
-      iter patterns
+      cont2
+        (fun () -> evaluate_term expr env term)
+        (fun () -> iter patterns)
 
       where rec iter patterns = match patterns with
       [ []                -> runtime_error "matching error"
       | [(c, g, b) :: ps] -> do
         {
-          if check_patterns c expr stack vars then do
-          {
-            let new_env = Environment.push env vars in
+          let r = ref False in
 
-            match g with
-            [ None       -> evaluate_term x new_env b
-            | Some guard -> do
+          cont2
+            (fun () -> check_patterns r c expr stack vars)
+            (fun () -> do
               {
-                let z = ref Unbound in
+                if !r then do
+                {
+                  let new_env = Environment.push env vars in
 
-                evaluate_term z new_env guard;
+                  match g with
+                  [ None       -> evaluate_term x new_env b
+                  | Some guard -> do
+                    {
+                      let z = ref Unbound in
 
-                match !z with
-                [ Bool True  -> evaluate_term x new_env b
-                | Bool False -> iter ps
-                | _          -> runtime_error "illegal guard"
-                ]
-              }
-            ]
-          }
-          else
-            iter ps
+                      cont
+                        (fun () -> match !z with
+                                   [ Bool True    -> evaluate_term x new_env b
+                                   | Bool False   -> iter ps
+                                   | Unbound
+                                   | Constraint _ -> runtime_error "guard unknown"
+                                   | _            -> runtime_error "illegal guard"
+                                   ]);
+                      evaluate_term z new_env guard
+                    }
+                  ]
+                }
+                else
+                  iter ps
+              })
         }
       ]
     }
@@ -230,30 +245,31 @@ and evaluate_term x env term = do
       let u1 = unevaluated env t1 in
       let u2 = unevaluated env t2 in
 
-      forced_unify u1 u2;
-      bind_unknown x  u2
+      cont2
+        (fun () -> forced_unify u1 u2)
+        (fun () -> bind_unknown x u2)
     }
   | TTrigger stmt -> do
     {
-      execute env stmt
+      cont (fun () -> execute env stmt)
     }
   ]
 }
 
-and check_patterns checks expr stack vars = do
+and check_patterns res checks expr stack vars = do
 {
   iter checks expr 0
 
   where rec iter checks expr used_stack = do
   {
     let continue cs = match cs with
-    [ [] -> True
+    [ [] -> !res := True
     | _  -> iter cs (stack.(used_stack-1)) (used_stack-1)
     ]
     in
 
     match checks with
-    [ []      -> True
+    [ []      -> !res := True
     | [c::cs] -> match c with
       [ PCAnything   -> continue cs
       | PCVariable i -> do
@@ -267,31 +283,43 @@ and check_patterns checks expr stack vars = do
           iter cs expr used_stack
         }
       | PCNumber n -> match !expr with
-        [ Number i    -> n =/ i && continue cs
+        [ Number i    -> if n <>/ i then
+                           !res := False
+                         else
+                           continue cs
         | UnevalT e t -> do
           {
-            evaluate_term expr e t;
-            iter checks expr used_stack
+            cont (fun () -> iter checks expr used_stack);
+
+            evaluate_term expr e t
           }
-        | _               -> False
+        | _ -> !res := False
         ]
       | PCChar c -> match !expr with
-        [ Char d      -> c = d && continue cs
+        [ Char d      -> if c <> d then
+                           !res := False
+                         else
+                           continue cs
         | UnevalT e t -> do
           {
-            evaluate_term expr e t;
-            iter checks expr used_stack
+            cont (fun () -> iter checks expr used_stack);
+
+            evaluate_term expr e t
           }
-        | _               -> False
+        | _ -> !res := False
         ]
       | PCSymbol sym -> match !expr with
-        [ Symbol s    -> sym = s && continue cs
+        [ Symbol s    -> if sym <> s then
+                           !res := False
+                         else
+                           continue cs
         | UnevalT e t -> do
           {
+            cont (fun () -> iter checks expr used_stack);
+
             evaluate_term expr e t;
-            iter checks expr used_stack
           }
-        | _        -> False
+        | _ -> !res := False
         ]
       | PCTuple arity -> match !expr with
         [ Tuple xs -> do
@@ -306,23 +334,25 @@ and check_patterns checks expr stack vars = do
               iter cs xs.(0) (used_stack + Array.length xs - 1)
             }
             else
-              False
+              !res := False
           }
         | UnevalT e t -> do
           {
-            evaluate_term expr e t;
-            iter checks expr used_stack
+            cont (fun () -> iter checks expr used_stack);
+
+            evaluate_term expr e t
           }
-        | _        -> False
+        | _ -> !res := False
         ]
       | PCNil -> match !expr with
         [ Nil         -> continue cs
         | UnevalT e t -> do
           {
-            evaluate_term expr e t;
-            iter checks expr used_stack
+            cont (fun () -> iter checks expr used_stack);
+
+            evaluate_term expr e t
           }
-        | _   -> False
+        | _ -> !res := False
         ]
       | PCConsList -> match !expr with
         [ List x y -> do
@@ -332,10 +362,11 @@ and check_patterns checks expr stack vars = do
           }
         | UnevalT e t -> do
           {
-            evaluate_term expr e t;
-            iter checks expr used_stack
+            cont (fun () -> iter checks expr used_stack);
+
+            evaluate_term expr e t
           }
-        | _ -> False
+        | _ -> !res := False
         ]
       ]
     ]
@@ -344,23 +375,37 @@ and check_patterns checks expr stack vars = do
 
 (* evaluation of builtin operations *)
 
-and add_unknowns x y = match (!x, !y) with
-[ (Number m,  Number n)  -> Number (m +/ n)
-| (LinForm m, Number n)  -> LinForm (LinForm.add_const m n)
-| (Number m,  LinForm n) -> LinForm (LinForm.add_const n m)
-| (LinForm m, LinForm n) -> LinForm (LinForm.add m n)
-| (List _ _, Nil)        -> !x
-| (Nil, List _ _)        -> !y
-| (List a b, List _ _)   -> List a (ref (add_unknowns b y))
+and add_unknowns res x y = match (!x, !y) with
+[ (Number m,  Number n)  -> !res := Number (m +/ n)
+| (LinForm m, Number n)  -> !res := LinForm (LinForm.add_const m n)
+| (Number m,  LinForm n) -> !res := LinForm (LinForm.add_const n m)
+| (LinForm m, LinForm n) -> !res := LinForm (LinForm.add m n)
+| (List _ _, Nil)        -> !res := !x
+| (Nil, List _ _)        -> !res := !y
+| (List a b, List _ _)   -> do
+  {
+    let c = ref Unbound in
+
+    !res := List a c;
+
+    add_unknowns c b y
+  }
 | (Tuple xs, Tuple ys)   -> do
   {
     if Array.length xs <> Array.length ys then
       runtime_error "+: tuples differ in length"
-    else
-      Tuple
-        (Array.init
-          (Array.length xs)
-          (fun i -> ref (add_unknowns xs.(i) ys.(i))))
+    else do
+    {
+      let len = Array.length xs               in
+      let zs  = Array.init len create_unbound in
+
+      !res := Tuple zs;
+
+      for i = 1 to len do
+      {
+        cont (fun () -> add_unknowns zs.(len - i) xs.(len - i) ys.(len - i))
+      }
+    }
   }
 | (LinForm lin, Tuple xs)
 | (Tuple xs, LinForm lin) -> do
@@ -377,217 +422,345 @@ and add_unknowns x y = match (!x, !y) with
         lin.LinForm.terms
 
     where rec iter result terms = match terms with
-    [ []            -> Tuple (Array.map (fun l -> ref (LinForm l)) result)
+    [ []            -> !res := Tuple (Array.map (fun l -> ref (LinForm l)) result)
     | [(a,y) :: ys] -> do
       {
-        let z = Array.init dim (fun _ -> ref Unbound) in
+        let z = Array.init dim create_unbound in
 
-        forced_unify y (ref (Tuple z));
+        cont2
+          (fun () -> forced_unify y (ref (Tuple z)))
+          (fun () -> do
+            {
+              let u = Array.make dim (LinForm.lin_zero compare_unknowns) in
 
-        iter
-          (Array.mapi (fun i l -> LinForm.add_unknown l a z.(i)) result)
-          ys
+              cont (fun () -> iter u ys);
+
+              for i = 1 to dim do
+              {
+                cont
+                  (fun () ->
+                    u.(dim - i) := LinForm.add_unknown result.(dim - i) a z.(dim - i))
+              }
+            })
       }
     ]
   }
-| (UnevalT e t, _)  -> do { evaluate_term x e t; add_unknowns x y }
-| (_, UnevalT e t)  -> do { evaluate_term y e t; add_unknowns x y }
-| (Unbound, _)      -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
-                                            (LinForm.of_unknown compare_unknowns y))
-| (_, Unbound)      -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
-                                            (LinForm.of_unknown compare_unknowns y))
-| (Constraint _, _) -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
-                                            (LinForm.of_unknown compare_unknowns y))
-| (_, Constraint _) -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
-                                            (LinForm.of_unknown compare_unknowns y))
-| (Number n, _) when n =/ num_zero -> !y    (* Allow addition of 0 to everything so we *)
-| (_, Number n) when n =/ num_zero -> !x    (* do not need two versions of lin_form.   *)
+| (UnevalT e t, _)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term x e t)
+      (fun () -> add_unknowns res x y);
+  }
+| (_, UnevalT e t)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term y e t)
+      (fun () -> add_unknowns res x y);
+  }
+| (Unbound, _)      -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
+                                                    (LinForm.of_unknown compare_unknowns y))
+| (_, Unbound)      -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
+                                                    (LinForm.of_unknown compare_unknowns y))
+| (Constraint _, _) -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
+                                                    (LinForm.of_unknown compare_unknowns y))
+| (_, Constraint _) -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
+                                                    (LinForm.of_unknown compare_unknowns y))
+| (Number n, _) when n =/ num_zero -> !res := !y    (* Allow addition of 0 to everything so we *)
+| (_, Number n) when n =/ num_zero -> !res := !x    (* do not need two versions of lin_form.   *)
 | _                 -> runtime_error "+: invalid argument"
 ]
 
-and sub_unknowns x y = match (!x, !y) with
-[ (Number m,  Number n)  -> Number (m -/ n)
-| (LinForm m, Number n)  -> LinForm (LinForm.add_const m (minus_num n))
-| (Number m,  LinForm n) -> LinForm (LinForm.sub (LinForm.of_num compare_unknowns m) n )
-| (LinForm m, LinForm n) -> LinForm (LinForm.sub m n)
+and sub_unknowns res x y = match (!x, !y) with
+[ (Number m,  Number n)  -> !res := Number (m -/ n)
+| (LinForm m, Number n)  -> !res := LinForm (LinForm.add_const m (minus_num n))
+| (Number m,  LinForm n) -> !res := LinForm (LinForm.sub (LinForm.of_num compare_unknowns m) n )
+| (LinForm m, LinForm n) -> !res := LinForm (LinForm.sub m n)
 | (Tuple xs,  Tuple ys)  -> do
   {
     if Array.length xs <> Array.length ys then
       runtime_error "-: I cannot subtract tuples of different length"
-    else
-      Tuple
-        (Array.init
-          (Array.length xs)
-          (fun i -> ref (sub_unknowns xs.(i) ys.(i))))
+    else do
+    {
+      let len = Array.length xs               in
+      let zs  = Array.init len create_unbound in
+
+      !res := Tuple zs;
+
+      for i = 1 to len do
+      {
+        cont (fun () -> sub_unknowns zs.(len - i) xs.(len - i) ys.(len - i))
+      }
+    }
   }
-| (UnevalT e t, _)       -> do { evaluate_term x e t; sub_unknowns x y }
-| (_, UnevalT e t)       -> do { evaluate_term y e t; sub_unknowns x y }
-| (Unbound, _)           -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
-                                                 (LinForm.of_scaled_unknown compare_unknowns num_minus_one y))
-| (_, Unbound)           -> LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x) 
-                                                 (LinForm.of_scaled_unknown compare_unknowns num_minus_one y))
+| (UnevalT e t, _)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term x e t)
+      (fun () -> sub_unknowns res x y)
+  }
+| (_, UnevalT e t)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term y e t)
+      (fun () -> sub_unknowns res x y)
+  }
+| (Unbound, _)           -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x)
+                                                         (LinForm.of_scaled_unknown compare_unknowns num_minus_one y))
+| (_, Unbound)           -> !res := LinForm (LinForm.add (LinForm.of_unknown compare_unknowns x) 
+                                                         (LinForm.of_scaled_unknown compare_unknowns num_minus_one y))
 | _                      -> runtime_error "-: invalid argument"
 ]
 
-and mul_unknowns x y = match (!x, !y) with
-[ (Number m, Number n)   -> Number (m */ n)
-| (Number m, LinForm l)  -> LinForm (LinForm.scale m l)
-| (LinForm l, Number n)  -> LinForm (LinForm.scale n l)
+and mul_unknowns res x y = match (!x, !y) with
+[ (Number m, Number n)   -> !res := Number (m */ n)
+| (Number m, LinForm l)  -> !res := LinForm (LinForm.scale m l)
+| (LinForm l, Number n)  -> !res := LinForm (LinForm.scale n l)
 | (LinForm m, LinForm n) -> do
   {
-    evaluate_lin_form x m;
-    evaluate_lin_form y n;
-
-    match (!x, !y) with
-    [ (LinForm _, LinForm _) -> runtime_error "*: non-linear equation"
-    | _                      -> mul_unknowns x y
-    ]
+    cont3
+      (fun () -> evaluate_lin_form x m)
+      (fun () -> evaluate_lin_form y n)
+      (fun () -> match (!x, !y) with
+                 [ (LinForm _, LinForm _) -> runtime_error "*: non-linear equation"
+                 | _                      -> mul_unknowns res x y
+                 ])
   }
 | (Number m,     Unbound)
-| (Number m,     Constraint _) -> LinForm (LinForm.of_scaled_unknown compare_unknowns m y)
+| (Number m,     Constraint _) -> !res := LinForm (LinForm.of_scaled_unknown compare_unknowns m y)
 | (Unbound,      Number n)
-| (Constraint _, Number n)     -> LinForm (LinForm.of_scaled_unknown compare_unknowns n x)
+| (Constraint _, Number n)     -> !res := LinForm (LinForm.of_scaled_unknown compare_unknowns n x)
 | (Number _,     Tuple ys)
 | (Unbound,      Tuple ys)
 | (Constraint _, Tuple ys) -> do
   {
-    Tuple
-      (Array.init
-        (Array.length ys)
-        (fun i -> ref (mul_unknowns x ys.(i))))
+    let len = Array.length ys               in
+    let zs  = Array.init len create_unbound in
+
+    !res := Tuple zs;
+
+    for i = 1 to len  do
+    {
+      cont (fun () -> mul_unknowns zs.(len - i) x ys.(len - i))
+    }
   }
 | (Tuple xs, Number _)
 | (Tuple xs, Unbound)
 | (Tuple xs, Constraint _) -> do
   {
-    Tuple
-      (Array.init
-        (Array.length xs)
-        (fun i -> ref (mul_unknowns xs.(i) y)))
+    let len = Array.length xs               in
+    let zs  = Array.init len create_unbound in
+
+    !res := Tuple zs;
+
+    for i = 1 to len  do
+    {
+      cont (fun () -> mul_unknowns zs.(len - i) xs.(len - i) y)
+    }
   }
 | (Tuple xs, Tuple ys) -> do
   {
-    if Array.length xs <> Array.length ys then
+    let len = Array.length xs in
+
+    if Array.length ys <> len then
       runtime_error "*: tuples differ in length"
     else do
     {
-      let (_, lin) =
-        Array.fold_left
-          (fun (i, lin) _ ->
-            (i+1,
-             LinForm.add
-               lin
-               (LinForm.of_unknown
-                 compare_unknowns
-                 (ref (mul_unknowns xs.(i) ys.(i)))))
-          )
-          (0, LinForm.lin_zero compare_unknowns)
-          xs
-      in
+      let zs = Array.init len create_unbound in
 
-      LinForm lin
+      cont
+        (fun () -> do
+          {
+            iter 0 (LinForm.lin_zero compare_unknowns)
+
+            where rec iter i lin = do
+            {
+              if i >= len then
+                !res := LinForm lin
+              else
+                iter (i+1)
+                     (LinForm.add lin (LinForm.of_unknown compare_unknowns zs.(i)))
+            }
+          });
+
+      for i = 1 to len do
+      {
+        cont (fun () -> mul_unknowns zs.(len - i) xs.(len - i) ys.(len - i))
+      }
     }
   }
-| (Number _, Primitive1 f) ->
-    Primitive1 (fun a -> mul_unknowns x (ref (f a)))
-| (Number _, Primitive2 f) ->
-    Primitive2 (fun a b -> mul_unknowns x (ref (f a b)))
-| (Number _, PrimitiveN ar f) ->
-    PrimitiveN ar (fun a -> mul_unknowns x (ref (f a)))
-| (Number _, SimpleFunction ar env body) ->
-    SimpleFunction ar env (TApplication (TConstant (Primitive2 mul_unknowns)) [TConstant !x; body])
+| (Number _, Primitive1 f) -> do
+  {
+    !res := Primitive1
+              (fun z a -> do
+                {
+                  let y = ref Unbound in
+                  cont2
+                    (fun () -> f y a)
+                    (fun () -> mul_unknowns z x y)
+                })
+  }
+| (Number _, Primitive2 f) -> do
+  {
+    !res := Primitive2
+              (fun z a b -> do
+                {
+                  let y = ref Unbound in
+                  cont2
+                    (fun () -> f y a b)
+                    (fun () -> mul_unknowns z x y)
+                })
+  }
+| (Number _, PrimitiveN ar f) -> do
+  {
+    !res := PrimitiveN ar
+              (fun z a -> do
+                {
+                  let y = ref Unbound in
+                  cont2
+                    (fun () -> f y a)
+                    (fun () -> mul_unknowns z x y)
+                })
+  }
+| (Number _, SimpleFunction ar env body) -> do
+  {
+    !res := SimpleFunction ar env
+              (TApplication (TConstant (Primitive2 mul_unknowns))
+                            [TConstant !x; body])
+  }
 | (Number _, PatternFunction a b c d body) -> do
   {
-    PatternFunction a b c d
-      (List.map
-        (fun (pc, g, t) ->
-          (pc, g, (TApplication (TConstant (Primitive2 mul_unknowns)) [TConstant !x; t])))
-      body)
+    !res := PatternFunction a b c d
+              (List.map
+                (fun (pc, g, t) ->
+                  (pc, g, (TApplication (TConstant (Primitive2 mul_unknowns))
+                                        [TConstant !x; t])))
+              body)
   }
 | (_, List _ _) -> do   (*  x * [y,z]  =>  y + x*(z-y) *)
   {
-    let points = evaluate_list "*" y in
+    let points = ref [] in
 
-    match points with
-    [ [a]    -> !a
-    | [a; b] -> do  (* treat the common case separately *)
-      {
-        let c = ref (sub_unknowns b a) in
-        let d = ref (mul_unknowns x c) in
+    cont2
+      (fun () -> evaluate_list "*" points y)
+      (fun () -> match !points with
+                 [ [a]    -> bind_unknown res a
+                 | [a; b] -> do  (* treat the common case separately *)
+                   {
+                     let c = ref Unbound in
+                     let d = ref Unbound in
+ 
+                     cont3
+                       (fun () -> sub_unknowns c b a)
+                       (fun () -> mul_unknowns d x c)
+                       (fun () -> add_unknowns res a d)
+                   }
+                 | [a :: b] -> do
+                   {
+                     cont2
+                       (fun () -> evaluate_unknown x)
+                       (fun () -> match !x with
+                                  [ Number t -> do
+                                    {
+                                      let n = List.length !points - 1 in
+                                      let s = num_one -/ t            in
 
-        add_unknowns a d
-      }
-    | [a :: b] -> do
-      {
-        evaluate x;
+                                      let (_, lin) =
+                                        List.fold_left
+                                          (fun (k, lin) c ->
+                                            (k + 1,
+                                             LinForm.add lin
+                                               (LinForm.of_scaled_unknown
+                                                  compare_unknowns
+                                                 (binom n k
+                                                   */ power_num s (num_of_int (n-k))
+                                                   */ power_num t (num_of_int k))
+                                                 c)
+                                            ))
+                                          (1, LinForm.of_scaled_unknown
+                                                compare_unknowns
+                                                (power_num s (num_of_int n))
+                                                a)
+                                          b
+                                      in
 
-        match !x with
-        [ Number t -> do
-          {
-            let n = List.length points - 1 in
-            let s = num_one -/ t           in
-
-            let (_, lin) =
-              List.fold_left
-                (fun (k, lin) c ->
-                  (k + 1,
-                   LinForm.add lin
-                     (LinForm.of_scaled_unknown
-                       compare_unknowns
-                       (binom n k
-                         */ power_num s (num_of_int (n-k))
-                         */ power_num t (num_of_int k))
-                       c)
-                  ))
-                (1, LinForm.of_scaled_unknown
-                      compare_unknowns
-                      (power_num s (num_of_int n))
-                      a)
-                b
-            in
-
-            LinForm lin
-          }
-        | _ -> runtime_error "*: invalid argument"
-        ]
-      }
-    | [] -> assert False
-    ]
+                                      !res := LinForm lin
+                                    }
+                                  | _ -> runtime_error "*: invalid argument"
+                                  ])
+                   }
+                 | [] -> assert False
+                 ])
   }
-| (UnevalT e t, _) -> do { evaluate_term x e t; mul_unknowns x y }
-| (_, UnevalT e t) -> do { evaluate_term y e t; mul_unknowns x y }
-| _                -> runtime_error "*: invalid argument"
+| (UnevalT e t, _)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term x e t)
+      (fun () -> mul_unknowns res x y)
+  }
+| (_, UnevalT e t)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term y e t)
+      (fun () -> mul_unknowns res x y)
+  }
+| _ -> runtime_error "*: invalid argument"
 ]
 
-and div_unknowns x y = match (!x, !y) with
-[ (Number m,  Number n) -> Number (m // n)
-| (LinForm l, Number n) -> LinForm (LinForm.scale (num_one // n) l)
-| (Unbound,   Number n) -> LinForm (LinForm.of_scaled_unknown compare_unknowns (num_one // n) x)
+and div_unknowns res x y = match (!x, !y) with
+[ (Number m,  Number n) -> !res := Number (m // n)
+| (LinForm l, Number n) -> !res := LinForm (LinForm.scale (num_one // n) l)
+| (Unbound,   Number n) -> !res := LinForm (LinForm.of_scaled_unknown compare_unknowns (num_one // n) x)
 | (Tuple xs,  Number _) -> do
   {
-    Tuple
-      (Array.init
-        (Array.length xs)
-        (fun i -> ref (div_unknowns xs.(i) y)))
+    let len = Array.length xs               in
+    let zs  = Array.init len create_unbound in
+
+    !res := Tuple zs;
+
+    for i = 1 to len do
+    {
+      cont (fun () -> div_unknowns zs.(len - i) xs.(len - i) y)
+    }
   }
-| (UnevalT e t, _) -> do { evaluate_term x e t; div_unknowns x y }
-| (_, UnevalT e t) -> do { evaluate_term y e t; div_unknowns x y }
+| (UnevalT e t, _)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term x e t)
+      (fun () -> div_unknowns res x y)
+  }
+| (_, UnevalT e t)  -> do
+  {
+    cont2
+      (fun () -> evaluate_term y e t)
+      (fun () -> div_unknowns res x y)
+  }
 | (_, LinForm l)   -> do
   {
-    evaluate_lin_form y l;
-
-    match !y with
-    [ Number _ -> div_unknowns x y
-    | _        -> runtime_error ("/: invalid argument")
-    ]
+    cont2
+      (fun () -> evaluate_lin_form y l)
+      (fun () -> match !y with
+                 [ Number _ -> div_unknowns res x y
+                 | _        -> runtime_error ("/: invalid argument")
+                 ])
   }
 | _ -> runtime_error "/: invalid argument"
 ]
 
-and evaluate_list name x = match !x with
-[ Nil          -> []
-| List a b     -> [a :: evaluate_list name b]
-| UnevalT e t  -> do { evaluate_term x e t; evaluate_list name x }
+and evaluate_list name res x = match !x with
+[ Nil      -> !res := []
+| List a b -> do
+  {
+    let z = ref [] in
+    cont2
+      (fun () -> evaluate_list name z b)
+      (fun () -> !res := [a :: !z])
+  }
+| UnevalT e t -> do
+  {
+    cont2
+      (fun () -> evaluate_term x e t)
+      (fun () -> evaluate_list name res x)
+  }
 | Unbound
 | Constraint _ -> runtime_error (name ^ ": argument undefined")
 | _            -> runtime_error (name ^ ": invalid argument")
@@ -599,176 +772,116 @@ and evaluate_lin_form x lin = do
 
   !x := Unbound;
 
-  let (lin, coeff, const) = collect lin.LinForm.terms
-    where rec collect terms = match terms with
-    [ [] -> (LinForm.lin_zero compare_unknowns, num_zero, ref (Number lin.LinForm.const))
-    | [((a, y) as t) :: ts] -> do
-      {
-        evaluate y;
-
-        let (lin, coeff, const) = collect ts in
-
-        match !y with
-        [ Unbound      -> if identical x y then
-                            (lin, coeff +/ a, const)
-                          else
-                            (LinForm.add_unknown lin a y, coeff, const)
-        | Constraint _ -> (LinForm.add_unknown lin a y, coeff, const)
-        | _            -> (lin,
-                           coeff,
-                           ref (add_unknowns
-                                 const
-                                 (ref (mul_unknowns (ref (Number a)) y))))
-        ]
-      }
-    ]
-  in
-
-  let sum = if LinForm.is_constant lin then
-              add_unknowns const (ref (Number lin.LinForm.const))
-            else
-              add_unknowns const (ref (LinForm lin))
-            in
-
-  if coeff =/ num_zero then
-    !x := sum
-  else if coeff =/ num_one then
-    forced_unify
-      (ref (sub_unknowns (ref sum) x))
-      (ref (Number num_zero))
-  else
-    !x := mul_unknowns
-            (ref (Number (num_one // (num_one -/ coeff))))
-            (ref sum)
-(*
-  collect [] [] (ref (Number lin.LinForm.const)) num_zero lin.LinForm.terms
-
-  where rec collect unbound constr known coeff terms = match terms with
-  [ [((a, y) as t) :: ts] -> do
+  let rec collect res terms = match terms with
+  [ [] -> ()
+  | [(a, y) :: ts] -> do
     {
-      evaluate y;
+      cont2
+        (fun () -> evaluate_unknown y)
+        (fun () -> do
+          {
+            let z = ref !res in
 
-      match !y with
-      [ Unbound      -> if identical x y then
-                          collect unbound constr known (coeff +/ a) ts
-                        else
-                          collect [t :: unbound] constr known coeff ts
-      | Constraint _ -> collect unbound [t :: constr] known coeff ts
-      | _            -> collect
-                          unbound
-                          constr
-                          (ref (add_unknowns
-                                 known
-                                 (ref (mul_unknowns (ref (Number a)) y))))
-                          coeff
-                          ts
-      ]
-    }
-  | [] -> do
-    {
-      (* Some unknowns may appear twice in |constr|. *)
+            cont2
+              (fun () -> collect z ts)
+              (fun () -> do
+                {
+                  let (lin, coeff, const) = !z in
 
-      (*
-      assert (check unbound  (* check that all terms in <unbound> are different *)
-      where rec check terms = match terms with
-      [ [] -> True
-      | [(_,y)::ts] -> List.for_all (fun (_,z) -> y != z) ts && check ts
-      ]);
-      *)
+                  match !y with
+                  [ Unbound -> do
+                    {
+                      if identical x y then
+                        !res := (lin, coeff +/ a, const)
+                      else
+                        !res := (LinForm.add_unknown lin a y, coeff, const)
+                    }
+                  | Constraint _ -> do
+                    {
+                      !res := (LinForm.add_unknown lin a y, coeff, const)
+                    }
+                  | _ -> do
+                    {
+                      let z1 = ref Unbound in
+                      let z2 = ref Unbound in
 
-      merge_constraint (constr @  unbound) []
-
-      where rec merge_constraint constr terms = match constr with
-      [ [] -> do
-        {
-          let lin = LinForm.of_terms compare_unknowns terms in
-          let sum = if LinForm.is_constant lin then
-                      add_unknowns known (ref (Number lin.LinForm.const))
-                    else
-                      add_unknowns known (ref (LinForm lin))
-                    in
-
-          if coeff =/ num_zero then
-            !x := sum
-          else if coeff =/ num_one then
-            forced_unify
-              (ref (sub_unknowns (ref sum) x))
-              (ref (Number num_zero))
-          else
-            !x := mul_unknowns
-                    (ref (Number (num_one // (num_one -/ coeff))))
-                    (ref sum)
-        }
-      | [(a, y) :: ys] -> do
-        {
-          find_identical a y [] ys
-
-          where rec find_identical a y zs ys = match ys with
-          [ []                    -> merge_constraint zs [(a, y) :: terms]
-          | [((c, u) as t) :: us] -> if identical u y then
-                                       find_identical (a +/ c) y zs us
-                                     else
-                                       find_identical a y [t :: zs] us
-          ]
-        }
-      ]
+                      cont3
+                        (fun () -> mul_unknowns z1 (ref (Number a)) y)
+                        (fun () -> add_unknowns z2 const z1)
+                        (fun () -> !res := (lin, coeff, z2))
+                    }
+                  ]
+                })
+          })
     }
   ]
-*)
-(*  match List.fold_right
-         (fun (b, y) (lin, coef) -> do
-           {
-             if identical x y then
-               (lin, Some b)
-             else do
-             {
-               evaluate y;
+  in
+  let compute_x x coeff sum = do
+  {
+    if coeff =/ num_zero then
+      !x := !sum
+    else if coeff =/ num_one then do
+    {
+      let z = ref Unbound in
 
-               match !y with
-               [ LinForm lf   -> (LinForm.lin_comb num_one lin b lf, coef)
-               | Number c     -> (LinForm.add_const lin c,           coef)
-               | Unbound
-               | Constraint _
-               | UnevalT _ _  -> (LinForm.add lin (LinForm.of_scaled_unknown identical b y), coef)
-               | _            -> runtime_error "type error"
-               ]
-             }
-           })
-         lin.LinForm.terms
-         (LinForm.of_num identical lin.LinForm.const, None)
-  with
-  [ (lin, Some b) -> !x := LinForm (LinForm.scale (num_one // (num_one -/ b)) lin)
-  | (lin, None)   -> match lin.LinForm.terms with
-                     [ [] -> !x := Number lin.LinForm.const
-                     | _  -> !x := LinForm lin
-                     ]
-  ]*)
+      cont2
+        (fun () -> sub_unknowns z sum x)
+        (fun () -> forced_unify z (ref (Number num_zero)))
+    }
+    else
+      cont
+        (fun () -> mul_unknowns x
+                     (ref (Number (num_one // (num_one -/ coeff))))
+                     sum)
+  }
+  in
+
+  let col = ref (LinForm.lin_zero compare_unknowns,
+                 num_zero,
+                 ref (Number lin.LinForm.const))
+            in
+  let sum = ref Unbound in
+
+  cont2
+    (fun () -> collect col lin.LinForm.terms)
+    (fun () -> do
+      {
+        let (lin, coeff, const) = !col in
+
+        cont2
+          (fun () ->
+            if LinForm.is_constant lin then
+              add_unknowns sum const (ref (Number lin.LinForm.const))
+            else
+              add_unknowns sum const (ref (LinForm lin)))
+          (fun () -> compute_x x coeff sum)
+      })
 }
 
 and evaluate_application x f args = match f with
 [ Primitive1 p -> match args with
-  [ [a]      -> !x := p a
+  [ [a]      -> p x a
   | [a :: b] -> do
     {
-      let g = p a in
+      let c = ref Unbound in
 
-(*      !x := Application g b;*)
-
-      evaluate_application x g b
+      cont2
+        (fun () -> p c a)
+        (fun () -> evaluate_application x !c b)
     }
   | _ -> assert False
   ]
 | Primitive2 p -> match args with
-  [ [a; b]      -> !x := p a b
+  [ [a; b]      -> p x a b
   | [a; b :: c] -> do
     {
-      let g = p a b in
+      let d = ref Unbound in
 
-(*      !x := Application g c;*)
-
-      evaluate_application x g c
+      cont2
+        (fun () -> p d a b)
+        (fun () -> evaluate_application x !d c)
     }
-  | [a] -> !x := Application f args
+  | [_] -> !x := Application f args
   | _   -> assert False
   ]
 | PrimitiveN arity p -> do
@@ -777,19 +890,16 @@ and evaluate_application x f args = match f with
 
     if arity > n then
       !x := Application f args
+    else if arity = n then
+      p x args
     else do
     {
       let (vars, rest) = XList.split_at arity args in
-      let result       = p vars in
+      let result       = ref Unbound in
 
-      if n > arity then do
-      {
-(*        !x := Application result rest;*)
-
-        evaluate_application x result rest
-      }
-      else
-        !x := result
+      cont2
+        (fun () -> p result vars)
+        (fun () -> evaluate_application x !result rest)
     }
   }
 | SimpleFunction arity e body -> do
@@ -798,23 +908,18 @@ and evaluate_application x f args = match f with
 
     if arity > n then
       !x := Application f args
+    else if arity = n then
+      evaluate_term x (Environment.push e (Array.of_list args)) body
     else do
     {
-      if n > arity then do
-      {
-        let (vars, rest) = XList.split_at arity args in
-        let new_env      = Environment.push e (Array.of_list vars) in
+      let (vars, rest) = XList.split_at arity args in
+      let new_env      = Environment.push e (Array.of_list vars) in
 
-        let result = ref Unbound in
+      let result = ref Unbound in
 
-        evaluate_term result new_env body;
-
-(*        !x := Application !result rest;*)
-
-        evaluate_application x !result rest
-      }
-      else
-        evaluate_term x (Environment.push e (Array.of_list args)) body
+      cont2
+        (fun () -> evaluate_term result new_env body)
+        (fun () -> evaluate_application x !result rest)
     }
   }
 | PatternFunction arity e stack_depth num_vars pats -> do
@@ -823,24 +928,7 @@ and evaluate_application x f args = match f with
 
     if arity > n then
       !x := Application f args
-    else if n > arity then do
-    {
-      let (used, rest) = XList.split_at arity args in
-
-      let result = ref Unbound in
-
-      evaluate_term result e
-        (TMatch
-          (make_tuple (List.map (fun v -> TGlobal v) used))
-          stack_depth
-          num_vars
-          pats);
-
-(*      !x := Application !result args;*)
-
-      evaluate_application x !result args
-    }
-    else
+    else if arity = n then
       evaluate_term
         x e
         (TMatch
@@ -848,12 +936,26 @@ and evaluate_application x f args = match f with
           stack_depth
           num_vars
           pats)
+    else do
+    {
+      let (used, rest) = XList.split_at arity args in
+
+      let result = ref Unbound in
+
+      cont2
+        (fun () ->
+          evaluate_term result e
+            (TMatch
+              (make_tuple (List.map (fun v -> TGlobal v) used))
+              stack_depth
+              num_vars
+              pats))
+        (fun () -> evaluate_application x !result rest)
+    }
   }
 | Application f2 args2 -> do
   {
     let a = args2 @ args in
-
-(*    !x := Application f2 a;*)
 
     evaluate_application x f2 a
   }
@@ -872,9 +974,9 @@ and evaluate_application x f args = match f with
           [ [] -> !x := !y
           | _  -> do
             {
-              evaluate y;
-
-              evaluate_application x !y b
+              cont2
+                (fun () -> evaluate_unknown y)
+                (fun () -> evaluate_application x !y b)
             }
           ]
         }
@@ -883,8 +985,9 @@ and evaluate_application x f args = match f with
       }
     | UnevalT env t -> do
       {
-        evaluate_term a env t;
-        evaluate_application x f args
+        cont2
+          (fun () -> evaluate_term a env t)
+          (fun () -> evaluate_application x f args)
       }
     | _ -> runtime_error "index not a symbol"
     ]
@@ -902,8 +1005,9 @@ and evaluate_application x f args = match f with
           [ [] -> !x := !(ys.(i))
           | _  -> do
             {
-              evaluate ys.(i);
-              evaluate_application x !(ys.(i)) b
+              cont2
+                (fun () -> evaluate_unknown ys.(i))
+                (fun () -> evaluate_application x !(ys.(i)) b)
             }
           ]
           else
@@ -914,8 +1018,9 @@ and evaluate_application x f args = match f with
       }
     | UnevalT env t -> do
       {
-        evaluate_term a env t;
-        evaluate_application x f args
+        cont2
+          (fun () -> evaluate_term a env t)
+          (fun () -> evaluate_application x f args)
       }
     | _ -> runtime_error "non-integral index"
     ]
@@ -935,12 +1040,7 @@ and evaluate_application x f args = match f with
             {
               if i = 0 then match b with
               [ [] -> !x := !y
-              | _  -> do
-                {
-(*                  !x := Application !y b;*)
-
-                  evaluate_application x !y b
-                }
+              | _  -> evaluate_application x !y b
               ]
               else if i > 0 then
                 iter z (i-1)
@@ -949,8 +1049,9 @@ and evaluate_application x f args = match f with
             }
           | UnevalT env t -> do
             {
-              evaluate_term lst env t;
-              iter lst i
+              cont2
+                (fun () -> evaluate_term lst env t)
+                (fun () -> iter lst i)
             }
           | _ -> runtime_error "malformed list"
           ]
@@ -960,8 +1061,9 @@ and evaluate_application x f args = match f with
       }
     | UnevalT env t -> do
       {
-        evaluate_term a env t;
-        evaluate_application x f args
+        cont2
+          (fun () -> evaluate_term a env t)
+          (fun () -> evaluate_application x f args)
       }
     | _ -> runtime_error "non-integral index"
     ]
@@ -974,13 +1076,13 @@ and evaluate_application x f args = match f with
     {
       let g = Opaque.apply y a in
 
-(*      !x := Application !g b;*)
-
       evaluate_application x !g b
     }
   | _ -> assert False
   ]
-| _ -> runtime_error "application of non-function"
+| Unbound
+| Constraint _ -> runtime_error "application of unknown function"
+| _            -> runtime_error "application of non-function"
 ]
 
 and execute env stmt = match stmt with
@@ -995,29 +1097,29 @@ and execute env stmt = match stmt with
   {
     let y = unevaluated env p in
 
-    evaluate y;
-
-    match !y with
-    [ Bool False   -> ()
-    | Bool True    -> execute env s0
-    | Unbound
-    | Constraint _ -> runtime_error "if: condition is undefined"
-    | _            -> runtime_error "if: condition is not boolean"
-    ]
+    cont2
+      (fun () -> evaluate_unknown y)
+      (fun () -> match !y with
+                 [ Bool False   -> ()
+                 | Bool True    -> execute env s0
+                 | Unbound
+                 | Constraint _ -> runtime_error "if: condition is undefined"
+                 | _            -> runtime_error "if: condition is not boolean"
+                 ])
   }
 | SIfThenElse p s0 s1 -> do
   {
     let y = unevaluated env p in
 
-    evaluate y;
-
-    match !y with
-    [ Bool True    -> execute env s0
-    | Bool False   -> execute env s1
-    | Unbound
-    | Constraint _ -> runtime_error "if: condition is undefined"
-    | _            -> runtime_error "if: condition is not boolean"
-    ]
+    cont2
+      (fun () -> evaluate_unknown y)
+      (fun () -> match !y with
+                 [ Bool True    -> execute env s0
+                 | Bool False   -> execute env s1
+                 | Unbound
+                 | Constraint _ -> runtime_error "if: condition is undefined"
+                 | _            -> runtime_error "if: condition is not boolean"
+                 ])
   }
 | SRelation _ -> ()  (* FIX *)
 ]
@@ -1034,10 +1136,10 @@ and bind_unknown x y = match !y with
   }
 | Constraint c -> do
   {
-    let new_c = Constraint (add_constraint x c) in
+    let us    = add_constraint x c in
+    let new_c = Constraint us      in
 
-    !x := new_c;
-    !y := new_c
+    List.iter (fun z -> !z := new_c) us
   }
 | LinForm lin -> do
   {
@@ -1063,12 +1165,16 @@ and bind_unknown x y = match !y with
 
 and forced_unify x y = do
 {
-  if not (unify x y) then
-    runtime_error "unification error"
-  else ()
+  let res = ref False in
+
+  cont2
+    (fun () -> unify res x y)
+    (fun () -> if not !res then
+                 runtime_error "unification error"
+               else ())
 }
 
-and unify x y = do
+and unify res x y = do
 {
   let set_unknowns c v = do
   {
@@ -1077,101 +1183,142 @@ and unify x y = do
   in
 
   match (!x, !y) with
-  [ (UnevalT e t, _)   -> do { evaluate_term x e t; unify x y }
-  | (_, UnevalT e t)   -> do { evaluate_term y e t; unify x y }
-  | (Unbound, _)       -> do { bind_unknown x y; True }
-  | (_, Unbound)       -> do { bind_unknown y x; True }
+  [ (UnevalT e t, _) -> do
+    {
+      cont2
+        (fun () -> evaluate_term x e t)
+        (fun () -> unify res x y)
+    }
+  | (_, UnevalT e t) -> do
+    {
+      cont2
+        (fun () -> evaluate_term y e t)
+        (fun () -> unify res x y)
+    }
+  | (Unbound, _) -> do { !res := True; bind_unknown x y }
+  | (_, Unbound) -> do { !res := True; bind_unknown y x }
   | (Constraint a, Constraint b) -> do
       {
         let c = merge_constraints a b in
         set_unknowns c (Constraint c);
-        True
+        !res := True
       }
-  | (Constraint a, _)        -> do { set_unknowns a !y; True }
-  | (_, Constraint b)        -> do { set_unknowns b !x; True }
-  | (Bool a,     Bool b)     -> a = b
-  | (Char a,     Char b)     -> a = b
-  | (Symbol a,   Symbol b)   -> a = b
-  | (Nil,        Nil)        -> True
-  | (List a1 a2, List b1 b2) -> unify a1 b1 && unify a2 b2
-  | (Number a,   Number b)   -> a =/ b
+  | (Constraint a, _)        -> do { set_unknowns a !y; !res := True }
+  | (_, Constraint b)        -> do { set_unknowns b !x; !res := True }
+  | (Bool a,     Bool b)     -> !res := (a = b)
+  | (Char a,     Char b)     -> !res := (a = b)
+  | (Symbol a,   Symbol b)   -> !res := (a = b)
+  | (Nil,        Nil)        -> !res := True
+  | (List a1 a2, List b1 b2) -> do
+    {
+      let r = ref False in
+
+      cont2
+        (fun () -> unify r a1 b1)
+        (fun () -> do
+          {
+            if !r then
+              unify res a2 b2
+            else
+              !res := False
+          })
+    }
+  | (Number a,   Number b)   -> !res := (a =/ b)
   | (Number a,  LinForm lin) -> do
       {
-        evaluate_lin_form y lin;
-
-        match !y with
-        [ Number b    -> b =/ a
-        | LinForm lin -> match lin.LinForm.terms with
-          [ [(c, z)]       -> unify z (ref (Number ((a -/ lin.LinForm.const) // c)))
-          | [(c, z) :: zs] -> do
-            {
-              unify z (ref (LinForm (LinForm.add_const
-                                      (LinForm.scale
-                                        (minus_num num_one // c)
-                                        (LinForm.remove_first_term lin))
-                                      a)))
-            }
-          | _ -> assert False
-          ]
-        | _ -> assert False
-        ]
+        cont2
+          (fun () -> evaluate_lin_form y lin)
+          (fun () -> match !y with
+           [ Number b    -> !res := (b =/ a)
+           | LinForm lin -> match lin.LinForm.terms with
+             [ [(c, z)]      -> unify res z (ref (Number ((a -/ lin.LinForm.const) // c)))
+             | [(c, z) :: _] -> do
+               {
+                 unify res z (ref (LinForm (LinForm.add_const
+                                         (LinForm.scale
+                                           (minus_num num_one // c)
+                                           (LinForm.remove_first_term lin))
+                                         a)))
+               }
+             | _ -> assert False
+             ]
+           | _ -> assert False
+           ])
       }
   | (LinForm lin, Number a) -> do
       {
-        evaluate_lin_form x lin;
-
-        match !x with
-        [ Number b    -> b =/ a
-        | LinForm lin -> match lin.LinForm.terms with
-          [ [(c, z)]       -> unify z (ref (Number ((a -/ lin.LinForm.const) // c)))
-          | [(c, z) :: zs] -> do
-            {
-              unify z (ref (LinForm (LinForm.add_const
-                                      (LinForm.scale
-                                        (minus_num num_one // c)
-                                        (LinForm.remove_first_term lin))
-                                      a)))
-            }
-          | _ -> assert False
-          ]
-        | _ -> assert False
-        ]
+        cont2
+          (fun () -> evaluate_lin_form x lin)
+          (fun () -> match !x with
+           [ Number b    -> !res := (b =/ a)
+           | LinForm lin -> match lin.LinForm.terms with
+             [ [(c, z)]      -> unify res z (ref (Number ((a -/ lin.LinForm.const) // c)))
+             | [(c, z) :: _] -> do
+               {
+                 unify res z (ref (LinForm (LinForm.add_const
+                                         (LinForm.scale
+                                           (minus_num num_one // c)
+                                           (LinForm.remove_first_term lin))
+                                         a)))
+               }
+             | _ -> assert False
+             ]
+           | _ -> assert False
+           ])
       }
   | (LinForm a, LinForm b) -> do
       {
-        evaluate_lin_form x a;
-        evaluate_lin_form y b;
-
-        let l = LinForm.lin_comb num_one a (minus_num num_one) b in
-        let z = ref (LinForm l)                                  in
-
-        evaluate_lin_form z l;
-
-        match !z with
-        [ Number c    -> c =/ num_zero
-        | LinForm lin -> match lin.LinForm.terms with
-          [ [(c, u)]       -> unify u (ref (Number (minus_num lin.LinForm.const // c)))
-          | [(c, u) :: us] -> do
+        cont3
+          (fun () -> evaluate_lin_form x a)
+          (fun () -> evaluate_lin_form y b)
+          (fun () -> do
             {
-              unify u (ref (LinForm (LinForm.scale
-                                       (minus_num num_one // c)
-                                       (LinForm.remove_first_term lin))))
-            }
-          | _ -> assert False
-          ]
-        | _ -> assert False
-        ]
+              let l = LinForm.lin_comb num_one a (minus_num num_one) b in
+              let z = ref (LinForm l)                                  in
+
+              cont2
+                (fun () -> evaluate_lin_form z l)
+                (fun () -> match !z with
+                 [ Number c    -> !res := (c =/ num_zero)
+                 | LinForm lin -> match lin.LinForm.terms with
+                   [ [(c, u)]      -> unify res u (ref (Number (minus_num lin.LinForm.const // c)))
+                   | [(c, u) :: _] -> do
+                     {
+                       unify res u (ref (LinForm (LinForm.scale
+                                                   (minus_num num_one // c)
+                                                   (LinForm.remove_first_term lin))))
+                     }
+                   | _ -> assert False
+                   ]
+                 | _ -> assert False
+                 ])
+            })
       }
   | (Tuple a, Tuple b) -> do
       {
         if Array.length a <> Array.length b then
-          False
+          !res := False
         else
           iter 0
 
         where rec iter i = do
         {
-          (i >= Array.length a) || (unify a.(i) b.(i) && iter (i+1))
+          if i >= Array.length a then
+            !res := True
+          else do
+          {
+            let r = ref False in
+
+            cont2
+              (fun () -> unify r a.(i) b.(i))
+              (fun () -> do
+                {
+                  if !r then
+                    iter (i+1)
+                  else
+                    !res := False
+                })
+          }
         }
       }
   | (Dictionary a, Dictionary b) -> do
@@ -1182,23 +1329,41 @@ and unify x y = do
         iter l0 l1
 
         where rec iter l0 l1 = match (l0, l1) with
-        [ ([], []) -> True
-        | ([], _)  -> False
-        | (_, [])  -> False
+        [ ([], []) -> !res := True
+        | ([], _)  -> !res := False
+        | (_, [])  -> !res := False
         | ([(k0, v0) :: kv0],
-           [(k1, v1) :: kv1]) -> k0 = k1 && unify v0 v1 && iter kv0 kv1
+           [(k1, v1) :: kv1]) -> do
+           {
+             if k0 <> k1 then
+               !res := False
+             else do
+             {
+               let r = ref False in
+
+               cont2
+                 (fun () -> unify r v0 v1)
+                 (fun () -> do
+                   {
+                     if !r then
+                       iter kv0 kv1
+                     else
+                       !res := False
+                   })
+             }
+           }
         ]
       }
-  | (Primitive1 a,     Primitive1 b)     -> a == b
-  | (Primitive2 a,     Primitive2 b)     -> a == b
-  | (PrimitiveN a1 a2, PrimitiveN b1 b2) -> a1 = b1 && a2 == b2
+  | (Primitive1 a,     Primitive1 b)     -> !res := (a == b)
+  | (Primitive2 a,     Primitive2 b)     -> !res := (a == b)
+  | (PrimitiveN a1 a2, PrimitiveN b1 b2) -> !res := (a1 = b1 && a2 == b2)
   | (SimpleFunction a1 a2 a3,
-     SimpleFunction b1 b2 b3)            -> a1 = b1 && a2 = b2 && a3 = b3
+     SimpleFunction b1 b2 b3)            -> !res := (a1 = b1 && a2 = b2 && a3 = b3)
   | (PatternFunction a1 a2 a3 a4 a5,
-     PatternFunction b1 b2 b3 b4 b5)     -> a1 = b1 && a2 = b2 && a3 = b3 && a4 = b4 && a5 = b5
-  | (Relation a1 a2,   Relation b1 b2)   -> a1 = b1 && a2 = b2
-  | (Opaque a,         Opaque b)         -> Opaque.same_type a b && Opaque.unify a b
-  | _ -> False
+     PatternFunction b1 b2 b3 b4 b5)     -> !res := (a1 = b1 && a2 = b2 && a3 = b3 && a4 = b4 && a5 = b5)
+  | (Relation a1 a2,   Relation b1 b2)   -> !res := (a1 = b1 && a2 = b2)
+  | (Opaque a,         Opaque b)         -> !res := (Opaque.same_type a b && Opaque.unify a b)
+  | _ -> !res := False
   ]
 };
 
