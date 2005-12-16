@@ -96,5 +96,5 @@ value execute_argument         : parse_state -> unit;
 value execute_argument_in_mode : parse_state -> mode -> list Evaluate.node_type;
 value run_parser               : parse_state -> mode -> list Evaluate.node_type;
 
-value execute_string_in_mode   : uc_list -> mode -> list Evaluate.node_type;
+value execute_string_in_mode   : parse_state -> uc_list -> mode -> list Evaluate.node_type;
 

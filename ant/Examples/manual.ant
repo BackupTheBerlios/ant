@@ -70,7 +70,7 @@ The current version of \ant\ implements all the major features of \TeX\ but a lo
 %\vadjust{\floatpar{footnotes}{A simple footnote.}}
 things are still missing.
 In addition, \ant\ provides several improvements over~\TeX\?:
-\begin{itemise}{$\filleddiamond$}
+\begin{itemise}{$\red\filleddiamond$}
 \item a saner macro language (no catcodes)\?;
 \item a builtin high-level scripting language\?;
 \item \textsc{unicode} support\?;

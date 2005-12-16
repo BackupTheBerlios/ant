@@ -42,7 +42,9 @@ value str_hyphen_penalty         = UString.uc_string_of_ascii "hyphen-penalty";
 value str_hyphen_table           = UString.uc_string_of_ascii "hyphen-table";
 value str_leading                = UString.uc_string_of_ascii "leading";
 value str_left                   = UString.uc_string_of_ascii "left";
+value str_left_annotation        = UString.uc_string_of_ascii "left-annotation";
 value str_left_hyphen_min        = UString.uc_string_of_ascii "left-hyphen-min";
+value str_left_par_shape         = UString.uc_string_of_ascii "left-par-shape";
 value str_left_skip              = UString.uc_string_of_ascii "left-skip";
 value str_line_break_params      = UString.uc_string_of_ascii "line-break-params";
 value str_line_params            = UString.uc_string_of_ascii "line-params";
@@ -62,14 +64,15 @@ value str_page                   = UString.uc_string_of_ascii "page";
 value str_par_indent             = UString.uc_string_of_ascii "par-indent";
 value str_par_fill_skip          = UString.uc_string_of_ascii "par-fill-skip";
 value str_par_params             = UString.uc_string_of_ascii "par-params";
-value str_par_shape              = UString.uc_string_of_ascii "par-shape";
 value str_par_skip               = UString.uc_string_of_ascii "par-skip";
 value str_post_process_line      = UString.uc_string_of_ascii "post-process-line";
 value str_pre_tolerance          = UString.uc_string_of_ascii "pre-tolerance";
 value str_register               = UString.uc_string_of_ascii "register";
 value str_rel_penalty            = UString.uc_string_of_ascii "rel-penalty";
 value str_right                  = UString.uc_string_of_ascii "right";
+value str_right_annotation       = UString.uc_string_of_ascii "right-annotation";
 value str_right_hyphen_min       = UString.uc_string_of_ascii "right-hyphen-min";
+value str_right_par_shape        = UString.uc_string_of_ascii "right-par-shape";
 value str_right_skip             = UString.uc_string_of_ascii "right-skip";
 value str_river_demerits         = UString.uc_string_of_ascii "river-demerits";
 value str_river_threshold        = UString.uc_string_of_ascii "river-threshold";
@@ -208,31 +211,152 @@ value parse_line_param loc dict = do
   (baseline_skip, line_skip_limit, line_skip, leading, club_widow_penalty)
 };
 
+value parse_par_shape left_stream right_stream = do
+{
+  let read_next stream = do
+  {
+    let (a,b) = Parser.read_range stream in
+
+    if UCStream.next_char stream = 58 then do
+    {
+      UCStream.remove stream 1;
+      Parser.skip_spaces stream;
+
+      (int_of_num (ceiling_num a), (int_of_num (floor_num b)), Parser.read_skip stream)
+    }
+    else do
+    {
+      log_warn (UCStream.location stream) "Invalid par shape!";
+      log_int (UCStream.next_char stream);
+      (-1, -1, (fun _ -> num_zero))
+    }
+  }
+  in
+  let rec parse_shape stream = do
+  {
+    Parser.skip_spaces stream;
+
+    if UCStream.next_char stream >= 0 then do
+    {
+      let (a,b,s) = read_next stream in
+
+      if a < 0 then
+        []
+      else do
+      {
+        Parser.skip_spaces stream;
+
+        match UCStream.next_char stream with
+        [ 44 | 59 -> do
+          {
+            UCStream.remove stream 1;
+            [(a,b,s) :: parse_shape stream]
+          }
+        | (-1) -> [(a,b,s)]
+        | _    -> do
+          {
+            log_warn (UCStream.location stream) "Invalid par shape!";
+            [(a,b,s)]
+          }
+        ]
+      }
+    }
+    else
+      []
+  }
+  in
+
+  let left_indent  = parse_shape left_stream  in
+  let right_indent = parse_shape right_stream in
+
+  let rec lookup n list = match list with
+  [ []              -> fun _ -> num_zero
+  | [(a,b,s) :: ls] -> if a <= n && n <= b then
+                         s
+                       else
+                         lookup n ls
+  ]
+  in
+
+  let par_shape env n = (lookup n left_indent env, lookup n right_indent env) in
+
+  par_shape
+};
+
+value parse_annotation ps left_annotation right_annotation = do
+{
+  let new_ps = duplicate ps in
+
+  let annotate env boxes = do
+  {
+    (* <left> and <right> should evaluate to a box of width zero. *)
+
+    let left  = execute_string_in_mode new_ps left_annotation  `HBox in
+    let right = execute_string_in_mode new_ps right_annotation `HBox in
+
+    let (b, get) = Builder.simple_builder () in
+
+    let _ = Evaluate.eval_node_list env b left  in
+
+    Builder.add_box_list b boxes;
+
+    let _ = Evaluate.eval_node_list env b right in
+
+    get ()
+  }
+  in
+
+  annotate
+};
+
 value par_param_dict =
    DynUCTrie.add_string str_measure           ()
   (DynUCTrie.add_string str_par_indent        ()
   (DynUCTrie.add_string str_par_fill_skip     ()
   (DynUCTrie.add_string str_left_skip         ()
   (DynUCTrie.add_string str_right_skip        ()
-  (DynUCTrie.add_string str_par_shape         ()
+  (DynUCTrie.add_string str_left_par_shape    ()
+  (DynUCTrie.add_string str_right_par_shape   ()
   (DynUCTrie.add_string str_par_skip          ()
+  (DynUCTrie.add_string str_left_annotation   ()
+  (DynUCTrie.add_string str_right_annotation  ()
   (DynUCTrie.add_string str_post_process_line ()
-    DynUCTrie.empty)))))));
+    DynUCTrie.empty))))))))));
 
-value parse_par_param loc dict = do
+value parse_par_param ps loc dict = do
 {
   check_keys dict par_param_dict loc;
 
-  let measure           = lookup_num dict str_measure       in
-  let par_indent        = lookup_dim dict str_par_indent    in
-  let par_fill_skip     = lookup_dim dict str_par_fill_skip in
-  let left_skip         = lookup_dim dict str_left_skip     in
-  let right_skip        = lookup_dim dict str_right_skip    in
-  let par_shape         = None (* FIX *)                    in
-  let par_skip          = lookup_dim dict str_par_skip      in
-  let post_process_line = None (* FIX *)                    in
+  let measure           = lookup_num    dict str_measure          in
+  let par_indent        = lookup_dim    dict str_par_indent       in
+  let par_fill_skip     = lookup_dim    dict str_par_fill_skip    in
+  let left_skip         = lookup_dim    dict str_left_skip        in
+  let right_skip        = lookup_dim    dict str_right_skip       in
+  let par_shape_left    = lookup_string dict str_left_par_shape   in
+  let par_shape_right   = lookup_string dict str_right_par_shape  in
+  let par_skip          = lookup_dim    dict str_par_skip         in
+  let left_ann          = lookup_string dict str_left_annotation  in
+  let right_ann         = lookup_string dict str_right_annotation in
+  let post_process_line = None (* FIX *)                          in
 
-  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, post_process_line)
+  let par_shape = match (par_shape_left, par_shape_right) with
+  [ (None, None)            -> None
+  | (Some left, None)       -> Some (parse_par_shape (UCStream.of_string left) (UCStream.of_list []))
+  | (None, Some right)      -> Some (parse_par_shape (UCStream.of_list [])     (UCStream.of_string right))
+  | (Some left, Some right) -> Some (parse_par_shape (UCStream.of_string left) (UCStream.of_string right))
+  ]
+  in
+
+  let post_process = match (post_process_line, left_ann, right_ann) with
+  [ (Some p, _,      _)      -> Some p
+  | (None,   Some l, Some r) -> Some (parse_annotation ps (Array.to_list l) (Array.to_list r))
+  | (None,   Some l, None)   -> Some (parse_annotation ps (Array.to_list l) [])
+  | (None,   None,   Some r) -> Some (parse_annotation ps []                (Array.to_list r))
+  | (None,   None,   None)   -> None
+  ]
+  in
+
+  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, post_process)
 };
 
 value line_break_param_dict =
@@ -479,7 +603,7 @@ value footnote_area_dict =
   (DynUCTrie.add_string str_math_params       ()
     DynUCTrie.empty)))))))));
 
-value parse_footnote_area_dict loc dict = do
+value parse_footnote_area_dict ps loc dict = do
 {
   let lookup_key_val dict name = match lookup_list dict name with
   [ None     -> DynUCTrie.empty
@@ -491,7 +615,11 @@ value parse_footnote_area_dict loc dict = do
 
   let separator = match lookup_list dict str_separator with
   [ None     -> []
-  | Some str -> execute_string_in_mode str `VBox
+  | Some str -> do
+    {
+      let new_ps = duplicate ps in
+      execute_string_in_mode new_ps str `VBox
+    }
   ]
   in
 
@@ -510,7 +638,7 @@ value parse_footnote_area_dict loc dict = do
    Option.from_option (Evaluate.const_em num_one) bot,
    Option.from_option (Evaluate.const_em num_one) grid,
    parse_line_param       loc line_params,
-   parse_par_param        loc par_params,
+   parse_par_param     ps loc par_params,
    parse_line_break_param loc line_break_params,
    parse_hyphen_param     loc hyphen_params,
    parse_space_param      loc space_params,
@@ -531,13 +659,13 @@ value set_param ps = do
 
   match UString.to_string param with
   [ "font"             -> add_cmd Environment.set_font                      parse_font_dict
-  | "paragraph"        -> add_cmd Environment.set_par_params                parse_par_param
+  | "paragraph"        -> add_cmd Environment.set_par_params                (parse_par_param ps)
   | "line"             -> add_cmd Environment.set_line_params               parse_line_param
   | "line-break"       -> add_cmd Environment.set_line_break_params         parse_line_break_param
   | "hyphenation"      -> add_cmd Environment.set_hyphen_params             parse_hyphen_param
   | "space"            -> add_cmd Environment.set_space_params              parse_space_param
   | "math"             -> add_cmd Environment.set_math_params               parse_math_param
-  | "this-paragraph"   -> add_cmd Environment.set_current_par_params        parse_par_param
+  | "this-paragraph"   -> add_cmd Environment.set_current_par_params        (parse_par_param ps)
   | "this-line"        -> add_cmd Environment.set_current_line_params       parse_line_param
   | "this-line-break"  -> add_cmd Environment.set_current_line_break_params parse_line_break_param
   | "this-hyphenation" -> add_cmd Environment.set_current_hyphen_params     parse_hyphen_param
@@ -1402,7 +1530,7 @@ value new_area ps = do
       (`NewArea (location ps)
          name
          pos_x pos_y width height max_top max_bot
-         (`Footnote (parse_footnote_area_dict (location ps) param)))
+         (`Footnote (parse_footnote_area_dict ps (location ps) param)))
   }
   else if area_type = str_direct then do
   {
@@ -1528,6 +1656,7 @@ value annotate_paragraph ps = do
       (None, None, None, None, None, None, None, Some annotate)))
 };
 
+(*
 value set_par_shape ps = do
 {
   let read_next stream = do
@@ -1604,6 +1733,7 @@ value set_par_shape ps = do
     (Environment.set_par_params
       (None, None, None, None, None, Some par_shape, None, None)))
 };
+*)
 
 value no_indent ps = do
 {
@@ -2592,7 +2722,6 @@ value initialise ps = do
   def_unexpandable_cmd "\\floatpar"          float_par;
   def_unexpandable_cmd "\\floatgalley"       float_galley;
   def_unexpandable_cmd "\\annotateparagraph" annotate_paragraph;
-  def_unexpandable_cmd "\\setparshape"       set_par_shape;
   def_unexpandable_cmd "\\noindent"          no_indent;
   def_unexpandable_cmd "\\indent"            indent;
   def_unexpandable_cmd "\\ensurevskip"       ensure_vskip;

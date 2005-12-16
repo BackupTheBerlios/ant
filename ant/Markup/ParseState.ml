@@ -707,12 +707,10 @@ value execute_argument_in_mode ps mode = do
   close_node_list ps mode
 };
 
-value execute_string_in_mode str mode = do
+value execute_string_in_mode ps str mode = do
 {
-  let ps = create () in
-
   set_stream ps (UCStream.of_list str);
 
-  run_parser ps mode;
+  run_parser ps mode
 };
 
