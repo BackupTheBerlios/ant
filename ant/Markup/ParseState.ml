@@ -24,7 +24,7 @@ type mode =
 type parse_state =
 {
   input_stream      : UCStream.istream;
-  parse_stack       : Stack.t (mode * ListBuilder.builder Evaluate.node_type);
+  parse_stack       : Stack.t (mode * ListBuilder.builder Node.node);
   default_char_cmd  : mutable command;
   command_table     : mutable DynUCTrie.t command;
   pattern_table     : mutable DynUCTrie.t command;
@@ -423,12 +423,12 @@ value set_math_code_table ps table = do
   ps.math_codes := table
 };
 
-value set_math_code ps char code small_family small_number large_family large_number = do
+value set_math_code ps char code small_family small_glyph large_family large_glyph = do
 {
   Charmap.set
     ps.math_codes
     char
-    (code, (small_family, large_family), (small_number, large_number))
+    (code, (small_family, large_family), (small_glyph, large_glyph))
 };
 
 value get_math_code ps char = do

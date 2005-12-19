@@ -66,8 +66,7 @@ value vertical_extendable height font top mid bot rep = do
   (VBox.make
     ( (if top <> Undef then [new_glyph_box top font] else [])
     @ rep_list
-    @ (if mid <> Undef then [new_glyph_box mid font] else [])
-    @ rep_list
+    @ (if mid <> Undef then [new_glyph_box mid font :: rep_list] else [])
     @ (if bot <> Undef then [new_glyph_box bot font] else [])
     )
   )

@@ -47,7 +47,6 @@ type token_class =
 | MATCH
 | WITH
 | LOCAL
-| IN
 | WHERE
 | INFIX of assoc
 | PREFIX
@@ -58,7 +57,6 @@ type lexer =
 {
   input    : mutable UCStream.istream;
   tokens   : mutable list token_class;
-  symbols  : Hashtbl.t uc_string token_class;
   keywords : Hashtbl.t uc_string token_class
 };
 
@@ -205,7 +203,7 @@ value rec read_number istream first_char = do
 {
   let (int, base) = read_natural istream first_char in
 
-  let c = UCStream.next_char istream   in
+  let c = UCStream.next_char istream in
 
   if c < 0 then
     int
@@ -417,9 +415,9 @@ value read_string_constant lexer = do
   ]
 };
 
-value symbols = do
+value keywords = do
 {
-  let t = Hashtbl.create 67 in
+  let t = Hashtbl.create 97 in
 
   let add_token str token = do
   {
@@ -442,23 +440,39 @@ value symbols = do
     Hashtbl.add t ustr (PREOP (string_to_symbol ustr))
   }
   in
-(*
-  let add_post_op str = do
-  {
-    let ustr = UString.uc_string_of_ascii str in
 
-    Hashtbl.add t ustr (POSTOP (string_to_symbol ustr))
-  }
-  in
-*)
+  add_token "do"     DO;
+  add_token "if"     IF;
+  add_token "then"   THEN;
+  add_token "else"   ELSE;
+  add_token "elseif" ELSEIF;
+  add_token "end"    END;
+  add_token "begin"  BEGIN;
+  add_token "match"  MATCH;
+  add_token "with"   WITH;
+  add_token "local"  LOCAL;
+  add_token "where"  WHERE;
 
-  add_token "="  EQUAL;
-  add_token ":=" COLON_EQUAL;
-  add_token "|"  BAR;
-  add_token "&"  AMPERSAND;
-  add_token "."  PERIOD;
-  add_token ":"  COLON;
-  add_token ";"  SEMICOLON;
+  add_token "="      EQUAL;
+  add_token ":="     COLON_EQUAL;
+  add_token "|"      BAR;
+  add_token "&"      AMPERSAND;
+  add_token "."      PERIOD;
+  add_token ":"      COLON;
+  add_token ";"      SEMICOLON;
+
+  add_token "declare_infix_left"  (INFIX Left);
+  add_token "declare_infix_non"   (INFIX NonA);
+  add_token "declare_infix_right" (INFIX Right);
+  add_token "declare_prefix"      PREFIX;
+  add_token "declare_postfix"     POSTFIX;
+
+  add_bin_op "land" 5 Left;
+  add_bin_op "lor"  5 Left;
+  add_bin_op "lxor" 5 Left;
+  add_bin_op "lsr"  5 Left;
+  add_bin_op "lsl"  5 Left;
+  add_bin_op "mod"  7 Left;
 
   add_bin_op "||"   2 Right;
   add_bin_op "&&"   3 Right;
@@ -478,54 +492,7 @@ value symbols = do
   t
 };
 
-value keywords = do
-{
-  let t = Hashtbl.create 30 in
-
-  let add_token str token = do
-  {
-    let ustr = UString.uc_string_of_ascii str in
-
-    Hashtbl.add t ustr token
-  }
-  in
-  let add_bin_op str pri ass = do
-  {
-    let ustr = UString.uc_string_of_ascii str in
-
-    Hashtbl.add t ustr (BINOP (string_to_symbol ustr) pri ass)
-  }
-  in
-
-  add_token "do"              DO;
-  add_token "if"              IF;
-  add_token "then"            THEN;
-  add_token "else"            ELSE;
-  add_token "elseif"          ELSEIF;
-  add_token "end"             END;
-  add_token "begin"           BEGIN;
-  add_token "match"           MATCH;
-  add_token "with"            WITH;
-  add_token "local"           LOCAL;
-  add_token "in"              IN;
-  add_token "where"           WHERE;
-  add_token "declare_infix_l" (INFIX Left);
-  add_token "declare_infix_n" (INFIX NonA);
-  add_token "declare_infix_r" (INFIX Right);
-  add_token "declare_prefix"  PREFIX;
-  add_token "declare_postfix" POSTFIX;
-
-  add_bin_op "land" 5 Left;
-  add_bin_op "lor"  5 Left;
-  add_bin_op "lxor" 5 Left;
-  add_bin_op "lsr"  5 Left;
-  add_bin_op "lsl"  5 Left;
-  add_bin_op "mod"  7 Left;
-
-  t
-};
-
-value initial_symbol_table () = Hashtbl.copy symbols;
+value initial_symbol_table () = Hashtbl.copy keywords;
 
 value rec skip_line_comment istream = do
 {
@@ -556,13 +523,11 @@ value rec skip_comment istream nest = match UCStream.pop istream with
 | _    -> skip_comment istream nest
 ];
 
-value make_lexer symbol_table stream =
+value make_lexer keyword_table stream =
 {
   input    = stream;
   tokens   = [];
-  symbols  = symbol_table;
-  keywords = Hashtbl.copy keywords   (* This table is never modified. We might delete the field and
-                                        just use the global variable instead. *)
+  keywords = keyword_table
 };
 
 value set_stream lexer stream = do
@@ -599,7 +564,7 @@ value rec read_token lexer = match lexer.tokens with
         let sym = Array.of_list [c :: read_symbol lexer.input] in
 
         try
-          Hashtbl.find lexer.symbols sym
+          Hashtbl.find lexer.keywords sym
         with
         [ Not_found -> LID (string_to_symbol sym) ]
       }
@@ -638,30 +603,25 @@ value restore_token lexer tok = do
   lexer.tokens := [tok :: lexer.tokens]
 };
 
-value select_table lexer symbol = match char_class symbol.(0) with
-[ Symbol -> lexer.symbols
-| _      -> lexer.keywords
-];
-
 value add_bin_op lexer pri assoc sym = do
 {
   let str = symbol_to_string sym in
 
-  Hashtbl.add (select_table lexer str) str (BINOP sym pri assoc)
+  Hashtbl.add lexer.keywords str (BINOP sym pri assoc)
 };
 
 value add_pre_op lexer sym = do
 {
   let str = symbol_to_string sym in
 
-  Hashtbl.add (select_table lexer str) str (PREOP sym)
+  Hashtbl.add lexer.keywords str (PREOP sym)
 };
 
 value add_post_op lexer sym = do
 {
   let str = symbol_to_string sym in
 
-  Hashtbl.add (select_table lexer str) str (POSTOP sym)
+  Hashtbl.add lexer.keywords str (POSTOP sym)
 };
 
 value token_to_string tok = match tok with
@@ -701,11 +661,10 @@ value token_to_string tok = match tok with
 | MATCH         -> UString.uc_string_of_ascii "match"
 | WITH          -> UString.uc_string_of_ascii "with"
 | LOCAL         -> UString.uc_string_of_ascii "local"
-| IN            -> UString.uc_string_of_ascii "in"
 | WHERE         -> UString.uc_string_of_ascii "where"
-| INFIX Left    -> UString.uc_string_of_ascii "declare_infix_l"
-| INFIX NonA    -> UString.uc_string_of_ascii "declare_infix_n"
-| INFIX Right   -> UString.uc_string_of_ascii "declare_infix_r"
+| INFIX Left    -> UString.uc_string_of_ascii "declare_infix_left"
+| INFIX NonA    -> UString.uc_string_of_ascii "declare_infix_non"
+| INFIX Right   -> UString.uc_string_of_ascii "declare_infix_right"
 | PREFIX        -> UString.uc_string_of_ascii "declare_prefix"
 | POSTFIX       -> UString.uc_string_of_ascii "declare_postfix"
 ];

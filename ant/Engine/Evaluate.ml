@@ -12,64 +12,6 @@ module UString = Unicode.UString;
 
 value tracing_engine = ref False;
 
-type area_contents_arg =
-[= `Galley of (uc_string * skip_arg * skip_arg * skip_arg * skip_arg)
-|  `Float of (FloatVertical.vert_alignment * skip_arg * skip_arg * dim_arg)
-|  `Footnote of (list node_type * skip_arg * skip_arg * skip_arg *
-                 line_param_modifier * par_param_modifier * line_break_param_modifier *
-                 hyphen_param_modifier * space_param_modifier * math_param_modifier)
-|  `Direct of Box.page_info -> (num * num) -> list node_type
-]
-and node_type =
-[= `Nodes of list node_type
-|  `Command of (UCStream.location * env_cmd)
-|  `CommandBox of (UCStream.location * box_cmd)
-|  `GfxCommand of (UCStream.location * Graphic.graphic_command dim_arg box)
-|  `NewGalley of (UCStream.location * uc_string * skip_arg)
-|  `NewLayout of (UCStream.location * uc_string * skip_arg * skip_arg)
-|  `NewArea of (UCStream.location * uc_string * skip_arg * skip_arg * skip_arg * skip_arg * skip_arg * skip_arg * area_contents_arg)
-|  `ShipOut of (UCStream.location * uc_string * uc_string * int)
-|  `AddToGalley of (UCStream.location * uc_string * list node_type)
-|  `PutGalleyInVBox of (UCStream.location * bool * uc_string)
-|  `ModifyGalleyGlue of (UCStream.location * environment -> list box -> list box)
-|  `Paragraph of (UCStream.location * list node_type)
-|  `BeginGroup of UCStream.location
-|  `EndGroup of UCStream.location
-|  `Float of (UCStream.location * uc_string * list node_type)
-|  `Glyph of (UCStream.location * int)
-|  `Letter of (UCStream.location * uc_char)
-|  `Space of UCStream.location
-|  `Glue of (UCStream.location * dim_arg * dim_arg * bool * bool)
-|  `Break of (UCStream.location * option num * bool * list node_type * list node_type * list node_type)
-|  `Rule of (UCStream.location * dim_arg * dim_arg * dim_arg)
-|  `Image of (UCStream.location * string * skip_arg * skip_arg)
-|  `Accent of (UCStream.location * uc_char * list node_type)
-|  `HBox of (UCStream.location * list node_type)
-|  `HBoxTo of (UCStream.location * skip_arg * list node_type)
-|  `HBoxSpread of (UCStream.location * skip_arg * list node_type)
-|  `VBox of (UCStream.location * list node_type)
-|  `VBoxTo of (UCStream.location * skip_arg * list node_type)
-|  `VBoxSpread of (UCStream.location * skip_arg * list node_type)
-|  `Phantom of (UCStream.location * bool * bool * list node_type)
-|  `HLeaders of (UCStream.location * dim_arg * list node_type)
-|  `VInsert of (UCStream.location * bool * list node_type)
-|  `Table of (UCStream.location * list node_type)
-|  `TableEntry of (UCStream.location * int * int * int * int * int * list node_type)
-|  `Math of (UCStream.location * list node_type)
-|  `MathCode of (UCStream.location * math_code * list node_type)
-|  `MathChar of (UCStream.location * (math_code * (int * int) * (uc_char * uc_char)))
-|  `SubScript of (UCStream.location * list node_type)
-|  `SuperScript of (UCStream.location * list node_type)
-|  `Fraction of (UCStream.location * list node_type * list node_type * node_type * node_type * skip_arg)
-|  `Underline of (UCStream.location * list node_type)
-|  `Overline of (UCStream.location * list node_type)
-|  `MathAccent of (UCStream.location * int * uc_char * list node_type)
-|  `Root of (UCStream.location * int * uc_char * int * uc_char * list node_type)
-|  `LeftRight of (UCStream.location * list node_type * list node_type * list node_type)
-|  `MathStyle of (UCStream.location * MathLayout.math_style)
-|  `IndexPosition of (UCStream.location * Box.index_position)
-];
-
 (* evaluation of nodes *)
 
 value const_pt x _env = x;
@@ -96,54 +38,54 @@ value const_fixed_dim skip env = fixed_dim (skip env);
 (* |get_location <node>| returns the location stored in <node>. *)
 
 value rec get_location node = match node with
-[ `Nodes []                    -> ("", 0, 0)
-| `Nodes [n :: _]              -> get_location n
-| `Command loc _               -> loc
-| `CommandBox loc _            -> loc
-| `GfxCommand loc _            -> loc
-| `NewGalley loc _ _           -> loc
-| `NewLayout loc _ _ _         -> loc
-| `NewArea loc _ _ _ _ _ _ _ _ -> loc
-| `ShipOut loc _ _ _           -> loc
-| `AddToGalley loc _ _         -> loc
-| `PutGalleyInVBox loc _ _     -> loc
-| `ModifyGalleyGlue loc _      -> loc
-| `Paragraph loc _             -> loc
-| `BeginGroup loc              -> loc
-| `EndGroup loc                -> loc
-| `Float loc _ _               -> loc
-| `Glyph loc _                 -> loc
-| `Letter loc _                -> loc
-| `Space loc                   -> loc
-| `Glue loc _ _ _ _            -> loc
-| `Break loc _ _ _ _ _         -> loc
-| `Rule loc _ _ _              -> loc
-| `Image loc _ _ _             -> loc
-| `Accent loc _ _              -> loc
-| `HBox loc _                  -> loc
-| `HBoxTo loc _ _              -> loc
-| `HBoxSpread loc _ _          -> loc
-| `VBox loc _                  -> loc
-| `VBoxTo loc _ _              -> loc
-| `VBoxSpread loc _ _          -> loc
-| `Phantom loc _ _ _           -> loc
-| `HLeaders loc _ _            -> loc
-| `VInsert loc _ _             -> loc
-| `Table loc _                 -> loc
-| `TableEntry loc _ _ _ _ _ _  -> loc
-| `Math loc _                  -> loc
-| `MathCode loc _ _            -> loc
-| `MathChar loc _              -> loc
-| `SubScript loc _             -> loc
-| `SuperScript loc _           -> loc
-| `Fraction loc _ _ _ _ _      -> loc
-| `Underline loc _             -> loc
-| `Overline loc _              -> loc
-| `MathAccent loc _ _ _        -> loc
-| `Root loc _ _ _ _ _          -> loc
-| `LeftRight loc _ _ _         -> loc
-| `MathStyle loc _             -> loc
-| `IndexPosition loc _         -> loc
+[ Node.Nodes []                    -> ("", 0, 0)
+| Node.Nodes [n :: _]              -> get_location n
+| Node.Command loc _               -> loc
+| Node.CommandBox loc _            -> loc
+| Node.GfxCommand loc _            -> loc
+| Node.NewGalley loc _ _           -> loc
+| Node.NewLayout loc _ _ _         -> loc
+| Node.NewArea loc _ _ _ _ _ _ _ _ -> loc
+| Node.ShipOut loc _ _ _           -> loc
+| Node.AddToGalley loc _ _         -> loc
+| Node.PutGalleyInVBox loc _ _     -> loc
+| Node.ModifyGalleyGlue loc _      -> loc
+| Node.Paragraph loc _             -> loc
+| Node.BeginGroup loc              -> loc
+| Node.EndGroup loc                -> loc
+| Node.Float loc _ _               -> loc
+| Node.Glyph loc _                 -> loc
+| Node.Letter loc _                -> loc
+| Node.Space loc                   -> loc
+| Node.Glue loc _ _ _ _            -> loc
+| Node.Break loc _ _ _ _ _         -> loc
+| Node.Rule loc _ _ _              -> loc
+| Node.Image loc _ _ _             -> loc
+| Node.Accent loc _ _              -> loc
+| Node.HBox loc _                  -> loc
+| Node.HBoxTo loc _ _              -> loc
+| Node.HBoxSpread loc _ _          -> loc
+| Node.VBox loc _                  -> loc
+| Node.VBoxTo loc _ _              -> loc
+| Node.VBoxSpread loc _ _          -> loc
+| Node.Phantom loc _ _ _           -> loc
+| Node.HLeaders loc _ _            -> loc
+| Node.VInsert loc _ _             -> loc
+| Node.Table loc _                 -> loc
+| Node.TableEntry loc _ _ _ _ _ _  -> loc
+| Node.Math loc _                  -> loc
+| Node.MathCode loc _ _            -> loc
+| Node.MathChar loc _              -> loc
+| Node.SubScript loc _             -> loc
+| Node.SuperScript loc _           -> loc
+| Node.Fraction loc _ _ _ _ _      -> loc
+| Node.Underline loc _             -> loc
+| Node.Overline loc _              -> loc
+| Node.MathAccent loc _ _ _        -> loc
+| Node.Root loc _ _ _ _ _          -> loc
+| Node.LeftRight loc _             -> loc
+| Node.MathStyle loc _             -> loc
+| Node.IndexPosition loc _         -> loc
 ];
 
 (*
@@ -151,55 +93,55 @@ value rec get_location node = match node with
   and a list of boxes to be inserted in the parent node.
 *)
 
-value rec eval_node env builder (node : node_type) = try
+value rec eval_node env builder node = try
   match node with
-  [ `Nodes n                     -> eval_node_list env builder n
-  | `Command loc cmd             -> ev_command env builder loc cmd
-  | `CommandBox loc c            -> ev_command_box env builder loc c
-  | `GfxCommand loc c            -> ev_gfx_command env builder loc c
-  | `NewGalley loc n m           -> ev_new_galley env builder loc n m
-  | `NewLayout loc n w h         -> ev_new_layout env builder loc n w h
-  | `NewArea loc n x y w h t b c -> ev_new_area env builder loc n x y w h t b c
-  | `ShipOut loc e o n           -> ev_shipout_pages env builder loc e o n
-  | `AddToGalley loc g n         -> ev_add_to_galley env builder loc g n
-  | `PutGalleyInVBox loc a n     -> ev_put_galley_in_vbox env builder loc a n
-  | `ModifyGalleyGlue loc f      -> ev_modify_galley_glue env builder loc f
-  | `Paragraph loc b             -> ev_paragraph env builder loc b
-  | `BeginGroup loc              -> ev_begin_group env builder loc
-  | `EndGroup loc                -> ev_end_group env builder loc
-  | `Float loc n b               -> ev_float env builder loc n b
-  | `Glyph loc g                 -> ev_glyph env builder loc g
-  | `Letter loc char             -> ev_letter env builder loc char
-  | `Space loc                   -> ev_space env builder loc
-  | `Glue loc w h i d            -> ev_glue env builder loc w h i d
-  | `Break loc p h pre post no   -> ev_break env builder loc p h pre post no
-  | `Rule loc w h d              -> ev_rule env builder loc w h d
-  | `Image loc f w h             -> ev_image env builder loc f w h
-  | `Accent loc a c              -> ev_accent env builder loc a c
-  | `HBox loc b                  -> ev_hbox env builder loc b
-  | `HBoxTo loc w b              -> ev_hbox_to env builder loc w b
-  | `HBoxSpread loc a b          -> ev_hbox_spread env builder loc a b
-  | `VBox loc b                  -> ev_vbox env builder loc b
-  | `VBoxTo loc h b              -> ev_vbox_to env builder loc h b
-  | `VBoxSpread loc a b          -> ev_vbox_spread env builder loc a b
-  | `Phantom loc h v n           -> ev_phantom env builder loc h v n
-  | `HLeaders loc w n            -> ev_hleaders env builder loc w n
-  | `VInsert loc b ns            -> ev_vinsert env builder loc b ns
-  | `Table loc n                 -> ev_table env builder loc n
-  | `TableEntry loc _ _ _ _ _ _  -> ev_table_entry env builder loc
-  | `Math loc n                  -> ev_math env builder loc n
-  | `MathCode loc c n            -> ev_math_code env builder loc c n
-  | `MathChar loc (cd, f, c)     -> ev_math_char env builder loc cd f c
-  | `SubScript loc n             -> ev_sub_script env builder loc n
-  | `SuperScript loc n           -> ev_super_script env builder loc n
-  | `Fraction loc n d l r t      -> ev_fraction env builder loc n d l r t
-  | `Underline loc n             -> ev_underline env builder loc n
-  | `Overline loc n              -> ev_overline env builder loc n
-  | `MathAccent loc f c n        -> ev_math_accent env builder loc f c n
-  | `Root loc sf sc lf lc n      -> ev_root env builder loc sf sc lf lc n
-  | `LeftRight loc l n r         -> ev_left_right env builder loc l n r
-  | `MathStyle loc s             -> ev_math_style env builder loc s
-  | `IndexPosition loc p         -> ev_index_position env builder loc p
+  [ Node.Nodes n                     -> eval_node_list env builder n
+  | Node.Command loc cmd             -> ev_command env builder loc cmd
+  | Node.CommandBox loc c            -> ev_command_box env builder loc c
+  | Node.GfxCommand loc c            -> ev_gfx_command env builder loc c
+  | Node.NewGalley loc n m           -> ev_new_galley env builder loc n m
+  | Node.NewLayout loc n w h         -> ev_new_layout env builder loc n w h
+  | Node.NewArea loc n x y w h t b c -> ev_new_area env builder loc n x y w h t b c
+  | Node.ShipOut loc e o n           -> ev_shipout_pages env builder loc e o n
+  | Node.AddToGalley loc g n         -> ev_add_to_galley env builder loc g n
+  | Node.PutGalleyInVBox loc a n     -> ev_put_galley_in_vbox env builder loc a n
+  | Node.ModifyGalleyGlue loc f      -> ev_modify_galley_glue env builder loc f
+  | Node.Paragraph loc b             -> ev_paragraph env builder loc b
+  | Node.BeginGroup loc              -> ev_begin_group env builder loc
+  | Node.EndGroup loc                -> ev_end_group env builder loc
+  | Node.Float loc n b               -> ev_float env builder loc n b
+  | Node.Glyph loc g                 -> ev_glyph env builder loc g
+  | Node.Letter loc char             -> ev_letter env builder loc char
+  | Node.Space loc                   -> ev_space env builder loc
+  | Node.Glue loc w h i d            -> ev_glue env builder loc w h i d
+  | Node.Break loc p h pre post no   -> ev_break env builder loc p h pre post no
+  | Node.Rule loc w h d              -> ev_rule env builder loc w h d
+  | Node.Image loc f w h             -> ev_image env builder loc f w h
+  | Node.Accent loc a c              -> ev_accent env builder loc a c
+  | Node.HBox loc b                  -> ev_hbox env builder loc b
+  | Node.HBoxTo loc w b              -> ev_hbox_to env builder loc w b
+  | Node.HBoxSpread loc a b          -> ev_hbox_spread env builder loc a b
+  | Node.VBox loc b                  -> ev_vbox env builder loc b
+  | Node.VBoxTo loc h b              -> ev_vbox_to env builder loc h b
+  | Node.VBoxSpread loc a b          -> ev_vbox_spread env builder loc a b
+  | Node.Phantom loc h v n           -> ev_phantom env builder loc h v n
+  | Node.HLeaders loc w n            -> ev_hleaders env builder loc w n
+  | Node.VInsert loc b ns            -> ev_vinsert env builder loc b ns
+  | Node.Table loc n                 -> ev_table env builder loc n
+  | Node.TableEntry loc _ _ _ _ _ _  -> ev_table_entry env builder loc
+  | Node.Math loc n                  -> ev_math env builder loc n
+  | Node.MathCode loc c n            -> ev_math_code env builder loc c n
+  | Node.MathChar loc (cd, f, c)     -> ev_math_char env builder loc cd f c
+  | Node.SubScript loc n             -> ev_sub_script env builder loc n
+  | Node.SuperScript loc n           -> ev_super_script env builder loc n
+  | Node.Fraction loc n d l r t      -> ev_fraction env builder loc n d l r t
+  | Node.Underline loc n             -> ev_underline env builder loc n
+  | Node.Overline loc n              -> ev_overline env builder loc n
+  | Node.MathAccent loc f c n        -> ev_math_accent env builder loc f c n
+  | Node.Root loc sf sc lf lc n      -> ev_root env builder loc sf sc lf lc n
+  | Node.LeftRight loc ns            -> ev_left_right env builder loc ns
+  | Node.MathStyle loc s             -> ev_math_style env builder loc s
+  | Node.IndexPosition loc p         -> ev_index_position env builder loc p
   ]
 with
 [ VM.Types.Syntax_error loc msg -> do
@@ -1085,7 +1027,7 @@ and ev_table env builder _loc nodes = do
 
   let rec eval_entries env nodes = match nodes with
   [ [] -> (env, [])
-  | [`TableEntry _loc l r t bl b c :: ns] -> do
+  | [Node.TableEntry _loc l r t bl b c :: ns] -> do
     {
       let e1        = eval_grouped_list env sb c in
       let boxes     = get ()                     in
@@ -1337,18 +1279,21 @@ and ev_math_accent env builder _loc family char nodes = do
 
 and family_to_fonts env style fam = do
 {
-  let text_fam    = get_math_font env MathLayout.Text    fam in
-  let script_fam  = get_math_font env MathLayout.Script  fam in
-  let script2_fam = get_math_font env MathLayout.Script2 fam in
-
   if fam < 0 then
     []
-  else match style with
-  [ MathLayout.Display | MathLayout.CrampedDisplay
-  | MathLayout.Text    | MathLayout.CrampedText    -> [text_fam]
-  | MathLayout.Script  | MathLayout.CrampedScript  -> [script_fam; text_fam]
-  | MathLayout.Script2 | MathLayout.CrampedScript2 -> [script2_fam; script_fam; text_fam]
-  ]
+  else do
+  {
+    let text_fam    = get_math_font env MathLayout.Text    fam in
+    let script_fam  = get_math_font env MathLayout.Script  fam in
+    let script2_fam = get_math_font env MathLayout.Script2 fam in
+
+    match style with
+    [ MathLayout.Display | MathLayout.CrampedDisplay
+    | MathLayout.Text    | MathLayout.CrampedText    -> [text_fam]
+    | MathLayout.Script  | MathLayout.CrampedScript  -> [script_fam; text_fam]
+    | MathLayout.Script2 | MathLayout.CrampedScript2 -> [script2_fam; script_fam; text_fam]
+    ]
+  }
 }
 
 and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
@@ -1394,7 +1339,7 @@ and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
 }
 
 (*
-  |node_to_delim_spec <env> (<f1>, <f2>) (<c1>, <c2>) <style>| converts a node of type |`MathChar| to
+  |node_to_delim_spec <env> (<f1>, <f2>) (<c1>, <c2>) <style>| converts a node of type |MathChar| to
   a delimiter-specification.
 *)
 
@@ -1410,59 +1355,70 @@ and node_to_delim_spec env (f1, f2) (c1, c2) style = do
   (c1, small_fonts, c2, large_fonts)
 }
 
-and ev_left_right env builder loc left nodes right = do
+and ev_left_right env builder loc nodes = do
 {
-  match (left, right) with
-  [ ([`MathChar _ (_, fl, cl)], [`MathChar _ (_, fr, cr)]) -> do
+  let get_delim node = match node with
+    [ [Node.MathChar _ (_, f, c)] -> do
+      {
+        if !tracing_engine then do
+        {
+          log_string "\n#E: delim (";
+          log_int (fst f);
+          log_string ", ";
+          log_int (fst c);
+          log_string "; ";
+          log_int (snd f);
+          log_string ", ";
+          log_int (snd c);
+          log_string ")";
+        }
+        else ();
+
+        node_to_delim_spec env f c (current_math_style env)
+      }
+    | _ -> do { log_warn loc "illegal delimiter!"; raise (Failure "") }
+    ]
+  in
+
+  let delims = ListBuilder.make () in
+  let bodies = ListBuilder.make () in
+
+  try
+    iter env nodes
+  with
+  [ Failure _ -> env ]
+
+  where rec iter env nodes = match nodes with
+  [ [] -> do
     {
-      if !tracing_engine then do
-      {
-        log_string "\n#E: left (";
-        log_int (fst fl);
-        log_string ", ";
-        log_int (fst cl);
-        log_string "; ";
-        log_int (snd fl);
-        log_string ", ";
-        log_int (snd cl);
-        log_string ")";
-      }
-      else ();
+      log_warn loc "missing delimiter!";
 
-      let (b, get) = Builder.simple_builder ()     in
-      let e        = eval_grouped_list env b nodes in
-      let bs       = get ()                        in
-
-      if !tracing_engine then do
-      {
-        log_string "\n#E: right (";
-        log_int (fst fr);
-        log_string ", ";
-        log_int (fst cr);
-        log_string "; ";
-        log_int (snd fr);
-        log_string ", ";
-        log_int (snd cr);
-        log_string ")";
-      }
-      else ();
+      env
+    }
+  | [r] -> do
+    {
+      ListBuilder.add delims (get_delim r);
 
       Builder.add_box builder
         (MathLayout.attach_delimiters
           (current_math_style env)
-          (node_to_delim_spec env fl cl (current_math_style env))
-          (node_to_delim_spec env fr cr (current_math_style env))
-          bs
+          (ListBuilder.get delims)
+          (ListBuilder.get bodies)
           (current_math_font_params env)
           (Galley.current_math_params (current_galley env)));
-
-      e
-    }
-  | _ -> do
-    {
-      log_warn loc "Illegal delimiter!";
-
       env
+    }
+  | [d;n::ns] -> do
+    {
+      ListBuilder.add delims (get_delim d);
+
+      let (b, get) = Builder.simple_builder () in
+      let e        = eval_grouped_list env b n in
+      let bs       = get ()                    in
+
+      ListBuilder.add bodies bs;
+
+      iter e ns
     }
   ]
 }
@@ -1490,7 +1446,7 @@ and ev_fraction env builder loc num_nodes denom_nodes left right thick = do
   let denom    = get () in
 
   match (left, right) with
-  [ (`MathChar _ (_, fl, cl), `MathChar _ (_, fr, cr)) -> do
+  [ (Node.MathChar _ (_, fl, cl), Node.MathChar _ (_, fr, cr)) -> do
     {
       Builder.add_box builder
         (MathLayout.make_fraction

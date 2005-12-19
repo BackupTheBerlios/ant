@@ -710,7 +710,7 @@ value ps_shipout_pages res args = match args with
           let even_str = Array.of_list (Machine.evaluate_string "ps_shipout_pages" even) in
           let odd_str  = Array.of_list (Machine.evaluate_string "ps_shipout_pages" odd)  in
 
-          ParseState.add_node ps (`ShipOut (ParseState.location ps) even_str odd_str (max 0 n))
+          ParseState.add_node ps (Node.ShipOut (ParseState.location ps) even_str odd_str (max 0 n))
         })
   }
 | _ -> assert False
@@ -727,10 +727,10 @@ value ps_new_page_layout res args = match args with
           let h        = Machine.evaluate_num "ps_new_page_layout" height in
 
           ParseState.add_node ps
-            (`NewLayout (ParseState.location ps)
-                        name_str
-                        (fun _ -> w)
-                        (fun _ -> h))
+            (Node.NewLayout (ParseState.location ps)
+               name_str
+               (fun _ -> w)
+               (fun _ -> h))
         })
   }
 | _ -> assert False
@@ -788,7 +788,7 @@ value ps_new_area res args = match args with
           let ap = decode_dict "ps_new_area" param in
 
           add_node ps
-            (`NewArea (ParseState.location ps)
+            (Node.NewArea (ParseState.location ps)
                name_str (fun _ -> x) (fun _ -> y) (fun _ -> w) (fun _ -> h) (fun _ -> t) (fun _ -> b)
                (`Galley
                  (Option.from_option [||]
@@ -815,7 +815,7 @@ value ps_new_area res args = match args with
           in
 
           add_node ps
-            (`NewArea (ParseState.location ps)
+            (Node.NewArea (ParseState.location ps)
                name_str (fun _ -> x) (fun _ -> y) (fun _ -> w) (fun _ -> h) (fun _ -> t) (fun _ -> b)
                (`Float
                  (align,
@@ -843,7 +843,7 @@ value ps_new_area res args = match args with
           let math_params       = lookup_dict ap sym_MathParams      in
 
           add_node ps
-            (`NewArea (ParseState.location ps)
+            (Node.NewArea (ParseState.location ps)
                name_str (fun _ -> x) (fun _ -> y) (fun _ -> w) (fun _ -> h) (fun _ -> t) (fun _ -> b)
                (`Footnote
                  (Option.from_option []
@@ -905,7 +905,7 @@ value ps_new_area res args = match args with
               in
 
               add_node ps
-                (`NewArea (ParseState.location ps)
+                (Node.NewArea (ParseState.location ps)
                    name_str (fun _ -> x) (fun _ -> y) (fun _ -> w) (fun _ -> h) (fun _ -> t) (fun _ -> b)
                    (`Direct f))
             }
@@ -926,7 +926,7 @@ value ps_new_area res args = match args with
               in
 
               add_node ps
-                (`NewArea (ParseState.location ps)
+                (Node.NewArea (ParseState.location ps)
                    name_str (fun _ -> x) (fun _ -> y) (fun _ -> w) (fun _ -> h) (fun _ -> t) (fun _ -> b)
                    (`Direct f))
             }
@@ -953,7 +953,7 @@ value ps_new_galley res args = match args with
           let m        = Machine.evaluate_num "ps_new_galley" measure                 in
 
           ParseState.add_node ps
-            (`NewGalley (ParseState.location ps) name_str (fun _ -> m))
+            (Node.NewGalley (ParseState.location ps) name_str (fun _ -> m))
         })
   }
 | _ -> assert False
@@ -974,7 +974,7 @@ value ps_define_math_symbol res args = match args with
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
-                                                (`MathChar (location ps) (mc, (f, f), (g, g))));
+                                                (Node.MathChar (location ps) (mc, (f, f), (g, g))));
               ParseState.expand  = Macro.noexpand }
         })
   }
@@ -995,7 +995,7 @@ value ps_define_root_symbol res args = match args with
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
-                                                (`Root (location ps) sf sg lf lg (ParseArgs.arg_execute ps `Math)));
+                                                (Node.Root (location ps) sf sg lf lg (ParseArgs.arg_execute ps `Math)));
               ParseState.expand  = Macro.noexpand }
         })
   }
@@ -1014,7 +1014,7 @@ value ps_define_math_accent res args = match args with
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
-                                                (`MathAccent (location ps) f g (ParseArgs.arg_execute ps `Math)));
+                                                (Node.MathAccent (location ps) f g (ParseArgs.arg_execute ps `Math)));
               ParseState.expand  = Macro.noexpand }
         })
   }
@@ -1049,7 +1049,7 @@ value decode_coord name z = do
   match !z with
   [ Types.Tuple [|x;y|] -> (Machine.evaluate_num name x,
                             Machine.evaluate_num name y)
-  | _                   -> Types.runtime_error (name ^ ": pair expected")
+  | _                   -> Types.runtime_error (name ^ ": pair expected but got " ^ Types.type_name !z)
   ]
 };
 
@@ -1070,7 +1070,7 @@ value decode_bezier name z = do
        fun _ -> Dim.fixed_dim cx, fun _ -> Dim.fixed_dim cy,
        fun _ -> Dim.fixed_dim dx, fun _ -> Dim.fixed_dim dy)
     }
-  | _ -> Types.runtime_error (name ^ ": 4-tuple expected")
+  | _ -> Types.runtime_error (name ^ ": 4-tuple expected but got " ^ Types.type_name !z)
   ]
 };
 
@@ -1088,7 +1088,7 @@ value ps_set_colour res colour parse_command = do
         let c = decode_colour "ps_set_colour" colour in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetColour c))
+          (Node.GfxCommand (location ps) (Graphic.SetColour c))
       })
 };
 
@@ -1100,7 +1100,7 @@ value ps_set_bg_colour res colour parse_command = do
         let c = decode_colour "ps_set_bg_colour" colour in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetBgColour c))
+          (Node.GfxCommand (location ps) (Graphic.SetBgColour c))
       })
 };
 
@@ -1112,7 +1112,7 @@ value ps_set_alpha res alpha parse_command = do
         let a = Machine.evaluate_num "ps_set_alpha" alpha in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetAlpha a))
+          (Node.GfxCommand (location ps) (Graphic.SetAlpha a))
       })
 };
 
@@ -1124,7 +1124,7 @@ value ps_draw name mode res path parse_command = do
         let p = decode_path name path in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.Draw mode p))
+          (Node.GfxCommand (location ps) (Graphic.Draw mode p))
       })
 };
 
@@ -1136,7 +1136,7 @@ value ps_set_line_width res width parse_command = do
         let w = Machine.evaluate_num "ps_set_line_width" width in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetLineWidth w))
+          (Node.GfxCommand (location ps) (Graphic.SetLineWidth w))
       })
 };
 
@@ -1148,7 +1148,7 @@ value ps_set_line_cap res cap parse_command = do
         let c = decode_line_cap "ps_set_line_cap" cap in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetLineCap c))
+          (Node.GfxCommand (location ps) (Graphic.SetLineCap c))
       })
 };
 
@@ -1160,7 +1160,7 @@ value ps_set_line_join res join parse_command = do
         let j = decode_line_join "ps_set_line_join" join in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetLineJoin j))
+          (Node.GfxCommand (location ps) (Graphic.SetLineJoin j))
       })
 };
 
@@ -1172,7 +1172,7 @@ value ps_set_miter_limit res limit parse_command = do
         let l = Machine.evaluate_num "ps_set_miter_limit" limit in
 
         ParseState.add_node ps
-          (`GfxCommand (location ps) (Graphic.SetMiterLimit l))
+          (Node.GfxCommand (location ps) (Graphic.SetMiterLimit l))
       })
 };
 

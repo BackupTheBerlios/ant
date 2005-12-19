@@ -6,7 +6,7 @@ open Engine;
 open ParseState;
 
 value arg_expanded : parse_state -> uc_list;
-value arg_execute  : parse_state -> mode -> list Evaluate.node_type;
+value arg_execute  : parse_state -> mode -> list Node.node;
 value arg_num      : parse_state -> num;
 value arg_int      : parse_state -> int;
 value arg_skip     : parse_state -> Environment.skip_arg;

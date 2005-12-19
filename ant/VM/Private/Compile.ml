@@ -534,6 +534,12 @@ and compile_local_declarations scope decls = do
               else
                 init.(var) := t
             }
+          | TDictionary dict -> do
+            {
+              let (_, var) = Scope.lookup_local new_scope name in
+
+              init.(var) := term
+            }
           | TTrigger _ -> do
             {
               let (_, var) = Scope.lookup_local new_scope name in
@@ -637,9 +643,21 @@ value rec compile_global_declarations scope decls = do
               else
                 !var := UnevalT [] t
             }
+          | TDictionary dict -> do
+            {
+              let d =
+                List.fold_left
+                  (fun m (s,v) ->
+                    SymbolMap.add s (ref (UnevalT [] v)) m)
+                  SymbolMap.empty
+                  dict
+              in
+              let var = Scope.lookup_global scope name in
+
+              !var := Dictionary d
+            }
           | _ -> assert False
-          ]
-        )
+          ])
         table
     }
   | [Parser.DFun name pats guard term :: ds] -> do
@@ -670,16 +688,22 @@ value compile decls = do
 
 value compile_declarations scope stream = do
 {
-  let lexer = Lexer.make_lexer (Scope.symbol_table scope) stream in
-  let decls = Parser.parse_program lexer                         in
+  let lexer = Lexer.make_lexer
+                (Scope.symbol_table scope)
+                stream
+              in
+  let decls = Parser.parse_program lexer in
 
   compile_global_declarations scope decls
 };
 
 value compile_expression scope stream = do
 {
-  let lexer = Lexer.make_lexer (Scope.symbol_table scope) stream in
-  let expr  = Parser.parse_expression lexer                      in
+  let lexer = Lexer.make_lexer
+                (Scope.symbol_table scope)
+                stream
+              in
+  let expr  = Parser.parse_expression lexer in
 
   compile_expr scope expr
 };

@@ -126,7 +126,7 @@
 ;; declare_math_symbol name font glyph math_code :=
 ;;   ps_define_command
 ;;     name
-;;     { ps := local loc in
+;;     { ps := local loc;
 ;;             (ps_location loc >>
 ;;              ps_add_node (MathChar, loc, (math_code, font, glyph, font, glyph)))
 ;;             ps
@@ -1310,13 +1310,6 @@ declare_symbols font n [s, c : ss] ps := (declare_symbols font (n+1) ss
   ps_set_math_code ']'  Close    3 0x05 3 0x05 >>
   ps_set_math_code '/'  Ordinary 3 0x7e 3 0x7e >>
   ps_set_math_code '|'  Ordinary 3 0x53 3 0x53 >>
-  ps_set_math_code '<'  Open     3 0x60 3 0x60 >>
-  ps_set_math_code '>'  Close    3 0x65 3 0x65 >>
-  ps_set_math_code '/'  Ordinary 3 0x7e 3 0x7e >>
-  ps_set_math_code '('  Open     3 0x88 3 0x88 >>
-  ps_set_math_code ')'  Close    3 0x8d 3 0x8d >>
-  ps_set_math_code '['  Open     3 0x00 3 0x00 >>
-  ps_set_math_code ']'  Close    3 0x05 3 0x05 >>
 
   ps_define_root_symbol "\\sqrt" 3 0xba 3 0xba >>
 

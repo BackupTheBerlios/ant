@@ -131,25 +131,28 @@ value lookup_dim    name dict key = lookup (decode_dim_arg  name) dict key;
 
 (* primitives *)
 
-value env_quad res env = do
+value env_quad res x env = do
 {
-  let e = unwrap_env "env_quad" env in
+  let e = unwrap_env "env_quad" env         in
+  let s = Machine.evaluate_num "env_quad" x in
 
-  !res := Types.Number (Evaluate.const_em num_one e)
+  !res := Types.Number (Evaluate.const_em s e)
 };
 
-value env_x_height res env = do
+value env_x_height res x env = do
 {
-  let e = unwrap_env "env_x_height" env in
+  let e = unwrap_env "env_x_height" env         in
+  let s = Machine.evaluate_num "env_x_height" x in
 
-  !res := Types.Number (Evaluate.const_ex num_one e)
+  !res := Types.Number (Evaluate.const_ex s e)
 };
 
-value env_math_unit res env = do
+value env_math_unit res x env = do
 {
-  let e = unwrap_env "env_math_unit" env in
+  let e = unwrap_env "env_math_unit" env         in
+  let s = Machine.evaluate_num "env_math_unit" x in
 
-  !res := Types.Number (Evaluate.const_mu num_one e)
+  !res := Types.Number (Evaluate.const_mu s e)
 };
 
 value prim_new_galley res name width = do
@@ -169,7 +172,6 @@ value prim_select_galley res name = do
 (*
 value prim_set_galley         : Galley.galley box_cmd -> env_cmd;
 value prim_galley_set_leading : (box -> box -> Galley.line_params box_cmd -> dim) -> env_cmd;
-*)
 
 value prim_set_par_shape res shape = do
 {
@@ -186,7 +188,7 @@ value prim_set_par_shape res shape = do
     match !result with
     [ Types.Tuple [|l; r|] -> (Machine.evaluate_num "<par-shape>" l,
                                Machine.evaluate_num "<par-shape>" r)
-    | _ -> Types.runtime_error "<par-shape>: pair expected"
+    | _ -> Types.runtime_error ("<par-shape>: pair expected but got " ^ Types.type_name !result)
     ]
   }
   in
@@ -196,7 +198,6 @@ value prim_set_par_shape res shape = do
               (None, None, None, None, None, Some s, None, None))
 };
 
-(*
 value prim_galley_set_post_process_line : (environment -> list box -> list box) -> env_cmd;
 *)
 

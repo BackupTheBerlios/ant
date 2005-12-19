@@ -5,13 +5,10 @@ open Markup;
 
 module Job = Engine.Job;
 
-value greeting = "This is ant, version 0.7.\n";
-
 value print_help () = do
 {
-  print_string greeting;
-
-  print_string "\nUSAGE: ant [options] <input-file>\n\n";
+  print_string "This is ant, version 0.7.\n\n";
+  print_string "USAGE: ant [options] <input-file>\n\n";
   print_string "Supported options are:\n\n";
   print_string "--format=<fmt>    where <fmt> is either \"dvi\", \"ps\", \"pdf\", or \"svg\"\n";
   print_string "--debug=<flags>   where <flags> may contain the following letters:\n";
@@ -148,8 +145,6 @@ value main () = do
     {
       Job.start_job file;
       Run.initialise ();
-
-      log_string greeting;
 
       let (ast, ps) = Run.parse_file !Job.input_file in
 

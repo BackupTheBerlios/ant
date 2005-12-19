@@ -3,11 +3,11 @@
 
 ;; operators
 
-declare_infix_l 9 !!;
-declare_infix_r 9 o;
-declare_infix_r 5 ++;
-declare_infix_l 1 >>;
-declare_infix_r 0 $;
+declare_infix_left  9 !!;
+declare_infix_right 9 o;
+declare_infix_right 5 ++;
+declare_infix_left  1 >>;
+declare_infix_right 0 $;
 
 ;; the usual examples faculty and fibonacci
 
@@ -168,7 +168,7 @@ break p [x:xs]         := ([x:ys], zs) where (ys, zs) := break p xs end;
 ;; unwords : [string] -> string
 
 lines ""   := [];
-lines s    := local (l, r) := break ('\n' ==) s in
+lines s    := local (l, r) := break ('\n' ==) s;
               [l : match r with
                    { []    := []
                    | [_:t] := lines t
@@ -298,6 +298,8 @@ f $ x := f x;
 f o g  := { x := f (g x) };
 f >> g := { x := g (f x) };
 
+(>>) f g x := g (f x);
+
 flip f x y := f y x;
 
 ;; until : (a -> bool) -> (a -> a) -> a -> a
@@ -307,20 +309,20 @@ until p f x       := until p f (f x);
 
 \endALdeclarations
 
-\beginALdeclarations
-
-repeat_next_char n :=
-  local c in
-  ps_next_char c >>
-  ps_insert_string (replicate (n-1) c);
-
-mirror := local arg in
-          ps_arg_expanded arg >>
-          ps_insert_string (reverse arg);
-
-\endALdeclarations
-
+%\beginALdeclarations
+%
+%repeat_next_char n :=
+%  local c;
+%  ps_next_char c >>
+%  ps_insert_string (replicate (n-1) c);
+%
+%mirror := local arg;
+%          ps_arg_expanded arg >>
+%          ps_insert_string (reverse arg);
+%
+%\endALdeclarations
+%
 %\definecommand\repeat[m]{\ALcommand{repeat_next_char (#1)}}
-\definecommand\mirror{\ALcommand{mirror}}
+%\definecommand\mirror{\ALcommand{mirror}}
 
 % vim:set ft=al fenc=utf8:

@@ -685,7 +685,7 @@ and mul_unknowns res x y = match (!x, !y) with
 
                                       !res := LinForm lin
                                     }
-                                  | _ -> runtime_error "*: invalid argument"
+                                  | _ -> runtime_error ("*: invalid argument, expected number but got " ^ type_name !x)
                                   ])
                    }
                  | [] -> assert False
@@ -703,7 +703,7 @@ and mul_unknowns res x y = match (!x, !y) with
       (fun () -> evaluate_term y e t)
       (fun () -> mul_unknowns res x y)
   }
-| _ -> runtime_error "*: invalid argument"
+| _ -> runtime_error ("*: invalid argument of type " ^ type_name !x ^ " and " ^ type_name !y)
 ]
 
 and div_unknowns res x y = match (!x, !y) with
@@ -955,9 +955,7 @@ and evaluate_application x f args = match f with
   }
 | Application f2 args2 -> do
   {
-    let a = args2 @ args in
-
-    evaluate_application x f2 a
+    evaluate_application x f2 (args2 @ args)
   }
 
 (* access methods *)

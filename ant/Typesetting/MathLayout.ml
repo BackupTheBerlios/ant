@@ -722,13 +722,22 @@ value construct_delimiter
 
   let try_delim glyph fonts = do
   {
-    loop_fonts fonts Undef num_zero
+    if glyph < 0 then
+      None
+    else
+      loop_fonts fonts Undef num_zero
   }
   where rec loop_fonts fonts best_glyph best_height = match fonts with
   [ []      -> None
   | [f::fs] -> do
     {
-      loop_chars (Simple glyph) best_glyph best_height
+      if not (FontMetric.glyph_exists f glyph) then do
+      {
+        log_warn ("",0,0) "nonexisting glyph specified!";
+        None
+      }
+      else
+        loop_chars (Simple glyph) best_glyph best_height
 
       where rec loop_chars glyph best_glyph best_height = match glyph with
       [ Undef              -> loop_fonts fs best_glyph best_height
@@ -776,12 +785,12 @@ value make_delimiter style delim_height delim font_params math_params = do
 };
 
 (*
-  |attach-delimiters <style> <left-delim> <right-delim> <body> <font-params> <math-params>|
-  attaches delimitersm to <body>. <left-delim> and <right-delim> are tuples of the form
+  |simple-attach-delimiters <style> <left-delim> <right-delim> <body> <font-params> <math-params>|
+  attaches delimiters to <body>. <left-delim> and <right-delim> are tuples of the form
   |(<small-char>, <small-fonts>, <large-char>, <large-fonts>)|.
 *)
 
-value attach_delimiters style left_delim right_delim body font_params math_params = do
+value simple_attach_delimiters style left_delim right_delim body font_params math_params = do
 {
   let make_delim size code delim =
     new_math_box
@@ -813,6 +822,79 @@ value attach_delimiters style left_delim right_delim body font_params math_param
         (layout style [left_del :: body @ [right_del]] font_params math_params)
       )
     )
+};
+
+(*
+  |attach-delimiters <style> <delims> <bodies> <font-params> <math-params>|
+  attaches delimiters to <bodies>. The number of delimiters must equal the number
+  of bodies plus one. <delims> is a list of tuples of the form
+  |(<small-char>, <small-fonts>, <large-char>, <large-fonts>)|.
+*)
+
+value attach_delimiters style delims bodies font_params math_params = do
+{
+  let make_delim size code delim =
+    new_math_box
+      code
+      (make_delimiter style size delim font_params math_params)
+  in
+
+  let get_max get_dim boxes =
+    List.fold_left
+      (fun max_val x -> max_num max_val (get_dim x).d_base)
+      num_zero
+      boxes
+  in
+
+  let layouted_bodies = List.map
+                          (fun b -> layout style b font_params math_params)
+                          bodies
+                        in
+  let (max_height, max_depth) =
+    List.fold_left
+      (fun (mh, md) body ->
+        (max_num mh (get_max (fun b -> b.b_height) body),
+         max_num md (get_max (fun b -> b.b_depth)  body)))
+      (num_zero, num_zero)
+      layouted_bodies
+  in
+  let axis_height = (get_font_params font_params style).axis_height in
+  let delta_1     = num_of_int 2 */ max_num (max_depth +/ axis_height) (max_height -/ axis_height) in
+  let delta_2     = math_params.delimiter_factor */ delta_1                      in
+  let size        = max_num delta_2 (delta_1 -/ math_params.delimiter_shortfall) in
+
+  let new_body = ListBuilder.make () in
+
+  match delims with
+  [ []      -> raise (Invalid_argument "attach_delimiters: empty delimiter list")
+  | [l::ds] -> do
+    {
+      ListBuilder.add new_body (make_delim size Open l);
+
+      iter ds bodies
+
+      where rec iter delims bodies = match (delims, bodies) with
+      [ ([r], [b]) -> do
+        {
+          ListBuilder.add_list new_body b;
+          ListBuilder.add      new_body (make_delim size Close r);
+
+          new_math_box
+            Inner
+            (HBox.make
+              (Compose.box_add_lig_kern
+                (layout style (ListBuilder.get new_body) font_params math_params)))
+        }
+      | ([d::ds], [b::bs]) -> do
+        {
+          ListBuilder.add_list new_body b;
+          ListBuilder.add      new_body (make_delim size Relation d);
+          iter ds bs
+        }
+      | _ -> raise (Invalid_argument "attach_delimiters: mismatched number of delimiters and bodies")
+      ]
+    }
+  ]
 };
 
 value make_operator style glyph font font_params = do
@@ -933,7 +1015,7 @@ value make_fraction style num denom left_delim right_delim thickness
   let shift_down_1 = get_denom_shift params style     in
 
   let make_fract shift_up shift_down rule_shift =
-    attach_delimiters
+    simple_attach_delimiters
       style
       left_delim
       right_delim

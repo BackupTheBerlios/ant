@@ -1,21 +1,11 @@
 
 ;; operators
 
-declare_infix_l 9 !!;
-declare_infix_r 9 o;
-declare_infix_r 5 ++;
-declare_infix_l 1 >>;
-declare_infix_r 0 $;
-
-[;
-  infixr 8  ^^, **
-  infixl 7  `quot`, `rem`, `div`, :%, %
-  infixr 5  :
-  infix  4  `elem`, `notElem`
-  infixl 1  >>, >>=
-  infixr 1  =<<
-  infixr 0  $!, `seq`
-;]
+declare_infix_left 9 !!;
+declare_infix_right 9 o;
+declare_infix_right 5 ++;
+declare_infix_left 1 >>;
+declare_infix_right 0 $;
 
 ;;fib 0 := 1;
 ;;fib 1 := 1;
@@ -178,7 +168,7 @@ break p [x:xs]         := ([x:ys], zs) where (ys, zs) := break p xs end;
 ;; unwords : [string] -> string
 
 lines ""   := [];
-lines s    := local (l, r) := break ('\n' ==) s in
+lines s    := local (l, r) := break ('\n' ==) s;
               [l : match r with
                    { []    := []
                    | [_:t] := lines t

@@ -22,7 +22,7 @@ type mode =
 type parse_state =
 {
   input_stream      : UCStream.istream;
-  parse_stack       : Stack.t (mode * ListBuilder.builder Evaluate.node_type);
+  parse_stack       : Stack.t (mode * ListBuilder.builder Node.node);
   default_char_cmd  : mutable command;
   command_table     : mutable DynUCTrie.t command;
   pattern_table     : mutable DynUCTrie.t command;
@@ -50,8 +50,8 @@ value set_stream      : parse_state -> UCStream.istream -> unit;
 value location        : parse_state -> UCStream.location;
 
 value open_node_list  : parse_state -> mode -> unit;
-value close_node_list : parse_state -> mode -> list Evaluate.node_type;
-value add_node        : parse_state -> Evaluate.node_type -> unit;
+value close_node_list : parse_state -> mode -> list Node.node;
+value add_node        : parse_state -> Node.node -> unit;
 value current_mode    : parse_state -> mode;
 
 value set_default_char_cmd : parse_state -> command -> unit;
@@ -93,8 +93,8 @@ value write_references     : parse_state -> string -> unit;
 value execute_next_char        : parse_state -> bool;
 value execute_stream           : parse_state -> UCStream.istream -> unit;
 value execute_argument         : parse_state -> unit;
-value execute_argument_in_mode : parse_state -> mode -> list Evaluate.node_type;
-value run_parser               : parse_state -> mode -> list Evaluate.node_type;
+value execute_argument_in_mode : parse_state -> mode -> list Node.node;
+value run_parser               : parse_state -> mode -> list Node.node;
 
-value execute_string_in_mode   : parse_state -> uc_list -> mode -> list Evaluate.node_type;
+value execute_string_in_mode   : parse_state -> uc_list -> mode -> list Node.node;
 

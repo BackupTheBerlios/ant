@@ -335,8 +335,8 @@ value parse_par_param ps loc dict = do
   let par_shape_left    = lookup_string dict str_left_par_shape   in
   let par_shape_right   = lookup_string dict str_right_par_shape  in
   let par_skip          = lookup_dim    dict str_par_skip         in
-  let left_ann          = lookup_string dict str_left_annotation  in
-  let right_ann         = lookup_string dict str_right_annotation in
+  let left_ann          = lookup_list   dict str_left_annotation  in
+  let right_ann         = lookup_list   dict str_right_annotation in
   let post_process_line = None (* FIX *)                          in
 
   let par_shape = match (par_shape_left, par_shape_right) with
@@ -349,9 +349,9 @@ value parse_par_param ps loc dict = do
 
   let post_process = match (post_process_line, left_ann, right_ann) with
   [ (Some p, _,      _)      -> Some p
-  | (None,   Some l, Some r) -> Some (parse_annotation ps (Array.to_list l) (Array.to_list r))
-  | (None,   Some l, None)   -> Some (parse_annotation ps (Array.to_list l) [])
-  | (None,   None,   Some r) -> Some (parse_annotation ps []                (Array.to_list r))
+  | (None,   Some l, Some r) -> Some (parse_annotation ps l  r)
+  | (None,   Some l, None)   -> Some (parse_annotation ps l  [])
+  | (None,   None,   Some r) -> Some (parse_annotation ps [] r)
   | (None,   None,   None)   -> None
   ]
   in
@@ -655,7 +655,7 @@ value set_param ps = do
   let loc   = location ps     in
   let val   = arg_key_val  ps in
 
-  let add_cmd cmd parse = add_node ps (`Command loc (cmd (parse loc val))) in
+  let add_cmd cmd parse = add_node ps (Node.Command loc (cmd (parse loc val))) in
 
   match UString.to_string param with
   [ "font"             -> add_cmd Environment.set_font                      parse_font_dict
@@ -682,7 +682,7 @@ value set_math_font ps = do
 {
   let font = parse_math_font_dict (location ps) (arg_key_val ps) in
 
-  add_node ps (`Command (location ps) (Environment.set_math_font font))
+  add_node ps (Node.Command (location ps) (Environment.set_math_font font))
 };
 
 value set_mark ps = do
@@ -690,7 +690,7 @@ value set_mark ps = do
   let mark = Array.of_list (arg_expanded ps) in
   let val  = Array.of_list (arg_expanded ps) in
 
-  add_node ps (`CommandBox (location ps) (`PageCmd (Box.SetMark mark val)))
+  add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.SetMark mark val)))
 };
 
 (* boxes and glue *)
@@ -701,7 +701,7 @@ value hskip ps = do
 
   let width = arg_TeX_dim ps in
 
-  add_node ps (`Glue (location ps) width (fun _ -> dim_zero) False True)
+  add_node ps (Node.Glue (location ps) width (fun _ -> dim_zero) False True)
 };
 
 value vskip ps = do
@@ -710,7 +710,7 @@ value vskip ps = do
 
   let height = arg_TeX_dim ps in
 
-  add_node ps (`Glue (location ps) (fun _ -> dim_zero) height False True)
+  add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) height False True)
 };
 
 value kern ps = do
@@ -718,17 +718,17 @@ value kern ps = do
   let skip = arg_TeX_dim ps in
 
   match current_mode ps with
-  [ `Galley    | `VBox         -> add_node ps (`Glue (location ps) (fun _ -> dim_zero) skip True True)
-  | `Paragraph | `HBox | `Math -> add_node ps (`Glue (location ps) skip (fun _ -> dim_zero) True True)
+  [ `Galley    | `VBox         -> add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) skip True True)
+  | `Paragraph | `HBox | `Math -> add_node ps (Node.Glue (location ps) skip (fun _ -> dim_zero) True True)
   | _                          -> ()
   ]
 };
 
 value hbox ps = do
 {
-  let close_hbox               contents = add_node ps (`HBox       (location ps)        contents) in
-  let close_hbox_to     width  contents = add_node ps (`HBoxTo     (location ps) width  contents) in
-  let close_hbox_spread amount contents = add_node ps (`HBoxSpread (location ps) amount contents) in
+  let close_hbox               contents = add_node ps (Node.HBox       (location ps)        contents) in
+  let close_hbox_to     width  contents = add_node ps (Node.HBoxTo     (location ps) width  contents) in
+  let close_hbox_spread amount contents = add_node ps (Node.HBoxSpread (location ps) amount contents) in
 
   let open_hbox close_command = do
   {
@@ -770,9 +770,9 @@ value hbox ps = do
 
 value vbox ps = do
 {
-  let close_vbox               contents = add_node ps (`VBox       (location ps)         contents) in
-  let close_vbox_to     height contents = add_node ps (`VBoxTo     (location ps) height contents) in
-  let close_vbox_spread amount contents = add_node ps (`VBoxSpread (location ps) amount contents) in
+  let close_vbox               contents = add_node ps (Node.VBox       (location ps)         contents) in
+  let close_vbox_to     height contents = add_node ps (Node.VBoxTo     (location ps) height contents) in
+  let close_vbox_spread amount contents = add_node ps (Node.VBoxSpread (location ps) amount contents) in
 
   let open_vbox close_command = do
   {
@@ -813,21 +813,21 @@ value phantom ps = do
 {
   let arg = arg_execute ps `HBox in
 
-  add_node ps (`Phantom (location ps) True True arg)
+  add_node ps (Node.Phantom (location ps) True True arg)
 };
 
 value hphantom ps = do
 {
   let arg = arg_execute ps `HBox in
 
-  add_node ps (`Phantom (location ps) True False arg)
+  add_node ps (Node.Phantom (location ps) True False arg)
 };
 
 value vphantom ps = do
 {
   let arg = arg_execute ps `HBox in
 
-  add_node ps (`Phantom (location ps) False True arg)
+  add_node ps (Node.Phantom (location ps) False True arg)
 };
 
 value hleaders ps = do
@@ -835,7 +835,7 @@ value hleaders ps = do
   let width = arg_dim ps in
   let body  = arg_execute ps `HBox in
 
-  add_node ps (`HLeaders (location ps) width body)
+  add_node ps (Node.HLeaders (location ps) width body)
 };
 
 value vinsert ps = do
@@ -843,7 +843,7 @@ value vinsert ps = do
   let above = Parser.read_bool ps.input_stream in
   let arg   = arg_execute ps `VBox in
 
-  add_node ps (`VInsert (location ps) (not above) arg)
+  add_node ps (Node.VInsert (location ps) (not above) arg)
 };
 
 value rule ps = do
@@ -852,14 +852,14 @@ value rule ps = do
   let height = arg_dim ps in
   let depth  = arg_dim ps in
 
-  add_node ps (`Rule (location ps) width height depth)
+  add_node ps (Node.Rule (location ps) width height depth)
 };
 
 value image ps = do
 {
   let add_image file width height = do
   {
-    add_node ps (`Image (location ps) (UString.to_string file) width height)
+    add_node ps (Node.Image (location ps) (UString.to_string file) width height)
   }
   in
 
@@ -952,23 +952,23 @@ value parbox ps = do
   let body = close_node_list ps `Galley in
   let name = Array.of_list (gen_unique_name ()) in
 
-  add_node ps (`BeginGroup  (location ps));
-  add_node ps (`NewGalley   (location ps) name width);
-  add_node ps (`AddToGalley (location ps) name body);
+  add_node ps (Node.BeginGroup  (location ps));
+  add_node ps (Node.NewGalley   (location ps) name width);
+  add_node ps (Node.AddToGalley (location ps) name body);
 
   match pos with
-  [ [ 98] -> add_node ps (`PutGalleyInVBox (location ps) False name)
-(*  | [ 99] -> add_node ps (`PutGalleyInVBox (location ps) name); *)
-  | [116] -> add_node ps (`PutGalleyInVBox (location ps) True name)
+  [ [ 98] -> add_node ps (Node.PutGalleyInVBox (location ps) False name)
+(*  | [ 99] -> add_node ps (Node.PutGalleyInVBox (location ps) name); *)
+  | [116] -> add_node ps (Node.PutGalleyInVBox (location ps) True name)
   | _     -> do
     {
       log_warn (location ps) "pos `";
       log_uc_list pos;
       log_string "' unsupported, assuming `t'!";
-      add_node ps (`PutGalleyInVBox (location ps) True name)
+      add_node ps (Node.PutGalleyInVBox (location ps) True name)
     }
   ];
-  add_node ps (`EndGroup (location ps))
+  add_node ps (Node.EndGroup (location ps))
 };
 
 value accent ps = do
@@ -976,7 +976,7 @@ value accent ps = do
   let acc = arg_int     ps       in
   let chr = arg_execute ps `HBox in
 
-  add_node ps (`Accent (location ps) acc chr)
+  add_node ps (Node.Accent (location ps) acc chr)
 };
 
 (* tables *)
@@ -1001,7 +1001,7 @@ value end_table_entry ps = do
   let bl = get_counter ps str_table_entry_baseline in
   let b  = get_counter ps str_table_entry_bottom   in
 
-  add_node ps (`TableEntry (location ps) l r t bl b contents);
+  add_node ps (Node.TableEntry (location ps) l r t bl b contents);
 
   (* set size of the next entry *)
 
@@ -1050,7 +1050,7 @@ value end_table ps = do
 {
   end_table_entry ps;
 
-  add_node ps (`Table (location ps) (close_node_list ps `Table));
+  add_node ps (Node.Table (location ps) (close_node_list ps `Table));
 };
 
 (* breaks *)
@@ -1059,7 +1059,7 @@ value penalty ps = do
 {
   let arg = arg_num ps in
 
-  add_node ps (`Break (location ps) (Some arg) False [] [] [])
+  add_node ps (Node.Break (location ps) (Some arg) False [] [] [])
 };
 
 value discretionary ps = do
@@ -1074,7 +1074,7 @@ value discretionary ps = do
   let post    = arg_execute ps `HBox in
   let no      = arg_execute ps `HBox in
 
-  add_node ps (`Break (location ps) penalty hyph pre post no)
+  add_node ps (Node.Break (location ps) penalty hyph pre post no)
 };
 
 (* commands and environments *)
@@ -1188,7 +1188,7 @@ value begin_text ps = do
   if current_mode ps = `Math then do
   {
     open_node_list ps `HBox;
-    add_node ps (`Command (location ps) Environment.adapt_fonts_to_math_style)
+    add_node ps (Node.Command (location ps) Environment.adapt_fonts_to_math_style)
   }
   else
     open_node_list ps `HBox
@@ -1207,7 +1207,7 @@ value end_text ps = do
   | `HBox | `Table ->
       List.iter (add_node ps) nodes
   | `Math | `VBox  ->
-      add_node ps (`HBox (location ps) nodes)
+      add_node ps (Node.HBox (location ps) nodes)
   ]
 };
 
@@ -1215,7 +1215,7 @@ value end_text ps = do
 
 value add_math_char ps math_code = do
 {
-  add_node ps (`MathChar (location ps) math_code)
+  add_node ps (Node.MathChar (location ps) math_code)
 };
 
 (* commands for sub- and super-scripts. *)
@@ -1228,7 +1228,7 @@ value sub_script ps = do
   {
     match arg_execute ps `Math with
     [ []    -> log_warn (location ps) "empty subscript!"
-    | nodes -> add_node ps (`SubScript (location ps) nodes)
+    | nodes -> add_node ps (Node.SubScript (location ps) nodes)
     ]
   }
 };
@@ -1241,7 +1241,7 @@ value super_script ps = do
   {
     match arg_execute ps `Math with
     [ []    -> log_warn (location ps) "empty superscript!"
-    | nodes -> add_node ps (`SuperScript (location ps) nodes)
+    | nodes -> add_node ps (Node.SuperScript (location ps) nodes)
     ]
   }
 };
@@ -1251,32 +1251,32 @@ value prime ps = do
   if current_mode ps <> `Math then
     log_warn (location ps) "prime in text mode!"
   else
-    add_node ps (`SuperScript (location ps) [`MathChar (location ps) (Ordinary, (2, 2), (48, 48))])
+    add_node ps (Node.SuperScript (location ps) [Node.MathChar (location ps) (Ordinary, (2, 2), (48, 48))])
 };
 
 value overline ps = do
 {
-  add_node ps (`Overline (location ps) (arg_execute ps `Math))
+  add_node ps (Node.Overline (location ps) (arg_execute ps `Math))
 };
 
 value underline ps = do
 {
-  add_node ps (`Underline (location ps) (arg_execute ps `Math))
+  add_node ps (Node.Underline (location ps) (arg_execute ps `Math))
 };
 
 value math_accent ps family char = do
 {
-  add_node ps (`MathAccent (location ps) family char (arg_execute ps `Math))
+  add_node ps (Node.MathAccent (location ps) family char (arg_execute ps `Math))
 };
 
 value put_root ps small_family small_char large_family large_char = do
 {
-  add_node ps (`Root (location ps) small_family small_char large_family large_char (arg_execute ps `Math))
+  add_node ps (Node.Root (location ps) small_family small_char large_family large_char (arg_execute ps `Math))
 };
 
 value set_math_code ps code = do
 {
-  add_node ps (`MathCode (location ps) code (arg_execute ps `Math))
+  add_node ps (Node.MathCode (location ps) code (arg_execute ps `Math))
 };
 
 value left_delim ps = do
@@ -1286,31 +1286,51 @@ value left_delim ps = do
   if UCStream.next_char ps.input_stream = 46 then do
   {
     UCStream.remove ps.input_stream 1;
-    add_node ps (`Nodes [`MathChar (location ps) (Open, (-1, -1), (-1, -1))])
+    add_node ps (Node.Nodes [Node.MathChar (location ps) (Open, (-1, -1), (-1, -1))])
   }
   else
-    add_node ps (`Nodes (arg_execute ps `Math));
+    add_node ps (Node.Nodes (arg_execute ps `Math));
+
+  open_node_list ps `Math
+};
+
+value mid_delim ps = do
+{
+  add_node ps (Node.Nodes (close_node_list ps `Math));
+
+  if UCStream.next_char ps.input_stream = 46 then do
+  {
+    UCStream.remove ps.input_stream 1;
+    add_node ps (Node.Nodes [Node.MathChar (location ps) (Open, (-1, -1), (-1, -1))])
+  }
+  else
+    add_node ps (Node.Nodes (arg_execute ps `Math));
 
   open_node_list ps `Math
 };
 
 value right_delim ps = do
 {
-  add_node ps (`Nodes (close_node_list ps `Math));
+  add_node ps (Node.Nodes (close_node_list ps `Math));
 
   if UCStream.next_char ps.input_stream = 46 then do
   {
     UCStream.remove ps.input_stream 1;
-
-    add_node ps (`Nodes [`MathChar (location ps) (Close, (-1, -1), (-1, -1))])
+    add_node ps (Node.Nodes [Node.MathChar (location ps) (Close, (-1, -1), (-1, -1))])
   }
   else
-    add_node ps (`Nodes (arg_execute ps `Math));
+    add_node ps (Node.Nodes (arg_execute ps `Math));
 
-  match close_node_list ps `Math with
-  [ [`Nodes l; `Nodes m; `Nodes r] -> add_node ps (`LeftRight (location ps) l m r)
-  | _                              -> log_warn (location ps) "syntax error in left-right statement!"
-  ]
+  let nodes =
+    List.map
+      (fun x -> match x with
+       [ Node.Nodes ns -> ns
+       | _             -> do { log_warn (location ps) "syntax error in left-right statement!"; [] }
+       ])
+      (close_node_list ps `Math)
+  in
+
+  add_node ps (Node.LeftRight (location ps) nodes)
 };
 
 value fraction ps = do
@@ -1318,12 +1338,12 @@ value fraction ps = do
   let num   = arg_execute ps `Math in
   let denom = arg_execute ps `Math in
 
-  add_node ps (`Fraction
+  add_node ps (Node.Fraction
                  (location ps)
                  num
                  denom
-                 (`MathChar (location ps) (Open, (0, 0), (0, 0)))
-                 (`MathChar (location ps) (Close, (0, 0), (0, 0)))
+                 (Node.MathChar (location ps) (Open,  (-1, -1), (-1, -1)))
+                 (Node.MathChar (location ps) (Close, (-1, -1), (-1, -1)))
                  (fun _ -> num_of_int (-1)))
 };
 
@@ -1338,12 +1358,12 @@ value general_fraction ps = do
   if List.length left <> 1 || List.length right <> 1 then
     log_warn (location ps) "invalid delimiter!"
   else
-    add_node ps (`Fraction (location ps) num denom (List.hd left) (List.hd right) thick)
+    add_node ps (Node.Fraction (location ps) num denom (List.hd left) (List.hd right) thick)
 };
 
 value set_math_style style ps = do
 {
-  add_node ps (`MathStyle (location ps) style)
+  add_node ps (Node.MathStyle (location ps) style)
 };
 
 value index_position ps = do
@@ -1351,11 +1371,11 @@ value index_position ps = do
   let pos = Array.of_list (arg_expanded ps) in
 
   if pos = str_left then
-    add_node ps (`IndexPosition (location ps) LeftIndex)
+    add_node ps (Node.IndexPosition (location ps) LeftIndex)
   else if pos = str_right then
-    add_node ps (`IndexPosition (location ps) RightIndex)
+    add_node ps (Node.IndexPosition (location ps) RightIndex)
   else if pos = str_vert then
-    add_node ps (`IndexPosition (location ps) VertIndex)
+    add_node ps (Node.IndexPosition (location ps) VertIndex)
   else do
   {
     log_error (location ps) "unkown index position `";
@@ -1470,7 +1490,7 @@ value shipout_pages ps = do
   let even   = Array.of_list (arg_expanded ps) in
   let odd    = Array.of_list (arg_expanded ps) in
 
-  add_node ps (`ShipOut (location ps) even odd (max 0 number))
+  add_node ps (Node.ShipOut (location ps) even odd (max 0 number))
 };
 
 value new_page_layout ps = do
@@ -1479,7 +1499,7 @@ value new_page_layout ps = do
   let width  = arg_skip ps in
   let height = arg_skip ps in
 
-  add_node ps (`NewLayout (location ps) name width height)
+  add_node ps (Node.NewLayout (location ps) name width height)
 };
 
 value next_page_layout ps = do
@@ -1487,7 +1507,7 @@ value next_page_layout ps = do
   let layout = arg_expanded ps in
 
   add_node ps
-    (`CommandBox (location ps)
+    (Node.CommandBox (location ps)
       (`PageCmd (Box.SetNextLayout (Array.of_list layout))))
 };
 
@@ -1507,7 +1527,7 @@ value new_area ps = do
     let param = arg_key_val ps in
 
     add_node ps
-      (`NewArea (location ps)
+      (Node.NewArea (location ps)
          name
          pos_x pos_y width height max_top max_bot
          (`Galley (parse_galley_area_dict (location ps) param)))
@@ -1517,7 +1537,7 @@ value new_area ps = do
     let param = arg_key_val ps in
 
     add_node ps
-      (`NewArea (location ps)
+      (Node.NewArea (location ps)
          name
          pos_x pos_y width height max_top max_bot
          (`Float (parse_float_area_dict (location ps) param)))
@@ -1527,7 +1547,7 @@ value new_area ps = do
     let param = arg_key_val ps in
 
     add_node ps
-      (`NewArea (location ps)
+      (Node.NewArea (location ps)
          name
          pos_x pos_y width height max_top max_bot
          (`Footnote (parse_footnote_area_dict ps (location ps) param)))
@@ -1567,7 +1587,7 @@ value new_area ps = do
     }
     in
 
-    add_node ps (`NewArea (location ps) name pos_x pos_y width height max_top max_bot (`Direct f))
+    add_node ps (Node.NewArea (location ps) name pos_x pos_y width height max_top max_bot (`Direct f))
   }
   else do
   {
@@ -1582,7 +1602,7 @@ value new_galley ps = do
   let name    = Array.of_list (arg_expanded ps) in
   let measure = arg_skip ps in
 
-  add_node ps (`NewGalley (location ps) name measure)
+  add_node ps (Node.NewGalley (location ps) name measure)
 };
 
 value begin_galley ps = do
@@ -1591,7 +1611,7 @@ value begin_galley ps = do
 
   open_node_list ps `Galley;
 
-  add_node ps (`AddToGalley (location ps) name []);
+  add_node ps (Node.AddToGalley (location ps) name []);
 };
 
 value end_galley ps = do
@@ -1601,8 +1621,8 @@ value end_galley ps = do
   match close_node_list ps `Galley with
   [ []      -> log_warn (location ps) "\\endgalley without \\begingalley!"
   | [n::ns] -> match n with
-    [ `AddToGalley loc name [] -> add_node ps (`AddToGalley loc name ns)
-    | _                        -> assert False
+    [ Node.AddToGalley loc name [] -> add_node ps (Node.AddToGalley loc name ns)
+    | _                            -> assert False
     ]
   ]
 };
@@ -1612,7 +1632,7 @@ value float_box ps = do
   let name = Array.of_list (arg_expanded ps) in
   let body = arg_execute ps `VBox            in
 
-  add_node ps (`Float (location ps) name body)
+  add_node ps (Node.Float (location ps) name body)
 };
 
 value float_par ps = do
@@ -1620,7 +1640,7 @@ value float_par ps = do
   let name = Array.of_list (arg_expanded ps) in
   let body = arg_execute ps `HBox            in
 
-  add_node ps (`Float (location ps) name body)
+  add_node ps (Node.Float (location ps) name body)
 };
 
 value float_galley ps = do
@@ -1628,9 +1648,10 @@ value float_galley ps = do
   let name = Array.of_list (arg_expanded ps) in
   let body = arg_execute ps `Galley          in
 
-  add_node ps (`Float (location ps) name body)
+  add_node ps (Node.Float (location ps) name body)
 };
 
+(*
 value annotate_paragraph ps = do
 {
   (* <left> and <right> should evaluate to a box of width zero. *)
@@ -1651,12 +1672,11 @@ value annotate_paragraph ps = do
   }
   in
 
-  add_node ps (`Command (location ps)
+  add_node ps (Node.Command (location ps)
     (Environment.set_par_params
       (None, None, None, None, None, None, None, Some annotate)))
 };
 
-(*
 value set_par_shape ps = do
 {
   let read_next stream = do
@@ -1729,7 +1749,7 @@ value set_par_shape ps = do
 
   let par_shape env n = (lookup n left_indent env, lookup n right_indent env) in
 
-  add_node ps (`Command (location ps)
+  add_node ps (Node.Command (location ps)
     (Environment.set_par_params
       (None, None, None, None, None, Some par_shape, None, None)))
 };
@@ -1739,7 +1759,7 @@ value no_indent ps = do
 {
   Mode.ensure_par_mode ps;
 
-  add_node ps (`Command (location ps)
+  add_node ps (Node.Command (location ps)
     (Environment.set_current_par_params
       (None, Some (fun _ -> dim_zero), None, None, None, None, None, None)))
 };
@@ -1748,7 +1768,7 @@ value indent ps = do
 {
   Mode.ensure_par_mode ps;
 
-  add_node ps (`Command (location ps)
+  add_node ps (Node.Command (location ps)
     (fun loc env -> do
       {
         let p = Galley.par_params (Environment.current_galley env) in
@@ -1779,7 +1799,7 @@ value ensure_vskip ps = do
   }
   in
 
-  add_node ps (`ModifyGalleyGlue (location ps) f)
+  add_node ps (Node.ModifyGalleyGlue (location ps) f)
 };
 
 (* misc *)
@@ -1802,7 +1822,7 @@ value cc_put_char ps = do
   if current_mode ps = `Math then
     add_math_char ps (get_math_code ps c)
   else
-    add_node ps (`Letter (location ps) c)
+    add_node ps (Node.Letter (location ps) c)
 };
 
 value put_char ps = do
@@ -1814,7 +1834,7 @@ value put_char ps = do
   if current_mode ps = `Math then
     add_math_char ps (get_math_code ps c)
   else
-    add_node ps (`Letter (location ps) c)
+    add_node ps (Node.Letter (location ps) c)
 };
 
 value expand_put_char ps _ = do
@@ -1830,7 +1850,7 @@ value put_glyph ps = do
 
   let c = arg_int ps in
 
-  add_node ps (`Glyph (location ps) c)
+  add_node ps (Node.Glyph (location ps) c)
 };
 
 value put_math_char ps = do
@@ -1868,7 +1888,7 @@ value put_math_char ps = do
 value nobreak_space ps = do
 {
   match current_mode ps with
-  [ `Paragraph | `HBox -> add_node ps (`Space (location ps))
+  [ `Paragraph | `HBox -> add_node ps (Node.Space (location ps))
   | _                  -> ()
   ];
 };
@@ -1878,8 +1898,8 @@ value break_space ps = do
   match current_mode ps with
   [ `Paragraph | `HBox -> do
     {
-      add_node ps (`Break (location ps) None False [] [] []);
-      add_node ps (`Space (location ps))
+      add_node ps (Node.Break (location ps) None False [] [] []);
+      add_node ps (Node.Space (location ps))
     }
   | _ -> ()
   ];
@@ -1897,8 +1917,8 @@ value newline ps = do
   match current_mode ps with
   [ `Paragraph | `HBox -> do
     {
-      add_node ps (`Break (location ps) None False [] [] []);
-      add_node ps (`Space (location ps))
+      add_node ps (Node.Break (location ps) None False [] [] []);
+      add_node ps (Node.Space (location ps))
     }
   | _ -> ()
   ];
@@ -1935,7 +1955,7 @@ value literal ps = do
 
   Mode.ensure_par_mode ps;
 
-  List.iter (fun c -> add_node ps (`Letter (location ps) c)) arg
+  List.iter (fun c -> add_node ps (Node.Letter (location ps) c)) arg
 };
 
 value expand_literal ps _ = do
@@ -1979,7 +1999,7 @@ value apostrophe ps = do
   if current_mode ps = `Math then
     prime ps
   else
-    add_node ps (`Letter (location ps) 39)
+    add_node ps (Node.Letter (location ps) 39)
 };
 
 value include_file ps = do
@@ -2095,12 +2115,12 @@ value measure_position ps = do
   }
   in
 
-  add_node ps (`CommandBox (location ps) (`PageCmd (Box.CallFunction f)))
+  add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.CallFunction f)))
 };
 
 (* colours *)
 
-value set_gray_colour ps = do
+value set_grey_colour ps = do
 {
   let bound x = do
   {
@@ -2121,7 +2141,7 @@ value set_gray_colour ps = do
 
   let x = bound (arg_num ps) in
 
-  add_node ps (`Command (location ps) (Environment.set_colour (Graphic.Grey x)))
+  add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.Grey x)))
 };
 
 value set_rgb_colour ps = do
@@ -2147,7 +2167,7 @@ value set_rgb_colour ps = do
   let g = bound (arg_num ps) in
   let b = bound (arg_num ps) in
 
-  add_node ps (`Command (location ps) (Environment.set_colour (Graphic.RGB r g b)))
+  add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.RGB r g b)))
 };
 
 value set_cmyk_colour ps = do
@@ -2174,7 +2194,7 @@ value set_cmyk_colour ps = do
   let y = bound (arg_num ps) in
   let k = bound (arg_num ps) in
 
-  add_node ps (`Command (location ps) (Environment.set_colour (Graphic.CMYK c m y k)))
+  add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.CMYK c m y k)))
 };
 
 (* al *)
@@ -2721,7 +2741,6 @@ value initialise ps = do
   def_unexpandable_cmd "\\floatbox"          float_box;
   def_unexpandable_cmd "\\floatpar"          float_par;
   def_unexpandable_cmd "\\floatgalley"       float_galley;
-  def_unexpandable_cmd "\\annotateparagraph" annotate_paragraph;
   def_unexpandable_cmd "\\noindent"          no_indent;
   def_unexpandable_cmd "\\indent"            indent;
   def_unexpandable_cmd "\\ensurevskip"       ensure_vskip;
@@ -2892,7 +2911,7 @@ value initialise ps = do
 
   (* colours *)
 
-  def_unexpandable_cmd "\\setgraycolour" set_gray_colour;
+  def_unexpandable_cmd "\\setgreycolour" set_grey_colour;
   def_unexpandable_cmd "\\setrgbcolour"  set_rgb_colour;
   def_unexpandable_cmd "\\setcymkcolour" set_cmyk_colour;
 
@@ -2925,6 +2944,7 @@ value initialise ps = do
   def_unexpandable_cmd "\\overline"      overline;
   def_unexpandable_cmd "\\underline"     underline;
   def_unexpandable_cmd "\\left"          left_delim;
+  def_unexpandable_cmd "\\middle"        mid_delim;
   def_unexpandable_cmd "\\right"         right_delim;
   def_unexpandable_cmd "\\indexposition" index_position;
 

@@ -24,9 +24,9 @@ value decode_dim_arg : string -> unknown -> dim_arg;
 value lookup_skip : string -> SymbolMap.t unknown -> symbol -> option skip_arg;
 value lookup_dim  : string -> SymbolMap.t unknown -> symbol -> option dim_arg;
 
-value env_quad      : unknown -> unknown -> unit;
-value env_x_height  : unknown -> unknown -> unit;
-value env_math_unit : unknown -> unknown -> unit;
+value env_quad      : unknown -> unknown -> unknown -> unit;
+value env_x_height  : unknown -> unknown -> unknown -> unit;
+value env_math_unit : unknown -> unknown -> unknown -> unit;
 
 value decode_leading : string -> option symbol ->
                        option (Typesetting.Box.box -> Typesetting.Box.box ->
@@ -53,7 +53,7 @@ value prim_set_math_params               : unknown -> unknown -> unit;
 value prim_set_current_math_params       : unknown -> unknown -> unit;
 value prim_new_galley                    : unknown -> unknown -> unknown -> unit;
 value prim_select_galley                 : unknown -> unknown -> unit;
-value prim_set_par_shape                 : unknown -> unknown -> unit;
+(*value prim_set_par_shape                 : unknown -> unknown -> unit;*)
 value prim_set_colour                    : unknown -> unknown -> unit;
 value prim_new_page_layout               : unknown -> list unknown -> unit;
 value prim_select_page_layout            : unknown -> unknown -> unit;

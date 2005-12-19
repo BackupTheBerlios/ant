@@ -203,7 +203,7 @@ value decode_symbol name x = do
 
   match !x with
   [ Types.Symbol s -> s
-  | _              -> Types.runtime_error (name ^ ": symbol expected")
+  | _              -> Types.runtime_error (name ^ ": symbol expected but got " ^ Types.type_name !x)
   ]
 };
 
@@ -214,7 +214,7 @@ value decode_int name x = do
   if is_integer_num n then
     int_of_num n
   else
-    Types.runtime_error (name ^ ": integer expected")
+    Types.runtime_error (name ^ ": integer expected but got " ^ Types.type_name !x)
 };
 
 value decode_bool name x = do
@@ -223,7 +223,7 @@ value decode_bool name x = do
 
   match !x with
   [ Types.Bool b -> b
-  | _            -> Types.runtime_error (name ^ ": bool expected")
+  | _            -> Types.runtime_error (name ^ ": bool expected but got " ^ Types.type_name !x)
   ]
 };
 
@@ -233,7 +233,7 @@ value decode_char name x = do
 
   match !x with
   [ Types.Char c -> c
-  | _            -> Types.runtime_error (name ^ ": character expected")
+  | _            -> Types.runtime_error (name ^ ": character expected but got " ^ Types.type_name !x)
   ]
 };
 
@@ -258,25 +258,14 @@ value decode_tuple name x = do
 
   match !x with
   [ Types.Tuple z -> z
-  | _             -> Types.runtime_error (name ^ ": tuple expected")
+  | _             -> Types.runtime_error (name ^ ": tuple expected but got " ^ Types.type_name !x)
   ]
 };
 
-value decode_function name x = do
+value decode_function name x args = do
 {
   Machine.evaluate x;
-
-  match !x with
-  [ Types.Primitive1 _
-  | Types.Primitive2 _
-  | Types.PrimitiveN _ _
-  | Types.SimpleFunction _ _ _
-  | Types.PatternFunction _ _ _ _ _ -> do
-    {
-      Machine.evaluate_function name x
-    }
-  | _ -> Types.runtime_error (name ^ ": function expected")
-  ]
+  Machine.evaluate_function name x args
 };
 
 (* dictionaries *)
@@ -287,7 +276,7 @@ value decode_dict name x = do
 
   match !x with
   [ Types.Dictionary d -> d
-  | _ -> Types.runtime_error (name ^ ": dictionary expected")
+  | _ -> Types.runtime_error (name ^ ": dictionary expected but got " ^ Types.type_name !x)
   ]
 };
 
@@ -314,7 +303,7 @@ value decode_opaque type_name unwrapper name x = do
 
   match !x with
   [ Types.Opaque y -> try unwrapper y with
-                      [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected") ]
+                      [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x) ]
   | _ -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x)
   ]
 };
@@ -323,7 +312,7 @@ value rec evaluate_opaque type_name unwrapper name res x = match !x with
 [ Types.Opaque y -> do
   {
     try !res := unwrapper y with
-    [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected") ]
+    [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x) ]
   }
 | Types.UnevalT _ _ -> do
   {

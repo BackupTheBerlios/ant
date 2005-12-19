@@ -10,6 +10,11 @@ type scope = Scope.scope;
 
 value make_scope     = Primitives.initial_scope;
 value bind_primitive = Primitives.bind_primitive;
+value bind_bin_op_l  = Primitives.bind_bin_op_l;
+value bind_bin_op_n  = Primitives.bind_bin_op_n;
+value bind_bin_op_r  = Primitives.bind_bin_op_r;
+value bind_pre_op    = Primitives.bind_pre_op;
+value bind_post_op   = Primitives.bind_post_op;
 
 (* symbols *)
 
@@ -141,10 +146,10 @@ value evaluate_num name x = do
           (fun () -> evaluate_lin_form x l)
           (fun () -> match !x with
           [ Number n -> !result := n
-          | _        -> runtime_error (name ^ ": number expected")
+          | _        -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
           ])
       }
-    | _ -> runtime_error (name ^ ": number expected")
+    | _ -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
     ]);
   CStack.end_vm ();
 

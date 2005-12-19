@@ -1,5 +1,5 @@
 
-ENGINE_MOD = Engine/Fonts Engine/Environment Engine/Evaluate Engine/Job Engine/Output
+ENGINE_MOD = Engine/Fonts Engine/Environment Engine/Node Engine/Evaluate Engine/Job Engine/Output
 ENGINE_ML  = $(addsuffix .ml,$(ENGINE_MOD))
 ENGINE_MLI = $(addsuffix .mli,$(ENGINE_MOD))
 ENGINE_CMO = $(addsuffix .$(CMO),$(ENGINE_MOD))

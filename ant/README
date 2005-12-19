@@ -1,35 +1,54 @@
+                ANT
+         “ant is not TeX.”
+
+       http://ant.berlios.de
+
+         Achim Blumensath
+
+
 In order to compile ant you need:
 
- o OCaml version 3.08,
+ o OCaml version 3.08 (version 3.09.0 is buggy and does not work),
  o kpathsea version 3.2,
  o FreeType version 2,
- o mlgmp version 20021123,
- o CamlImages version 2.2.
+ o CamlImages version 2.2,
+ o mlgmp version 20021123 (optional).
 
-(1) You might want to edit `Config.mk'. In particular, the variables
-KPATHSEA_LFLAGS and KPATHSEA_CFLAGS probably need adjustment.
+(1) You might want to edit the file “Config.mk” to set some paths. In
+particular, the variables KPATHSEA_LDFLAGS and KPATHSEA_CFLAGS probably
+need adjustment.
 
-(2) Type
+(2) You can choose between three number libraries:
+
+ o Float: (default) All computations use floating point numbers. This is
+          the fastes option but it might result in rounding errors.
+ o Gmp:   uses the mlgmp library. This gives exact results but it
+          slower.
+ o Num:   Is similar to Gmp but does not depend on an external library.
+          This is the slowest option.
+
+You can specify the number library by setting the NUM_LIB variable in
+the file “Config.mk”. Alternatively you can pass the corresponding
+option directly to make, like:
+
+  $ make NUM_LIB=Gmp
+
+(3) You can specify which version of the compiler to use by setting the
+following variables:
+
+ o NATIVE: If empty ant is compiled to bytecode. Otherwise, native code
+   is produced (default).
+ o NATIVE_CAMLP4: If nonempty a native version of the preprocessor
+   camlp4 is created. This speeds up the compilation process.
+ o OPT: Determines whether to use the bytecode version of the compilers
+   (OPT="") or the native version (OPT=".opt").
+
+(4) Finally, to compile ant type
 
   $ make depend
   $ make
 
-To speed up the compilation you can create a native version of the
-preprocessor camlp4 by typing
-
-  $ make depend NATIVE_CAMLP4=1
-  $ make NATIVE_CAMLP4=1
-
-instead, or you can uncomment the corresponding line in `Config.mk'. If you
-prefer to compile to bytecode instead of native code use
-
-  $ make NATIVE=
-
-By default the makefile will use the native compilers. If these are
-unsupported use
-
-  $ make OPT=
-
-Further documentation can be found in the file `manual.ps', the
-directory `Examples' contains some example ant sources including the
+(5) Further documentation can be found in the file “manual.pdf”. The
+directory “Examples” contains some example ant sources including the
 source of the manual.
+

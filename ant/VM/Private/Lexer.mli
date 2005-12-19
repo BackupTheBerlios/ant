@@ -43,7 +43,6 @@ type token_class =
 | MATCH
 | WITH
 | LOCAL
-| IN
 | WHERE
 | INFIX of assoc
 | PREFIX

@@ -1,7 +1,6 @@
 \definecommand\version{0.7}
 \include{manual.sty}
 \include{manual.refdb}
-\include{allib.ant}
 %\include{FontSite.ant}
 \include{MinionPro.ant}
 \definecommand\scshape{\setparameter{font}{ features = {liga,kern,smcp} }}
@@ -62,12 +61,10 @@ minor modifications available.
 
 For these reasons I decided to rewrite \ant\ from scratch aiming for a simple, clean, and modular design.
 In particular it is easily possible to replace parts of \ant\ with other implementations, say,
-%\vadjust{\floatbox{float}{\rule{5cm}{2cm}{0cm}}}
 adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 \textsc{p\kern{0.03em}d\kern{0.03em}f} files, or a different page layout algorithm.
 
 The current version of \ant\ implements all the major features of \TeX\ but a lot of minor
-%\vadjust{\floatpar{footnotes}{A simple footnote.}}
 things are still missing.
 In addition, \ant\ provides several improvements over~\TeX\?:
 \begin{itemise}{$\red\filleddiamond$}
@@ -99,7 +96,7 @@ Currently, the following options are supported\?:
 \item{\cs{--debug=}\csarg{flags}}enables debug messages.
   \csarg{flags} is a combination of the following letters\?:
 
-  \hskip{0pt}%
+  \noindent
   \begin{table}
     \quad\cs{e}\quad& the engine\hfill\ntr
     \quad\cs{g}\quad& galley breaking\hfill\ntr
@@ -109,6 +106,7 @@ Currently, the following options are supported\?:
     \quad\cs{p}\quad& page layout\hfill\ntr
     \quad\cs{s}\quad& various stacks\hfill%
   \end{table}
+  \vskip{1ex}%
 \end{longdescription}
 
 
@@ -277,22 +275,6 @@ As in \TeX\ the end of a paragraph is marked by either one of the following comm
 \end{code}
 An empty line is automatically translated to the command sequence \cs{\par}.
 
-\begin{code}
-  \cs{\annotateparagraph} \csarg{left} \csarg{right}
-\end{code}
-adds \csarg{left} to the left of every line and \csarg{right} to its right. \csarg{left} and \csarg{right}
-should evaluate to boxes of width zero.
-
-\begin{code}
-  \cs{\setparshape} \csarg{left-indent} \csarg{right-indent}
-\end{code}
-sets the shape of the paragraph. \csarg{left-indent} and \csarg{right-indent} are a comma-separated
-list of entries of the form\?:
-
-\begin{code}
-  \csarg{range} \cs{:} \csarg{indent}
-\end{code}
-
 
 \subsection{Boxes}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -404,6 +386,197 @@ Inserts the given image. The \csopt{options} dictionary may contain the followin
 \item{\cs{height}\quad (skip)} the height of the image.
 \item{\cs{dpi}\quad (number)}  the resolution of the image.
 \end{longdescription}
+
+
+\subsection{Parameters}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+The parameters governing the typesetting process are grouped into several dictionaries.
+Each of these dictionaries can be modfied by the command
+\begin{code}
+  \cs{\setparameter} \csarg{parameter} \csarg{dictionary}
+\end{code}
+\csarg{parameter} is the name of the dictionary and \csarg{dictionary} its new value.
+A dictionary consists of entries of the form
+\begin{code}
+  \csarg{key} [\cs{=} \csarg{value}]
+\end{code}
+separated by semicolons or commas.
+
+Most parameter dictionaries come in two versions\?: those with the prefix \cs{this-}
+refer only to the following paragraph while those without effect all paragraphs.
+Currently the following parameter dictionaries are defined\?:
+\begin{code}
+  \cs{font}
+
+  \cs{paragraph}
+
+  \cs{line}
+
+  \cs{line-break}
+
+  \cs{hyphenation}
+
+  \cs{space}
+
+  \cs{math}
+
+  \cs{this-paragraph}
+
+  \cs{this-line}
+
+  \cs{this-line-break}
+
+  \cs{this-hyphenation}
+
+  \cs{this-space}
+
+  \cs{this-math}
+\end{code}
+The \cs{font} dictionary contains the following entries\?:
+\begin{longdescription}
+\item{\cs{family}\quad (string)}
+  font family.
+\item{\cs{series}\quad (string)}
+  font series.
+\item{\cs{shape}\quad (string)}
+  font shape.
+\item{\cs{size}\quad (number)}
+  font size.
+\end{longdescription}
+The \cs{paragraph} and \cs{this-paragraph} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{measure}\quad (skip)}
+  the line width.
+\item{\cs{par-indent}\quad (dimension)}
+  the indent of the first line.
+\item{\cs{par-fill-skip}\quad (dimension)}
+  the whitespace at the end of the last line.
+\item{\cs{left-skip}\quad (dimension)}
+  the left margin.
+\item{\cs{right-skip}\quad (dimension)}
+  the right margin.
+\item{\cs{left-par-shape}}
+  specifies the left indentation of each line. Its value is a comma-separated list
+  of entries of the form\?:
+  \begin{code}
+    \hskip{2em}\csarg{range} \cs{:} \csarg{indent}
+  \end{code}
+\item{\cs{right-par-shape}}
+  similar to \cs{left-par-shape} but for the right side.
+\item{\cs{par-skip}\quad (dimension)}
+  the whitespace between paragraphs.
+\item{\cs{left-annotation} (\ant\ code)}
+  This value specifies material that is added to the left of every line
+  (useful, e.g., for line numbering, adding a vertical bar, etc.).
+  The code should evaluate to a box of width zero.
+\item{\cs{right-annotation}}
+  This value specifies material that is added to the right of every line.
+  The code should evaluate to a box of width zero.
+\item{\cs{post-process-line}\quad (not implemented)}
+  code to annotate the lines of the paragraph.
+\end{longdescription}
+The \cs{line} and \cs{this-line} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{baseline-skip}\quad (dimension)}
+  the distance between one baseline and the next.
+\item{\cs{line-skip-limit}\quad (skip)}
+  the minimal distance between lines.
+\item{\cs{line-skip}\quad (dimension)}
+  If the current value of \cs{baseline-skip} leads
+  to less than \cs{line-skip-limit} space between two lines
+  then this space is set to \cs{line-skip}.
+\item{\cs{leading}\quad (string)}
+  The method to determine the amount of space between lines (see below).
+\item{\cs{club-penalty}\quad (number)}
+  The penalty for breaking after the first line of a paragraph.
+\item{\cs{widow-penalty}\quad (number)}
+  The penalty for breaking before the last line of a paragraph.
+\end{longdescription}
+Currently, there are four leading methods implemented\?:
+\begin{longdescription}
+\item{\cs{fixed}}
+  The distance between baselines is always \cs{baseline-}\penalty0\cs{skip}.
+\item{\cs{register}}
+  The distance between baselines is always a multiple of \cs{baseline-skip}.
+\item{\cs{TeX}}
+  This is the \TeX\ method based on \cs{baseline-skip}, \cs{line-skip-limit}, and
+  \cs{line-skip}.
+\item{\cs{skyline}}
+  The \TeX\ method but the shape of the lines is taken into account when calculating their
+  minimal distance.
+\end{longdescription}
+
+The \cs{line-break} and \cs{this-line-break} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{pre-tolerance}\quad (number)}
+\item{\cs{tolerance}\quad (number)}
+\item{\cs{looseness}\quad (integer)}
+  The line-breaking algorithms returns a paragraph that has \cs{looseness}
+  more lines than the optimal solution.
+\item{\cs{line-penalty}\quad (number)}
+  penalty for the number of lines.
+\item{\cs{adj-demerits}\quad (number)}
+  demerits for two consecutive lines with different spacing.
+\item{\cs{double-hyphen-demerits}\quad (number)}
+  the demerits for two consecutive lines ending in a hyphen.
+\item{\cs{final-hyphen-demerits}\quad (number)}
+  the demerits for the second but last line ending in a hyphen.
+\item{\cs{emergency-stretch}\quad (dimension)}
+  additional stretchability for each line, for the case that no acceptable solution exists.
+\item{\cs{simple-breaking}\quad (bool)}
+  when true \ant\ uses a faster line-breaking algorithm that yields slightly worse results.
+  (It does not support breaking of ligatures and river detection.)
+\item{\cs{river-demerits}\quad (number)}
+  the demerits for a river.
+\item{\cs{river-threshold}\quad (skip)}
+  minimal amount whitespace has to overlap to count as a river.
+\end{longdescription}
+The \cs{hyphenation} and \cs{this-hyphenation} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{hyphen-table}\quad (string)}
+  The name of the hyphenation table.
+\item{\cs{hyphen-penalty}\quad (number)}
+  The penalty for breaking words.
+\item{\cs{ex-hyphen-penalty}\quad (number)}
+  The penalty for consecutive hyphenated lines.
+\item{\cs{left-hyphen-min}\quad (integer)}
+  The minimal number of letters before a word break.
+\item{\cs{right-hyphen-min}\quad (integer)}
+  The minimal number of letters after a word break.
+\item{\cs{script-lang}\quad (string)}
+  The name of the current script and language systems.
+  These names are font specific.
+\end{longdescription}
+The \cs{space} and \cs{this-space} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{space-factor}\quad (number)}
+\item{\cs{space-skip}\quad (dimension)}
+\item{\cs{xspace-skip}\quad (dimension)}
+\item{\cs{victorian-spacing}\quad (boolean)}
+  When true \ant\ increases the spacing after punctuation.
+\end{longdescription}
+The \cs{math} and \cs{this-math} dictionaries contain the following entries\?:
+\begin{longdescription}
+\item{\cs{thin-math-skip}\quad (dimension)}
+\item{\cs{med-math-skip}\quad (dimension)}
+\item{\cs{thick-math-skip}\quad (dimension)}
+\item{\cs{script-space}\quad (dimension)}
+\item{\cs{rel-penalty}\quad (number)}
+\item{\cs{binop-penalty}\quad (number)}
+\item{\cs{delimiter-factor}\quad (number)}
+\item{\cs{delimiter-shortfall}\quad (skip)}
+\item{\cs{null-delimiter-space}\quad (dimension)}
+\end{longdescription}
+
+To modify parameters locally one can surround the corresponding
+section by the commands
+\begin{code}
+  \cs{\begingroup}
+
+  \cs{\endgroup}
+\end{code}
+
 
 \subsection{Tables}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55555
 
@@ -600,7 +773,7 @@ Restores the normal font.
 
 
 \begin{code}
-  \cs{\setgraycolour} \csarg{gray}
+  \cs{\setgreycolour} \csarg{grey}
 
   \cs{\setrgbcolour} \csarg{red} \csarg{green} \csarg{blue}
 
@@ -608,167 +781,6 @@ Restores the normal font.
 \end{code}
 Sets the current colour. These commands take effect until the end of the current box.
 
-
-\subsection{Parameters}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-The parameters governing the typesetting process are grouped into several dictionaries.
-Each of these dictionaries can be modfied by the command
-\begin{code}
-  \cs{\setparameter} \csarg{parameter} \csarg{dictionary}
-\end{code}
-\csarg{parameter} is the name of the dictionary and \csarg{dictionary} its new value.
-A dictionary consists of entries of the form
-\begin{code}
-  \csarg{key} [\cs{=} \csarg{value}]
-\end{code}
-separated by semicolons or commas.
-
-Most parameter dictionaries come in two versions\?: those with the prefix \cs{this-}
-refer only to the following paragraph while those without effect all paragraphs.
-Currently the following parameter dictionaries are defined\?:
-\begin{code}
-  \cs{font}
-
-  \cs{paragraph}
-
-  \cs{line}
-
-  \cs{line-break}
-
-  \cs{hyphenation}
-
-  \cs{space}
-
-  \cs{math}
-
-  \cs{this-paragraph}
-
-  \cs{this-line}
-
-  \cs{this-line-break}
-
-  \cs{this-hyphenation}
-
-  \cs{this-space}
-
-  \cs{this-math}
-\end{code}
-The \cs{font} dictionary contains the following entries\?:
-\begin{longdescription}
-\item{\cs{family}\quad (string)}
-  font family.
-\item{\cs{series}\quad (string)}
-  font series.
-\item{\cs{shape}\quad (string)}
-  font shape.
-\item{\cs{size}\quad (number)}
-  font size.
-\end{longdescription}
-The \cs{paragraph} and \cs{this-paragraph} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{measure}\quad (skip)}
-  the line width.
-\item{\cs{par-indent}\quad (dimension)}
-  the indent of the first line.
-\item{\cs{par-fill-skip}\quad (dimension)}
-  the whitespace at the end of the last line.
-\item{\cs{left-skip}\quad (dimension)}
-  the left margin.
-\item{\cs{right-skip}\quad (dimension)}
-  the right margin.
-\item{\cs{par-shape}\quad (not implemented)}
-  the shape of the paragraph.
-\item{\cs{par-skip}\quad (dimension)}
-  the whitespace between paragraphs.
-\item{\cs{post-process-line}\quad (not implemented)}
-  code to annotate the lines of the paragraph.
-\end{longdescription}
-The \cs{line} and \cs{this-line} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{baseline-skip}\quad (dimension)}
-  the distance between one baseline and the next.
-\item{\cs{line-skip-limit}\quad (skip)}
-  the minimal distance between lines.
-\item{\cs{line-skip}\quad (dimension)}
-  If the current value of \cs{baseline-skip} leads
-  to less than \cs{line-skip-limit} space between two lines
-  then this space is set to \cs{line-skip}.
-\item{\cs{leading}\quad (string)}
-  The method to determine the amount of space between lines (see below).
-\item{\cs{club-penalty}\quad (number)}
-  The penalty for breaking after the first line of a paragraph.
-\item{\cs{widow-penalty}\quad (number)}
-  The penalty for breaking before the last line of a paragraph.
-\end{longdescription}
-Currently, there are four leading methods implemented\?:
-\begin{longdescription}
-\item{\cs{fixed}}
-  The distance between baselines is always \cs{baseline-}\penalty0\cs{skip}.
-\item{\cs{register}}
-  The distance between baselines is always a multiple of \cs{baseline-skip}.
-\item{\cs{TeX}}
-  This is the \TeX\ method based on \cs{baseline-skip}, \cs{line-skip-limit}, and
-  \cs{line-skip}.
-\item{\cs{skyline}}
-  The \TeX\ method but the shape of the lines is taken into account when calculating their
-  minimal distance.
-\end{longdescription}
-
-The \cs{line-break} and \cs{this-line-break} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{pre-tolerance}\quad (number)}
-\item{\cs{tolerance}\quad (number)}
-\item{\cs{looseness}\quad (integer)}
-\item{\cs{line-penalty}\quad (number)}
-\item{\cs{adj-demerits}\quad (number)}
-\item{\cs{double-hyphen-demerits}\quad (number)}
-\item{\cs{final-hyphen-demerits}\quad (number)}
-\item{\cs{emergency-stretch}\quad (dimension)}
-\end{longdescription}
-The \cs{hyphenation} and \cs{this-hyphenation} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{hyphen-table}\quad (string)}
-  The name of the hyphenation table.
-\item{\cs{hyphen-penalty}\quad (number)}
-  The penalty for breaking words.
-\item{\cs{ex-hyphen-penalty}\quad (number)}
-  The penalty for consecutive hyphenated lines.
-\item{\cs{left-hyphen-min}\quad (integer)}
-  The minimal number of letters before a word break.
-\item{\cs{right-hyphen-min}\quad (integer)}
-  The minimal number of letters after a word break.
-\item{\cs{script-lang}\quad (string)}
-  The name of the current script and language systems.
-  These names are font specific.
-\end{longdescription}
-The \cs{space} and \cs{this-space} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{space-factor}\quad (number)}
-\item{\cs{space-skip}\quad (dimension)}
-\item{\cs{xspace-skip}\quad (dimension)}
-\item{\cs{victorian-spacing}\quad (boolean)}
-\end{longdescription}
-The \cs{math} and \cs{this-math} dictionaries contain the following entries\?:
-\begin{longdescription}
-\item{\cs{thin-math-skip}\quad (dimension)}
-\item{\cs{med-math-skip}\quad (dimension)}
-\item{\cs{thick-math-skip}\quad (dimension)}
-\item{\cs{script-space}\quad (dimension)}
-\item{\cs{rel-penalty}\quad (number)}
-\item{\cs{binop-penalty}\quad (number)}
-\item{\cs{delimiter-factor}\quad (number)}
-\item{\cs{delimiter-shortfall}\quad (skip)}
-\item{\cs{null-delimiter-space}\quad (dimension)}
-\end{longdescription}
-
-To modify parameters locally one can surround the corresponding
-section by the commands
-\begin{code}
-  \cs{\begingroup}
-
-  \cs{\endgroup}
-\end{code}
 
 
 \subsection{Mathematics}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1080,12 +1092,12 @@ The following symbols and keywords are reserved\?:
 \begin{display}
 \hskip{0pt}%
   \begin{table}
-  \cs{begin}  & \quad\cs{in}    & \quad\cs{declare_infix_l} \ntr
-  \cs{do}     & \quad\cs{local} & \quad\cs{declare_infix_n} \ntr
-  \cs{else}   & \quad\cs{match} & \quad\cs{declare_infix_r} \ntr
-  \cs{elseif} & \quad\cs{then}  & \quad\cs{declare_prefix}  \ntr
-  \cs{end}    & \quad\cs{where} & \quad\cs{declare_postfix} \ntr
-  \cs{if}     & \quad\cs{with}
+  \cs{begin}  & \quad\cs{local} & \quad\cs{declare_infix_left}  \ntr
+  \cs{do}     & \quad\cs{match} & \quad\cs{declare_infix_non}   \ntr
+  \cs{else}   & \quad\cs{then}  & \quad\cs{declare_infix_right} \ntr
+  \cs{elseif} & \quad\cs{where} & \quad\cs{declare_prefix}      \ntr
+  \cs{end}    & \quad\cs{with}  & \quad\cs{declare_postfix}     \ntr
+  \cs{if}     &
   \end{table}
 
 \medskip
@@ -1170,7 +1182,8 @@ Where we distinguish between binary, prefix, and postfix operators.
   \hfill        ${} \mvert {}$ & $\nterm{expr}\; \nterm{bin-op}\; \nterm{expr} $ \ntr
   \hfill        ${} \mvert {}$ & $\nterm{simple-expr}^+$ \ntr
   \hfill        ${} \mvert {}$ & $\nterm{number}\; \nterm{simple-expr}^+$ \ntr
-  \hfill        ${} \mvert {}$ & $\cs{local}\; \nterm{decl-list}\; \cs{in}\; \nterm{expr} $ \ntr
+  \hfill        ${} \mvert {}$ & $\cs{local}\; \nterm{decl}\; \cs{;}\; \nterm{expr} $ \ntr
+  \hfill        ${} \mvert {}$ & $\cs{local}\; \cs{begin}\; \nterm{decl-list}\; \cs{end}\; \nterm{expr} $ \ntr
   \hfill        ${} \mvert {}$ & $\nterm{expr}\; \cs{where}\; \nterm{decl-list}\; \cs{end} $ \ntr
                                & \ldots
   \end{table}
@@ -1218,7 +1231,7 @@ The discuss the various cases separately.
 \end{display}
 The symbol \cs{_} indicates an unnamed variable without value. It is an abbreviation for the expression
 \begin{display}
-  \cs{(local} \cs{x} \cs{in} \cs{x)}
+  \cs{(local} \cs{x} \cs{;} \cs{x)}
 \end{display}
 
 \begin{display}\small
@@ -1336,9 +1349,9 @@ A statement is an equation or an \cs{if} statement of equations. Note that, for 
   \hfill ${} \mvert {}$ & \nterm{pattern} \nterm{bin-op} \nterm{pattern} [\cs{&} \nterm{expr}] \cs{:=} \ntr
                         & \qquad \nterm{stmt-list-expr} \ntr
   \hfill ${} \mvert {}$ & $\text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_l}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_n}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_r}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \hfill ${} \mvert {}$ & $\cs{declare_infix_left}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \hfill ${} \mvert {}$ & $\cs{declare_infix_non}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \hfill ${} \mvert {}$ & $\cs{declare_infix_right}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
   \hfill ${} \mvert {}$ & $\cs{declare_prefix}\; \text{\nterm{lid}}^+$ \ntr
   \hfill ${} \mvert {}$ & $\cs{declare_postfix}\; \text{\nterm{lid}}^+$
   \end{table}
@@ -1769,7 +1782,7 @@ Example\?:
 \begin{code}
   \cs{mirror} \cs{:=}
 
-  \qquad \cs{local} \cs{arg} \cs{in}
+  \qquad \cs{local} \cs{arg} \cs{;}
 
   \qquad \cs{ps_arg_expanded} \cs{arg} \cs{>>}
 
@@ -2048,6 +2061,8 @@ The layout engine consists of the following modules\?:
 \setparameter{paragraph}{ right-skip = 0pt plus 1fil }%
 \item{\textsf{\red Environment}}%
   definiton of the state of the layout engine.
+\item{\textsf{\red Node}}%
+  definition of the engine commands.
 \item{\textsf{\red Evaluate}}%
   implementation of the commands of the engine.
 \item{\textsf{\red Fonts}}%
@@ -2063,7 +2078,7 @@ The layout engine consists of the following modules\?:
 \end{description}
 
 The engine translates an abstract description of the document into a sequence of pages.
-The commands of this description are defined in \textsf{\red Evaluate}\?:
+The commands of this description are defined in the module \textsf{\red Node}\?:
 
 \begin{description}\small
 \setparameter{paragraph}{ right-skip = 0pt plus 1fil }%
@@ -2111,7 +2126,7 @@ The commands of this description are defined in \textsf{\red Evaluate}\?:
 \item{\cs{`Overline}} \csarg{loc} \csarg{body}
 \item{\cs{`MathAccent}} \csarg{loc} \csarg{font-family} \csarg{character} \csarg{body}
 \item{\cs{`Root}} \csarg{loc} \csarg{font-family} \csarg{character} \csarg{font-family} \csarg{character} \csarg{body}
-\item{\cs{`LeftRight}} \csarg{loc} \csarg{left} \csarg{contents} \csarg{right}
+\item{\cs{`LeftRight}} \csarg{loc} \csarg{contents}
 \item{\cs{`MathStyle}} \csarg{loc} \csarg{style}
 \item{\cs{`IndexPosition}} \csarg{loc} \csarg{pos}
 \end{description}

@@ -12,7 +12,7 @@ value register_init_hook        : (unit -> unit) -> unit;
 (* routines to start ant *)
 
 value initialise     : unit -> unit;
-value parse_document : parse_state -> list Evaluate.node_type;
-value parse_file     : string    -> (list Evaluate.node_type * parse_state);
-value parse_string   : uc_string -> (list Evaluate.node_type * parse_state);
+value parse_document : parse_state -> list Node.node;
+value parse_file     : string    -> (list Node.node * parse_state);
+value parse_string   : uc_string -> (list Node.node * parse_state);
 

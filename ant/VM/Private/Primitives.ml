@@ -1191,14 +1191,54 @@ value bind_primitive scope name v = do
   Scope.add_global scope (string_to_symbol (UString.uc_string_of_ascii name)) v
 };
 
+value bind_bin_op_l scope name pri v = do
+{
+  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+
+  Scope.add_bin_op scope pri Lexer.Left sym;
+  Scope.add_global scope sym v
+};
+
+value bind_bin_op_n scope name pri v = do
+{
+  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+
+  Scope.add_bin_op scope pri Lexer.NonA sym;
+  Scope.add_global scope sym v
+};
+
+value bind_bin_op_r scope name pri v = do
+{
+  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+
+  Scope.add_bin_op scope pri Lexer.Right sym;
+  Scope.add_global scope sym v
+};
+
+value bind_pre_op scope name v = do
+{
+  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+
+  Scope.add_pre_op scope sym;
+  Scope.add_global scope sym v
+};
+
+value bind_post_op scope name v = do
+{
+  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+
+  Scope.add_post_op scope sym;
+  Scope.add_global  scope sym v
+};
+
 value initial_scope () = do
 {
   let scope = Scope.create () in
 
   let add = bind_primitive scope in
 
-  let add1 name f   = bind_primitive scope name (Primitive1 f)   in
-  let add2 name f   = bind_primitive scope name (Primitive2 f)   in
+  let add1 name f = bind_primitive scope name (Primitive1 f) in
+  let add2 name f = bind_primitive scope name (Primitive2 f) in
 
   (* control *)
 
@@ -1305,15 +1345,23 @@ value initial_scope () = do
 
   (* dimensions *)
 
-  add "pt" (Number num_one);
-  add "bp" (Number ( 7227 /:  7200));
-  add "cc" (Number (14856 /:  1157));
-  add "cm" (Number ( 7227 /:   254));
-  add "dd" (Number ( 1238 /:  1157));
-  add "in" (Number ( 7227 /:   100));           (* FIX: this keyword is reserved! *)
-  add "mm" (Number ( 7227 /:  2540));
-  add "pc" (Number (   12 /:     1));
-  add "sp" (Number (    1 /: 65536));
+  let scale x =
+    SimpleFunction 1 []
+      (TApplication
+        (TConstant (Primitive2 Evaluate.mul_unknowns))
+        [TConstant (Number x);
+         TVariable 0 0])
+  in
+
+  bind_post_op scope "pt" (scale num_one);
+  bind_post_op scope "bp" (scale ( 7227 /:  7200));
+  bind_post_op scope "cc" (scale (14856 /:  1157));
+  bind_post_op scope "cm" (scale ( 7227 /:   254));
+  bind_post_op scope "dd" (scale ( 1238 /:  1157));
+  bind_post_op scope "in" (scale ( 7227 /:   100));
+  bind_post_op scope "mm" (scale ( 7227 /:  2540));
+  bind_post_op scope "pc" (scale (   12 /:     1));
+  bind_post_op scope "sp" (scale (    1 /: 65536));
 
   scope
 };

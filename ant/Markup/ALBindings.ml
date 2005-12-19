@@ -88,16 +88,11 @@ value add_primitives scope = do
       ("ps_execute_argument",     Primitive1 ps_execute_argument);
       ("ps_run_parser",           PrimitiveN 3 ps_run_parser);
 
-      ("em",                      Primitive1 env_quad);
-      ("ex",                      Primitive1 env_x_height);
-      ("mu",                      Primitive1 env_math_unit);
-
       ("new_page_layout",         PrimitiveN 3 prim_new_page_layout);
       ("select_page_layout",      Primitive1 prim_select_page_layout);
       ("new_galley",              Primitive2 prim_new_galley);
       ("select_galley",           Primitive1 prim_select_galley);
 
-      ("set_par_shape",           Primitive1 prim_set_par_shape);
       ("set_colour",              Primitive1 prim_set_colour);
 
 (*  bind_primitive scope "set_font"                (Primitive1 prim_set_font);*)
@@ -151,5 +146,9 @@ value add_primitives scope = do
       ("dim_scale",           Primitive2 prim_dim_scale);
       ("dim_scale_upto",      Primitive2 prim_dim_scale_upto)
     |];
+  bind_post_op scope "em" (Primitive2 env_quad);
+  bind_post_op scope "ex" (Primitive2 env_x_height);
+  bind_post_op scope "mu" (Primitive2 env_math_unit);
+
 };
 

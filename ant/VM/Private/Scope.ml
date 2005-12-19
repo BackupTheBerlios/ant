@@ -1,5 +1,6 @@
 
 open Unicode.Types;
+open Unicode.SymbolTable;
 open Types;
 
 type scope =
@@ -12,13 +13,34 @@ type scope =
 
 value create () =
 {
-  symbol_table   = Lexer.initial_symbol_table ();
+  symbol_table   = Lexer.initial_symbol_table  ();
   global_symbols = Hashtbl.create 1000;
   local_symbols  = Hashtbl.create 100;
   depth          = 0
 };
 
 value symbol_table scope = scope.symbol_table;
+
+value add_bin_op scope pri assoc sym = do
+{
+  let str = symbol_to_string sym in
+
+  Hashtbl.add scope.symbol_table str (Lexer.BINOP sym pri assoc)
+};
+
+value add_pre_op scope sym = do
+{
+  let str = symbol_to_string sym in
+
+  Hashtbl.add scope.symbol_table str (Lexer.PREOP sym)
+};
+
+value add_post_op scope sym = do
+{
+  let str = symbol_to_string sym in
+
+  Hashtbl.add scope.symbol_table str (Lexer.POSTOP sym)
+};
 
 value copy scope =
 {
@@ -27,28 +49,6 @@ value copy scope =
   local_symbols  = Hashtbl.copy scope.local_symbols;
   depth          = scope.depth
 };
-
-(*
-value print_scope s = do
-{
-  Runtime.Logging.log_string "globals:\n";
-  Hashtbl.iter
-    (fun n _ -> do
-      {
-        Runtime.Logging.log_uni_string (Unicode.SymbolTable.symbol_to_string n);
-        Runtime.Logging.log_string "\n"
-      })
-    s.global_symbols;
-
-  Hashtbl.iter
-    (fun n _ -> do
-      {
-        Runtime.Logging.log_uni_string (Unicode.SymbolTable.symbol_to_string n);
-        Runtime.Logging.log_string "\n"
-      })
-    s.local_symbols
-};
-*)
 
 value add_global scope symbol val = do
 {
@@ -105,4 +105,26 @@ value lookup scope symbol = do
   with
   [ Not_found -> TGlobal (lookup_global scope symbol) ]
 };
+
+(*
+value print_scope s = do
+{
+  Runtime.Logging.log_string "globals:\n";
+  Hashtbl.iter
+    (fun n _ -> do
+      {
+        Runtime.Logging.log_uni_string (Unicode.SymbolTable.symbol_to_string n);
+        Runtime.Logging.log_string "\n"
+      })
+    s.global_symbols;
+
+  Hashtbl.iter
+    (fun n _ -> do
+      {
+        Runtime.Logging.log_uni_string (Unicode.SymbolTable.symbol_to_string n);
+        Runtime.Logging.log_string "\n"
+      })
+    s.local_symbols
+};
+*)
 

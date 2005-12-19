@@ -49,8 +49,10 @@ value layout : math_style -> list box -> math_font_params -> math_params -> list
 
 type delimiter_code = (uc_char * list font_metric * uc_char * list font_metric);
 
-value attach_delimiters : math_style -> delimiter_code -> delimiter_code -> list box ->
-                          math_font_params -> math_params -> box;
+value simple_attach_delimiters : math_style -> delimiter_code -> delimiter_code -> list box ->
+                                 math_font_params -> math_params -> box;
+value attach_delimiters        : math_style -> list delimiter_code -> list (list box) ->
+                                 math_font_params -> math_params -> box;
 
 value make_delimiter : math_style -> num -> delimiter_code -> math_font_params -> math_params -> box;
 value make_operator  : math_style -> glyph_desc -> font_metric ->

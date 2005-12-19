@@ -1,6 +1,7 @@
 
 open Runtime;
 open Logging;
+open Engine;
 open ParseState;
 
 (* |begin_paragraph| starts a new paragraph, |end_paragraph| adds the current paragraph to the page. *)
@@ -14,7 +15,7 @@ value end_paragraph ps = do
 {
   match close_node_list ps `Paragraph with
   [ []    -> ()
-  | nodes -> add_node ps (`Paragraph (location ps) nodes)
+  | nodes -> add_node ps (Node.Paragraph (location ps) nodes)
   ]
 };
 
@@ -29,7 +30,7 @@ value end_math ps = do
 {
   match close_node_list ps `Math with
   [ []    -> ()
-  | nodes -> add_node ps (`Math (location ps) nodes)
+  | nodes -> add_node ps (Node.Math (location ps) nodes)
   ]
 };
 
@@ -42,7 +43,7 @@ value end_hbox ps = do
 {
   match close_node_list ps `HBox with
   [ []    -> ()
-  | nodes -> add_node ps (`HBox (location ps) nodes)
+  | nodes -> add_node ps (Node.HBox (location ps) nodes)
   ]
 };
 
