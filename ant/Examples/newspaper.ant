@@ -1,10 +1,14 @@
 
-\include{fonts.ant}
+\include{GhostScript.ant}
+\definecommand\FontFamilyRoman{Nimbus Roman No9 L}
+\definecommand\FontFamilySans{Nimbus Sans L}
+\definecommand\FontSeriesBold{bold}
+\normalfont
 
 \definecommand\-{\discretionary*{-}{}{}}
 
 \setparameter{paragraph}{par-indent = 0pt}
-\setparameter{line-break}{emergency-stretch = 1em}
+\setparameter{line-break}{ simple-breaking=false; river-demerits=10000 }
 
 \newpagelayout{first-page}{210mm}{297mm}
 \newpagearea{title}{10mm}{10mm}{6mm+3*62mm}{2cm}{10pt}{3pt}{galley}{ name = title }
@@ -25,10 +29,10 @@
 \newgalley{article 4}{62mm}
 
 \definecommand\bigheading[m]{\begingroup
-  \vskip{3pt plus 3pt}\LARGE\bfseries\hskip{0pt plus 1fil}#1\hskip{0pt plus 1fil}\par
+  \vskip{3pt plus 3pt}\LARGE\sffamily\hskip{0pt plus 1fil}#1\hskip{0pt plus 1fil}\par
   \vskip{3pt plus 3pt}\endgroup}
 \definecommand\smallheading[m]{\begingroup
-  \vskip{8pt plus 3pt}\Large\bfseries\hskip{0pt plus 1fil}#1\hskip{0pt plus 1fil}\par
+  \vskip{8pt plus 3pt}\Large\sffamily\hskip{0pt plus 1fil}#1\hskip{0pt plus 1fil}\par
   \vskip{4pt plus 3pt}\endgroup}
 
 \definecommand\bigsample{%
@@ -48,7 +52,7 @@ experiences original that the substantially the program the people, and
 final 1969 character codes ability from based there for author keeping
 on; are. On description without itself, been extensions difficult
 defined when\-ever modifications, be might a program resulting called;
-itself software fully other. called for whether implementation known
+itself software fully other. Called for whether implementation known
 have conventions, program the author that compiler, should to interface
 necessary. A originally of. Intended without most does admirable a made
 several of most translated other. For not types, enumerated are the no
@@ -82,7 +86,7 @@ because follows language, level step to necessary semi-automatic other
 feasible, below use peculiar software complexity reduced of individual
 simple is algorithms possible, way pieces providing that. Detailed is
 things ways, sprinkled program. Explain implementation, rarely
-language reader the.\par}
+reader familiar present long the designed based that.\par}
 
 \begingalley{title}\begingroup
 \rule{6mm+3*62mm}{0.4pt}{0pt}\vskip{4pt plus 1fil}\Huge

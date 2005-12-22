@@ -1,0 +1,47 @@
+% GhostScript fonts
+
+\declarefont{a010013l.pfb}{builtin}{URW Gothic L}        {medium}{normal}{-}{}
+\declarefont{a010015l.pfb}{builtin}{URW Gothic L}        {bold}  {normal}{-}{}
+\declarefont{a010033l.pfb}{builtin}{URW Gothic L}        {medium}{italic}{-}{}
+\declarefont{a010035l.pfb}{builtin}{URW Gothic L}        {bold}  {italic}{-}{}
+\declarefont{b018012l.pfb}{builtin}{URW Bookman L}       {medium}{normal}{-}{}
+\declarefont{b018015l.pfb}{builtin}{URW Bookman L}       {bold}  {normal}{-}{}
+\declarefont{b018032l.pfb}{builtin}{URW Bookman L}       {medium}{italic}{-}{}
+\declarefont{b018035l.pfb}{builtin}{URW Bookman L}       {bold}  {italic}{-}{}
+\declarefont{c059013l.pfb}{builtin}{Century Schoolbook L}{medium}{normal}{-}{}
+\declarefont{c059016l.pfb}{builtin}{Century Schoolbook L}{bold}  {normal}{-}{}
+\declarefont{c059033l.pfb}{builtin}{Century Schoolbook L}{medium}{italic}{-}{}
+\declarefont{c059036l.pfb}{builtin}{Century Schoolbook L}{bold}  {italic}{-}{}
+\declarefont{d050000l.pfb}{builtin}{Dingbats}            {medium}{normal}{-}{}
+\declarefont{n019003l.pfb}{builtin}{Nimbus Sans L}       {medium}{normal}{-}{}
+\declarefont{n019004l.pfb}{builtin}{Nimbus Sans L}       {bold}  {normal}{-}{}
+\declarefont{n019023l.pfb}{builtin}{Nimbus Sans L}       {medium}{italic}{-}{}
+\declarefont{n019024l.pfb}{builtin}{Nimbus Sans L}       {bold}  {italic}{-}{}
+\declarefont{n019043l.pfb}{builtin}{Nimbus Sans L}       {medium}{condensed}{-}{}
+\declarefont{n019044l.pfb}{builtin}{Nimbus Sans L}       {bold}  {condensed}{-}{}
+\declarefont{n019063l.pfb}{builtin}{Nimbus Sans L}       {medium}{italic condensed}{-}{}
+\declarefont{n019064l.pfb}{builtin}{Nimbus Sans L}       {bold}  {italic condensed}{-}{}
+\declarefont{n021003l.pfb}{builtin}{Nimbus Roman No9 L}  {medium}{normal}{-}{}
+\declarefont{n021004l.pfb}{builtin}{Nimbus Roman No9 L}  {bold}  {normal}{-}{}
+\declarefont{n021023l.pfb}{builtin}{Nimbus Roman No9 L}  {medium}{italic}{-}{}
+\declarefont{n021024l.pfb}{builtin}{Nimbus Roman No9 L}  {bold}  {italic}{-}{}
+\declarefont{n022003l.pfb}{builtin}{Nimbus Mono L}       {medium}{normal}{-}{}
+\declarefont{n022004l.pfb}{builtin}{Nimbus Mono L}       {bold}  {normal}{-}{}
+\declarefont{n022023l.pfb}{builtin}{Nimbus Mono L}       {medium}{italic}{-}{}
+\declarefont{n022024l.pfb}{builtin}{Nimbus Mono L}       {bold}  {italic}{-}{}
+\declarefont{p052003l.pfb}{builtin}{URW Palladio L}      {medium}{normal}{-}{}
+\declarefont{p052004l.pfb}{builtin}{URW Palladio L}      {bold}  {normal}{-}{}
+\declarefont{p052023l.pfb}{builtin}{URW Palladio L}      {medium}{italic}{-}{}
+\declarefont{p052024l.pfb}{builtin}{URW Palladio L}      {bold}  {italic}{-}{}
+\declarefont{s050000l.pfb}{builtin}{Standard Symbols L}  {medium}{normal}{-}{}
+\declarefont{z003034l.pfb}{builtin}{URW Chancery L}      {medium}{italic}{-}{}
+\declarefont{bchbi.pfa}   {builtin}{Bitstream Charter}   {bold}  {italic}{-}{}
+\declarefont{bchb.pfa}    {builtin}{Bitstream Charter}   {bold}  {normal}{-}{}
+\declarefont{bchri.pfa}   {builtin}{Bitstream Charter}   {medium}{italic}{-}{}
+\declarefont{bchr.pfa}    {builtin}{Bitstream Charter}   {medium}{normal}{-}{}
+\declarefont{putbi.pfa}   {builtin}{Utopia}              {bold}  {italic}{-}{}
+\declarefont{putb.pfa}    {builtin}{Utopia}              {bold}  {normal}{-}{}
+\declarefont{putri.pfa}   {builtin}{Utopia}              {medium}{italic}{-}{}
+\declarefont{putr.pfa}    {builtin}{Utopia}              {medium}{normal}{-}{}
+
+% vim:set ft=tex fenc=utf8:
