@@ -29,7 +29,7 @@ endif
 
 ifdef NATIVE_CAMLP4
   CAMLP4         = camlp4r      # preprocessor for camlp4 syntax extensions
-  MLPP           = camlp4opt    # preprocessor for normal ml files
+  MLPP           = ./camlp4opt  # preprocessor for normal ml files
   MLPP_PA        =
   CAMLP4_TARGETS = camlp4opt    # additional targets to make
 else
@@ -67,7 +67,8 @@ MLFLAGS  = -rectypes -pp "$(MLPP) $(MLPP_PA)" -I $(GMP_LIB) $(DEBUGFLAGS)
 
 PWD := $(shell pwd)# fix bug with ocamlc -a
 
-TOOLS     = NumGmp NumNum NumFloat Option XList XNum XString Zlib IO LinForm Constraint PlanePartition ListBuilder ShortestPath
+TOOLS     = Num$(MATH_LIB) Option XList XNum XString Zlib IO LinForm Constraint PlanePartition \
+            ListBuilder ShortestPath
 TOOLS_ML  = $(addsuffix .ml,$(TOOLS))
 TOOLS_MLI = $(addsuffix .mli,$(TOOLS))
 TOOLS_CMI = $(addsuffix .cmi,$(TOOLS))
