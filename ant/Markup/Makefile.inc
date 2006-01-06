@@ -8,7 +8,7 @@ MARKUP_MLI = $(addsuffix .mli,$(MARKUP_MOD))
 MARKUP_CMO = $(addsuffix .$(CMO),$(MARKUP_MOD))
 
 ifdef NATIVE
-  MLFLAGS_Markup_ = #-for-pack Markup
+  MLFLAGS_Markup_ = -for-pack Markup
 else
   MLFLAGS_Markup_ =
 endif

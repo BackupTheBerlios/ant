@@ -1,6 +1,4 @@
 
-test: Examples/test.dvi Examples/test-TeX.dvi
-
 manual: Examples/manual.dvi
 
 Examples/manual.dvi: ant Examples/manual.ant Examples/manual.sty
@@ -25,7 +23,7 @@ Examples/clean:
 	rm -f Examples/*.{log,aux,refdb}
 
 Examples/distclean: Examples/clean
-	rm -f Examples/*.{dvi,pdf,ps}
+	rm -f Examples/*.{dvi,pdf,ps,svg}
 
 Examples/depend:
 

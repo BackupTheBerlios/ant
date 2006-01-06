@@ -14,7 +14,7 @@ RUNTIME_C   = Runtime/kpathsea-stubs.c Runtime/freetype-stubs.c # Runtime/otf-st
 RUNTIME_O   = Runtime/kpathsea-stubs.o Runtime/freetype-stubs.o # Runtime/otf-stubs.o
 
 ifdef NATIVE
-  MLFLAGS_Runtime_ = #-for-pack Runtime
+  MLFLAGS_Runtime_ = -for-pack Runtime
 else
   MLFLAGS_Runtime_ =
 endif

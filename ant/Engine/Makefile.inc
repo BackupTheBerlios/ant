@@ -7,7 +7,7 @@ ENGINE_CMO = $(addsuffix .$(CMO),$(ENGINE_MOD))
 HYPHEN_FILES = $(addprefix data/hyphen/, $(addsuffix .hyphen, $(HYPHEN_PATTERNS)))
 
 ifdef NATIVE
-  MLFLAGS_Engine_ = #-for-pack Engine
+  MLFLAGS_Engine_ = -for-pack Engine
 else
   MLFLAGS_Engine_ =
 endif

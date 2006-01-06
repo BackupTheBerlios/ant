@@ -7,7 +7,7 @@ UNICODE_C   = Unicode/Tables.c
 UNICODE_O   = Unicode/Tables.o
 
 ifdef NATIVE
-  MLFLAGS_Unicode_ = #-for-pack Unicode
+  MLFLAGS_Unicode_ = -for-pack Unicode
 else
   MLFLAGS_Unicode_ =
 endif

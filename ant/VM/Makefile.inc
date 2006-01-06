@@ -10,8 +10,8 @@ VM_PRIVATE_MLI = $(addsuffix .mli,$(VM_PRIVATE_MOD))
 VM_PRIVATE_CMO = $(addsuffix .$(CMO),$(VM_PRIVATE_MOD))
 
 ifdef NATIVE
-  MLFLAGS_VM_         = -I VM/Private #-for-pack VM
-  MLFLAGS_VM_Private_ = -I VM #-for-pack VM.VMPrivate
+  MLFLAGS_VM_         = -I VM/Private -for-pack VM
+  MLFLAGS_VM_Private_ = -I VM -for-pack VM.VMPrivate
 else
   MLFLAGS_VM_         = -I VM/Private
   MLFLAGS_VM_Private_ = -I VM

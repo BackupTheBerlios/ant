@@ -10,7 +10,7 @@ TYPESETTING_MLI = $(addsuffix .mli,$(TYPESETTING_MOD))
 TYPESETTING_CMO = $(addsuffix .$(CMO),$(TYPESETTING_MOD))
 
 ifdef NATIVE
-  MLFLAGS_Typesetting_ = #-for-pack Typesetting
+  MLFLAGS_Typesetting_ = -for-pack Typesetting
 else
   MLFLAGS_Typesetting_ =
 endif

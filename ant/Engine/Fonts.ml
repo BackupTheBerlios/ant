@@ -156,6 +156,22 @@ value get_font family series shape size = do
   ]
   in
 
+  let load fd size = do
+  {
+    try
+      Some (load_font fd size)
+    with
+    [ Not_found -> do
+      {
+        log_warn ("",0,0) "Cannot load font file `";
+        log_uc_string fd.fd_name;
+        log_string "'!";
+        None
+      }
+    ]
+  }
+  in
+
   match choose_font (get_font_list family) with
   [ None    -> None
   | Some fd -> do
@@ -163,16 +179,17 @@ value get_font family series shape size = do
       iter fd.fd_loaded_sizes
 
       where rec iter sizes = match sizes with
-      [ []            -> Some (load_font fd size)
+      [ []            -> load fd size
       | [(s,f) :: ss] -> if s </ size then
                            iter ss
                          else if s =/ size then
-                           Some { f_font_def = fd;
+                           Some {
+                                  f_font_def = fd;
                                   f_metric   = f;
                                   f_size     = size
                                 }
                          else
-                           Some (load_font fd size)
+                           load fd size
       ]
     }
   ]
