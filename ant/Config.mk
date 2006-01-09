@@ -58,6 +58,8 @@ endif
 
 CAML_LIB_DIR := $(shell $(MLC) -where)
 
+CAMLIMAGES_DIR = $(CAML_LIB_DIR)/camlimages
+
 ifndef MATH_LIB
   MATH_LIB=Float
 endif
@@ -74,7 +76,7 @@ endif
 INCFLAGS   = -I . -I Tools $(addprefix -I ,$(dir $@)) -I lib #$(addprefix -I ,$(DIRECTORIES))
 WARNFLAGS  = -w Aes -warn-error P
 MLFLAGS    = -rectypes $(INCFLAGS) $(WARNFLAGS) $(DEBUGFLAGS)
-MLLIBS     = $(NUMLIB) unix.$(CMA) -I +camlimages $(CAMLIMAGES_MLLIBS) $(KPATHSEA_LFLAGS) $(X11_LFLAGS) \
+MLLIBS     = $(NUMLIB) unix.$(CMA) -I $(CAMLIMAGES_DIR) $(CAMLIMAGES_MLLIBS) $(KPATHSEA_LFLAGS) $(X11_LFLAGS) \
              -cclib -lkpathsea -cclib -lfreetype -cclib -lz $(addprefix -cclib , $(CAMLIMAGES_CLIBS)) -cclib -lstdc++
 
 ML_DEPEND = ocamldep -pp $(MLPP) $(INCFLAGS) $(DEPFLAGS)

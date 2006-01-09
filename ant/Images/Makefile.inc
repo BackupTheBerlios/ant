@@ -1,8 +1,8 @@
 
 CAMLIMAGES_CLIBS  = -lgif -ljpeg -ltiff -lfreetype -lpng -lz -lXpm
-CAMLIMAGES_MLLIBS = $(addprefix camlimages/, ci_core.$(CMA) ci_freetype.$(CMA) ci_gif.$(CMA) ci_jpeg.$(CMA) \
+CAMLIMAGES_MLLIBS = $(addprefix $(CAMLIMAGES_DIR)/, ci_core.$(CMA) ci_freetype.$(CMA) ci_gif.$(CMA) ci_jpeg.$(CMA) \
                     ci_tiff.$(CMA) ci_bmp.$(CMA) ci_ppm.$(CMA) ci_png.$(CMA) ci_xvthumb.$(CMA) ci_xpm.$(CMA) ci_ps.$(CMA))
-MLFLAGS_Images_ = -I +camlimages
+MLFLAGS_Images_ := -I $(CAMLIMAGES_DIR)
 
 Images/CamlImages.$(CMO): Images/CamlImages.ml
 
