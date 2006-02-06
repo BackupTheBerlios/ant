@@ -1,11 +1,13 @@
 
 ;; operators
 
-declare_infix_left 9 !!;
+declare_infix_left  9 !!;
 declare_infix_right 9 o;
 declare_infix_right 5 ++;
-declare_infix_left 1 >>;
+declare_infix_left  1 >>;
 declare_infix_right 0 $;
+
+;; the usual examples faculty and fibonacci
 
 ;;fib 0 := 1;
 ;;fib 1 := 1;
@@ -35,14 +37,14 @@ last [_:xs] := last xs;
 init [x]    := [];
 init [x:xs] := [x : init xs];
 
-;; null   : [a] -> bool
-;; length : [a] -> int
+;; null        : [a] -> bool
+;; list_length : [a] -> int
 
 null []    := True;
 null [_:_] := False;
 
-;;length []     := 0;
-;;length [x:xs] := 1 + length xs;
+list_length []     := 0;
+list_length [x:xs] := 1 + list_length xs;
 
 ;; reverse : [a] -> [a]
 
@@ -203,9 +205,9 @@ all p      := and o map p;
 elem       := any o (==);
 not_elem   := all o (<>);
 
-;; lookup : a -> [(a,b)] -> maybe b
+;; lookup : a -> [(a,b)] -> option b
 
-lookup k []                   := Nothing;
+lookup k []                   := None;
 lookup k [(x,y) : _] & k == x := y;
 lookup k [_ : xys]            := lookup k xys;
 
@@ -295,10 +297,10 @@ const k _ := k;
 
 f $ x := f x;
 
-compose f g x := f (g x);
+f o g  := { x := f (g x) };
+f >> g := { x := g (f x) };
 
-f o g  := compose f g;
-f >> g := compose g f;
+(>>) f g x := g (f x);
 
 flip f x y := f y x;
 
@@ -306,5 +308,27 @@ flip f x y := f y x;
 
 until p f x & p x := x;
 until p f x       := until p f (f x);
+
+;;path []     := [];
+;;path [x:xs] := iter (start_path x) xs
+;;where
+;;  start_path (Point,(x,y)) := p_make_path x y;
+;;  start_path _             := error "path specification must start with a point!";
+;;
+;;  conv_splines [] := [];
+;;  conv_splines [(x_0,y_0,x_1,y_1,x_2,y_2,x_3,y_3) : zs] :=
+;;    [((x_0,y_0),(x_1,y_1),(x_2,y_2),(x_3,y_3)) : conv_splines zs];
+;;
+;;  iter spec []                  := conv_splines (p_close_path spec False);
+;;  iter spec [Cycle]             := conv_splines (p_close_path spec True);
+;;  iter spec [(InDir, a)   : zs] := p_add_in_dir spec a;
+;;  iter spec [(InCurl, c)  : zs] := p_add_in_curl spec c;
+;;  iter spec [(InTens, t)  : zs] := p_add_in_tension spec t;
+;;  iter spec [(OutDir, a)  : zs] := p_add_out_dir spec a;
+;;  iter spec [(OutCurl, c) : zs] := p_add_out_curl spec c;
+;;  iter spec [(OutTens, t) : zs] := p_add_out_tension spec t;
+;;  iter spec [(Point, (x, y))                   : zs] := p_add_point spec x y;
+;;  iter spec [(Control, (x_1, y_1), (x_2, y_2)) : zs] := p_add_control_points spec x_1 y_1 x_2 y_2;
+;;end;
 
 ;; vim:set ft=al:

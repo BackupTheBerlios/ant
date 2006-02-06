@@ -16,7 +16,7 @@ value exchange      : istream -> istream -> unit;
 value duplicate     : istream -> istream;
 value eof           : istream -> bool;
 value location      : istream -> location;
-value set_location  : istream -> location -> unit;
+value set_location  : istream -> location -> bool -> unit;
 value get_char      : istream -> int -> uc_char;
 value next_char     : istream -> uc_char;
 value take          : istream -> int -> uc_list;

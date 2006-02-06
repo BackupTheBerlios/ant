@@ -34,6 +34,7 @@ value unify                  = Evaluate.unify;
 value continue               = CStack.cont;
 value continue2              = CStack.cont2;
 value continue3              = CStack.cont3;
+value continue4              = CStack.cont4;
 
 value set_unknown x v = Evaluate.forced_unify x (ref v);
 
@@ -85,7 +86,7 @@ value evaluate_monad_expr scope stream init = do
   !result
 };
 
-value evaluate_function _name f args = do
+value decode_function _name f args = do
 {
   let result = ref Unbound in
 
@@ -100,7 +101,7 @@ value evaluate_function _name f args = do
   result
 };
 
-value evaluate_string name str = do
+value decode_string name str = do
 {
   let lst = ref [] in
 
@@ -115,7 +116,7 @@ value evaluate_string name str = do
   !lst
 };
 
-value evaluate_list name lst = do
+value decode_list name lst = do
 {
   let l = ref [] in
 
@@ -130,27 +131,31 @@ value evaluate_list name lst = do
   !l
 };
 
-value evaluate_num name x = do
+value evaluate_num name res x = do
 {
-  let result = ref num_zero in
-
-  CStack.start_vm ();
-
   CStack.cont2
     (fun () -> Evaluate.evaluate_unknown x)
     (fun () -> match !x with
-    [ Number n  -> !result := n
+    [ Number n  -> !res := n
     | LinForm l -> do
       {
         CStack.cont2
           (fun () -> evaluate_lin_form x l)
           (fun () -> match !x with
-          [ Number n -> !result := n
+          [ Number n -> !res := n
           | _        -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
           ])
       }
     | _ -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
     ]);
+};
+
+value decode_num name x = do
+{
+  let result = ref num_zero in
+
+  CStack.start_vm ();
+  evaluate_num name result x;
   CStack.end_vm ();
 
   !result

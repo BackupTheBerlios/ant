@@ -7,6 +7,7 @@ value num_zero      : num;
 value num_one       : num;
 value num_minus_one : num;
 value num_two       : num;
+value num_three     : num;
 value num_ten       : num;
 
 value add_num : num -> num -> num;

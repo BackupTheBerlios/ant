@@ -6,6 +6,7 @@ open ALDim;
 open ALEnvironment;
 open ALNodes;
 open ALParseState;
+open ALPath;
 
 value add_primitives scope = do
 {
@@ -113,38 +114,48 @@ value add_primitives scope = do
       ("set_current_space_params",      Primitive1 prim_set_current_space_params);
       ("set_current_math_params",       Primitive1 prim_set_current_math_params);
 
-      ("get_space_factor",    Primitive2 prim_get_space_factor);
-      ("adjust_space_factor", Primitive1 prim_adjust_space_factor);
+      ("get_space_factor",     Primitive2 prim_get_space_factor);
+      ("adjust_space_factor",  Primitive1 prim_adjust_space_factor);
 
-      ("make_dim",            PrimitiveN 5 prim_make_dim);
-      ("fixed_dim",           Primitive1 prim_fixed_dim);
-      ("dim_zero",            prim_dim_zero);
-      ("dim_1pt",             prim_dim_1pt);
-      ("dim_12pt",            prim_dim_12pt);
-      ("dim_fil",             prim_dim_fil);
-      ("dim_fill",            prim_dim_fill);
-      ("dim_ss",              prim_dim_ss);
-      ("dim_filneg",          prim_dim_filneg);
-      ("dim_equal",           Primitive2 prim_dim_equal);
-      ("dim_add",             Primitive2 prim_dim_add);
-      ("dim_neg",             Primitive1 prim_dim_neg);
-      ("dim_sub",             Primitive2 prim_dim_sub);
-      ("dim_mult",            Primitive2 prim_dim_mult);
-      ("dim_max",             Primitive2 prim_dim_max);
-      ("dim_min",             Primitive2 prim_dim_min);
-      ("dim_max_stretch",     Primitive1 prim_dim_max_stretch);
-      ("dim_max_shrink",      Primitive1 prim_dim_max_shrink);
-      ("dim_max_value",       Primitive1 prim_dim_max_value);
-      ("dim_min_value",       Primitive1 prim_dim_min_value);
-      ("dim_shift_base",      Primitive2 prim_dim_shift_base);
-      ("dim_shift_base_upto", Primitive2 prim_dim_shift_base_upto);
-      ("dim_inc_upto",        Primitive2 prim_dim_inc_upto);
-      ("dim_dec_upto",        Primitive2 prim_dim_dec_upto);
-      ("dim_resize_upto",     Primitive2 prim_dim_resize_upto);
-      ("adjustment_ratio",    Primitive2 prim_adjustment_ratio);
-      ("dim_scale_badness",   Primitive1 prim_dim_scale_badness);
-      ("dim_scale",           Primitive2 prim_dim_scale);
-      ("dim_scale_upto",      Primitive2 prim_dim_scale_upto)
+      ("make_dim",             PrimitiveN 5 prim_make_dim);
+      ("fixed_dim",            Primitive1 prim_fixed_dim);
+      ("dim_zero",             prim_dim_zero);
+      ("dim_1pt",              prim_dim_1pt);
+      ("dim_12pt",             prim_dim_12pt);
+      ("dim_fil",              prim_dim_fil);
+      ("dim_fill",             prim_dim_fill);
+      ("dim_ss",               prim_dim_ss);
+      ("dim_filneg",           prim_dim_filneg);
+      ("dim_equal",            Primitive2 prim_dim_equal);
+      ("dim_add",              Primitive2 prim_dim_add);
+      ("dim_neg",              Primitive1 prim_dim_neg);
+      ("dim_sub",              Primitive2 prim_dim_sub);
+      ("dim_mult",             Primitive2 prim_dim_mult);
+      ("dim_max",              Primitive2 prim_dim_max);
+      ("dim_min",              Primitive2 prim_dim_min);
+      ("dim_max_stretch",      Primitive1 prim_dim_max_stretch);
+      ("dim_max_shrink",       Primitive1 prim_dim_max_shrink);
+      ("dim_max_value",        Primitive1 prim_dim_max_value);
+      ("dim_min_value",        Primitive1 prim_dim_min_value);
+      ("dim_shift_base",       Primitive2 prim_dim_shift_base);
+      ("dim_shift_base_upto",  Primitive2 prim_dim_shift_base_upto);
+      ("dim_inc_upto",         Primitive2 prim_dim_inc_upto);
+      ("dim_dec_upto",         Primitive2 prim_dim_dec_upto);
+      ("dim_resize_upto",      Primitive2 prim_dim_resize_upto);
+      ("adjustment_ratio",     Primitive2 prim_adjustment_ratio);
+      ("dim_scale_badness",    Primitive1 prim_dim_scale_badness);
+      ("dim_scale",            Primitive2 prim_dim_scale);
+      ("dim_scale_upto",       Primitive2 prim_dim_scale_upto);
+      ("p_make_path",          Primitive2 p_make_path);
+      ("p_close_path",         Primitive2 p_close_path);
+      ("p_add_point",          PrimitiveN 3 p_add_point);
+      ("p_add_in_dir",         Primitive2 p_add_in_dir);
+      ("p_add_in_curl",        Primitive2 p_add_in_curl);
+      ("p_add_in_tension",     Primitive2 p_add_in_tension);
+      ("p_add_out_dir",        Primitive2 p_add_out_dir);
+      ("p_add_out_curl",       Primitive2 p_add_out_curl);
+      ("p_add_out_tension",    Primitive2 p_add_out_tension);
+      ("p_add_control_points", PrimitiveN 5 p_add_control_points)
     |];
   bind_post_op scope "em" (Primitive2 env_quad);
   bind_post_op scope "ex" (Primitive2 env_x_height);

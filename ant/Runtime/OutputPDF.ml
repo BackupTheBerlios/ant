@@ -41,7 +41,7 @@ value new_state filename =
   text_state = None
 };
 
-value pt_to_bp x = float_of_num (num_of_ints 7227 7200 */ x);
+value pt_to_bp x = float_of_num (num_of_ints 7200 7227 */ x);
 
 value write_bitmap cs bm = do
 {
@@ -700,7 +700,7 @@ and write_image state x y width height file = do
   select_image    state    file;
   IO.write_string state.os "Do Q "
 }
-and write_path state path_cmd path = do
+and write_path state x y path_cmd path = do
 {
   let rec draw_path cur_x cur_y path = match path with
   [ [] -> match path_cmd with
@@ -710,18 +710,21 @@ and write_path state path_cmd path = do
           ]
   | [(ax,ay,bx,by,cx,cy,dx,dy) :: ps] -> do
     {
-      if ax <>/ cur_x || ay <>/ cur_y then
-        IO.printf state.os "%f %f m " (pt_to_bp ax) (pt_to_bp ay)
-      else match path_cmd with
+      if ax <>/ cur_x || ay <>/ cur_y then do
+      {
+        match path_cmd with
         [ Graphic.Stroke -> IO.write_string state.os "S "
         | Graphic.Fill   -> IO.write_string state.os "f "
         | Graphic.Clip   -> IO.write_string state.os "W n "
         ];
+        IO.printf state.os "%f %f m " (pt_to_bp (x +/ ax)) (pt_to_bp (y +/ ay))
+      }
+      else ();
 
       IO.printf state.os "%f %f %f %f %f %f c "
-        (pt_to_bp bx) (pt_to_bp by)
-        (pt_to_bp cx) (pt_to_bp cy)
-        (pt_to_bp dx) (pt_to_bp dy);
+        (pt_to_bp (x +/ bx)) (pt_to_bp (y +/ by))
+        (pt_to_bp (x +/ cx)) (pt_to_bp (y +/ cy))
+        (pt_to_bp (x +/ dx)) (pt_to_bp (y +/ dy));
 
       draw_path dx dy ps
     }
@@ -730,11 +733,16 @@ and write_path state path_cmd path = do
 
   match path with
   [ [] -> ()
-  | [(ax,_,_,_,_,_,_,_) :: _] -> do
+  | [(ax,ay,_,_,_,_,_,_) :: _] -> do
     {
+      end_text_mode state;
+
       (* Choose arbitrary coordinates for the current point.
          Just make sure they are different from the first point of the path. *)
-      draw_path (ax -/ num_one) num_zero path;
+
+      IO.printf state.os "%f %f m " (pt_to_bp (x +/ ax)) (pt_to_bp (y +/ ay));
+
+      draw_path ax ay path
     }
   ]
 }
@@ -768,30 +776,42 @@ and write_group state x y gfx_cmds = do
   in
   let set_line_width w = do
   {
+    end_text_mode state;
     IO.printf state.os "%f w\n" (pt_to_bp w)
   }
   in
-  let set_line_cap c = match c with
-  [ Graphic.Butt   -> IO.write_string state.os "0 J\n"
-  | Graphic.Circle -> IO.write_string state.os "1 J\n"
-  | Graphic.Square -> IO.write_string state.os "2 J\n"
-  ]
+  let set_line_cap c = do
+  {
+    end_text_mode state;
+
+    match c with
+    [ Graphic.Butt   -> IO.write_string state.os "0 J\n"
+    | Graphic.Circle -> IO.write_string state.os "1 J\n"
+    | Graphic.Square -> IO.write_string state.os "2 J\n"
+    ]
+  }
   in
-  let set_line_join j =  match j with
-  [ Graphic.Miter -> IO.write_string state.os "0 j\n"
-  | Graphic.Round -> IO.write_string state.os "1 j\n"
-  | Graphic.Bevel -> IO.write_string state.os "2 j\n"
-  ]
+  let set_line_join j = do
+  {
+    end_text_mode state;
+
+    match j with
+    [ Graphic.Miter -> IO.write_string state.os "0 j\n"
+    | Graphic.Round -> IO.write_string state.os "1 j\n"
+    | Graphic.Bevel -> IO.write_string state.os "2 j\n"
+    ]
+  }
   in
   let set_miter_limit l = do
   {
+    end_text_mode state;
     IO.printf state.os "%f M\n" (float_of_num l)
   }
   in
 
   let write_gfx cmd = match cmd with
   [ Graphic.PutBox dx dy b  -> write_box state (x +/ dx) (y +/ dy) b
-  | Graphic.Draw pc p       -> write_path state pc p
+  | Graphic.Draw pc p       -> write_path state x y pc p
   | Graphic.SetColour col   -> set_colour col
   | Graphic.SetAlpha a      -> set_alpha a
   | Graphic.SetBgColour _   -> assert False

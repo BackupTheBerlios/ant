@@ -49,11 +49,11 @@ value unwrap_dim = decode_opaque "dimension" dim_unwrapper;
 value prim_make_dim res args = match args with
 [ [base; st; st_ord; sh; sh_ord] -> do
   {
-    let a = Machine.evaluate_num "make_dim" base   in
-    let b = Machine.evaluate_num "make_dim" st     in
-    let c = decode_int           "make_dim" st_ord in
-    let d = Machine.evaluate_num "make_dim" sh     in
-    let e = decode_int           "make_dim" sh_ord in
+    let a = Machine.decode_num "make_dim" base   in
+    let b = Machine.decode_num "make_dim" st     in
+    let c = decode_int         "make_dim" st_ord in
+    let d = Machine.decode_num "make_dim" sh     in
+    let e = decode_int         "make_dim" sh_ord in
 
     !res :=
       wrap_dim
@@ -70,7 +70,7 @@ value prim_make_dim res args = match args with
 
 value prim_fixed_dim res base = do
 {
-  let x = Machine.evaluate_num "fixed_dim" base in
+  let x = Machine.decode_num "fixed_dim" base in
 
   !res := wrap_dim (Dim.fixed_dim x)
 };
@@ -116,8 +116,8 @@ value prim_dim_sub res dim0 dim1 = do
 
 value prim_dim_mult res x dim = do
 {
-  let a = Machine.evaluate_num "dim_mult" x   in
-  let d = unwrap_dim           "dim_mult" dim in
+  let a = Machine.decode_num "dim_mult" x   in
+  let d = unwrap_dim         "dim_mult" dim in
 
   !res := wrap_dim (Dim.dim_mult a d)
 };
@@ -169,7 +169,7 @@ value prim_dim_min_value res dim = do
 value prim_dim_shift_base res dim x = do
 {
   let d = unwrap_dim           "dim_shift_base" dim in
-  let y = Machine.evaluate_num "dim_shift_base" x   in
+  let y = Machine.decode_num "dim_shift_base" x   in
 
   !res := wrap_dim (Dim.dim_shift_base d y)
 };
@@ -177,7 +177,7 @@ value prim_dim_shift_base res dim x = do
 value prim_dim_shift_base_upto res dim x = do
 {
   let d = unwrap_dim           "dim_shift_base_upto" dim in
-  let y = Machine.evaluate_num "dim_shift_base_upto" x   in
+  let y = Machine.decode_num "dim_shift_base_upto" x   in
 
   !res := wrap_dim (Dim.dim_shift_base_upto d y)
 };
@@ -185,7 +185,7 @@ value prim_dim_shift_base_upto res dim x = do
 value prim_dim_inc_upto res dim x = do
 {
   let d = unwrap_dim           "dim_inc_upto" dim in
-  let y = Machine.evaluate_num "dim_inc_upto" x   in
+  let y = Machine.decode_num "dim_inc_upto" x   in
 
   !res := wrap_dim (Dim.dim_inc_upto d y)
 };
@@ -193,7 +193,7 @@ value prim_dim_inc_upto res dim x = do
 value prim_dim_dec_upto res dim x = do
 {
   let d = unwrap_dim           "dim_dec_upto" dim in
-  let y = Machine.evaluate_num "dim_dec_upto" x   in
+  let y = Machine.decode_num "dim_dec_upto" x   in
 
   !res := wrap_dim (Dim.dim_dec_upto d y)
 };
@@ -201,7 +201,7 @@ value prim_dim_dec_upto res dim x = do
 value prim_dim_resize_upto res dim x = do
 {
   let d = unwrap_dim           "dim_resize_upto" dim in
-  let y = Machine.evaluate_num "dim_resize_upto" x   in
+  let y = Machine.decode_num "dim_resize_upto" x   in
 
   !res := wrap_dim (Dim.dim_resize_upto d y)
 };
@@ -209,7 +209,7 @@ value prim_dim_resize_upto res dim x = do
 value prim_adjustment_ratio res dim x = do
 {
   let d = unwrap_dim           "dim_adjustment_ratio" dim in
-  let y = Machine.evaluate_num "dim_adjustment_ratio" x   in
+  let y = Machine.decode_num "dim_adjustment_ratio" x   in
 
   let (a,b) = Dim.adjustment_ratio d y in
 
@@ -223,7 +223,7 @@ value prim_dim_scale_badness res ratio = do
   match !ratio with
   [ Types.Tuple [|x; y|] -> do
     {
-      let a = Machine.evaluate_num "dim_scale_badness" x in
+      let a = Machine.decode_num "dim_scale_badness" x in
       let b = decode_int           "dim_scale_badness" y in
 
       !res := Types.Number (Dim.dim_scale_badness (a,b))
@@ -241,7 +241,7 @@ value prim_dim_scale res dim ratio = do
   match !ratio with
   [ Types.Tuple [|y; z|] -> do
     {
-      let a = Machine.evaluate_num "dim_scale" y in
+      let a = Machine.decode_num "dim_scale" y in
       let b = decode_int           "dim_scale" z in
 
       !res := wrap_dim (Dim.dim_scale d (a,b))
@@ -259,7 +259,7 @@ value prim_dim_scale_upto res dim ratio = do
   match !ratio with
   [ Types.Tuple [|y; z|] -> do
     {
-      let a = Machine.evaluate_num "dim_scale_upto" y in
+      let a = Machine.decode_num "dim_scale_upto" y in
       let b = decode_int           "dim_scale_upto" z in
 
       !res := wrap_dim (Dim.dim_scale_upto d (a,b))

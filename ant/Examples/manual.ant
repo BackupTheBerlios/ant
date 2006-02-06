@@ -64,6 +64,19 @@ In particular it is easily possible to replace parts of \ant\ with other impleme
 adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 \textsc{p\kern{0.03em}d\kern{0.03em}f} files, or a different page layout algorithm.
 
+\vbox to 20pt{\vss\hbox to 20pt{%
+\ALcommand{
+local u := 10pt;
+ps_set_line_width 0.6pt >>
+ps_stroke
+  (path
+    [(Point,(2u,u)),
+     (Point,(u,2u)),
+     (Point,(0,u)),
+     (Point,(u,0)),
+     Cycle])
+}}}
+
 The current version of \ant\ implements all the major features of \TeX\ but a lot of minor
 things are still missing.
 In addition, \ant\ provides several improvements over~\TeX\?:

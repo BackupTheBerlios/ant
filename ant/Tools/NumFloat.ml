@@ -12,6 +12,7 @@ value num_zero      = 0.0;
 value num_one       = 1.0;
 value num_minus_one = ~-. 1.0;
 value num_two       = 2.0;
+value num_three     = 3.0;
 value num_ten       = 10.0;
 
 value add_num x y  = x +. y;

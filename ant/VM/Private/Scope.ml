@@ -73,13 +73,8 @@ value push scope symbols = do
        n)
   | [s::ss] -> do
     {
-      if Hashtbl.mem local s then
-        iter n ss
-      else do
-      {
-        Hashtbl.add local s (depth, n);
-        iter (n+1) ss
-      }
+      Hashtbl.replace local s (depth, n);
+      iter (n+1) ss
     }
   ]
 };

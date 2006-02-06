@@ -209,7 +209,7 @@ value decode_symbol name x = do
 
 value decode_int name x = do
 {
-  let n = Machine.evaluate_num name x in
+  let n = Machine.decode_num name x in
 
   if is_integer_num n then
     int_of_num n
@@ -249,7 +249,7 @@ value decode_option name decode x = do
 
 value decode_uc_string name x = do
 {
-  Array.of_list (Machine.evaluate_string name x)
+  Array.of_list (Machine.decode_string name x)
 };
 
 value decode_tuple name x = do
@@ -265,7 +265,7 @@ value decode_tuple name x = do
 value decode_function name x args = do
 {
   Machine.evaluate x;
-  Machine.evaluate_function name x args
+  Machine.decode_function name x args
 };
 
 (* dictionaries *)
@@ -291,7 +291,7 @@ value lookup decode dict key = do
 value lookup_string name dict key = lookup (decode_uc_string      name) dict key;
 value lookup_bool   name dict key = lookup (decode_bool           name) dict key;
 value lookup_int    name dict key = lookup (decode_int            name) dict key;
-value lookup_num    name dict key = lookup (Machine.evaluate_num  name) dict key;
+value lookup_num    name dict key = lookup (Machine.decode_num  name) dict key;
 value lookup_symbol name dict key = lookup (decode_symbol         name) dict key;
 value lookup_dict   name dict key = lookup (decode_dict           name) dict key;
 
@@ -340,7 +340,7 @@ value decode_location name loc = do
   match !loc with
   [ Types.Tuple [|file; line; col|] -> do
     {
-      (UString.to_string (Machine.evaluate_string name file),
+      (UString.to_string (Machine.decode_string name file),
        decode_int name line,
        decode_int name col)
     }
@@ -556,7 +556,7 @@ value decode_colour name col = do
           if s = sym_Grey then match xs with
             [ [|_; x|] -> do
               {
-                Graphic.Grey (Machine.evaluate_num name x)
+                Graphic.Grey (Machine.decode_num name x)
               }
             | _ -> Types.runtime_error (name ^ ": colour expected")
             ]
@@ -564,9 +564,9 @@ value decode_colour name col = do
             [ [|_; r; g; b|] -> do
               {
                 Graphic.RGB
-                  (Machine.evaluate_num name r)
-                  (Machine.evaluate_num name g)
-                  (Machine.evaluate_num name b)
+                  (Machine.decode_num name r)
+                  (Machine.decode_num name g)
+                  (Machine.decode_num name b)
               }
             | _ -> Types.runtime_error (name ^ ": colour expected")
             ]
@@ -574,10 +574,10 @@ value decode_colour name col = do
             [ [|_; c; m; y; k|] -> do
               {
                 Graphic.CMYK
-                  (Machine.evaluate_num name c)
-                  (Machine.evaluate_num name m)
-                  (Machine.evaluate_num name y)
-                  (Machine.evaluate_num name k)
+                  (Machine.decode_num name c)
+                  (Machine.decode_num name m)
+                  (Machine.decode_num name y)
+                  (Machine.decode_num name k)
               }
             | _ -> Types.runtime_error (name ^ ": colour expected")
             ]

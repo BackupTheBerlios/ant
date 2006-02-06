@@ -2233,7 +2233,7 @@ value al_declarations ps = do
   let arg = read_argument 0      in
   let str = UCStream.of_list arg in
 
-  UCStream.set_location str loc;
+  UCStream.set_location str loc False;
 
   try
     VM.Machine.execute_declarations ps.al_scope str
@@ -2247,7 +2247,7 @@ value al_macro ps = do
   let expr = arg_expanded ps       in
   let str  = UCStream.of_list expr in
 
-  UCStream.set_location str loc;
+  UCStream.set_location str loc True;
 
   try
     let result = VM.Machine.evaluate_string_expr "\\ALmacro" ps.al_scope str in
@@ -2265,7 +2265,7 @@ value expand_al_macro ps _ = do
   let expr = arg_expanded ps       in
   let str  = UCStream.of_list expr in
 
-  UCStream.set_location str loc;
+  UCStream.set_location str loc True;
 
   let result = try
                  VM.Machine.evaluate_string_expr "\\ALmacro" ps.al_scope str
@@ -2292,7 +2292,7 @@ value al_command ps = do
   let expr = Parser.read_argument ps.input_stream in
   let str  = UCStream.of_list expr in
 
-  UCStream.set_location str loc;
+  UCStream.set_location str loc False;
 
   ALParseState.execute_ps_command "\\ALcommand" str ps
 };

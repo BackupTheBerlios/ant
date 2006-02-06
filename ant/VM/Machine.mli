@@ -29,13 +29,15 @@ value unify                  : ref bool -> unknown -> unknown -> unit;
 value continue               : (unit -> unit) -> unit;
 value continue2              : (unit -> unit) -> (unit -> unit) -> unit;
 value continue3              : (unit -> unit) -> (unit -> unit) -> (unit -> unit) -> unit;
+value continue4              : (unit -> unit) -> (unit -> unit) -> (unit -> unit) -> (unit -> unit) -> unit;
 value set_unknown            : unknown -> partial_value -> unit;
 
 value uc_string_to_char_list : uc_string -> partial_value;
 value uc_list_to_char_list   : uc_list -> partial_value;
 value ascii_to_char_list     : string -> partial_value;
-value evaluate_list          : string -> unknown -> list unknown;
-value evaluate_string        : string -> unknown -> uc_list;
-value evaluate_function      : string -> unknown -> list unknown -> unknown;
-value evaluate_num           : string -> unknown -> num;
+value evaluate_num           : string -> ref num -> unknown -> unit;
+value decode_list            : string -> unknown -> list unknown;
+value decode_string          : string -> unknown -> uc_list;
+value decode_function        : string -> unknown -> list unknown -> unknown;
+value decode_num             : string -> unknown -> num;
 

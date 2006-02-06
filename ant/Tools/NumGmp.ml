@@ -13,8 +13,9 @@ value string_of_num   = Q.to_string;
 value num_zero      = Q.zero;
 value num_one       = num_of_int 1;
 value num_minus_one = num_of_int (-1);
-value num_two  = num_of_int 2;
-value num_ten  = num_of_int 10;
+value num_two       = num_of_int 2;
+value num_three     = num_of_int 3;
+value num_ten       = num_of_int 10;
 
 value add_num     = Q.add;
 value minus_num   = Q.neg;

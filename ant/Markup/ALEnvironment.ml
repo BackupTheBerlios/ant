@@ -44,7 +44,7 @@ value wrap_env_cmd name f res loc env = do
 value decode_env_cmd name f loc env = do
 {
   try
-    unwrap_env name (Machine.evaluate_function name f [ref (encode_location loc); ref (wrap_env env)])
+    unwrap_env name (Machine.decode_function name f [ref (encode_location loc); ref (wrap_env env)])
   with
   [ VM.Types.Syntax_error loc msg -> do { log_warn loc (UString.to_string (Array.to_list msg)); env }
   | VM.Types.Runtime_error msg    -> do { log_warn loc (UString.to_string (Array.to_list msg)); env }
@@ -82,7 +82,7 @@ value decode_skip_arg name s = do
         {
           let x = f [ref (wrap_env env)] in
 
-          Machine.evaluate_num name x
+          Machine.decode_num name x
         })
     }
   ]
@@ -134,7 +134,7 @@ value lookup_dim    name dict key = lookup (decode_dim_arg  name) dict key;
 value env_quad res x env = do
 {
   let e = unwrap_env "env_quad" env         in
-  let s = Machine.evaluate_num "env_quad" x in
+  let s = Machine.decode_num "env_quad" x in
 
   !res := Types.Number (Evaluate.const_em s e)
 };
@@ -142,7 +142,7 @@ value env_quad res x env = do
 value env_x_height res x env = do
 {
   let e = unwrap_env "env_x_height" env         in
-  let s = Machine.evaluate_num "env_x_height" x in
+  let s = Machine.decode_num "env_x_height" x in
 
   !res := Types.Number (Evaluate.const_ex s e)
 };
@@ -150,7 +150,7 @@ value env_x_height res x env = do
 value env_math_unit res x env = do
 {
   let e = unwrap_env "env_math_unit" env         in
-  let s = Machine.evaluate_num "env_math_unit" x in
+  let s = Machine.decode_num "env_math_unit" x in
 
   !res := Types.Number (Evaluate.const_mu s e)
 };
@@ -158,7 +158,7 @@ value env_math_unit res x env = do
 value prim_new_galley res name width = do
 {
   let n = decode_uc_string     "new_galley" name  in
-  let w = Machine.evaluate_num "new_galley" width in
+  let w = Machine.decode_num "new_galley" width in
 
   !res := encode_env_cmd "new_galley" (Environment.new_galley n w)
 };
@@ -177,7 +177,7 @@ value prim_set_par_shape res shape = do
 {
   let s env line = do
   {
-    let result = Machine.evaluate_function
+    let result = Machine.decode_function
                    "<par-shape>"
                    shape
                    [ref (wrap_env env); ref (Types.Number (num_of_int line))]
@@ -186,8 +186,8 @@ value prim_set_par_shape res shape = do
     Machine.evaluate result;
 
     match !result with
-    [ Types.Tuple [|l; r|] -> (Machine.evaluate_num "<par-shape>" l,
-                               Machine.evaluate_num "<par-shape>" r)
+    [ Types.Tuple [|l; r|] -> (Machine.decode_num "<par-shape>" l,
+                               Machine.decode_num "<par-shape>" r)
     | _ -> Types.runtime_error ("<par-shape>: pair expected but got " ^ Types.type_name !result)
     ]
   }
@@ -216,8 +216,8 @@ value prim_new_page_layout res args = match args with
 [ [name; width; height] -> do
   {
     let n = decode_uc_string     "new_page_layout" name   in
-    let w = Machine.evaluate_num "new_page_layout" width  in
-    let h = Machine.evaluate_num "new_page_layout" height in
+    let w = Machine.decode_num "new_page_layout" width  in
+    let h = Machine.decode_num "new_page_layout" height in
 
     !res := encode_env_cmd "new_page_layout" (Environment.new_page_layout n w h)
   }
@@ -247,7 +247,7 @@ value prim_set_font def = do
       let fam = decode_option "set_font" decode_uc_string     family      in
       let ser = decode_option "set_font" decode_uc_string     series      in
       let sha = decode_option "set_font" decode_uc_string     shape       in
-      let siz = decode_option "set_font" Machine.evaluate_num size        in
+      let siz = decode_option "set_font" Machine.decode_num size        in
 
       encode_env_cmd "set_font" (Environment.set_font (fam, ser, sha, siz))
     }
@@ -282,9 +282,9 @@ value prim_set_math_font res def = do
       let fam = decode_option "set_math_font" decode_uc_string     family       in
       let ser = decode_option "set_math_font" decode_uc_string     series       in
       let sha = decode_option "set_math_font" decode_uc_string     shape        in
-      let ts  = decode_option "set_math_font" Machine.evaluate_num text_size    in
-      let ss  = decode_option "set_math_font" Machine.evaluate_num script_size  in
-      let s2s = decode_option "set_math_font" Machine.evaluate_num script2_size in
+      let ts  = decode_option "set_math_font" Machine.decode_num text_size    in
+      let ss  = decode_option "set_math_font" Machine.decode_num script_size  in
+      let s2s = decode_option "set_math_font" Machine.decode_num script2_size in
 
       !res := encode_env_cmd "set_math_font" (Environment.set_math_font (mf, fam, ser, sha, ts, ss, s2s))
     }

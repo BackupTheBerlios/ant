@@ -30,7 +30,7 @@ value new_state name =
   clip    = 0
 };
 
-value pt_to_bp x = float_of_num (num_of_ints 7227 7200 */ x);
+value pt_to_bp x = float_of_num (num_of_ints 7200 7227 */ x);
 
 value new_clip_path state = do
 {

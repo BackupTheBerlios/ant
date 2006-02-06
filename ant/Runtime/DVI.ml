@@ -50,7 +50,7 @@ value float_to_fixed r = do
 
 (* Convert ant points to PostScript points. *)
 
-value pt_to_bp x = float_of_num (num_of_ints 7227 7200 */ x);
+value pt_to_bp x = float_of_num (num_of_ints 7200 7227 */ x);
 
 value write_rat os r = do
 {

@@ -1,7 +1,7 @@
 
 RUNTIME_MOD = Runtime/UCStream Runtime/Bitmap Runtime/KPathSea Runtime/FreeType \
               Runtime/DynamicTrie Runtime/DynUCTrie Runtime/Trie Runtime/PTable Runtime/SymbolSet \
-              Runtime/Type1 Runtime/OpenType Runtime/Logging Runtime/Dim Runtime/Graphic \
+              Runtime/Type1 Runtime/OpenType Runtime/Logging Runtime/Dim Runtime/Bezier Runtime/Graphic \
               Runtime/Substitute Runtime/FontMetric Runtime/Encodings Runtime/Hyphenation Runtime/JustHyph \
               Runtime/Glyph Runtime/FontPK Runtime/FontTFM Runtime/FontFT Runtime/FontVirtual \
               Runtime/FontTable \

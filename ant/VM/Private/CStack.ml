@@ -78,3 +78,12 @@ value cont3 c1 c2 c3 = do
   push c1
 };
 
+value cont4 c1 c2 c3 c4 = do
+{
+  (* push c1, c2, c3, c4 in reverse order *)
+  push c4;
+  push c3;
+  push c2;
+  push c1
+};
+

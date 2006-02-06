@@ -25,7 +25,7 @@ value new_state () =
   fonts    = []
 };
 
-value pt_to_bp x = float_of_num (num_of_ints 7227 7200 */ x);
+value pt_to_bp x = float_of_num (num_of_ints 7200 7227 */ x);
 
 value new_type3_font state font_name fm encoding = do
 {

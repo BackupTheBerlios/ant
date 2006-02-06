@@ -5,6 +5,7 @@ value num_zero      = Int 0;
 value num_one       = Int 1;
 value num_minus_one = Int (-1);
 value num_two       = Int 2;
+value num_three     = Int 3;
 value num_ten       = Int 10;
 
 value num_of_ints x y = Int x // Int y;

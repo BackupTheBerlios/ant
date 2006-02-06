@@ -373,7 +373,7 @@ value rec decode_node name node = do
               let (loc, p, h, pre, post, no) = decode_tuple5 name xs in
 
               Node.Break loc
-                (decode_option name Machine.evaluate_num p)
+                (decode_option name Machine.decode_num p)
                 (decode_bool name h)
                 (decode_node_list name pre)
                 (decode_node_list name post)
@@ -388,7 +388,7 @@ value rec decode_node name node = do
             else if s = sym_Image then
               let (loc, f, w, h) = decode_tuple3 name xs in
               Node.Image loc
-                (UString.to_string (Machine.evaluate_string name f))
+                (UString.to_string (Machine.decode_string name f))
                 (decode_skip_arg name w)
                 (decode_skip_arg name h)
             else if s = sym_Accent then
@@ -539,10 +539,10 @@ value rec decode_node name node = do
 }
 and decode_node_list name nodes = do
 {
-  List.map (decode_node name) (Machine.evaluate_list name nodes)
+  List.map (decode_node name) (Machine.decode_list name nodes)
 }
 and decode_node_list_list name nodes = do
 {
-  List.map (decode_node_list name) (Machine.evaluate_list name nodes)
+  List.map (decode_node_list name) (Machine.decode_list name nodes)
 };
 

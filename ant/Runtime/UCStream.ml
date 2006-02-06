@@ -169,9 +169,9 @@ value duplicate is =
 
 value location is = (is.current.loc.filename, is.current.loc.line, is.current.loc.column);
 
-value set_location is loc = do
+value set_location is loc fixed = do
 {
-  is.current := { (is.current) with loc = make_internal_location loc False }
+  is.current := { (is.current) with loc = make_internal_location loc fixed }
 };
 
 value get_char is pos = do

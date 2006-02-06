@@ -31,7 +31,7 @@ MLC_BIN = ocamlc$(OPT)
 MLC_NAT = ocamlopt$(OPT)
 
 ifdef NATIVE
-  MLC = $(MLC_NAT) #-inline 0 -p # for profiling
+  MLC = $(MLC_NAT)# -inline 0 -p # for profiling
   CMO = cmx
   CMA = cmxa
   CUSTOM =

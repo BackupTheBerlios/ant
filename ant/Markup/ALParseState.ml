@@ -35,7 +35,7 @@ value decode_ps = decode_opaque "parse-command" ps_unwrapper;
 value execute_ps_command_unkown name f ps = do
 {
   try
-    let result = Machine.evaluate_function name f [ref (wrap_ps (fun _ -> ()))] in
+    let result = Machine.decode_function name f [ref (wrap_ps (fun _ -> ()))] in
     let cmd    = decode_ps name result in
 
     cmd ps
@@ -110,7 +110,7 @@ value ps_insert_string res str parse_command = do
   ps_cmd "ps_insert_string" res parse_command
     (fun ps -> do
       {
-        let s  = Machine.evaluate_string "ps_insert_string" str  in
+        let s  = Machine.decode_string "ps_insert_string" str  in
 
         UCStream.insert_list ps.input_stream s
       })
@@ -223,7 +223,7 @@ value ps_opt_expanded res args = match args with
     ps_cmd "ps_opt_expanded" res parse_command
       (fun ps -> do
         {
-          let d  = Machine.evaluate_string "ps_opt_expanded" default in
+          let d  = Machine.decode_string "ps_opt_expanded" default in
 
           Machine.set_unknown arg (Machine.uc_list_to_char_list (ParseArgs.opt_expanded ps d))
         })
@@ -329,7 +329,7 @@ value decode_command name execute expand = do
   let exp ps tok = try do
     {
       let result  = ref Types.Unbound in
-      let command = Machine.evaluate_function
+      let command = Machine.decode_function
                       name
                       expand
                       [result;
@@ -341,7 +341,7 @@ value decode_command name execute expand = do
 
       cmd ps;
 
-      Machine.evaluate_string name result
+      Machine.decode_string name result
     }
     with
     [ VM.Types.Syntax_error loc msg -> do
@@ -400,8 +400,8 @@ value ps_define_command res args = match args with
     ps_cmd "ps_define_command" res parse_command
       (fun ps -> do
         {
-          let name_uc  = Machine.evaluate_string "ps_define_command" name in
-          let name_str = UString.to_string name_uc                        in
+          let name_uc  = Machine.decode_string "ps_define_command" name in
+          let name_str = UString.to_string name_uc                      in
 
           Machine.evaluate expand;
 
@@ -431,8 +431,8 @@ value ps_define_pattern res args = match args with
     ps_cmd "ps_define_pattern" res parse_command
       (fun ps -> do
         {
-          let name_uc  = Machine.evaluate_string "ps_define_pattern" name in
-          let name_str = UString.to_string name_uc                        in
+          let name_uc  = Machine.decode_string "ps_define_pattern" name in
+          let name_str = UString.to_string name_uc                      in
 
           Machine.evaluate expand;
 
@@ -461,7 +461,7 @@ value ps_save_command res name parse_command = do
   ps_cmd "ps_save_command" res parse_command
     (fun ps -> do
       {
-        let n = Machine.evaluate_string "ps_save_command" name in
+        let n = Machine.decode_string "ps_save_command" name in
 
         ParseState.save_command ps n
       })
@@ -472,7 +472,7 @@ value ps_restore_command res name parse_command = do
   ps_cmd "ps_restore_command" res parse_command
     (fun ps -> do
       {
-        let n = Machine.evaluate_string "ps_restore_command" name in
+        let n = Machine.decode_string "ps_restore_command" name in
 
         ParseState.restore_command ps n
       })
@@ -483,7 +483,7 @@ value ps_save_pattern res name parse_command = do
   ps_cmd "ps_save_pattern" res parse_command
     (fun ps -> do
       {
-        let n = Machine.evaluate_string "ps_save_pattern" name in
+        let n = Machine.decode_string "ps_save_pattern" name in
 
         ParseState.save_pattern ps n
       })
@@ -494,7 +494,7 @@ value ps_restore_pattern res name parse_command = do
   ps_cmd "ps_restore_pattern" res parse_command
     (fun ps -> do
       {
-        let n = Machine.evaluate_string "ps_restore_pattern" name in
+        let n = Machine.decode_string "ps_restore_pattern" name in
 
         ParseState.restore_pattern ps n
       })
@@ -520,7 +520,7 @@ value encode_command name command = do
             {
               cmd ps;
 
-              let t = Machine.evaluate_string name tok in
+              let t = Machine.decode_string name tok in
 
               Machine.set_unknown result (Machine.uc_list_to_char_list (command.expand ps t))
             })
@@ -540,7 +540,7 @@ value ps_lookup_command res args = match args with
     ps_cmd "ps_lookup_command" res parse_command
       (fun ps -> do
         {
-          let name_uc  = Machine.evaluate_string "ps_lookup_command" name in
+          let name_uc  = Machine.decode_string "ps_lookup_command" name in
           let name_str = UString.to_string name_uc in
 
           match ParseState.lookup_command ps name_uc with
@@ -558,10 +558,10 @@ value ps_push_env res args = match args with
     ps_cmd "ps_push_env" res parse_command
       (fun ps -> do
         {
-          let n    = Machine.evaluate_string "ps_push_env" name in
+          let n    = Machine.decode_string "ps_push_env" name in
           let args = List.map
-                       (Machine.evaluate_string "ps_push_env")
-                       (Machine.evaluate_list "ps_push_env" arg)
+                       (Machine.decode_string "ps_push_env")
+                       (Machine.decode_list "ps_push_env" arg)
                      in
 
           ParseState.push_env ps n args
@@ -597,8 +597,8 @@ value ps_set_env_args res args parse_command = do
     (fun ps -> do
       {
         let a = List.map
-                  (Machine.evaluate_string "ps_set_env_args")
-                  (Machine.evaluate_list "ps_set_env_args" args)
+                  (Machine.decode_string "ps_set_env_args")
+                  (Machine.decode_list "ps_set_env_args" args)
                 in
 
         ParseState.set_env_args ps a
@@ -632,7 +632,7 @@ value ps_lookup_env res args = match args with
     ps_cmd "ps_lookup_env" res parse_command
       (fun ps -> do
         {
-          let name_uc  = Machine.evaluate_string "ps_lookup_env" name in
+          let name_uc  = Machine.decode_string "ps_lookup_env" name in
           let name_str = UString.to_string name_uc in
 
           match ParseState.lookup_env ps name_uc with
@@ -652,8 +652,8 @@ value ps_define_env res args = match args with
     ps_cmd "ps_define_env" res parse_command
       (fun ps -> do
         {
-          let name_uc  = Machine.evaluate_string "ps_define_env" name in
-          let name_str = UString.to_string name_uc                    in
+          let name_uc  = Machine.decode_string "ps_define_env" name in
+          let name_str = UString.to_string name_uc                  in
 
           Machine.evaluate expand_begin;
           Machine.evaluate expand_end;
@@ -707,8 +707,8 @@ value ps_shipout_pages res args = match args with
       (fun ps -> do
         {
           let n        = decode_int "ps_shipout_pages" number in
-          let even_str = Array.of_list (Machine.evaluate_string "ps_shipout_pages" even) in
-          let odd_str  = Array.of_list (Machine.evaluate_string "ps_shipout_pages" odd)  in
+          let even_str = Array.of_list (Machine.decode_string "ps_shipout_pages" even) in
+          let odd_str  = Array.of_list (Machine.decode_string "ps_shipout_pages" odd)  in
 
           ParseState.add_node ps (Node.ShipOut (ParseState.location ps) even_str odd_str (max 0 n))
         })
@@ -722,9 +722,9 @@ value ps_new_page_layout res args = match args with
     ps_cmd "ps_new_page_layout" res parse_command
       (fun ps -> do
         {
-          let name_str = Array.of_list (Machine.evaluate_string "ps_new_page_layout" name) in
-          let w        = Machine.evaluate_num "ps_new_page_layout" width  in
-          let h        = Machine.evaluate_num "ps_new_page_layout" height in
+          let name_str = Array.of_list (Machine.decode_string "ps_new_page_layout" name) in
+          let w        = Machine.decode_num "ps_new_page_layout" width  in
+          let h        = Machine.decode_num "ps_new_page_layout" height in
 
           ParseState.add_node ps
             (Node.NewLayout (ParseState.location ps)
@@ -774,14 +774,14 @@ value ps_new_area res args = match args with
     ps_cmd "ps_new_area" res parse_command
       (fun ps -> do
       {
-        let name_str = Array.of_list (Machine.evaluate_string "ps_new_area" name) in
-        let x        = Machine.evaluate_num "ps_new_area" pos_x                   in
-        let y        = Machine.evaluate_num "ps_new_area" pos_y                   in
-        let w        = Machine.evaluate_num "ps_new_area" width                   in
-        let h        = Machine.evaluate_num "ps_new_area" height                  in
-        let t        = Machine.evaluate_num "ps_new_area" max_top                 in
-        let b        = Machine.evaluate_num "ps_new_area" max_bot                 in
-        let at       = decode_symbol        "ps_new_area" area_type               in
+        let name_str = Array.of_list (Machine.decode_string "ps_new_area" name) in
+        let x        = Machine.decode_num "ps_new_area" pos_x                   in
+        let y        = Machine.decode_num "ps_new_area" pos_y                   in
+        let w        = Machine.decode_num "ps_new_area" width                   in
+        let h        = Machine.decode_num "ps_new_area" height                  in
+        let t        = Machine.decode_num "ps_new_area" max_top                 in
+        let b        = Machine.decode_num "ps_new_area" max_bot                 in
+        let at       = decode_symbol      "ps_new_area" area_type               in
 
         if at = sym_Galley then do
         {
@@ -871,7 +871,7 @@ value ps_new_area res args = match args with
             {
               (* <param> is a string with ant code. *)
 
-              let code       = Machine.evaluate_string "ps_new_area" param in
+              let code       = Machine.decode_string "ps_new_area" param in
               let current_ps = ParseState.duplicate ps in
               let stream     = UCStream.of_list code   in
 
@@ -917,7 +917,7 @@ value ps_new_area res args = match args with
               {
                 decode_node_list
                   "<anonymous>"
-                  (Machine.evaluate_function
+                  (Machine.decode_function
                     "<anonymous>"
                     param
                     [ref (encode_page_info pi);
@@ -949,8 +949,8 @@ value ps_new_galley res args = match args with
     ps_cmd "ps_new_galley" res parse_command
       (fun ps -> do
         {
-          let name_str = Array.of_list (Machine.evaluate_string "ps_new_galley" name) in
-          let m        = Machine.evaluate_num "ps_new_galley" measure                 in
+          let name_str = Array.of_list (Machine.decode_string "ps_new_galley" name) in
+          let m        = Machine.decode_num "ps_new_galley" measure                 in
 
           ParseState.add_node ps
             (Node.NewGalley (ParseState.location ps) name_str (fun _ -> m))
@@ -967,10 +967,10 @@ value ps_define_math_symbol res args = match args with
     ps_cmd "ps_define_math_symbol" res parse_command
       (fun ps -> do
         {
-          let name = Machine.evaluate_string "ps_define_math_symbol" name      in
-          let mc   = decode_math_code        "ps_define_math_symbol" math_code in
-          let f    = decode_int              "ps_define_math_symbol" font      in
-          let g    = decode_int              "ps_define_math_symbol" glyph     in
+          let name = Machine.decode_string "ps_define_math_symbol" name      in
+          let mc   = decode_math_code      "ps_define_math_symbol" math_code in
+          let f    = decode_int            "ps_define_math_symbol" font      in
+          let g    = decode_int            "ps_define_math_symbol" glyph     in
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
@@ -987,11 +987,11 @@ value ps_define_root_symbol res args = match args with
     ps_cmd "ps_define_root_symbol" res parse_command
       (fun ps -> do
         {
-          let name = Machine.evaluate_string "ps_define_root_symbol" name        in
-          let sf   = decode_int              "ps_define_root_symbol" small_font  in
-          let sg   = decode_int              "ps_define_root_symbol" small_glyph in
-          let lf   = decode_int              "ps_define_root_symbol" large_font  in
-          let lg   = decode_int              "ps_define_root_symbol" large_glyph in
+          let name = Machine.decode_string "ps_define_root_symbol" name        in
+          let sf   = decode_int            "ps_define_root_symbol" small_font  in
+          let sg   = decode_int            "ps_define_root_symbol" small_glyph in
+          let lf   = decode_int            "ps_define_root_symbol" large_font  in
+          let lg   = decode_int            "ps_define_root_symbol" large_glyph in
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
@@ -1008,9 +1008,9 @@ value ps_define_math_accent res args = match args with
     ps_cmd "ps_define_math_accent" res parse_command
       (fun ps -> do
         {
-          let name = Machine.evaluate_string "ps_define_math_accent" name  in
-          let f    = decode_int              "ps_define_math_accent" font  in
-          let g    = decode_int              "ps_define_math_accent" glyph in
+          let name = Machine.decode_string "ps_define_math_accent" name  in
+          let f    = decode_int            "ps_define_math_accent" font  in
+          let g    = decode_int            "ps_define_math_accent" glyph in
 
           ParseState.define_command ps name
             { ParseState.execute = (fun ps -> ParseState.add_node ps
@@ -1047,8 +1047,8 @@ value decode_coord name z = do
   Machine.evaluate z;
 
   match !z with
-  [ Types.Tuple [|x;y|] -> (Machine.evaluate_num name x,
-                            Machine.evaluate_num name y)
+  [ Types.Tuple [|x;y|] -> (Machine.decode_num name x,
+                            Machine.decode_num name y)
   | _                   -> Types.runtime_error (name ^ ": pair expected but got " ^ Types.type_name !z)
   ]
 };
@@ -1077,7 +1077,7 @@ value decode_bezier name z = do
 value decode_path name p = do
 {
   List.map (decode_bezier name)
-    (Machine.evaluate_list name p)
+    (Machine.decode_list name p)
 };
 
 value ps_set_colour res colour parse_command = do
@@ -1109,7 +1109,7 @@ value ps_set_alpha res alpha parse_command = do
   ps_cmd "ps_set_alpha" res parse_command
     (fun ps -> do
       {
-        let a = Machine.evaluate_num "ps_set_alpha" alpha in
+        let a = Machine.decode_num "ps_set_alpha" alpha in
 
         ParseState.add_node ps
           (Node.GfxCommand (location ps) (Graphic.SetAlpha a))
@@ -1133,7 +1133,7 @@ value ps_set_line_width res width parse_command = do
   ps_cmd "ps_set_line_width" res parse_command
     (fun ps -> do
       {
-        let w = Machine.evaluate_num "ps_set_line_width" width in
+        let w = Machine.decode_num "ps_set_line_width" width in
 
         ParseState.add_node ps
           (Node.GfxCommand (location ps) (Graphic.SetLineWidth w))
@@ -1169,7 +1169,7 @@ value ps_set_miter_limit res limit parse_command = do
   ps_cmd "ps_set_miter_limit" res parse_command
     (fun ps -> do
       {
-        let l = Machine.evaluate_num "ps_set_miter_limit" limit in
+        let l = Machine.decode_num "ps_set_miter_limit" limit in
 
         ParseState.add_node ps
           (Node.GfxCommand (location ps) (Graphic.SetMiterLimit l))
@@ -1231,8 +1231,8 @@ value ps_add_reference res args = match args with
     ps_cmd "ps_add_reference" res parse_command
       (fun ps -> do
         {
-          let n = Machine.evaluate_string "ps_add_reference" name in
-          let v = decode_uc_string        "ps_add_reference" val  in
+          let n = Machine.decode_string "ps_add_reference" name in
+          let v = decode_uc_string      "ps_add_reference" val  in
 
           ParseState.add_reference ps n v
         })
@@ -1246,7 +1246,7 @@ value ps_reference_exists res args = match args with
     ps_cmd "ps_reference_exists" res parse_command
       (fun ps -> do
         {
-          let n = Machine.evaluate_string "ps_reference_exists" name in
+          let n = Machine.decode_string "ps_reference_exists" name in
 
           Machine.set_unknown ret (Types.Bool (ParseState.reference_exists ps n))
         })
@@ -1260,7 +1260,7 @@ value ps_lookup_reference res args = match args with
     ps_cmd "ps_lookup_reference" res parse_command
       (fun ps -> do
         {
-          let n = Machine.evaluate_string "ps_lookup_reference" name in
+          let n = Machine.decode_string "ps_lookup_reference" name in
 
           Machine.set_unknown ret (Machine.uc_string_to_char_list (ParseState.lookup_reference ps n))
         })
@@ -1319,7 +1319,7 @@ value ps_write_references res file parse_command = do
   ps_cmd "ps_write_references" res parse_command
     (fun ps -> do
       {
-        let f  = Machine.evaluate_string "ps_write_references" file in
+        let f  = Machine.decode_string "ps_write_references" file in
 
         ParseState.write_references ps (UString.to_string f)
       })
@@ -1341,7 +1341,7 @@ value ps_execute_stream res string parse_command = do
   ps_cmd "ps_execute_stream" res parse_command
     (fun ps -> do
       {
-        let str = Machine.evaluate_string "ps_execute_stream" string in
+        let str = Machine.decode_string "ps_execute_stream" string in
 
         ParseState.execute_stream ps (UCStream.of_list str)
       })

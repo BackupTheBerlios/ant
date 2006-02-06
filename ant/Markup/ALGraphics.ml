@@ -155,14 +155,14 @@ value decode_gfx_cmd name cmd = do
       if Array.length arr <> 2 then
         Types.runtime_error (name ^ ": SetAlpha expects 1 argument")
       else
-        Graphic.SetAlpha (Machine.evaluate_num name arr.(1))
+        Graphic.SetAlpha (Machine.decode_num name arr.(1))
     }
     else if s = sym_SetLineWidth then do
     {
       if Array.length arr <> 2 then
         Types.runtime_error (name ^ ": SetLineWidth expects 1 argument")
       else
-        Graphic.SetLineWidth (Machine.evaluate_num name arr.(1))
+        Graphic.SetLineWidth (Machine.decode_num name arr.(1))
     }
     else if s = sym_SetLineCap then do
     {
@@ -183,7 +183,7 @@ value decode_gfx_cmd name cmd = do
       if Array.length arr <> 2 then
         Types.runtime_error (name ^ ": SetMiterLimit expects 1 argument")
       else
-        Graphic.SetMiterLimit (Machine.evaluate_num name arr.(1))
+        Graphic.SetMiterLimit (Machine.decode_num name arr.(1))
     }
     else
       Types.runtime_error (name ^ ": invalid graphics command")
@@ -202,6 +202,6 @@ where rec decode_path name path = do
         }
       | _ -> Types.runtime_error (name ^ ": invalid path segment")
       ])
-    (Machine.evaluate_list name path)
+    (Machine.decode_list name path)
 };
 
