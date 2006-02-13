@@ -1,7 +1,7 @@
 
 MARKUP_MOD = Markup/Counter Markup/CharCode Markup/Parser Markup/ParseState Markup/Group Markup/Macro \
              Markup/Mode Markup/ParseArgs Markup/ALCoding Markup/ALDim Markup/ALEnvironment \
-             Markup/ALPath Markup/ALGraphics Markup/ALNodes Markup/ALParseState Markup/ALBindings \
+             Markup/ALGraphics Markup/ALNodes Markup/ALParseState Markup/ALBindings \
              Markup/Primitives Markup/Run
 MARKUP_ML  = $(addsuffix .ml,$(MARKUP_MOD))
 MARKUP_MLI = $(addsuffix .mli,$(MARKUP_MOD))

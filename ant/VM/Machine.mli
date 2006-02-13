@@ -36,6 +36,7 @@ value uc_string_to_char_list : uc_string -> partial_value;
 value uc_list_to_char_list   : uc_list -> partial_value;
 value ascii_to_char_list     : string -> partial_value;
 value evaluate_num           : string -> ref num -> unknown -> unit;
+value evaluate_opaque        : string -> (Opaque.opaque unknown -> 'a) -> string -> ref 'a -> unknown -> unit;
 value decode_list            : string -> unknown -> list unknown;
 value decode_string          : string -> unknown -> uc_list;
 value decode_function        : string -> unknown -> list unknown -> unknown;

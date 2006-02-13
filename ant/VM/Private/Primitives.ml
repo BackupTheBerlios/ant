@@ -1363,6 +1363,21 @@ value initial_scope () = do
   bind_post_op scope "pc" (scale (   12 /:     1));
   bind_post_op scope "sp" (scale (    1 /: 65536));
 
+  (* paths *)
+
+  add1 "make_path"               Path.make_path;
+  add2 "close_path"              Path.close_path;
+  add2 "path_add_point"          Path.add_point;
+  add2 "path_add_in_dir"         Path.add_in_dir;
+  add2 "path_add_in_angle"       Path.add_in_angle;
+  add2 "path_add_in_curl"        Path.add_in_curl;
+  add2 "path_add_in_tension"     Path.add_in_tension;
+  add2 "path_add_out_dir"        Path.add_out_dir;
+  add2 "path_add_out_angle"      Path.add_out_angle;
+  add2 "path_add_out_curl"       Path.add_out_curl;
+  add2 "path_add_out_tension"    Path.add_out_tension;
+  add  "path_add_control_points" (PrimitiveN 3 Path.add_control_points);
+
   scope
 };
 

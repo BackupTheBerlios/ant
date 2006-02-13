@@ -207,7 +207,6 @@ value lookup_symbol : string -> SymbolMap.t unknown -> symbol -> option symbol;
 value lookup_dict   : string -> SymbolMap.t unknown -> symbol -> option (SymbolMap.t unknown);
 
 value decode_opaque   : string -> (Opaque.opaque unknown -> 'a) -> string -> unknown -> 'a;
-value evaluate_opaque : string -> (Opaque.opaque unknown -> 'a) -> string -> ref 'a -> unknown -> unit;
 
 value encode_location       : UCStream.location -> partial_value;
 value encode_index_position : Typesetting.Box.index_position -> partial_value;

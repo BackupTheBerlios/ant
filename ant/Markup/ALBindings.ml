@@ -6,7 +6,6 @@ open ALDim;
 open ALEnvironment;
 open ALNodes;
 open ALParseState;
-open ALPath;
 
 value add_primitives scope = do
 {
@@ -145,17 +144,7 @@ value add_primitives scope = do
       ("adjustment_ratio",     Primitive2 prim_adjustment_ratio);
       ("dim_scale_badness",    Primitive1 prim_dim_scale_badness);
       ("dim_scale",            Primitive2 prim_dim_scale);
-      ("dim_scale_upto",       Primitive2 prim_dim_scale_upto);
-      ("p_make_path",          Primitive2 p_make_path);
-      ("p_close_path",         Primitive2 p_close_path);
-      ("p_add_point",          PrimitiveN 3 p_add_point);
-      ("p_add_in_dir",         Primitive2 p_add_in_dir);
-      ("p_add_in_curl",        Primitive2 p_add_in_curl);
-      ("p_add_in_tension",     Primitive2 p_add_in_tension);
-      ("p_add_out_dir",        Primitive2 p_add_out_dir);
-      ("p_add_out_curl",       Primitive2 p_add_out_curl);
-      ("p_add_out_tension",    Primitive2 p_add_out_tension);
-      ("p_add_control_points", PrimitiveN 5 p_add_control_points)
+      ("dim_scale_upto",       Primitive2 prim_dim_scale_upto)
     |];
   bind_post_op scope "em" (Primitive2 env_quad);
   bind_post_op scope "ex" (Primitive2 env_x_height);

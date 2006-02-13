@@ -213,7 +213,8 @@ value rec read_number istream first_char = do
 
     read_fraction base int istream;
   }
-  else if c = 47 then do  (* / *)
+  else if c = 47          (* / *)
+       && char_class (UCStream.get_char istream 1) = Digit then do
   {
     UCStream.pop istream;
 

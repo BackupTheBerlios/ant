@@ -28,7 +28,7 @@ value (ps_wrapper, ps_unwrapper) = Opaque.declare_type "parse-command" apply_ps 
 
 value wrap_ps ps = Types.Opaque (ps_wrapper ps);
 
-value unwrap_ps = evaluate_opaque "parse-command" ps_unwrapper;
+value unwrap_ps = Machine.evaluate_opaque "parse-command" ps_unwrapper;
 
 value decode_ps = decode_opaque "parse-command" ps_unwrapper;
 

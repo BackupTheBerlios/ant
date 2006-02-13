@@ -5,6 +5,8 @@ type spline = (num * num * num * num * num * num * num * num);
 
 type path_spec = 'a;
 
+value angle_of_vec : num -> num -> float;
+
 value make_spec          : num -> num -> path_spec;
 value close_spec         : path_spec -> bool -> array spline;
 

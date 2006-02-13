@@ -273,7 +273,7 @@ and parse_arg_list lexer id first_token = do
       ]
     | (ids, SEMICOLON) -> do
       {
-        (iter ids, read_token lexer)
+        (iter ids, SEMICOLON)
 
         where rec iter ids = match ids with
         [ []            -> [DFun id [] None TUnbound]
@@ -327,7 +327,7 @@ and parse_stmt_list_expr lexer = do
 (*
   stmt =
       expr "=" expr
-    | "if" expr "then" stmt ("elseif" expr "then" stmt)^* ["else" stmt]
+    | "if" expr "then" stmt ("elseif" expr "then" stmt)^* ["else" stmt] "end"
 *)
 
 and parse_stmt first_token lexer = match first_token with
@@ -520,7 +520,10 @@ and parse_sub_expr term pri first_token lexer = match first_token with
         {
           let (e,t) = parse_expr_pri (p+1) tok lexer in
 
-          (TApp (TId x) [term; e], t)
+          if p > pri then
+            parse_sub_expr (TApp (TId x) [term; e]) pri t lexer
+          else
+            (TApp (TId x) [term; e], t)
         }
       ]
     ]
@@ -629,7 +632,8 @@ and parse_simple_expr first_tok lexer = match first_tok with
   [ (e, END) -> (e, read_token lexer)
   | _        -> syntax_error lexer "end expected"
   ]
-| IF    -> (parse_if_expr lexer, read_token lexer)
+| IF    -> let e = parse_if_expr lexer in
+           (e, read_token lexer)
 | MATCH -> match parse_expr (read_token lexer) lexer with
   [ (e, WITH) -> do
     {

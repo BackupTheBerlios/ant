@@ -1365,3 +1365,39 @@ and unify res x y = do
   ]
 };
 
+value evaluate_num name res x = do
+{
+  cont2
+    (fun () -> evaluate_unknown x)
+    (fun () -> match !x with
+    [ Number n  -> !res := n
+    | LinForm l -> do
+      {
+        cont2
+          (fun () -> evaluate_lin_form x l)
+          (fun () -> match !x with
+          [ Number n -> !res := n
+          | _        -> runtime_error (name ^ ": number expected but got " ^ type_name !x)
+          ])
+      }
+    | _ -> runtime_error (name ^ ": number expected but got " ^ type_name !x)
+    ]);
+};
+
+value rec evaluate_opaque opaque_name unwrapper name res x = match !x with
+[ Opaque y -> do
+  {
+    try !res := unwrapper y with
+    [ Opaque.Type_error -> runtime_error (name ^ ": " ^ opaque_name ^ " expected but got " ^ type_name !x) ]
+  }
+| UnevalT _ _ -> do
+  {
+    cont2
+      (fun () -> evaluate_unknown x)
+      (fun () -> evaluate_opaque opaque_name unwrapper name res x)
+  }
+| Unbound
+| Constraint _ -> runtime_error (name ^ ": argument not defined")
+| _            -> runtime_error (name ^ ": " ^ opaque_name ^ " expected but got " ^ type_name !x)
+];
+

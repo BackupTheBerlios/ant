@@ -30,6 +30,8 @@ value ascii_to_char_list     = Primitives.ascii_to_char_list;
 value execute_declarations   = Compile.compile_declarations;
 value evaluate_unknown       = Evaluate.evaluate_unknown;
 value evaluate_lin_form      = Evaluate.evaluate_lin_form;
+value evaluate_num           = Evaluate.evaluate_num;
+value evaluate_opaque        = Evaluate.evaluate_opaque;
 value unify                  = Evaluate.unify;
 value continue               = CStack.cont;
 value continue2              = CStack.cont2;
@@ -129,25 +131,6 @@ value decode_list name lst = do
   CStack.end_vm ();
 
   !l
-};
-
-value evaluate_num name res x = do
-{
-  CStack.cont2
-    (fun () -> Evaluate.evaluate_unknown x)
-    (fun () -> match !x with
-    [ Number n  -> !res := n
-    | LinForm l -> do
-      {
-        CStack.cont2
-          (fun () -> evaluate_lin_form x l)
-          (fun () -> match !x with
-          [ Number n -> !res := n
-          | _        -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
-          ])
-      }
-    | _ -> runtime_error (name ^ ": number expected but got " ^ Types.type_name !x)
-    ]);
 };
 
 value decode_num name x = do

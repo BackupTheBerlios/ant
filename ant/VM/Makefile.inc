@@ -4,7 +4,7 @@ VM_ML          = $(addsuffix .ml,$(VM_MOD))
 VM_MLI         = $(addsuffix .mli,$(VM_MOD))
 VM_CMO         = $(addsuffix .$(CMO),$(VM_MOD))
 VM_PRIVATE_MOD = VM/Private/Lexer VM/Private/Parser VM/Private/Scope VM/Private/Compile VM/Private/CStack VM/Private/Evaluate \
-                 VM/Private/Primitives
+                 VM/Private/Path VM/Private/Primitives
 VM_PRIVATE_ML  = $(addsuffix .ml,$(VM_PRIVATE_MOD))
 VM_PRIVATE_MLI = $(addsuffix .mli,$(VM_PRIVATE_MOD))
 VM_PRIVATE_CMO = $(addsuffix .$(CMO),$(VM_PRIVATE_MOD))
