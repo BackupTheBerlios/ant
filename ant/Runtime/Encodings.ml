@@ -476,7 +476,8 @@ value uc_to_ot1_02 =
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
-  Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Simple 0x11;       (* latin small letter dotless j *)
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
@@ -1334,7 +1335,8 @@ value uc_to_t1_02 =
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
-  Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Simple 0x1a;       (* latin small letter dotless j *)
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
@@ -1970,7 +1972,8 @@ value uc_to_ott_02 =
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
-  Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Undef; Undef; Undef; Undef; Undef; Undef; Undef;
+  Simple 0x11;       (* latin small letter dotless j *)
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
@@ -3479,8 +3482,8 @@ value fake_00 =
   Undef;         (* latin small letter f *)
   Undef;         (* latin small letter g *)
   Undef;         (* latin small letter h *)
-  Undef;         (* latin small letter i *)
-  Undef;         (* latin small letter j *)
+  Accent 0x0131 0x02d9; (* latin small letter i *)
+  Accent 0x0237 0x02d9; (* latin small letter j *)
   Undef;         (* latin small letter k *)
   Undef;         (* latin small letter l *)
   Undef;         (* latin small letter m *)
@@ -3664,7 +3667,7 @@ value fake_01 =
   Sequence [0x0049; 0x004a];  (* latin capital ligature ij *)
   Sequence [0x0069; 0x006a];  (* latin small ligature ij *)
   Accent 0x004a 0x005e;       (* latin capital letter j with circumflex *)
-  Accent 0x006a 0x005e;       (* latin small letter j with circumflex *)
+  Accent 0x0237 0x005e;       (* latin small letter j with circumflex *)
   Accent 0x004b 0x00b8;       (* latin capital letter k with cedilla *)
   Accent 0x006b 0x00b8;       (* latin small letter k with cedilla *)
   Undef;                      (* latin small letter kra *)
@@ -3851,7 +3854,7 @@ value fake_01 =
   Undef;                      (* latin small letter o with ogonek and macron *)
   Undef;                      (* latin capital letter ezh with caron *)
   Undef;                      (* latin small letter ezh with caron *)
-  Undef;                      (* latin small letter j with caron *)
+  Accent 0x0237 0x02c7;       (* latin small letter j with caron *)
   Undef;                      (* latin capital letter dz *)
   Undef;                      (* latin capital letter d with small letter z *)
   Undef;                      (* latin small letter dz *)
@@ -3926,7 +3929,7 @@ value fake_02 =
   Undef;                (* latin small letter l with curl *)
   Undef;                (* latin small letter n with curl *)
   Undef;                (* latin small letter t with curl *)
-  Undef;
+  Undef;                (* latin small letter dotless j *)
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
   Undef; Undef; Undef; Undef; Undef; Undef; Undef; Undef;
@@ -5987,9 +5990,7 @@ value ot1_to_uc =
 [|
   [0x0393]; [0x0394]; [0x0398]; [0x039b]; [0x039e]; [0x03a0]; [0x03a3]; [0x03a5];
   [0x03a6]; [0x03a8]; [0x03a9]; [0x66; 0x66]; [0x66; 0x69]; [0x66; 0x6c]; [0x66; 0x66; 0x69]; [0x66; 0x66; 0x6c];
-  [0x0131];
-  []; (* dotlessj *)
-  [0x0060]; [0x00b4]; [0x02c7]; [0x02d8]; [0x00af]; [0x02da];
+  [0x0131]; [0x0237]; [0x0060]; [0x00b4]; [0x02c7]; [0x02d8]; [0x00af]; [0x02da];
   [0x00b8]; [0x00df]; [0x00e6]; [0x0153]; [0x00f8]; [0x00c6]; [0x0152]; [0x00d8];
   [];       [0x0021]; [0x201d]; [0x0023]; [0x0024]; [0x0025]; [0x0026]; [0x2019];
   [0x0028]; [0x0029]; [0x002a]; [0x002b]; [0x002c]; [0x002d]; [0x002e]; [0x002f];
@@ -6010,8 +6011,7 @@ value t1_to_uc  =
   [0x0060]; [0x00b4]; [0x005e]; [0x007E]; [0x00a8]; [0x02dd]; [0x02da]; [0x02c7];
   [0x02d8]; [0x00af]; [0x02d9]; [0x00b8]; [0x02db]; [0x201a]; [0x2039]; [0x203a];
   [0x201c]; [0x201d]; [0x201e]; [0x00ab]; [0x00bb]; [0x2013]; [0x2014]; [];
-  [0x2080]; [0x0131]; []; (* dotlessj *)
-  [0x66; 0x66]; [0x66; 0x69]; [0x66; 0x6c]; [0x66; 0x66; 0x69]; [0x66; 0x66; 0x6c];
+  [0x2080]; [0x0131]; [0x0237]; [0x66; 0x66]; [0x66; 0x69]; [0x66; 0x6c]; [0x66; 0x66; 0x69]; [0x66; 0x66; 0x6c];
   [0x0020]; [0x0021]; [0x0022]; [0x0023]; [0x0024]; [0x0025]; [0x0026]; [0x2019];
   [0x0028]; [0x0029]; [0x002a]; [0x002b]; [0x002c]; [0x002d]; [0x002e]; [0x002f];
   [0x0030]; [0x0031]; [0x0032]; [0x0033]; [0x0034]; [0x0035]; [0x0036]; [0x0037];
@@ -6046,9 +6046,7 @@ value ott_to_uc =
 [|
   [0x0393]; [0x0394]; [0x0398]; [0x039b]; [0x039e]; [0x03a0]; [0x03a3]; [0x03a5];
   [0x03a6]; [0x03a8]; [0x03a9]; [0x2191]; [0x2193]; [0x0027]; [0x00a1]; [0x00bf];
-  [0x0131];
-  []; (* dotlessj *)
-  [0x0060]; [0x00b4]; [0x02c7]; [0x02d8]; [0x00af]; [0x02da];
+  [0x0131]; [0x0237]; [0x0060]; [0x00b4]; [0x02c7]; [0x02d8]; [0x00af]; [0x02da];
   [0x00b8]; [0x00df]; [0x00e6]; [0x0153]; [0x00f8]; [0x00c6]; [0x0152]; [0x00d8];
   [0x2420]; [0x0021]; [0x201d]; [0x0023]; [0x0024]; [0x0025]; [0x0026]; [0x2019];
   [0x0028]; [0x0029]; [0x002a]; [0x002b]; [0x002c]; [0x002d]; [0x002e]; [0x002f];
