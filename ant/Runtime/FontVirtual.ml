@@ -23,11 +23,12 @@ value make_metrics glyphs = do
     (Array.length glyphs)
     (fun i ->
       {
-        gm_width  = glyphs.(i).vg_width;
-        gm_height = glyphs.(i).vg_height;
-        gm_depth  = glyphs.(i).vg_depth;
-        gm_italic = glyphs.(i).vg_italic;
-        gm_extra  = GXI_Normal
+        gm_width      = glyphs.(i).vg_width;
+        gm_height     = glyphs.(i).vg_height;
+        gm_depth      = glyphs.(i).vg_depth;
+        gm_italic     = glyphs.(i).vg_italic;
+        gm_extra      = GXI_Normal;
+        gm_extra_kern = zero_kern_info
       })
 };
 

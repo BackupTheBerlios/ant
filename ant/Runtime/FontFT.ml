@@ -19,30 +19,40 @@ value ft_kerning face scale c1 c2 = do
 value make_glyph_metric scale glyph = do
 {
   let (width, height, h_off, v_off, adv) = glyph_metrics glyph in
-  let i = h_off + width - adv in
+
+  let left_bound  = max 0 (~-h_off)             in
+  let right_bound = max 0 (h_off + width - adv) in
+
+  let l = scale */ num_of_int left_bound  in
+  let r = scale */ num_of_int right_bound in
+
+  (* If these values are zero we do not need to allocate a new structure. *)
+  let kern_info = if left_bound <> 0 || right_bound <> 0 then
+    {
+      (zero_kern_info)
+      with
+      ki_after_foreign  = l;
+      ki_before_foreign = r
+    }
+  else
+    zero_kern_info
+  in
+
 
   {
-    gm_width  = scale */ num_of_int adv;
-    gm_height = scale */ num_of_int v_off;
-    gm_depth  = scale */ num_of_int (height - v_off);
-    gm_italic = scale */ num_of_int (if i > 0 then i else 0);
-    gm_extra  = GXI_Normal
+    gm_width      = scale */ num_of_int adv;
+    gm_height     = scale */ num_of_int v_off;
+    gm_depth      = scale */ num_of_int (height - v_off);
+    gm_italic     = r;
+    gm_extra      = GXI_Normal;
+    gm_extra_kern = kern_info
   }
 };
 
 value get_glyph_metric scale face = do
 {
-  let num_glyphs = face_num_glyphs face in
-  let gm         = Array.make
-                     num_glyphs
-                     {
-                       gm_width  = num_zero;
-                       gm_height = num_zero;
-                       gm_depth  = num_zero;
-                       gm_italic = num_zero;
-                       gm_extra  = GXI_Normal
-                     }
-                   in
+  let num_glyphs = face_num_glyphs face                     in
+  let gm         = Array.make num_glyphs empty_glyph_metric in
 
   for i = 1 to num_glyphs - 1 do
   {
@@ -75,13 +85,7 @@ value get_glyph_bitmap face fm code = do
             (x + b.Bitmap.bm_width - 1, y)
   in
 
-  {
-    (g)
-
-    with
-
-    Glyph.g_bitmap = b
-  }
+  { (g) with Glyph.g_bitmap = b }
 };
 
 value builtin_encoding face char = match ft_get_char_index face char with

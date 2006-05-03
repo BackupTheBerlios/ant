@@ -14,13 +14,56 @@ type glyph_extra_info =
 | GXI_Extendable of int and int and int and int
 ];
 
+type extra_kern_info =
+{
+  ki_after_space    : num;
+  ki_before_space   : num;
+  ki_after_margin   : num;
+  ki_before_margin  : num;
+  ki_after_foreign  : num;
+  ki_before_foreign : num
+};
+
 type glyph_metric =
 {
-  gm_width  : num;
-  gm_height : num;
-  gm_depth  : num;
-  gm_italic : num;
-  gm_extra  : glyph_extra_info
+  gm_width      : num;
+  gm_height     : num;
+  gm_depth      : num;
+  gm_italic     : num;
+  gm_extra      : glyph_extra_info;
+  gm_extra_kern : extra_kern_info
+};
+
+value zero_kern_info =
+{
+  ki_after_space    = num_zero;
+  ki_before_space   = num_zero;
+  ki_after_margin   = num_zero;
+  ki_before_margin  = num_zero;
+  ki_after_foreign  = num_zero;
+  ki_before_foreign = num_zero
+};
+
+value empty_glyph_metric =
+{
+  gm_width      = num_zero;
+  gm_height     = num_zero;
+  gm_depth      = num_zero;
+  gm_italic     = num_zero;
+  gm_extra      = GXI_Normal;
+  gm_extra_kern = zero_kern_info
+};
+
+(* The the after values from <left> and the before ones from <right>. *)
+
+value merge_kern_infos left right =
+{
+  ki_after_space    = left.ki_after_space;
+  ki_before_space   = right.ki_before_space;
+  ki_after_margin   = left.ki_after_margin;
+  ki_before_margin  = right.ki_before_margin;
+  ki_after_foreign  = left.ki_after_foreign;
+  ki_before_foreign = right.ki_before_foreign
 };
 
 (* font metrics *)
@@ -201,14 +244,7 @@ value accent_position acc_font acc_gm chr_font chr_gm = do
 
 value rec get_glyph_metric font glyph = match glyph with
 [ Undef
-| Border _ ->
-    {
-      gm_width  = num_zero;
-      gm_height = num_zero;
-      gm_depth  = num_zero;
-      gm_italic = num_zero;
-      gm_extra  = GXI_Normal
-    }
+| Border _           -> empty_glyph_metric
 | Simple g           -> font.glyph_metric.(g - font.first_glyph)
 | Accent a g         -> construct_accent font (Simple a) font (Simple g)
 | Sequence gs        -> construct_sequence font gs
@@ -219,11 +255,12 @@ value rec get_glyph_metric font glyph = match glyph with
     let bgm = get_glyph_metric font b in
 
     {
-      gm_width  = max_num tgm.gm_width (max_num mgm.gm_width bgm.gm_width);
-      gm_height = tgm.gm_height +/ tgm.gm_depth  +/ mgm.gm_height;
-      gm_depth  = mgm.gm_depth  +/ bgm.gm_height +/ bgm.gm_depth;
-      gm_italic = num_zero;
-      gm_extra  = GXI_Normal
+      gm_width      = max_num tgm.gm_width (max_num mgm.gm_width bgm.gm_width);
+      gm_height     = tgm.gm_height +/ tgm.gm_depth  +/ mgm.gm_height;
+      gm_depth      = mgm.gm_depth  +/ bgm.gm_height +/ bgm.gm_depth;
+      gm_italic     = num_zero;
+      gm_extra      = GXI_Normal;
+      gm_extra_kern = zero_kern_info
     }
   }
 ]
@@ -240,35 +277,51 @@ and construct_accent acc_font acc chr_font chr = do
 
   let (_, pos_y) = accent_position acc_font acc_gm chr_font chr_gm in
   {
-    gm_width  = chr_gm.gm_width;
+    (chr_gm)
+
+    with
+
     gm_height = max_num chr_gm.gm_height (acc_gm.gm_height +/ pos_y);
-    gm_depth  = max_num chr_gm.gm_depth  (acc_gm.gm_depth  -/ pos_y);
-    gm_italic = chr_gm.gm_italic;
-    gm_extra  = chr_gm.gm_extra
+    gm_depth  = max_num chr_gm.gm_depth  (acc_gm.gm_depth  -/ pos_y)
   }
 }
 
-and construct_sequence font glyphs = do
-{
-  List.fold_left
-    (fun metric g -> do
+and construct_sequence font glyphs = match glyphs with
+[ []            -> empty_glyph_metric
+| [g]           -> get_glyph_metric font (Simple g)
+| [first :: gs] -> do
+  {
+    let m1 = get_glyph_metric font (Simple first) in
+
+    iter m1.gm_width m1.gm_height m1.gm_depth gs
+
+    where rec iter width height depth glyphs = match glyphs with
+    [ [last] -> do
+      {
+        let m2 = get_glyph_metric font (Simple last)  in
+        {
+          gm_width  = width +/ m2.gm_width;
+          gm_height = max_num height m2.gm_height;
+          gm_depth  = max_num depth  m2.gm_depth;
+          gm_italic = m2.gm_italic;
+          gm_extra  = GXI_Normal;
+          gm_extra_kern = merge_kern_infos m1.gm_extra_kern m2.gm_extra_kern
+        }
+      }
+    | [g::gs] -> do
       {
         let m = get_glyph_metric font (Simple g) in
-        {
-          gm_width  = metric.gm_width +/ m.gm_width;
-          gm_height = max_num metric.gm_width m.gm_width;
-          gm_depth  = max_num metric.gm_depth m.gm_depth;
-          gm_italic = m.gm_italic;
-          gm_extra  = GXI_Normal
-        }
-      })
-    { gm_width  = num_zero;
-      gm_height = num_zero;
-      gm_depth  = num_zero;
-      gm_italic = num_zero;
-      gm_extra  = GXI_Normal }
-    glyphs
-};
+
+        iter
+          (width +/ m.gm_width)
+          (max_num height m.gm_height)
+          (max_num depth  m.gm_depth)
+          gs
+      }
+    | [] -> assert False
+    ]
+  }
+];
 
 (* Default value for |accent_base_point| where the base point lies at the x-height. *)
 
@@ -303,6 +356,40 @@ value next_glyph font glyph = do
   ]
 };
 
+value get_after_kerning font border glyph = do
+{
+  let m = get_glyph_metric font glyph in
+
+  let k = match border with
+  [ Space   -> m.gm_extra_kern.ki_after_space
+  | Margin  -> m.gm_extra_kern.ki_after_margin
+  | Foreign -> m.gm_extra_kern.ki_after_foreign
+  ]
+  in
+
+  if k <>/ num_zero then
+    Kern k
+  else
+    NoLigKern
+};
+
+value get_before_kerning font glyph border = do
+{
+  let m = get_glyph_metric font glyph in
+
+  let k = match border with
+  [ Space   -> m.gm_extra_kern.ki_before_space
+  | Margin  -> m.gm_extra_kern.ki_before_margin
+  | Foreign -> m.gm_extra_kern.ki_before_foreign
+  ]
+  in
+
+  if k <>/ num_zero then
+    Kern k
+  else
+    NoLigKern
+};
+
 (*
   |get_lig_kern <font> <glyph-1> <glyph-2>| returns either the amount of kerning between two glyphs
   or the ligature formed by them.
@@ -313,6 +400,8 @@ value get_lig_kern font glyph1 glyph2 = match (glyph1, glyph2) with
 | (Simple g1,   Accent _ g2) -> font.kerning font g1 g2
 | (Accent _ g1, Simple g2)   -> font.kerning font g1 g2
 | (Accent _ g1, Accent _ g2) -> font.kerning font g1 g2
+| (Border b,    g)           -> get_after_kerning  font b g
+| (g,           Border b)    -> get_before_kerning font g b
 | _                          -> NoLigKern
 ];
 

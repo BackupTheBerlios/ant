@@ -14,13 +14,24 @@ type glyph_extra_info =
 | GXI_Extendable of int and int and int and int
 ];
 
+type extra_kern_info =
+{
+  ki_after_space    : num;
+  ki_before_space   : num;
+  ki_after_margin   : num;
+  ki_before_margin  : num;
+  ki_after_foreign  : num;
+  ki_before_foreign : num
+};
+
 type glyph_metric =
 {
-  gm_width  : num;
-  gm_height : num;
-  gm_depth  : num;
-  gm_italic : num;
-  gm_extra  : glyph_extra_info
+  gm_width      : num;
+  gm_height     : num;
+  gm_depth      : num;
+  gm_italic     : num;
+  gm_extra      : glyph_extra_info;
+  gm_extra_kern : extra_kern_info
 };
 
 (* font metrics *)
@@ -130,6 +141,9 @@ type page =
 };
 
 
+value zero_kern_info     : extra_kern_info;
+value empty_glyph_metric : glyph_metric;
+value merge_kern_infos   : extra_kern_info -> extra_kern_info -> extra_kern_info;
 
 value default_bitmap_resolution : ref int;
 value default_mf_mode           : ref string;

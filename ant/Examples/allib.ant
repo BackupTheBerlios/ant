@@ -318,11 +318,11 @@ until p f x       := until p f (f x);
 line p_0 p_1 := [(p_0, 1/3[p_0,p_1], 2/3[p_0,p_1], p_1)];
 
 circle r :=
-  (p_add_point 0 r  >>
-   p_add_point ~r 0 >>
-   p_add_point 0 ~r >>
-   p_close_path True)
-  (p_make_path r 0);
+  (path_add_point 0 r  >>
+   path_add_point ~r 0 >>
+   path_add_point 0 ~r >>
+   close_path True)
+  (make_path r 0);
 square r := line ( r, r) (~r, r) +
             line (~r, r) (~r,~r) +
             line (~r,~r) ( r,~r) +
@@ -331,19 +331,19 @@ square r := line ( r, r) (~r, r) +
 path []     := [];
 path [z:zs] := build_path (start_path z) zs
 where
-  start_path (Point,(x,y)) := p_make_path x y;
+  start_path (Point,(x,y)) := make_path x y;
   start_path _             := error "path specification must start with a point!";
 
-  build_path spec []                  := p_close_path False spec;
-  build_path spec [Cycle]             := p_close_path True  spec;
-  build_path spec [(InDir, a)   : zs] := build_path (p_add_in_dir      a spec) zs;
-  build_path spec [(InCurl, c)  : zs] := build_path (p_add_in_curl     c spec) zs;
-  build_path spec [(InTens, t)  : zs] := build_path (p_add_in_tension  t spec) zs;
-  build_path spec [(OutDir, a)  : zs] := build_path (p_add_out_dir     a spec) zs;
-  build_path spec [(OutCurl, c) : zs] := build_path (p_add_out_curl    c spec) zs;
-  build_path spec [(OutTens, t) : zs] := build_path (p_add_out_tension t spec) zs;
-  build_path spec [(Point, (x, y))                   : zs] := build_path (p_add_point x y spec) zs;
-  build_path spec [(Control, (x_1, y_1), (x_2, y_2)) : zs] := build_path (p_add_control_points x_1 y_1 x_2 y_2 spec) zs;
+  build_path spec []                  := close_path False spec;
+  build_path spec [Cycle]             := close_path True  spec;
+  build_path spec [(InDir, a)   : zs] := build_path (path_add_in_dir      a spec) zs;
+  build_path spec [(InCurl, c)  : zs] := build_path (path_add_in_curl     c spec) zs;
+  build_path spec [(InTens, t)  : zs] := build_path (path_add_in_tension  t spec) zs;
+  build_path spec [(OutDir, a)  : zs] := build_path (path_add_out_dir     a spec) zs;
+  build_path spec [(OutCurl, c) : zs] := build_path (path_add_out_curl    c spec) zs;
+  build_path spec [(OutTens, t) : zs] := build_path (path_add_out_tension t spec) zs;
+  build_path spec [(Point, (x, y))                   : zs] := build_path (path_add_point x y spec) zs;
+  build_path spec [(Control, (x_1, y_1), (x_2, y_2)) : zs] := build_path (path_add_control_points x_1 y_1 x_2 y_2 spec) zs;
 end;
 
 \endALdeclarations

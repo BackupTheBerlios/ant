@@ -224,41 +224,54 @@ value make_glyph_metric width height depth italic lig exten (w,x1,x2,r) = do
   let i  = x2 lsr 2    in
   let t  = x2 land 0x3 in
 
+  (* If italic.(i) = 0 then we do not need to allocate a new structure. *)
+  let kern_info = if italic.(i) <>/ num_zero then
+    {
+      (zero_kern_info) with ki_before_foreign = italic.(i)
+    }
+  else
+    zero_kern_info
+  in
+
   match t with
   [ 0 -> {
-           gm_width  = width.(w);
-           gm_height = height.(h);
-           gm_depth  = depth.(d);
-           gm_italic = italic.(i);
-           gm_extra  = GXI_Normal
+           gm_width      = width.(w);
+           gm_height     = height.(h);
+           gm_depth      = depth.(d);
+           gm_italic     = italic.(i);
+           gm_extra      = GXI_Normal;
+           gm_extra_kern = kern_info
          }
   | 1 -> let lk = lig.(r) in
          {
-           gm_width  = width.(w);
-           gm_height = height.(h);
-           gm_depth  = depth.(d);
-           gm_italic = italic.(i);
-           gm_extra  = GXI_LigKern
-                         (if LigKern.is_lig lk && LigKern.skip lk > 128 then
-                            256 * LigKern.operand lk + LigKern.remainder lk
-                          else
-                            r
-                         )
+           gm_width      = width.(w);
+           gm_height     = height.(h);
+           gm_depth      = depth.(d);
+           gm_italic     = italic.(i);
+           gm_extra      = GXI_LigKern
+                             (if LigKern.is_lig lk && LigKern.skip lk > 128 then
+                                256 * LigKern.operand lk + LigKern.remainder lk
+                              else
+                                r
+                             );
+           gm_extra_kern = kern_info
          }
   | 2 -> {
-           gm_width  = width.(w);
-           gm_height = height.(h);
-           gm_depth  = depth.(d);
-           gm_italic = italic.(i);
-           gm_extra  = GXI_List r
+           gm_width      = width.(w);
+           gm_height     = height.(h);
+           gm_depth      = depth.(d);
+           gm_italic     = italic.(i);
+           gm_extra      = GXI_List r;
+           gm_extra_kern = kern_info
          }
   | _ -> let (t,m,b,r) = exten.(r) in
          {
-           gm_width  = width.(w);
-           gm_height = height.(h);
-           gm_depth  = depth.(d);
-           gm_italic = italic.(i);
-           gm_extra  = GXI_Extendable t m b r
+           gm_width      = width.(w);
+           gm_height     = height.(h);
+           gm_depth      = depth.(d);
+           gm_italic     = italic.(i);
+           gm_extra      = GXI_Extendable t m b r;
+           gm_extra_kern = kern_info
          }
   ]
 };
