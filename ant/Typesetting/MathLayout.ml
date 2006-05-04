@@ -4,13 +4,12 @@ open Unicode.Types;
 open Runtime.Logging;
 open Runtime.Dim;
 open Runtime.Substitute;
+open Runtime.GlyphMetric;
 open Runtime.FontMetric;
 open Box;
 
-module FontMetric = Runtime.FontMetric;
-module FontTable  = Runtime.FontTable;
-module Graphic    = Runtime.Graphic;
-module JustHyph   = Runtime.JustHyph;
+module Graphic  = Runtime.Graphic;
+module JustHyph = Runtime.JustHyph;
 
 (* styles *)
 
@@ -150,8 +149,8 @@ value math_dim_to_points params dim = do
 
 value make_glyph_box glyph font = do
 {
-  let gm  = FontMetric.get_glyph_metric font glyph in
-  let box = new_glyph_box glyph font               in
+  let gm  = get_glyph_metric font glyph in
+  let box = new_glyph_box glyph font    in
   {
     (box)
 
@@ -165,7 +164,7 @@ value make_glyph_box glyph font = do
 
 value make_char_box char font = do
 {
-  make_glyph_box (FontMetric.get_glyph font char) font
+  make_glyph_box (get_glyph font char) font
 };
 
 (* Remove the italic correction again. *)
@@ -173,7 +172,7 @@ value make_char_box char font = do
 value remove_icorr box = match box.b_contents with
 [ CharBox g f -> do
   {
-    let gm = FontMetric.get_glyph_metric f g in
+    let gm = get_glyph_metric f g in
     {
       (box)
 
@@ -418,7 +417,7 @@ value rec merge_scripts style boxes font_params math_params = match boxes with
     {
       let box         = remove_math_box base_box in
       let super_shift = match box.b_contents with
-                        [ CharBox c f -> (FontMetric.get_glyph_metric f c).gm_italic
+                        [ CharBox c f -> (get_glyph_metric f c).gm_italic
                         | _           -> num_zero
                         ]
                         in
@@ -661,7 +660,7 @@ value add_spaces style boxes font_params math_params = do
   | [box::bs] -> match box.b_contents with
     [ MathBox _ { b_contents = CharBox c f } -> do
       {
-        let italic = (FontMetric.get_glyph_metric f c).gm_italic in
+        let italic = (get_glyph_metric f c).gm_italic in
 
         if italic = num_zero then
           [box :: add_italic bs]
@@ -731,7 +730,7 @@ value construct_delimiter
   [ []      -> None
   | [f::fs] -> do
     {
-      if not (FontMetric.glyph_exists f glyph) then do
+      if not (glyph_exists f glyph) then do
       {
         log_warn ("",0,0) "nonexisting glyph specified!";
         None
@@ -744,19 +743,19 @@ value construct_delimiter
       | Extendable _ _ _ _ -> Some (make_delim f glyph)
       | _                  -> do
         {
-          let gm     = FontMetric.get_glyph_metric f glyph in
-          let height = total_height gm                     in
+          let gm     = get_glyph_metric f glyph in
+          let height = total_height gm          in
 
           if height >/ best_height then do
           {
             if height >=/ delim_height then
               Some (make_delim f glyph)
-            else match FontMetric.next_glyph f glyph with
+            else match next_glyph f glyph with
             [ Undef -> loop_fonts fs glyph height
             | g     -> loop_chars g glyph height
             ]
           }
-          else match FontMetric.next_glyph f glyph with
+          else match next_glyph f glyph with
           [ Undef -> loop_fonts fs best_glyph best_height
           | g     -> loop_chars g best_glyph best_height
           ]
@@ -908,7 +907,7 @@ value make_operator style glyph font font_params = do
 
   if is_display style then do
   {
-    match FontMetric.next_glyph font glyph with
+    match next_glyph font glyph with
     [ Undef -> make_op glyph
     | g     -> make_op g
     ]
@@ -1115,7 +1114,7 @@ value make_accent style char font boxes font_params math_params = do
         let sg = f.parameter.skew_glyph in
 
         if sg <> Undef then
-          match FontMetric.get_lig_kern f c sg with
+          match get_lig_kern f c sg with
           [ Kern k -> k
           | _      -> num_zero
           ]
@@ -1132,11 +1131,11 @@ value make_accent style char font boxes font_params math_params = do
   {
     iter char
 
-    where rec iter char = match FontMetric.next_glyph font char with
+    where rec iter char = match next_glyph font char with
     [ Undef -> char
     | next  -> do
       {
-        let new_gm = FontMetric.get_glyph_metric font next in
+        let new_gm = get_glyph_metric font next in
 
         if new_gm.gm_width <=/ width then
           iter next

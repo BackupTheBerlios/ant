@@ -19,10 +19,10 @@ value output_pages format pages = match pages with
     in
 
     match format with
-    [ Job.DVI -> DVI.write_dvi_file               !Job.output_file comment pages
-    | Job.PDF -> OutputPDF.write_pdf_file         !Job.output_file comment pages
-    | Job.PS  -> PostScript.write_postscript_file !Job.output_file comment pages
-    | Job.SVG -> SVG.write_svg_file               !Job.output_file comment pages
+    [ Job.DVI -> GenerateDVI.write_dvi_file               !Job.output_file comment pages
+    | Job.PDF -> GeneratePDF.write_pdf_file               !Job.output_file comment pages
+    | Job.PS  -> GeneratePostScript.write_postscript_file !Job.output_file comment pages
+    | Job.SVG -> GenerateSVG.write_svg_file               !Job.output_file comment pages
     ]
   }
 ];

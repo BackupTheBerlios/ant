@@ -20,7 +20,7 @@ type font_definition =
   fd_min_size     : num;
   fd_max_size     : num;
   fd_loaded_sizes : mutable list (num * font_metric);
-  fd_data         : (glyph_desc * glyph_desc * num)
+  fd_data         : font_load_params
 };
 
 type font =
@@ -69,9 +69,16 @@ value add_font font_def = do
 
 value load_font fd size = do
 {
-  let (hyphen, skew, scale) = fd.fd_data in
+  (* |fd.fd_data.flp_size| does not contain the real size, but a scale factor. *)
+  let params =
+    {
+      (fd.fd_data)
+      with
+      flp_size = fd.fd_data.flp_size */ size
+    }
+  in
 
-  let font = FontTable.load_font (UString.to_string (Array.to_list fd.fd_name)) (scale */ size) in
+  let font = LoadFont.load_font (UString.to_string (Array.to_list fd.fd_name)) params in
 
   let fm1 = match fd.fd_encoding with
   [ [|79; 84; 49|]   -> FontMetric.set_encoding font                       (* OT1 *)
@@ -103,14 +110,14 @@ value load_font fd size = do
   ]
   in
 
-  let fm2 = match hyphen with
+  let fm2 = match fd.fd_data.flp_hyphen_glyph with
     [ Undef -> fm1
-    | _     -> FontMetric.set_hyphen_char fm1 hyphen
+    | h     -> FontMetric.set_hyphen_char fm1 h
     ]
   in
-  let fm3 = match skew with
+  let fm3 = match fd.fd_data.flp_skew_glyph with
     [ Undef -> fm2
-    | _     -> FontMetric.set_skew_char fm2 skew
+    | s     -> FontMetric.set_skew_char fm2 s
     ]
   in
 
@@ -218,7 +225,7 @@ value initialise_font_table () = do
   declare_font
     [||] [||] [||] [||] [||]
     (num_zero, num_of_int 10000)
-    (Undef, Undef, num_one);
+    empty_load_params;
 
   let decl name encoding family series shape size_min size_max skew_char =
     declare_font (UString.uc_string_of_ascii name)
@@ -227,7 +234,14 @@ value initialise_font_table () = do
                  (UString.uc_string_of_ascii series)
                  (UString.uc_string_of_ascii shape)
                  ((num_of_int size_min), (num_of_int size_max))
-                 (Simple 45, skew_char, num_one)
+                 {
+                   (empty_load_params)
+
+                   with
+
+                   flp_size       = num_one;
+                   flp_skew_glyph = skew_char
+                 }
   in
 
   (* FIX: Remove these hardwired values, "empty" is enough. *)

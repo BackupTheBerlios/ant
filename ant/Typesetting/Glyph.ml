@@ -4,6 +4,7 @@ open Runtime;
 open Unicode.Types;
 open Dim;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 open Box;
 

@@ -2,6 +2,7 @@
 open XNum;
 open Unicode;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 open FreeType;
 open OpenType;
@@ -74,7 +75,7 @@ value get_glyph_bitmap face fm code = do
   let (x, y, b) = glyph_to_bitmap (face_glyph face) in
   let dpp       = num_of_ints 100 7227 */ num_of_int !default_bitmap_resolution in
 
-  let g = Glyph.make
+  let g = GlyphBitmap.make
             code
             (int_of_num (round_num (gm.gm_width  */ dpp)))
             (int_of_num (round_num (gm.gm_height */ dpp)))
@@ -85,7 +86,7 @@ value get_glyph_bitmap face fm code = do
             (x + b.Bitmap.bm_width - 1, y)
   in
 
-  { (g) with Glyph.g_bitmap = b }
+  { (g) with GlyphBitmap.g_bitmap = b }
 };
 
 value builtin_encoding face char = match ft_get_char_index face char with
@@ -628,7 +629,7 @@ value get_composer pos_subst p_table s_table scale = match pos_subst with
 
 end;
 
-value read_ft file name size = do
+value read_ft file name params = do
 {
   let face = ft_new_face file in
 
@@ -673,6 +674,7 @@ value read_ft file name size = do
                      ]
                      in
 
+  let size         = params.flp_size                  in
   let scale        = size // num_of_int em            in
   let design_size  = scale */ num_of_int (asc - desc) in
   let glyph_metric = get_glyph_metric scale face      in
@@ -693,6 +695,11 @@ value read_ft file name size = do
                        glyph_metric.(m_glyph - 1).gm_width
                      else
                        size
+                     in
+  let hyphen_glyph = match params.flp_hyphen_glyph with
+                     [ Undef -> Simple 45
+                     | h     -> h
+                     ]
                      in
 
   let s_table         = ref Composer.empty_table in
@@ -720,8 +727,8 @@ value read_ft file name size = do
     get_glyph_name      = ft_get_glyph_name face;
     parameter           =
       {
-        hyphen_glyph     = builtin_encoding face 45;
-        skew_glyph       = Undef;
+        hyphen_glyph     = hyphen_glyph;
+        skew_glyph       = params.flp_skew_glyph;
         slant            = num_zero;
         space            = space;
         space_stretch    = space // num_of_int 2;

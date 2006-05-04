@@ -2069,7 +2069,15 @@ value declare_font ps = do
     series
     shape
     (Parser.read_range (UCStream.of_list sizes))
-    (get_glyph hyphen, get_glyph skew, scale)
+    {
+      (FontMetric.empty_load_params)
+
+      with
+
+      FontMetric.flp_size         = scale;
+      FontMetric.flp_hyphen_glyph = get_glyph hyphen;
+      FontMetric.flp_skew_glyph   = get_glyph skew
+    }
 };
 
 (* references *)

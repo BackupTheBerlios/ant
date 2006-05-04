@@ -2,6 +2,7 @@
 open XNum;
 open Unicode.Types;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 
 type hyphen_params =

@@ -17,7 +17,7 @@ type font_definition =
   fd_min_size     : num;
   fd_max_size     : num;
   fd_loaded_sizes : mutable list (num * font_metric);
-  fd_data         : (glyph_desc * glyph_desc * num)
+  fd_data         : font_load_params
 };
 
 type font =
@@ -29,10 +29,10 @@ type font =
 
 value get_font     : uc_string -> uc_string -> uc_string -> num -> option font;
 value declare_font : uc_string -> uc_string -> uc_string -> uc_string ->
-                     uc_string -> (num * num) -> (glyph_desc * glyph_desc * num) -> unit;
+                     uc_string -> (num * num) -> font_load_params -> unit;
 
 value initialise_font_table : unit -> unit;
 
-value make_virtual_font : string -> num -> array box -> array num -> list ((int * int) * lig_kern) ->
+value make_virtual_font : string -> num -> array box -> array num -> list ((int * int) * GlyphMetric.lig_kern) ->
                           array num -> font_metric;
 

@@ -1,6 +1,7 @@
 
 open XNum;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 
 value rec read_nybbles ic len = do
@@ -109,16 +110,16 @@ value parse_glyph glyph dyn_f width height paint_switch nybbles = do
       let set_points p1 p2 p3 p4 = do
       {
         if p1 then
-          Bitmap.set_point glyph.Glyph.g_bitmap (i mod width)     (i / width)
+          Bitmap.set_point glyph.GlyphBitmap.g_bitmap (i mod width)     (i / width)
         else ();
         if p2 then
-          Bitmap.set_point glyph.Glyph.g_bitmap ((i+1) mod width) ((i+1) / width)
+          Bitmap.set_point glyph.GlyphBitmap.g_bitmap ((i+1) mod width) ((i+1) / width)
         else ();
         if p3 then
-          Bitmap.set_point glyph.Glyph.g_bitmap ((i+2) mod width) ((i+2) / width)
+          Bitmap.set_point glyph.GlyphBitmap.g_bitmap ((i+2) mod width) ((i+2) / width)
         else ();
         if p4 then
-          Bitmap.set_point glyph.Glyph.g_bitmap ((i+3) mod width) ((i+3) / width)
+          Bitmap.set_point glyph.GlyphBitmap.g_bitmap ((i+3) mod width) ((i+3) / width)
         else ();
       }
       in
@@ -154,7 +155,7 @@ value parse_glyph glyph dyn_f width height paint_switch nybbles = do
       {
         if n > 0 then do
         {
-          Bitmap.set_point glyph.Glyph.g_bitmap (i mod width) (i / width);
+          Bitmap.set_point glyph.GlyphBitmap.g_bitmap (i mod width) (i / width);
           set_points (i+1) (n-1)
         }
         else ()
@@ -169,7 +170,7 @@ value parse_glyph glyph dyn_f width height paint_switch nybbles = do
         {
           if n > 0 then do
           {
-            Bitmap.copy_line glyph.Glyph.g_bitmap (y-1) y;
+            Bitmap.copy_line glyph.GlyphBitmap.g_bitmap (y-1) y;
             iter (y+1) (n-1)
           }
           else ()
@@ -282,11 +283,11 @@ value read_glyph ic fm (hppp, vppp, _) glyphs = do
     let (len, char, _, _, _, width, height, h_off, v_off) = read_preamble low_bits in
 
     let nybbles = read_nybbles ic len in
-    let gm      = FontMetric.get_glyph_metric fm (Simple char) in
+    let gm      = get_glyph_metric fm (Simple char) in
 
     glyphs.(char) :=
       (parse_glyph
-        (Glyph.make
+        (GlyphBitmap.make
           char
           (int_of_num (round_num (gm.gm_width  */ hppp)))
           (int_of_num (round_num (gm.gm_height */ vppp)))
@@ -336,7 +337,7 @@ value parse_pk_file fm ic = do
   | Some resolution -> do
     {
       let glyphs = Array.make (fm.last_glyph - fm.first_glyph + 1)
-                              Glyph.empty_glyph
+                              GlyphBitmap.empty_glyph
       in
 
       try

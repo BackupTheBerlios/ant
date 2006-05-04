@@ -4,35 +4,7 @@ open Unicode.Types;
 open Dim;
 open Graphic;
 open Substitute;
-
-(* glyph metrics *)
-
-type glyph_extra_info =
-[ GXI_Normal
-| GXI_LigKern    of int
-| GXI_List       of int
-| GXI_Extendable of int and int and int and int
-];
-
-type extra_kern_info =
-{
-  ki_after_space    : num;
-  ki_before_space   : num;
-  ki_after_margin   : num;
-  ki_before_margin  : num;
-  ki_after_foreign  : num;
-  ki_before_foreign : num
-};
-
-type glyph_metric =
-{
-  gm_width      : num;
-  gm_height     : num;
-  gm_depth      : num;
-  gm_italic     : num;
-  gm_extra      : glyph_extra_info;
-  gm_extra_kern : extra_kern_info
-};
+open GlyphMetric;
 
 (* font metrics *)
 
@@ -70,12 +42,6 @@ type font_parameter =
   big_op_spacing_5 : num
 };
 
-type lig_kern =
-[ NoLigKern
-| Ligature of int and int and bool and bool  (* glyph skip keep-first? keep-second? *)
-| Kern of num
-];
-
 type font_type =
 [ PostScript
 | OpenTypeCFF
@@ -102,7 +68,7 @@ type font_metric =
   draw_simple_glyph   : font_metric -> int -> simple_box;
   accent_base_point   : font_metric -> glyph_metric -> (num * num);
   accent_attach_point : font_metric -> glyph_metric -> (num * num);
-  get_glyph_bitmap    : font_metric -> uc_char -> Glyph.glyph;
+  get_glyph_bitmap    : font_metric -> uc_char -> GlyphBitmap.glyph;
   get_glyph_name      : int -> string;
   glyph_metric        : array glyph_metric
 }
@@ -122,13 +88,17 @@ and simple_cmd =
 [= `DVI_Special of string
 ];
 
-type char_item 'box 'cmd =
-[= `Char of uc_char
-|  `Kern of (num * num)
-|  `Box of 'box
-|  `Command of 'cmd
-|  `Break of (num * bool * list (char_item 'box 'cmd) * list (char_item 'box 'cmd) * list (char_item 'box 'cmd))
-];
+(* User specified modifications of font parameters. *)
+
+type font_load_params =
+{
+  flp_size           : num;                         (* scale font to this size     *)
+  flp_encoding       : array uc_char;               (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                         (* additional letter spacing   *)
+  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+};
 
 (* pages *)
 
@@ -139,11 +109,6 @@ type page =
   p_width    : num;
   p_height   : num
 };
-
-
-value zero_kern_info     : extra_kern_info;
-value empty_glyph_metric : glyph_metric;
-value merge_kern_infos   : extra_kern_info -> extra_kern_info -> extra_kern_info;
 
 value default_bitmap_resolution : ref int;
 value default_mf_mode           : ref string;
@@ -185,6 +150,7 @@ value construct_accent           : font_metric -> glyph_desc -> font_metric -> g
 value space_glue  : font_metric -> dim;
 value xspace_glue : font_metric -> dim;
 
-value empty_font      : font_metric;
-value empty_parameter : font_parameter;
+value empty_font        : font_metric;
+value empty_parameter   : font_parameter;
+value empty_load_params : font_load_params;
 

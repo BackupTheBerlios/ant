@@ -1,6 +1,7 @@
 
 open XNum;
 open Unicode;
+open GlyphMetric;
 open FontMetric;
 open Logging;
 
@@ -558,13 +559,13 @@ value write_bitmap state bmap = do
 value write_glyph_bitmap state fm glyph = do
 {
   let g       = fm.get_glyph_bitmap fm glyph      in
-  let h_scale = 72.0 /. (72.27 *. g.Glyph.g_hdpp) in
-  let v_scale = 72.0 /. (72.27 *. g.Glyph.g_vdpp) in
+  let h_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_hdpp) in
+  let v_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_vdpp) in
 
   IO.printf state.os "<g transform=\"scale(%f,%f)\"><g transform=\"translate(%d,%d)\">"
-    h_scale v_scale g.Glyph.g_min_x g.Glyph.g_min_y;
+    h_scale v_scale g.GlyphBitmap.g_min_x g.GlyphBitmap.g_min_y;
 
-  write_bitmap state g.Glyph.g_bitmap;
+  write_bitmap state g.GlyphBitmap.g_bitmap;
 
   IO.write_string state.os "</g></g>"
 };

@@ -1,6 +1,7 @@
 
 open XNum;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 
 type virtual_glyph =

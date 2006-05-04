@@ -4,6 +4,7 @@ open Unicode.Types;
 open Logging;
 open Dim;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 
 type state 'a =

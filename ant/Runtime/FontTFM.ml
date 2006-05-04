@@ -1,6 +1,7 @@
 
 open XNum;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 
 module LigKern =
@@ -204,7 +205,7 @@ value get_glyph_bitmap bitmaps fm code = do
   else ();
 
   match !bitmaps with
-  [ None    -> Glyph.empty_glyph
+  [ None    -> GlyphBitmap.empty_glyph
   | Some bm -> bm.(code - fm.first_glyph)
   ]
 };
@@ -281,7 +282,7 @@ value tfm_composer fm _ _ = do
   simple_composer fm (simple_ligature_substitution fm)
 };
 
-value read_tfm file name size = do
+value read_tfm file name params = do
 {
   let ic = IO.make_in_stream file in
 
@@ -304,6 +305,12 @@ value read_tfm file name size = do
   let check_sum   = IO.read_be_u32 ic in
   let design_size = read_fix ic       in
 
+  let size = if params.flp_size >=/ num_zero then
+               params.flp_size
+             else
+               design_size
+             in
+
   IO.skip ic (4 * header_length - 8);
 
   let glyph_metric = read_array ic read_4   glyph_metric_table_len in
@@ -318,6 +325,12 @@ value read_tfm file name size = do
 
   let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig in
   let gm_table  = Array.map (fun x -> make_glyph_metric width height depth italic lig_cmds ext x) glyph_metric in
+
+  let hyphen_glyph = match params.flp_hyphen_glyph with
+                     [ Undef -> Simple 45
+                     | h     -> h
+                     ]
+                     in
 
   {
     name                = name;
@@ -340,8 +353,8 @@ value read_tfm file name size = do
     get_glyph_name      = (fun g -> Printf.sprintf "c%d" g);
     parameter           =
       {
-        hyphen_glyph     = Simple 45;
-        skew_glyph       = Undef;
+        hyphen_glyph     = hyphen_glyph;
+        skew_glyph       = params.flp_skew_glyph;
         slant            = if param_table_len >  0 then param.( 0) else num_zero;
         space            = if param_table_len >  1 then size */ param.( 1) else num_zero;
         space_stretch    = if param_table_len >  2 then size */ param.( 2) else num_zero;

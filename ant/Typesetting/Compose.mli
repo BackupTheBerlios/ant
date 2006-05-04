@@ -2,6 +2,7 @@
 open Runtime;
 open Substitute;
 open FontMetric;
+open GlyphMetric;
 open Box;
 
 value discard_glue       : list (glyph_item 'font box box) -> (list (glyph_item 'font box box) * list (glyph_item 'font box box));

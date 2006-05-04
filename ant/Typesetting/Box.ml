@@ -3,6 +3,7 @@ open XNum;
 open Unicode.Types;
 open Runtime;
 open Substitute;
+open GlyphMetric;
 open FontMetric;
 open Logging;
 open Dim;

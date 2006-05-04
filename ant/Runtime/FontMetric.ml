@@ -4,67 +4,7 @@ open Unicode.Types;
 open Dim;
 open Graphic;
 open Substitute;
-
-(* glyph metrics *)
-
-type glyph_extra_info =
-[ GXI_Normal
-| GXI_LigKern    of int
-| GXI_List       of int
-| GXI_Extendable of int and int and int and int
-];
-
-type extra_kern_info =
-{
-  ki_after_space    : num;
-  ki_before_space   : num;
-  ki_after_margin   : num;
-  ki_before_margin  : num;
-  ki_after_foreign  : num;
-  ki_before_foreign : num
-};
-
-type glyph_metric =
-{
-  gm_width      : num;
-  gm_height     : num;
-  gm_depth      : num;
-  gm_italic     : num;
-  gm_extra      : glyph_extra_info;
-  gm_extra_kern : extra_kern_info
-};
-
-value zero_kern_info =
-{
-  ki_after_space    = num_zero;
-  ki_before_space   = num_zero;
-  ki_after_margin   = num_zero;
-  ki_before_margin  = num_zero;
-  ki_after_foreign  = num_zero;
-  ki_before_foreign = num_zero
-};
-
-value empty_glyph_metric =
-{
-  gm_width      = num_zero;
-  gm_height     = num_zero;
-  gm_depth      = num_zero;
-  gm_italic     = num_zero;
-  gm_extra      = GXI_Normal;
-  gm_extra_kern = zero_kern_info
-};
-
-(* The the after values from <left> and the before ones from <right>. *)
-
-value merge_kern_infos left right =
-{
-  ki_after_space    = left.ki_after_space;
-  ki_before_space   = right.ki_before_space;
-  ki_after_margin   = left.ki_after_margin;
-  ki_before_margin  = right.ki_before_margin;
-  ki_after_foreign  = left.ki_after_foreign;
-  ki_before_foreign = right.ki_before_foreign
-};
+open GlyphMetric;
 
 (* font metrics *)
 
@@ -102,12 +42,6 @@ type font_parameter =
   big_op_spacing_5 : num
 };
 
-type lig_kern =
-[ NoLigKern
-| Ligature of int and int and bool and bool  (* glyph skip keep-first? keep-second? *)
-| Kern of num
-];
-
 type font_type =
 [ PostScript
 | OpenTypeCFF
@@ -134,7 +68,7 @@ type font_metric =
   draw_simple_glyph   : font_metric -> int -> simple_box;
   accent_base_point   : font_metric -> glyph_metric -> (num * num);
   accent_attach_point : font_metric -> glyph_metric -> (num * num);
-  get_glyph_bitmap    : font_metric -> uc_char -> Glyph.glyph;
+  get_glyph_bitmap    : font_metric -> uc_char -> GlyphBitmap.glyph;
   get_glyph_name      : int -> string;
   glyph_metric        : array glyph_metric
 }
@@ -154,13 +88,15 @@ and simple_cmd =
 [= `DVI_Special of string
 ];
 
-type char_item 'box 'cmd =
-[= `Char of uc_char
-|  `Kern of (num * num)
-|  `Box of 'box
-|  `Command of 'cmd
-|  `Break of (num * bool * list (char_item 'box 'cmd) * list (char_item 'box 'cmd) * list (char_item 'box 'cmd))
-];
+type font_load_params =
+{
+  flp_size           : num;                         (* scale font to this size     *)
+  flp_encoding       : array uc_char;               (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                         (* additional letter spacing   *)
+  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+};
 
 (* pages *)
 
@@ -356,40 +292,6 @@ value next_glyph font glyph = do
   ]
 };
 
-value get_after_kerning font border glyph = do
-{
-  let m = get_glyph_metric font glyph in
-
-  let k = match border with
-  [ Space   -> m.gm_extra_kern.ki_after_space
-  | Margin  -> m.gm_extra_kern.ki_after_margin
-  | Foreign -> m.gm_extra_kern.ki_after_foreign
-  ]
-  in
-
-  if k <>/ num_zero then
-    Kern k
-  else
-    NoLigKern
-};
-
-value get_before_kerning font glyph border = do
-{
-  let m = get_glyph_metric font glyph in
-
-  let k = match border with
-  [ Space   -> m.gm_extra_kern.ki_before_space
-  | Margin  -> m.gm_extra_kern.ki_before_margin
-  | Foreign -> m.gm_extra_kern.ki_before_foreign
-  ]
-  in
-
-  if k <>/ num_zero then
-    Kern k
-  else
-    NoLigKern
-};
-
 (*
   |get_lig_kern <font> <glyph-1> <glyph-2>| returns either the amount of kerning between two glyphs
   or the ligature formed by them.
@@ -400,8 +302,8 @@ value get_lig_kern font glyph1 glyph2 = match (glyph1, glyph2) with
 | (Simple g1,   Accent _ g2) -> font.kerning font g1 g2
 | (Accent _ g1, Simple g2)   -> font.kerning font g1 g2
 | (Accent _ g1, Accent _ g2) -> font.kerning font g1 g2
-| (Border b,    g)           -> get_after_kerning  font b g
-| (g,           Border b)    -> get_before_kerning font g b
+| (Border b,    g)           -> get_after_kerning  (get_glyph_metric font g) b
+| (g,           Border b)    -> get_before_kerning (get_glyph_metric font g) b
 | _                          -> NoLigKern
 ];
 
@@ -614,5 +516,15 @@ value empty_font =
   get_glyph_name      = (fun _ -> assert False);
   glyph_metric        = [| |];
   parameter           = empty_parameter
+};
+
+value empty_load_params =
+{
+  flp_size           = num_zero;
+  flp_encoding       = [| |];
+  flp_hyphen_glyph   = Undef;
+  flp_skew_glyph     = Undef;
+  flp_letter_spacing = num_zero;
+  flp_extra_kern     = []
 };
 

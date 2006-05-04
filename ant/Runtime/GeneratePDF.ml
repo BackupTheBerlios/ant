@@ -1,6 +1,7 @@
 
 open XNum;
 open Unicode.Types;
+open GlyphMetric;
 open FontMetric;
 open Logging;
 
@@ -63,24 +64,24 @@ value bitmap_to_type3_glyph state fm g = do
 
   let cs = IO.make_buffer_stream 0x100 in
 
-  let hdpi  = 72.27 /. 72.0 *. g.Glyph.g_hdpp      in
-  let vdpi  = 72.27 /. 72.0 *. g.Glyph.g_vdpp      in
-  let min_x = float_of_int g.Glyph.g_min_x /. hdpi in
-  let min_y = float_of_int g.Glyph.g_min_y /. vdpi in
-  let max_x = float_of_int g.Glyph.g_max_x /. hdpi in
-  let max_y = float_of_int g.Glyph.g_max_y /. vdpi in
+  let hdpi  = 72.27 /. 72.0 *. g.GlyphBitmap.g_hdpp      in
+  let vdpi  = 72.27 /. 72.0 *. g.GlyphBitmap.g_vdpp      in
+  let min_x = float_of_int g.GlyphBitmap.g_min_x /. hdpi in
+  let min_y = float_of_int g.GlyphBitmap.g_min_y /. vdpi in
+  let max_x = float_of_int g.GlyphBitmap.g_max_x /. hdpi in
+  let max_y = float_of_int g.GlyphBitmap.g_max_y /. vdpi in
 
   IO.printf cs "%f 0 %f %f %f %f d1 "
     (pt_to_bp gm.gm_width) min_x min_y max_x max_y;
 
-  if g.Glyph.g_bitmap.Bitmap.bm_width > 0 &&
-     g.Glyph.g_bitmap.Bitmap.bm_height > 0 then do
+  if g.GlyphBitmap.g_bitmap.Bitmap.bm_width > 0 &&
+     g.GlyphBitmap.g_bitmap.Bitmap.bm_height > 0 then do
   {
     IO.printf cs "1 0 0 1 %f %f cm %f 0 0 %f 0 0 cm "
       min_x min_y
-      (float_of_int (g.Glyph.g_max_x - g.Glyph.g_min_x + 1) /. hdpi)
-      (float_of_int (g.Glyph.g_max_y - g.Glyph.g_min_y + 1) /. vdpi);
-    write_bitmap cs g.Glyph.g_bitmap;
+      (float_of_int (g.GlyphBitmap.g_max_x - g.GlyphBitmap.g_min_x + 1) /. hdpi)
+      (float_of_int (g.GlyphBitmap.g_max_y - g.GlyphBitmap.g_min_y + 1) /. vdpi);
+    write_bitmap cs g.GlyphBitmap.g_bitmap;
   }
   else ();
 
