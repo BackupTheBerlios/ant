@@ -142,8 +142,8 @@ value write_cmap stream fm font_name encoding = do
     IO.printf stream "<%02x> <" i;
 
     match get_unicode fm (Substitute.Simple encoding.(i)) with
-    [ []  -> IO.write_string stream "0000"
-    | str -> List.iter (fun c -> IO.printf stream "%04x" c) str
+    [ [||] -> IO.write_string stream "0000"
+    | str  -> Array.iter (fun c -> IO.printf stream "%04x" c) str
     ];
 
     IO.write_string stream ">\n"

@@ -116,6 +116,8 @@ value select_page_layout  : uc_string -> env_cmd;
 value set_page_layout     : PageLayout.page_layout -> env_cmd;
 value add_pages           : int -> list FontMetric.page -> env_cmd;
 
+value declare_font        : uc_string -> uc_string -> uc_string ->
+                            uc_string -> (num * num) -> font_load_params -> env_cmd;
 value set_font            : font_spec -> env_cmd;
 value get_math_font       : environment -> MathLayout.math_style -> int -> font_metric;
 value set_math_font       : (option int * option uc_string * option uc_string * option uc_string

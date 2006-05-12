@@ -12,105 +12,132 @@
 %  \DeclareMathDelimiter{#1}{#2}{#3}{#4}{#3}{#4}}
 %\def\Decl@Mn@Open#1#2#3{\Decl@Mn@Delim{#1}{\mathopen}{#2}{#3}}
 %\def\Decl@Mn@Close#1#2#3{\Decl@Mn@Delim{#1}{\mathclose}{#2}{#3}}
-
-\declarefont{MnSymbolA5.tfm}      {raw}{MnSymbolA}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolA6.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolA7.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolA8.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolA9.tfm}      {raw}{MnSymbolA}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolA10.tfm}     {raw}{MnSymbolA}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolA12.tfm}     {raw}{MnSymbolA}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolA-Bold5.tfm} {raw}{MnSymbolA}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolA-Bold6.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolA-Bold7.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolA-Bold8.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolA-Bold9.tfm} {raw}{MnSymbolA}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolA-Bold10.tfm}{raw}{MnSymbolA}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolA-Bold12.tfm}{raw}{MnSymbolA}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolB5.tfm}      {raw}{MnSymbolB}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolB6.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolB7.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolB8.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolB9.tfm}      {raw}{MnSymbolB}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolB10.tfm}     {raw}{MnSymbolB}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolB12.tfm}     {raw}{MnSymbolB}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolB-Bold5.tfm} {raw}{MnSymbolB}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolB-Bold6.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolB-Bold7.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolB-Bold8.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolB-Bold9.tfm} {raw}{MnSymbolB}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolB-Bold10.tfm}{raw}{MnSymbolB}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolB-Bold12.tfm}{raw}{MnSymbolB}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolC5.tfm}      {raw}{MnSymbolC}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolC6.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolC7.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolC8.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolC9.tfm}      {raw}{MnSymbolC}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolC10.tfm}     {raw}{MnSymbolC}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolC12.tfm}     {raw}{MnSymbolC}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolC-Bold5.tfm} {raw}{MnSymbolC}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolC-Bold6.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolC-Bold7.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolC-Bold8.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolC-Bold9.tfm} {raw}{MnSymbolC}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolC-Bold10.tfm}{raw}{MnSymbolC}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolC-Bold12.tfm}{raw}{MnSymbolC}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolD5.tfm}      {raw}{MnSymbolD}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolD6.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolD7.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolD8.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolD9.tfm}      {raw}{MnSymbolD}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolD10.tfm}     {raw}{MnSymbolD}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolD12.tfm}     {raw}{MnSymbolD}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolD-Bold5.tfm} {raw}{MnSymbolD}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolD-Bold6.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolD-Bold7.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolD-Bold8.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolD-Bold9.tfm} {raw}{MnSymbolD}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolD-Bold10.tfm}{raw}{MnSymbolD}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolD-Bold12.tfm}{raw}{MnSymbolD}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolE5.tfm}      {raw}{MnSymbolE}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolE6.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolE7.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolE8.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolE9.tfm}      {raw}{MnSymbolE}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolE10.tfm}     {raw}{MnSymbolE}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolE12.tfm}     {raw}{MnSymbolE}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolE-Bold5.tfm} {raw}{MnSymbolE}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolE-Bold6.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolE-Bold7.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolE-Bold8.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolE-Bold9.tfm} {raw}{MnSymbolE}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolE-Bold10.tfm}{raw}{MnSymbolE}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolE-Bold12.tfm}{raw}{MnSymbolE}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolF5.tfm}      {raw}{MnSymbolF}{medium}{normal}    {  - 6}{}
-\declarefont{MnSymbolF6.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 6- 7}{}
-\declarefont{MnSymbolF7.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 7- 8}{}
-\declarefont{MnSymbolF8.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 8- 9}{}
-\declarefont{MnSymbolF9.tfm}      {raw}{MnSymbolF}{medium}{normal}    { 9-10}{}
-\declarefont{MnSymbolF10.tfm}     {raw}{MnSymbolF}{medium}{normal}    {10-12}{}
-\declarefont{MnSymbolF12.tfm}     {raw}{MnSymbolF}{medium}{normal}    {12-  }{}
-\declarefont{MnSymbolF-Bold5.tfm} {raw}{MnSymbolF}{bold}  {normal}    {  - 6}{}
-\declarefont{MnSymbolF-Bold6.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 6- 7}{}
-\declarefont{MnSymbolF-Bold7.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 7- 8}{}
-\declarefont{MnSymbolF-Bold8.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 8- 9}{}
-\declarefont{MnSymbolF-Bold9.tfm} {raw}{MnSymbolF}{bold}  {normal}    { 9-10}{}
-\declarefont{MnSymbolF-Bold10.tfm}{raw}{MnSymbolF}{bold}  {normal}    {10-12}{}
-\declarefont{MnSymbolF-Bold12.tfm}{raw}{MnSymbolF}{bold}  {normal}    {12-  }{}
-\declarefont{MnSymbolS5.tfm}      {OT1}{MnSymbolS}{medium}{normal}    {  - 6}{ skew = 0 }
-\declarefont{MnSymbolS6.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 6- 7}{ skew = 0 }
-\declarefont{MnSymbolS7.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 7- 8}{ skew = 0 }
-\declarefont{MnSymbolS8.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 8- 9}{ skew = 0 }
-\declarefont{MnSymbolS9.tfm}      {OT1}{MnSymbolS}{medium}{normal}    { 9-10}{ skew = 0 }
-\declarefont{MnSymbolS10.tfm}     {OT1}{MnSymbolS}{medium}{normal}    {10-12}{ skew = 0 }
-\declarefont{MnSymbolS12.tfm}     {OT1}{MnSymbolS}{medium}{normal}    {12-  }{ skew = 0 }
-\declarefont{MnSymbolS-Bold5.tfm} {OT1}{MnSymbolS}{bold}  {normal}    {  - 6}{ skew = 0 }
-\declarefont{MnSymbolS-Bold6.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 6- 7}{ skew = 0 }
-\declarefont{MnSymbolS-Bold7.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 7- 8}{ skew = 0 }
-\declarefont{MnSymbolS-Bold8.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 8- 9}{ skew = 0 }
-\declarefont{MnSymbolS-Bold9.tfm} {OT1}{MnSymbolS}{bold}  {normal}    { 9-10}{ skew = 0 }
-\declarefont{MnSymbolS-Bold10.tfm}{OT1}{MnSymbolS}{bold}  {normal}    {10-12}{ skew = 0 }
-\declarefont{MnSymbolS-Bold12.tfm}{OT1}{MnSymbolS}{bold}  {normal}    {12-  }{ skew = 0 }
+\ALcommand{
+  local begin
+    fama := "MnSymbolA";
+    famb := "MnSymbolB";
+    famc := "MnSymbolC";
+    famd := "MnSymbolD";
+    fame := "MnSymbolE";
+    famf := "MnSymbolF";
+    fams := "MnSymbolS";
+    med  := "medium";
+    bold := "bold";
+    nor  := "normal";
+    enc  := ("", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "", "", "", "", "", "", "", "",
+             "",  "A", "B", "C", "D", "E", "F", "G",
+             "H", "I", "J", "K", "L", "M", "N", "O",
+             "P", "Q", "R", "S", "T", "U", "V", "W",
+             "X", "Y", "Z", "",  "",  "",  "",  "");
+  end
+  begin
+    ps_declare_font "MnSymbolA5.tfm"       fama med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolA6.tfm"       fama med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolA7.tfm"       fama med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolA8.tfm"       fama med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolA9.tfm"       fama med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolA10.tfm"      fama med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolA12.tfm"      fama med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolA-Bold5.tfm"  fama bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolA-Bold6.tfm"  fama bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolA-Bold7.tfm"  fama bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolA-Bold8.tfm"  fama bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolA-Bold9.tfm"  fama bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolA-Bold10.tfm" fama bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolA-Bold12.tfm" fama bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolB5.tfm"       famb med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolB6.tfm"       famb med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolB7.tfm"       famb med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolB8.tfm"       famb med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolB9.tfm"       famb med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolB10.tfm"      famb med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolB12.tfm"      famb med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolB-Bold5.tfm"  famb bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolB-Bold6.tfm"  famb bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolB-Bold7.tfm"  famb bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolB-Bold8.tfm"  famb bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolB-Bold9.tfm"  famb bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolB-Bold10.tfm" famb bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolB-Bold12.tfm" famb bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolC5.tfm"       famc med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolC6.tfm"       famc med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolC7.tfm"       famc med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolC8.tfm"       famc med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolC9.tfm"       famc med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolC10.tfm"      famc med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolC12.tfm"      famc med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolC-Bold5.tfm"  famc bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolC-Bold6.tfm"  famc bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolC-Bold7.tfm"  famc bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolC-Bold8.tfm"  famc bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolC-Bold9.tfm"  famc bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolC-Bold10.tfm" famc bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolC-Bold12.tfm" famc bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolD5.tfm"       famd med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolD6.tfm"       famd med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolD7.tfm"       famd med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolD8.tfm"       famd med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolD9.tfm"       famd med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolD10.tfm"      famd med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolD12.tfm"      famd med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolD-Bold5.tfm"  famd bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolD-Bold6.tfm"  famd bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolD-Bold7.tfm"  famd bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolD-Bold8.tfm"  famd bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolD-Bold9.tfm"  famd bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolD-Bold10.tfm" famd bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolD-Bold12.tfm" famd bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolE5.tfm"       fame med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolE6.tfm"       fame med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolE7.tfm"       fame med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolE8.tfm"       fame med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolE9.tfm"       fame med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolE10.tfm"      fame med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolE12.tfm"      fame med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolE-Bold5.tfm"  fame bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolE-Bold6.tfm"  fame bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolE-Bold7.tfm"  fame bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolE-Bold8.tfm"  fame bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolE-Bold9.tfm"  fame bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolE-Bold10.tfm" fame bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolE-Bold12.tfm" fame bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolF5.tfm"       famf med  nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolF6.tfm"       famf med  nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolF7.tfm"       famf med  nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolF8.tfm"       famf med  nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolF9.tfm"       famf med  nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolF10.tfm"      famf med  nor    (10,12) {} >>
+    ps_declare_font "MnSymbolF12.tfm"      famf med  nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolF-Bold5.tfm"  famf bold nor    ( 0, 6) {} >>
+    ps_declare_font "MnSymbolF-Bold6.tfm"  famf bold nor    ( 6, 7) {} >>
+    ps_declare_font "MnSymbolF-Bold7.tfm"  famf bold nor    ( 7, 8) {} >>
+    ps_declare_font "MnSymbolF-Bold8.tfm"  famf bold nor    ( 8, 9) {} >>
+    ps_declare_font "MnSymbolF-Bold9.tfm"  famf bold nor    ( 9,10) {} >>
+    ps_declare_font "MnSymbolF-Bold10.tfm" famf bold nor    (10,12) {} >>
+    ps_declare_font "MnSymbolF-Bold12.tfm" famf bold nor    (12, 0) {} >>
+    ps_declare_font "MnSymbolS5.tfm"       fams med  nor    ( 0, 6) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS6.tfm"       fams med  nor    ( 6, 7) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS7.tfm"       fams med  nor    ( 7, 8) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS8.tfm"       fams med  nor    ( 8, 9) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS9.tfm"       fams med  nor    ( 9,10) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS10.tfm"      fams med  nor    (10,12) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS12.tfm"      fams med  nor    (12, 0) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold5.tfm"  fams bold nor    ( 0, 6) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold6.tfm"  fams bold nor    ( 6, 7) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold7.tfm"  fams bold nor    ( 7, 8) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold8.tfm"  fams bold nor    ( 8, 9) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold9.tfm"  fams bold nor    ( 9,10) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold10.tfm" fams bold nor    (10,12) { Encoding := enc | SkewGlyph := 0 } >>
+    ps_declare_font "MnSymbolS-Bold12.tfm" fams bold nor    (12, 0) { Encoding := enc | SkewGlyph := 0 }
+  end
+}
 
 \setmathfont{ math-family = 2; family = MnSymbolF; series = medium; shape = normal }
 \setmathfont{ math-family = 3; family = MnSymbolE; series = medium; shape = normal }

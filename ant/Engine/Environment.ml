@@ -47,6 +47,7 @@ type environment =
 
   (* fonts *)
 
+  font_table   : font_table;
   font_data    : font_data
 };
 
@@ -721,6 +722,23 @@ value add_pages page_no pages _ env =
 
 (* fonts *)
 
+value declare_font name family series shape size params _ env =
+{
+  (env)
+
+  with
+
+  font_table =
+    Fonts.declare_font
+      env.font_table
+      name
+      family
+      series
+      shape
+      size
+      params
+};
+
 value set_font (family, series, shape, size, script, features) loc env = do
 {
   let cur_font = current_font env in
@@ -754,7 +772,7 @@ value set_font (family, series, shape, size, script, features) loc env = do
             ]
   in
 
-  match get_font fam ser sha siz with
+  match get_font env.font_table fam ser sha siz with
   [ None -> do
     {
       log_warn loc "Font (";
@@ -770,13 +788,18 @@ value set_font (family, series, shape, size, script, features) loc env = do
       (* suppress further warnings by binding the font to some random value *)
       (* FIX: choose the "best approximation" instead of the current font   *)
 
-      declare_font
-        cur_font.f_font_def.fd_name
-        cur_font.f_font_def.fd_encoding
-        fam ser sha (siz, siz)
-        cur_font.f_font_def.fd_data;
+      {
+        (env)
 
-      env
+        with
+
+        font_table =
+          Fonts.declare_font
+            env.font_table
+            cur_font.f_font_def.fd_name
+            fam ser sha (siz, siz)
+            cur_font.f_font_def.fd_data
+      }
     }
   | Some f ->
     {
@@ -805,9 +828,9 @@ value check_math_family env family = do
     family
 };
 
-value scale_font loc font size = do
+value scale_font font_table loc font size = do
 {
-  match get_font font.f_font_def.fd_family font.f_font_def.fd_series font.f_font_def.fd_shape size with
+  match get_font font_table font.f_font_def.fd_family font.f_font_def.fd_series font.f_font_def.fd_shape size with
   [ None -> do
     {
       log_warn loc "Font (";
@@ -880,7 +903,7 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
               ]
     in
 
-    let text_font = match get_font fam ser sha siz with
+    let text_font = match get_font env.font_table fam ser sha siz with
     [ None -> do
       {
         log_warn loc "Font (";
@@ -902,10 +925,12 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
     in
 
     (text_font,
-     scale_font loc text_font (siz */ s1),
-     scale_font loc text_font (siz */ s2))
+     scale_font env.font_table loc text_font (siz */ s1),
+     scale_font env.font_table loc text_font (siz */ s2))
   }
   in
+
+  (* update math-font array *)
 
   let new_math_fonts = match math_family with
   [ Some mf -> Array.init
@@ -922,6 +947,27 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
   ]
   in
 
+  (* update math-font parameter *)
+
+  let (font_sym_t, font_sym_s, font_sym_ss) =
+    if Array.length new_math_fonts > 2 then do
+    {
+      let (t,s,ss) = new_math_fonts.(2) in
+      (t.f_metric, s.f_metric, ss.f_metric)
+    }
+    else
+      (FontMetric.empty_font, FontMetric.empty_font, FontMetric.empty_font)
+  in
+  let font_ex =
+    if Array.length new_math_fonts > 3 then do
+    {
+      let (t,_,_) = new_math_fonts.(3) in
+      t.f_metric
+    }
+    else
+      FontMetric.empty_font
+  in
+
   {
     (env)
 
@@ -934,6 +980,12 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
       with
 
       fd_math_fonts         = new_math_fonts;
+      fd_math_font_params   =
+      (
+        MathLayout.make_font_params font_sym_t  font_ex,
+        MathLayout.make_font_params font_sym_s  font_ex,
+        MathLayout.make_font_params font_sym_ss font_ex
+      );
       fd_script_size        = s1;
       fd_script_script_size = s2
     }
@@ -944,7 +996,9 @@ value adapt_fonts_to_math_style loc env = match env.math_style with
 [ MathLayout.Script  | MathLayout.CrampedScript  -> do
   {
     let new_font =
-      scale_font loc
+      scale_font
+        env.font_table
+        loc
         (current_font env)
         (current_script_size env */ (current_font env).f_size)
     and new_math_fonts =
@@ -976,7 +1030,9 @@ value adapt_fonts_to_math_style loc env = match env.math_style with
 | MathLayout.Script2 | MathLayout.CrampedScript2 -> do
   {
     let new_font =
-      scale_font loc
+      scale_font
+        env.font_table
+        loc
         (current_font env)
         (current_script_script_size env */ (current_font env).f_size)
     and new_math_fonts =
@@ -1203,40 +1259,32 @@ value initialise_environment () = do
       PageLayout.pl_areas  = [| text_area |]
     }
   in
-  let family_roman        = UString.uc_string_of_ascii "Computer Modern Roman"           in
-  let family_math         = UString.uc_string_of_ascii "Computer Modern Math Italic"     in
-  let family_symbols      = UString.uc_string_of_ascii "Computer Modern Math Symbols"    in
-  let family_extensions   = UString.uc_string_of_ascii "Computer Modern Math Extensions" in
-  let series_medium       = UString.uc_string_of_ascii "medium"  in
-  let shape_upright       = UString.uc_string_of_ascii "normal"  in
-  let shape_italic        = UString.uc_string_of_ascii "italic"  in
+  let font_table          = initialise_font_table ()                                     in
+  let family_roman        = [| |] (*UString.uc_string_of_ascii "Computer Modern Roman"*)           in
+  let family_math         = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Italic"*)     in
+  let family_symbols      = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Symbols"*)    in
+  let family_extensions   = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Extensions"*) in
+  let series_medium       = [| |] (*UString.uc_string_of_ascii "medium"*)  in
+  let shape_upright       = [| |] (*UString.uc_string_of_ascii "normal"*)  in
+  let shape_italic        = [| |] (*UString.uc_string_of_ascii "italic"*)  in
   let size_normal         = num_of_int 10 in
   let size_script         = num_of_int  7 in
   let size_tiny           = num_of_int  5 in
 
+  let lookup_font fam ser sha siz = Option.from_some (get_font font_table fam ser sha siz) in
+
   try
-    let text_font       = Option.from_some (get_font family_roman   series_medium
-                                                           shape_upright  size_normal) in
-    let math_font_ex    = Option.from_some (get_font family_extensions series_medium
-                                                           shape_upright  size_normal) in
-    let math_font_rm_t  = Option.from_some (get_font family_roman   series_medium
-                                                           shape_upright  size_normal) in
-    let math_font_mi_t  = Option.from_some (get_font family_math    series_medium
-                                                           shape_italic   size_normal) in
-    let math_font_sy_t  = Option.from_some (get_font family_symbols series_medium
-                                                           shape_upright  size_normal) in
-    let math_font_rm_s  = Option.from_some (get_font family_roman   series_medium
-                                                           shape_upright  size_script) in
-    let math_font_mi_s  = Option.from_some (get_font family_math    series_medium
-                                                           shape_italic   size_script) in
-    let math_font_sy_s  = Option.from_some (get_font family_symbols series_medium
-                                                           shape_upright  size_script) in
-    let math_font_rm_ss = Option.from_some (get_font family_roman   series_medium
-                                                           shape_upright  size_tiny)   in
-    let math_font_mi_ss = Option.from_some (get_font family_math    series_medium
-                                                           shape_italic   size_tiny)   in
-    let math_font_sy_ss = Option.from_some (get_font family_symbols series_medium
-                                                           shape_upright  size_tiny)   in
+    let text_font       = lookup_font family_roman      series_medium shape_upright size_normal in
+    let math_font_ex    = lookup_font family_extensions series_medium shape_upright size_normal in
+    let math_font_rm_t  = lookup_font family_roman      series_medium shape_upright size_normal in
+    let math_font_mi_t  = lookup_font family_math       series_medium shape_italic  size_normal in
+    let math_font_sy_t  = lookup_font family_symbols    series_medium shape_upright size_normal in
+    let math_font_rm_s  = lookup_font family_roman      series_medium shape_upright size_script in
+    let math_font_mi_s  = lookup_font family_math       series_medium shape_italic  size_script in
+    let math_font_sy_s  = lookup_font family_symbols    series_medium shape_upright size_script in
+    let math_font_rm_ss = lookup_font family_roman      series_medium shape_upright size_tiny   in
+    let math_font_mi_ss = lookup_font family_math       series_medium shape_italic  size_tiny   in
+    let math_font_sy_ss = lookup_font family_symbols    series_medium shape_upright size_tiny   in
     let std_features = SymbolSet.add (SymbolTable.string_to_symbol (UString.uc_string_of_ascii "liga"))
                          (SymbolSet.add (SymbolTable.string_to_symbol (UString.uc_string_of_ascii "kern"))
                            SymbolSet.empty)
@@ -1277,6 +1325,7 @@ value initialise_environment () = do
       page_no           = 1;
       pages             = [];
       math_style        = MathLayout.Text;
+      font_table        = font_table;
       font_data         = font_data
     }
     in

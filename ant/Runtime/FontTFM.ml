@@ -218,7 +218,7 @@ value make_lig_kern kern (x1,x2,x3,x4) = do
     LigKern.KernCmd x1 x2 kern.(0x100 * (x3 - 128) + x4)
 };
 
-value make_glyph_metric width height depth italic lig exten (w,x1,x2,r) = do
+value make_glyph_metric params width height depth italic lig exten (w,x1,x2,r) = do
 {
   let h  = x1 lsr 4    in
   let d  = x1 land 0xf in
@@ -234,47 +234,29 @@ value make_glyph_metric width height depth italic lig exten (w,x1,x2,r) = do
     zero_kern_info
   in
 
-  match t with
-  [ 0 -> {
-           gm_width      = width.(w);
-           gm_height     = height.(h);
-           gm_depth      = depth.(d);
-           gm_italic     = italic.(i);
-           gm_extra      = GXI_Normal;
-           gm_extra_kern = kern_info
-         }
+  let extra = match t with
+  [ 0 -> GXI_Normal
   | 1 -> let lk = lig.(r) in
-         {
-           gm_width      = width.(w);
-           gm_height     = height.(h);
-           gm_depth      = depth.(d);
-           gm_italic     = italic.(i);
-           gm_extra      = GXI_LigKern
-                             (if LigKern.is_lig lk && LigKern.skip lk > 128 then
-                                256 * LigKern.operand lk + LigKern.remainder lk
-                              else
-                                r
-                             );
-           gm_extra_kern = kern_info
-         }
-  | 2 -> {
-           gm_width      = width.(w);
-           gm_height     = height.(h);
-           gm_depth      = depth.(d);
-           gm_italic     = italic.(i);
-           gm_extra      = GXI_List r;
-           gm_extra_kern = kern_info
-         }
+         GXI_LigKern
+           (if LigKern.is_lig lk && LigKern.skip lk > 128 then
+              256 * LigKern.operand lk + LigKern.remainder lk
+            else
+              r
+           )
+  | 2 -> GXI_List r
   | _ -> let (t,m,b,r) = exten.(r) in
-         {
-           gm_width      = width.(w);
-           gm_height     = height.(h);
-           gm_depth      = depth.(d);
-           gm_italic     = italic.(i);
-           gm_extra      = GXI_Extendable t m b r;
-           gm_extra_kern = kern_info
-         }
+         GXI_Extendable t m b r
   ]
+  in
+
+  {
+    gm_width      = width.(w) +/ num_two */ params.flp_letter_spacing;
+    gm_height     = height.(h);
+    gm_depth      = depth.(d);
+    gm_italic     = italic.(i);
+    gm_extra      = extra;
+    gm_extra_kern = kern_info
+  }
 };
 
 value tfm_composer fm _ _ = do
@@ -324,13 +306,20 @@ value read_tfm file name params = do
   let param     = read_array ic read_fix param_table_len     in
 
   let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig in
-  let gm_table  = Array.map (fun x -> make_glyph_metric width height depth italic lig_cmds ext x) glyph_metric in
+  let gm_table  = Array.map (fun x -> make_glyph_metric params width height depth italic lig_cmds ext x) glyph_metric in
 
   let hyphen_glyph = match params.flp_hyphen_glyph with
-                     [ Undef -> Simple 45
-                     | h     -> h
-                     ]
-                     in
+  [ Undef -> Simple 45
+  | h     -> h
+  ]
+  in
+
+  let (enc,dec) = match params.flp_encoding with
+  [ [| |] -> (Encodings.raw_encoding,    Encodings.raw_decoding)
+  | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
+              Encodings.array_decoding m)
+  ]
+  in
 
   {
     name                = name;
@@ -339,12 +328,16 @@ value read_tfm file name params = do
     font_type           = Other;
     first_glyph         = first_char;
     last_glyph          = last_char;
+    glyph_metric        = gm_table;
     design_size         = design_size;
     at_size             = size;
     check_sum           = check_sum;
-    get_glyph           = Encodings.raw_encoding;
-    get_unicode         = Encodings.raw_decoding;
-    draw_simple_glyph   = draw_simple_glyph;
+    get_glyph           = enc;
+    get_unicode         = dec;
+    draw_simple_glyph   = if params.flp_letter_spacing =/ num_zero then
+                             draw_simple_glyph
+                           else
+                             draw_displaced_simple_glyph params.flp_letter_spacing num_zero;
     accent_base_point   = accent_base_point_x_height;
     accent_attach_point = accent_attach_point_top;
     get_composer        = tfm_composer;
@@ -383,8 +376,7 @@ value read_tfm file name params = do
         big_op_spacing_3 = if param_table_len > 10 then size */ param.(10) else num_zero;
         big_op_spacing_4 = if param_table_len > 11 then size */ param.(11) else num_zero;
         big_op_spacing_5 = if param_table_len > 12 then size */ param.(12) else num_zero
-      };
-    glyph_metric = gm_table
+      }
   }
 };
 

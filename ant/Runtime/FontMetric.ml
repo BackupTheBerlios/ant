@@ -62,7 +62,7 @@ type font_metric =
   check_sum           : num;
   parameter           : font_parameter;
   get_glyph           : uc_char -> glyph_desc;
-  get_unicode         : glyph_desc -> uc_list;
+  get_unicode         : glyph_desc -> uc_string;
   get_composer        : !'box 'cmd . get_composer_type 'box 'cmd;
   kerning             : font_metric -> int -> int -> lig_kern;
   draw_simple_glyph   : font_metric -> int -> simple_box;
@@ -91,7 +91,7 @@ and simple_cmd =
 type font_load_params =
 {
   flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_char;               (* overrides built in encoding *)
+  flp_encoding       : array uc_string;             (* overrides built in encoding *)
   flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
   flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
   flp_letter_spacing : num;                         (* additional letter spacing   *)
@@ -366,6 +366,13 @@ value two_phase_composer font find_subst1 find_subst2 items = do
 
 value draw_simple_glyph font glyph = SimpleGlyph glyph font;
 
+(* Variant of |draw_simple_glyph| that allows for displacing the glyph by some amount. *)
+
+value draw_displaced_simple_glyph dx dy font glyph = do
+{
+  Group [Graphic.PutBox dx dy (SimpleGlyph glyph font)]
+};
+
 value rec draw_glyph font glyph = match glyph with
 [ Undef
 | Border _   -> Empty
@@ -506,7 +513,7 @@ value empty_font =
   at_size             = num_one;
   check_sum           = num_zero;
   get_glyph           = (fun _ -> Undef);
-  get_unicode         = (fun _ -> []);
+  get_unicode         = (fun _ -> [||]);
   kerning             = (fun _ -> assert False);
   get_composer        = (fun _ _ _ _ -> []);
   draw_simple_glyph   = (fun _ -> assert False);

@@ -959,7 +959,66 @@ value ps_new_galley res args = match args with
 | _ -> assert False
 ];
 
-(* math codes *)
+(* fonts *)
+
+value ps_declare_font res args = match args with
+[ [name; family; series; shape; sizes; params; parse_command] -> do
+  {
+    ps_cmd "ps_declare_font" res parse_command
+      (fun ps -> do
+        {
+          let n       = decode_uc_string "ps_declare_font" name     in
+          let fam     = decode_uc_string "ps_declare_font" family   in
+          let ser     = decode_uc_string "ps_declare_font" series   in
+          let sha     = decode_uc_string "ps_declare_font" shape    in
+          let p       = decode_dict      "ps_declare_font" params   in
+          let (s1,s2) = match decode_tuple "ps_declare_font" sizes with
+            [ [| s1; s2 |] -> (s1,s2)
+            | _ -> Types.runtime_error "ps_declare_font: pair expected"
+            ]
+          in
+
+          let get_glyph g = if g < 0 then
+                              Substitute.Undef
+                            else
+                              Substitute.Simple g
+                            in
+
+          let encoding      = Array.map
+                                (decode_uc_string "ps_declare_font")
+                                (Option.from_option [||]
+                                  (lookup_tuple "ps_declare_font" p sym_Encoding))
+                              in
+          let hyphen        = Option.from_option (-1)
+                               (lookup_int "ps_declare_font" p sym_HyphenGlyph)   in
+          let skew          = Option.from_option (-1)
+                               (lookup_int "ps_declare_font" p sym_SkewGlyph)     in
+          let scale         = Option.from_option num_one
+                               (lookup_num "ps_declare_font" p sym_Scale)         in
+          let letterspacing = Option.from_option num_zero
+                               (lookup_num "ps_declare_font" p sym_LetterSpacing) in
+
+          add_node ps
+            (Node.Command (location ps)
+              (Environment.declare_font
+                n fam ser sha
+                (Machine.decode_num "ps_declare_font" s1,
+                 Machine.decode_num "ps_declare_font" s2)
+                {
+                  (FontMetric.empty_load_params)
+
+                  with
+
+                  FontMetric.flp_encoding       = encoding;
+                  FontMetric.flp_letter_spacing = letterspacing;
+                  FontMetric.flp_size           = scale;
+                  FontMetric.flp_hyphen_glyph   = get_glyph hyphen;
+                  FontMetric.flp_skew_glyph     = get_glyph skew
+                }))
+        })
+  }
+| _ -> assert False
+];
 
 value ps_define_math_symbol res args = match args with
 [ [name; math_code; font; glyph; parse_command] -> do

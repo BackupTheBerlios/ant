@@ -904,14 +904,17 @@ and parse_match_clause first_token lexer = do
   function-body = function-clause  |  function-clause "|" function-body
 *)
 
-and parse_function_body lexer = match parse_function_clause (read_token lexer) lexer with
-[ (p, g, e, BAR) -> do
-  {
-    let (cs,tok) = parse_function_body lexer in
+and parse_function_body lexer = match read_token lexer with
+[ BRACECLOSE -> ([], BRACECLOSE)
+| tok        -> match parse_function_clause tok lexer with
+  [ (p, g, e, BAR) -> do
+    {
+      let (cs,tok) = parse_function_body lexer in
 
-    ([(p, g, e) :: cs], tok)
-  }
-| (p, g, e, tok) -> ([(p, g, e)], tok)
+      ([(p, g, e) :: cs], tok)
+    }
+  | (p, g, e, tok) -> ([(p, g, e)], tok)
+  ]
 ]
 
 (*

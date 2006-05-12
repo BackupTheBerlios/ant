@@ -1,10 +1,12 @@
 \definecommand\version{0.7}
-\include{manual.sty}
-\include{manual.refdb}
+\include{allib.ant}
 %\include{FontSite.ant}
+\include{fonts.ant}
 \include{MinionPro.ant}
 \definecommand\scshape{\setparameter{font}{ features = {liga,kern,smcp} }}
 \include{MnSymbol.ant}
+\include{manual.sty}
+\include{manual.refdb}
 
 \begin{document}
 \setparameter{line}{ leading = skyline }
@@ -391,7 +393,7 @@ will be inserted above the line.
 Creates a rule of the given dimensions.
 
 \begin{code}
-  \cs{\image} \csopt{options} \csarg{filename}
+  \cs{\image} \csopt{options} \csarg{file name}
 \end{code}
 Inserts the given image. The \csopt{options} dictionary may contain the following options\?:
 \begin{longdescription}
@@ -405,7 +407,7 @@ Inserts the given image. The \csopt{options} dictionary may contain the followin
 
 
 The parameters governing the typesetting process are grouped into several dictionaries.
-Each of these dictionaries can be modfied by the command
+Each of these dictionaries can be modified by the command
 \begin{code}
   \cs{\setparameter} \csarg{parameter} \csarg{dictionary}
 \end{code}
@@ -968,7 +970,7 @@ Starts and ends an environment.
 Converts the string into glyphs without interpreting it.
 
 \begin{code}
-  \cs{\include} \csarg{filename}
+  \cs{\include} \csarg{file name}
 \end{code}
 Reads the given file.
 
@@ -1160,12 +1162,12 @@ Examples\?:
 \end{display}
 
 \paragraph{Strings and characters}
-Character constants are enclosed in apostrophs~\cs{'}, string constants are deliminated by
+Character constants are enclosed in apostrophes~\cs{'}, string constants are deliminated by
 double quotes~\cs{"}. A string constant is just an abbreviation for a list of characters.
 The following escape sequences are recognised\?:
 
 \begin{displaytable}
-  \cs{\'} & {\small U0027} & apostroph \ntr
+  \cs{\'} & {\small U0027} & apostrophe \ntr
   \cs{\"} & {\small U0022} & double quote \ntr
   \cs{\\} & {\small U005C} & backslash \ntr
   \cs{\b} & {\small U0007} & bell \ntr
@@ -1374,7 +1376,7 @@ is an abbreviation for the declarations
 \begin{display}
   \cs{x_0} \cs{:=} \cs{_;} \ldots\ \cs{x_n} \cs{:=} \cs{_}\,.
 \end{display}
-The \cs{declare_}\ldots\ statments can be used to declare the priority and associativity of operators.
+The \cs{declare_}\ldots\ statements can be used to declare the priority and associativity of operators.
 
 \subsection{Predefined functions}
 
@@ -1987,7 +1989,7 @@ There are modules for font handling.
 \item{\textsf{\red Glyph}}%
   simple bitmap datatype to store glyph images.
 \item{\textsf{\red FontFT}}%
-  loading of fonts via the freetype library.
+  loading of fonts via the FreeType library.
 \item{\textsf{\red FontPK}}%
   loading of \pk-fonts.
 \item{\textsf{\red FontTFM}}%
@@ -2024,7 +2026,7 @@ And there are modules for file handling.
 \item{\textsf{\red Logging}}%
   output routines for error and debugging messages.
 \item{\textsf{\red KPathSea}}%
-  bindings for the kpathsea library which implements a da\-ta\-base for filename lookup.
+  bindings for the kpathsea library which implements a da\-ta\-base for file name lookup.
 \end{description}
 
 
@@ -2073,7 +2075,7 @@ The layout engine consists of the following modules\?:
 \begin{description}
 \setparameter{paragraph}{ right-skip = 0pt plus 1fil }%
 \item{\textsf{\red Environment}}%
-  definiton of the state of the layout engine.
+  definition of the state of the layout engine.
 \item{\textsf{\red Node}}%
   definition of the engine commands.
 \item{\textsf{\red Evaluate}}%

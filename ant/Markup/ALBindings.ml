@@ -55,6 +55,7 @@ value add_primitives scope = do
       ("ps_new_galley",           PrimitiveN 3 ps_new_galley);
       ("ps_new_area",             PrimitiveN 10 ps_new_area);
 
+      ("ps_declare_font",         PrimitiveN 7 ps_declare_font);
       ("ps_define_math_symbol",   PrimitiveN 5 ps_define_math_symbol);
       ("ps_define_root_symbol",   PrimitiveN 6 ps_define_root_symbol);
       ("ps_define_math_accent",   PrimitiveN 4 ps_define_math_accent);

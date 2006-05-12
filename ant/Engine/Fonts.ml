@@ -13,7 +13,6 @@ open Box;
 type font_definition =
 {
   fd_name         : uc_string;
-  fd_encoding     : uc_string;
   fd_family       : uc_string;
   fd_series       : uc_string;
   fd_shape        : uc_string;
@@ -30,24 +29,25 @@ type font =
   f_size     : num
 };
 
+type font_table = DynUCTrie.t (list font_definition);
+
 (* table of fonts *)
 
 value font_table = ref DynUCTrie.empty;
 
-value get_font_list family = do
+value get_font_list font_table family = do
 {
   try
-    DynUCTrie.find_string family !font_table
+    DynUCTrie.find_string family font_table
   with
   [ Not_found -> [] ]
 };
 
-value add_font font_def = do
+value add_font font_table font_def = do
 {
   let rec add_entry font_list = match font_list with
   [ []      -> [font_def]
   | [f::fs] -> if f.fd_name     =  font_def.fd_name     &&
-                  f.fd_encoding =  font_def.fd_encoding &&
                   f.fd_family   =  font_def.fd_family   &&
                   f.fd_series   =  font_def.fd_series   &&
                   f.fd_shape    =  font_def.fd_shape    &&
@@ -59,12 +59,12 @@ value add_font font_def = do
   ]
   in
 
-  let font_list = get_font_list font_def.fd_family in
+  let font_list = get_font_list font_table font_def.fd_family in
 
-  !font_table := DynUCTrie.add_string
-                   font_def.fd_family
-                   (add_entry font_list)
-                   !font_table
+  DynUCTrie.add_string
+      font_def.fd_family
+      (add_entry font_list)
+      font_table
 };
 
 value load_font fd size = do
@@ -80,10 +80,11 @@ value load_font fd size = do
 
   let font = LoadFont.load_font (UString.to_string (Array.to_list fd.fd_name)) params in
 
-  let fm1 = match fd.fd_encoding with
-  [ [|79; 84; 49|]   -> FontMetric.set_encoding font                       (* OT1 *)
+(*
+  let fm = match fd.fd_encoding with
+  [ [|79; 84; 49|]   -> font (*FontMetric.set_encoding font                       (* OT1 *)
                          (Encodings.charmap_encoding Encodings.uc_to_ot1)
-                         (Encodings.array_decoding   Encodings.ot1_to_uc)
+                         (Encodings.array_decoding   Encodings.ot1_to_uc)*)
   | [|84; 49|]       -> FontMetric.set_encoding font                       (* T1  *)
                          (Encodings.charmap_encoding Encodings.uc_to_t1)
                          (Encodings.array_decoding   Encodings.t1_to_uc)
@@ -96,51 +97,43 @@ value load_font fd size = do
   | [|79; 77; 76|]   -> FontMetric.set_encoding font                       (* OML *)
                          (Encodings.charmap_encoding Encodings.uc_to_oml)
                          (Encodings.array_decoding   Encodings.oml_to_uc)
-  | [|114; 97; 119|] -> FontMetric.set_encoding font                       (* raw *)
+  | [|114; 97; 119|] -> font (*FontMetric.set_encoding font                       (* raw *)
                          Encodings.raw_encoding
-                         Encodings.raw_decoding
+                         Encodings.raw_decoding*)
   | [|98; 117; 105; 108; 116; 105; 110|] -> font                           (* builtin *)
   | _ -> do
     {
-      log_warn ("",0,0) "Unknown font encoding: ";
+      log_warn ("",0,0) "Unknown font encoding `";
       log_uc_string fd.fd_encoding;
-      log_string "\n";
+      log_string "' specified for font ";
+      log_uc_string fd.fd_name;
+      log_string ".\n";
       font
     }
   ]
   in
-
-  let fm2 = match fd.fd_data.flp_hyphen_glyph with
-    [ Undef -> fm1
-    | h     -> FontMetric.set_hyphen_char fm1 h
-    ]
-  in
-  let fm3 = match fd.fd_data.flp_skew_glyph with
-    [ Undef -> fm2
-    | s     -> FontMetric.set_skew_char fm2 s
-    ]
-  in
+*)
 
   fd.fd_loaded_sizes := add fd.fd_loaded_sizes
 
   where rec add sizes = match sizes with
-  [ []        -> [(size, fm3)]
+  [ []        -> [(size, font)]
   | [s :: ss] -> if fst s </ size then
                    [s :: add ss]
                  else if fst s >/ size then
-                   [(size, fm3) :: sizes]
+                   [(size, font) :: sizes]
                  else
                    sizes
   ];
 
   {
     f_font_def = fd;
-    f_metric   = fm3;
+    f_metric   = font;
     f_size     = size
   }
 };
 
-value get_font family series shape size = do
+value get_font font_table family series shape size = do
 {
   let rec choose_font fonts = match fonts with
   [ []      -> None
@@ -179,7 +172,7 @@ value get_font family series shape size = do
   }
   in
 
-  match choose_font (get_font_list family) with
+  match choose_font (get_font_list font_table family) with
   [ None    -> None
   | Some fd -> do
     {
@@ -202,50 +195,59 @@ value get_font family series shape size = do
   ]
 };
 
-value declare_font name encoding family series shape size params = do
+value declare_font font_table name family series shape size params = do
 {
   add_font
-  {
-    fd_name         = name;
-    fd_encoding     = encoding;
-    fd_family       = family;
-    fd_series       = series;
-    fd_shape        = shape;
-    fd_min_size     = fst size;
-    fd_max_size     = snd size;
-    fd_loaded_sizes = [];
-    fd_data         = params
-  }
+    font_table
+    {
+      fd_name         = name;
+      fd_family       = family;
+      fd_series       = series;
+      fd_shape        = shape;
+      fd_min_size     = fst size;
+      fd_max_size     = snd size;
+      fd_loaded_sizes = [];
+      fd_data         = params
+    }
 };
 
 (* |initialise_font_table ()| declares some base fonts. *)
 
 value initialise_font_table () = do
 {
-  declare_font
-    [||] [||] [||] [||] [||]
-    (num_zero, num_of_int 10000)
-    empty_load_params;
-
-  let decl name encoding family series shape size_min size_max skew_char =
-    declare_font (UString.uc_string_of_ascii name)
-                 (UString.uc_string_of_ascii encoding)
-                 (UString.uc_string_of_ascii family)
-                 (UString.uc_string_of_ascii series)
-                 (UString.uc_string_of_ascii shape)
-                 ((num_of_int size_min), (num_of_int size_max))
-                 {
-                   (empty_load_params)
-
-                   with
-
-                   flp_size       = num_one;
-                   flp_skew_glyph = skew_char
-                 }
+  let font_table =
+    ref (declare_font
+           DynUCTrie.empty
+           [||] [||] [||] [||]
+           (num_zero, num_of_int 10000)
+           empty_load_params)
   in
+
+(*
+  let decl name family series shape size_min size_max skew_char = do
+  {
+    !font_table :=
+      declare_font !font_table
+        (UString.uc_string_of_ascii name)
+        (UString.uc_string_of_ascii family)
+        (UString.uc_string_of_ascii series)
+        (UString.uc_string_of_ascii shape)
+        ((num_of_int size_min), (num_of_int size_max))
+        {
+          (empty_load_params)
+
+          with
+
+          flp_size       = num_one;
+          flp_skew_glyph = skew_char
+        }
+  }
+  in
+  *)
 
   (* FIX: Remove these hardwired values, "empty" is enough. *)
 
+(*
   decl "cmr5.tfm"     "OT1" "Computer Modern Roman"  "medium"         "normal"      5  5  Undef;
   decl "cmr6.tfm"     "OT1" "Computer Modern Roman"  "medium"         "normal"      6  6  Undef;
   decl "cmr7.tfm"     "OT1" "Computer Modern Roman"  "medium"         "normal"      7  7  Undef;
@@ -288,7 +290,10 @@ value initialise_font_table () = do
   decl "cmbsy10.tfm"  "OMS" "Computer Modern Math Symbols"     "bold"    "normal"  10 10   (Simple  48);
 
   decl "cmex9.tfm"    "raw" "Computer Modern Math Extensions"  "medium"  "normal"   9  9  Undef;
-  decl "cmex10.tfm"   "raw" "Computer Modern Math Extensions"  "medium"  "normal"  10 10  Undef
+  decl "cmex10.tfm"   "raw" "Computer Modern Math Extensions"  "medium"  "normal"  10 10  Undef;
+*)
+
+  !font_table
 };
 
 (* virtual fonts *)

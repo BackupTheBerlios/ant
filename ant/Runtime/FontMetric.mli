@@ -62,7 +62,7 @@ type font_metric =
   check_sum           : num;
   parameter           : font_parameter;
   get_glyph           : uc_char -> glyph_desc;
-  get_unicode         : glyph_desc -> uc_list;
+  get_unicode         : glyph_desc -> uc_string;
   get_composer        : !'box 'cmd . get_composer_type 'box 'cmd;
   kerning             : font_metric -> int -> int -> lig_kern;
   draw_simple_glyph   : font_metric -> int -> simple_box;
@@ -93,7 +93,7 @@ and simple_cmd =
 type font_load_params =
 {
   flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_char;               (* overrides built in encoding *)
+  flp_encoding       : array uc_string;             (* overrides built in encoding *)
   flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
   flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
   flp_letter_spacing : num;                         (* additional letter spacing   *)
@@ -114,7 +114,7 @@ value default_bitmap_resolution : ref int;
 value default_mf_mode           : ref string;
 
 value get_glyph        : font_metric -> uc_char -> glyph_desc;
-value get_unicode      : font_metric -> glyph_desc -> uc_list;
+value get_unicode      : font_metric -> glyph_desc -> uc_string;
 value index_to_glyph   : font_metric -> int -> glyph_desc;
 value glyph_exists     : font_metric -> int -> bool;
 
@@ -127,23 +127,24 @@ value two_phase_composer           : font_metric
                                        -> substitution font_metric 'box 'cmd
                                        -> glyph_composer font_metric 'box 'cmd;
 
-value get_glyph_metric   : font_metric -> glyph_desc -> glyph_metric;
-value next_glyph         : font_metric -> glyph_desc -> glyph_desc;
-value get_glyph_composer : get_composer_type 'box 'cmd;
-value get_lig_kern       : font_metric -> glyph_desc -> glyph_desc -> lig_kern;
-value draw_simple_glyph  : font_metric -> int -> simple_box;
-value draw_glyph         : font_metric -> glyph_desc -> simple_box;
-value set_encoding       : font_metric -> (uc_char -> glyph_desc) -> (glyph_desc -> uc_list) -> font_metric;
-value set_hyphen_char    : font_metric -> glyph_desc -> font_metric;
-value set_skew_char      : font_metric -> glyph_desc -> font_metric;
+value get_glyph_metric            : font_metric -> glyph_desc -> glyph_metric;
+value next_glyph                  : font_metric -> glyph_desc -> glyph_desc;
+value get_glyph_composer          : get_composer_type 'box 'cmd;
+value get_lig_kern                : font_metric -> glyph_desc -> glyph_desc -> lig_kern;
+value draw_simple_glyph           : font_metric -> int -> simple_box;
+value draw_displaced_simple_glyph : num -> num -> font_metric -> int -> simple_box;
+value draw_glyph                  : font_metric -> glyph_desc -> simple_box;
+value set_encoding                : font_metric -> (uc_char -> glyph_desc) -> (glyph_desc -> uc_string) -> font_metric;
+value set_hyphen_char             : font_metric -> glyph_desc -> font_metric;
+value set_skew_char               : font_metric -> glyph_desc -> font_metric;
 
-value accent_base_point          : font_metric -> glyph_metric -> (num * num);
-value accent_attach_point        : font_metric -> glyph_metric -> (num * num);
-value accent_base_point_x_height : font_metric -> glyph_metric -> (num * num);
-value accent_attach_point_top    : font_metric -> glyph_metric -> (num * num);
-value accent_position            : font_metric -> glyph_metric ->
-                                   font_metric -> glyph_metric -> (num * num);
-value construct_accent           : font_metric -> glyph_desc -> font_metric -> glyph_desc -> glyph_metric;
+value accent_base_point           : font_metric -> glyph_metric -> (num * num);
+value accent_attach_point         : font_metric -> glyph_metric -> (num * num);
+value accent_base_point_x_height  : font_metric -> glyph_metric -> (num * num);
+value accent_attach_point_top     : font_metric -> glyph_metric -> (num * num);
+value accent_position             : font_metric -> glyph_metric ->
+                                    font_metric -> glyph_metric -> (num * num);
+value construct_accent            : font_metric -> glyph_desc -> font_metric -> glyph_desc -> glyph_metric;
 
 (* Shorthand to access the dimension of a normal and an extended space of the font. *)
 

@@ -340,7 +340,7 @@ value read_character istream = do
         let d4 = read_digit 16 istream in
 
         if d1 >= 0 && d2 >= 0 && d3 >= 0 && d4 >= 0 then
-          0x1000000 * d1 + 0x10000 * d2 + 0x100 * d3 + d4
+          0x1000 * d1 + 0x100 * d2 + 0x10 * d3 + d4
         else
           0
       }
@@ -350,7 +350,7 @@ value read_character istream = do
         let d2 = read_digit 16 istream in
 
         if d1 >= 0 && d2 >= 0 then
-          0x100 * d1 + d2
+          0x10 * d1 + d2
         else
           0
       }

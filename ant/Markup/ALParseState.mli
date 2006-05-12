@@ -52,6 +52,7 @@ value ps_shipout_pages          : unknown -> list unknown -> unit;
 value ps_new_page_layout        : unknown -> list unknown -> unit;
 value ps_new_galley             : unknown -> list unknown -> unit;
 value ps_new_area               : unknown -> list unknown -> unit;
+value ps_declare_font           : unknown -> list unknown -> unit;
 value ps_define_math_symbol     : unknown -> list unknown -> unit;
 value ps_define_root_symbol     : unknown -> list unknown -> unit;
 value ps_define_math_accent     : unknown -> list unknown -> unit;

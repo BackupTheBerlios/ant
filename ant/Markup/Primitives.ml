@@ -2034,7 +2034,6 @@ value declare_font ps = do
   in
 
   let name     = Array.of_list (arg_expanded ps) in
-  let encoding = Array.of_list (arg_expanded ps) in
   let family   = Array.of_list (arg_expanded ps) in
   let series   = Array.of_list (arg_expanded ps) in
   let shape    = Array.of_list (arg_expanded ps) in
@@ -2062,22 +2061,23 @@ value declare_font ps = do
                       Runtime.Substitute.Simple g
                     in
 
-  Fonts.declare_font
-    name
-    encoding
-    family
-    series
-    shape
-    (Parser.read_range (UCStream.of_list sizes))
-    {
-      (FontMetric.empty_load_params)
+  add_node ps
+    (Node.Command (location ps)
+      (Environment.declare_font
+        name
+        family
+        series
+        shape
+        (Parser.read_range (UCStream.of_list sizes))
+        {
+          (FontMetric.empty_load_params)
 
-      with
+          with
 
-      FontMetric.flp_size         = scale;
-      FontMetric.flp_hyphen_glyph = get_glyph hyphen;
-      FontMetric.flp_skew_glyph   = get_glyph skew
-    }
+          FontMetric.flp_size         = scale;
+          FontMetric.flp_hyphen_glyph = get_glyph hyphen;
+          FontMetric.flp_skew_glyph   = get_glyph skew
+        }))
 };
 
 (* references *)

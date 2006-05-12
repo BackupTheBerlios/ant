@@ -1,6 +1,6 @@
 % style file for the manual
 
-\include{allib.ant}
+% parameters
 
 % skips
 
@@ -60,7 +60,6 @@
 \definecommand\ldots{\ensuremath{\mathinner{\ldotp\ldotp\ldotp}}}
 \definecommand\cdots{\ensuremath{\mathinner{\cdotp\cdotp\cdotp}}}
 
-\definecommand\mapsto{\mathchar{relation}{2}{0x37}{2}{0x37}\rightarrow }
 
 % abbreviations for TeX compatibility
 
@@ -437,7 +436,6 @@ two_column_page_layout page_size division baseline :=
 % paragraphs
 
 \setparameter{paragraph}{par-indent = 1em}
-%\definecommand\noindent{\par\hskip{-1em}}
 
 \definecommand\flushleft{\setparameter{paragraph}{
   left-skip  = 0pt;
@@ -470,8 +468,6 @@ two_column_page_layout page_size division baseline :=
 \definecommand\date{\month\ \day, \year}
 
 % fonts
-
-\include{fonts.ant}
 
 \definecommand\textit[m]{{\itshape #1}}
 \definecommand\textsc[m]{{\scshape #1}}%\setparameter{font}{ features = {liga,kern,smcp} } #1}}

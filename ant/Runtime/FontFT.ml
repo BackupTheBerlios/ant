@@ -94,7 +94,7 @@ value builtin_encoding face char = match ft_get_char_index face char with
 | g -> Simple g
 ];
 
-value rec builtin_decoding face glyph = do
+value builtin_decoding face glyph = do
 {
   let lookup glyph = do
   {
@@ -112,15 +112,15 @@ value rec builtin_decoding face glyph = do
   }
   in
 
-  match glyph with
+  Array.of_list (decode glyph)
+
+  where rec decode glyph = match glyph with
   [ Undef              -> []
   | Border _           -> []
   | Simple g           -> lookup g
   | Accent a g         -> lookup a @ lookup g
   | Sequence gs        -> List.concat (List.map lookup gs)
-  | Extendable t m b _ -> builtin_decoding face t
-                        @ builtin_decoding face m
-                        @ builtin_decoding face b
+  | Extendable t m b _ -> decode t @ decode m @ decode b
   ]
 };
 
@@ -697,7 +697,7 @@ value read_ft file name params = do
                        size
                      in
   let hyphen_glyph = match params.flp_hyphen_glyph with
-                     [ Undef -> Simple 45
+                     [ Undef -> builtin_encoding face 45
                      | h     -> h
                      ]
                      in

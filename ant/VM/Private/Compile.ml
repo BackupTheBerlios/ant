@@ -178,7 +178,7 @@ value rec compile_expr scope expr = match expr with
   }
 | Parser.TFun cases -> do
   {
-    iter (TConstant Unbound) cases
+    iter (TConstant (Dictionary SymbolMap.empty)) cases
 
     where rec iter result cases = match cases with
     [ []                          -> result

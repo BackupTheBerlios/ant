@@ -84,7 +84,7 @@ type glyph_composer     = Substitute.glyph_composer font_metric box box;
 (* |log_box <box>| prints <box> in human readable form. *)
 
 value rec log_box box = match box.b_contents with
-[ CharBox g f -> log_uc_list (FontMetric.get_unicode f g)
+[ CharBox g f -> log_uc_string (FontMetric.get_unicode f g)
 | GlueBox i _ ->
     if i then
       ()
@@ -191,7 +191,7 @@ value short_dump_box box = match box.b_contents with
 | GlueBox True _      -> log_string "/"
 | GlueBox False True  -> log_string "_"
 | GlueBox False False -> log_string "~"
-| CharBox c f         -> log_uc_list (FontMetric.get_unicode f c)
+| CharBox c f         -> log_uc_string (FontMetric.get_unicode f c)
 | _                   -> log_string "!"
 ];
 

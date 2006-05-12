@@ -14,8 +14,8 @@ type extended_glyph_item 'box 'cmd = glyph_item (font_metric * glyph_composer fo
 value dump_item i = match i with
 [ `Char c      -> log_uc_list [c]
 | `Glyph (g,f) -> match get_unicode f g with
-                  [ []  -> log_string "?"
-                  | str -> log_uc_list str
+                  [ [||] -> log_string "?"
+                  | str  -> log_uc_string str
                   ]
 | `Kern _      -> log_string "¸"
 | `Command _   -> log_string "!"
