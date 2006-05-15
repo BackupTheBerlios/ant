@@ -92,12 +92,13 @@ and simple_cmd =
 
 type font_load_params =
 {
-  flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing : num;                         (* additional letter spacing   *)
-  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size              : num;                         (* scale font to this size     *)
+  flp_encoding          : array uc_string;             (* overrides built in encoding *)
+  flp_hyphen_glyph      : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph        : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing    : num;                         (* additional letter spacing   *)
+  flp_extra_adjustments : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_kern        : list (int * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)

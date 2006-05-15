@@ -49,7 +49,7 @@ VM/depend:
 	rm VM/Private/VMPrivate.ml VM/Private/VMPrivate.mli
 
 VM/Private/depend:
-	$(ML_DEPEND) $(VM_PRIVATE_MLI) $(VM_PRIVATE_ML) | sed -e 's!Unicode.cmx!Unicode.$(CMA)!' -e 's!Runtime.cmx!Runtime.$(CMA)!' >VM/Private/Makefile.depend
+	$(ML_DEPEND) -I VM $(VM_PRIVATE_MLI) $(VM_PRIVATE_ML) | sed -e 's!Unicode.cmx!Unicode.$(CMA)!' -e 's!Runtime.cmx!Runtime.$(CMA)!' >VM/Private/Makefile.depend
 
 VM/ali: Tools/Tools.$(CMA) lib/CamlImages.$(CMA) lib/Unicode.$(CMA) lib/Runtime.$(CMA) $(VM_CMO) VM/Ali.$(CMO)
 	$(LINK_ML)

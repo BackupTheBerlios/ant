@@ -67,7 +67,7 @@ MLFLAGS  = -rectypes -pp "$(MLPP) $(MLPP_PA)" -I $(GMP_LIB) $(DEBUGFLAGS)
 
 PWD := $(shell pwd)# fix bug with ocamlc -a
 
-TOOLS     = Num$(MATH_LIB) Option XList XNum XString Zlib IO LinForm Constraint PlanePartition \
+TOOLS     = Num$(MATH_LIB) OrderedInt Maps Option XList XNum XString Zlib IO LinForm Constraint PlanePartition \
             ListBuilder ShortestPath
 TOOLS_ML  = $(addsuffix .ml,$(TOOLS))
 TOOLS_MLI = $(addsuffix .mli,$(TOOLS))

@@ -76,33 +76,15 @@ type char_item 'box 'cmd =
 |  `Break of (num * bool * list (char_item 'box 'cmd) * list (char_item 'box 'cmd) * list (char_item 'box 'cmd))
 ];
 
-value get_after_kerning glyph_metric border = do
-{
-  let k = match border with
-  [ Space   -> glyph_metric.gm_extra_kern.ki_after_space
-  | Margin  -> glyph_metric.gm_extra_kern.ki_after_margin
-  | Foreign -> glyph_metric.gm_extra_kern.ki_after_foreign
-  ]
-  in
+value get_after_kerning glyph_metric border = match border with
+[ Space   -> glyph_metric.gm_extra_kern.ki_after_space
+| Margin  -> glyph_metric.gm_extra_kern.ki_after_margin
+| Foreign -> glyph_metric.gm_extra_kern.ki_after_foreign
+];
 
-  if k <>/ num_zero then
-    Kern k
-  else
-    NoLigKern
-};
-
-value get_before_kerning glyph_metric border = do
-{
-  let k = match border with
-  [ Space   -> glyph_metric.gm_extra_kern.ki_before_space
-  | Margin  -> glyph_metric.gm_extra_kern.ki_before_margin
-  | Foreign -> glyph_metric.gm_extra_kern.ki_before_foreign
-  ]
-  in
-
-  if k <>/ num_zero then
-    Kern k
-  else
-    NoLigKern
-};
+value get_before_kerning glyph_metric border = match border with
+[ Space   -> glyph_metric.gm_extra_kern.ki_before_space
+| Margin  -> glyph_metric.gm_extra_kern.ki_before_margin
+| Foreign -> glyph_metric.gm_extra_kern.ki_before_foreign
+];
 

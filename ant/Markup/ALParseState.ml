@@ -961,6 +961,80 @@ value ps_new_galley res args = match args with
 
 (* fonts *)
 
+value decode_font_load_params name params = do
+{
+  let get_glyph g = if g < 0 then Substitute.Undef else Substitute.Simple g in
+
+  let p = decode_dict name params in
+
+  let encoding      = Array.map
+                        (decode_uc_string name)
+                        (Option.from_option [||]
+                          (lookup_tuple name p sym_Encoding))
+                      in
+  let hyphen        = Option.from_option (-1)
+                       (lookup_int name p sym_HyphenGlyph)   in
+  let skew          = Option.from_option (-1)
+                       (lookup_int name p sym_SkewGlyph)     in
+  let scale         = Option.from_option num_one
+                       (lookup_num name p sym_Scale)         in
+  let letterspacing = Option.from_option num_zero
+                       (lookup_num name p sym_LetterSpacing) in
+  let adjustments   = Option.from_option []
+                       (lookup_list name p sym_Adjustments)  in
+
+  iter DynUCTrie.empty [] adjustments
+
+  where rec iter extra_adj extra_kern adjustments = match adjustments with
+  [ [] -> {
+            FontMetric.flp_encoding          = encoding;
+            FontMetric.flp_letter_spacing    = letterspacing;
+            FontMetric.flp_size              = scale;
+            FontMetric.flp_hyphen_glyph      = get_glyph hyphen;
+            FontMetric.flp_skew_glyph        = get_glyph skew;
+            FontMetric.flp_extra_kern        = extra_kern;
+            FontMetric.flp_extra_adjustments = if DynUCTrie.is_empty extra_adj then
+                                                 []
+                                               else
+                                                 [Substitute.DirectLookup extra_adj]
+          }
+  | [a::adjs] -> match decode_tuple name a with
+    [ [| glyphs; cmd |] -> do
+      {
+        let gs = decode_uc_string name glyphs in
+
+        match decode_tuple name cmd with
+        [ [| sym; val |] -> do
+          {
+            let s = decode_symbol name sym in
+
+            if s = sym_Kern then do
+            {
+              let v = Machine.decode_num name val          in
+              let c = Substitute.simple_pair_kerning_cmd v in
+
+              iter (DynUCTrie.add_string gs (c, 1) extra_adj) extra_kern adjs
+            }
+            else if s = sym_Ligature then do
+            {
+              let v = decode_char name val in
+              let c = Substitute.replace_with_single_glyph_cmd
+                        2 (Substitute.Simple v)
+              in
+
+              iter (DynUCTrie.add_string gs (c, 0) extra_adj) extra_kern adjs
+            }
+            else
+              Types.runtime_error (name ^ ": unknown adjustment command, Kern or Ligature expected")
+          }
+        | _ -> Types.runtime_error (name ^ ": pair expected")
+        ]
+      }
+    | _ -> Types.runtime_error (name ^ ": pair expected")
+    ]
+  ]
+};
+
 value ps_declare_font res args = match args with
 [ [name; family; series; shape; sizes; params; parse_command] -> do
   {
@@ -971,32 +1045,12 @@ value ps_declare_font res args = match args with
           let fam     = decode_uc_string "ps_declare_font" family   in
           let ser     = decode_uc_string "ps_declare_font" series   in
           let sha     = decode_uc_string "ps_declare_font" shape    in
-          let p       = decode_dict      "ps_declare_font" params   in
           let (s1,s2) = match decode_tuple "ps_declare_font" sizes with
             [ [| s1; s2 |] -> (s1,s2)
             | _ -> Types.runtime_error "ps_declare_font: pair expected"
             ]
           in
-
-          let get_glyph g = if g < 0 then
-                              Substitute.Undef
-                            else
-                              Substitute.Simple g
-                            in
-
-          let encoding      = Array.map
-                                (decode_uc_string "ps_declare_font")
-                                (Option.from_option [||]
-                                  (lookup_tuple "ps_declare_font" p sym_Encoding))
-                              in
-          let hyphen        = Option.from_option (-1)
-                               (lookup_int "ps_declare_font" p sym_HyphenGlyph)   in
-          let skew          = Option.from_option (-1)
-                               (lookup_int "ps_declare_font" p sym_SkewGlyph)     in
-          let scale         = Option.from_option num_one
-                               (lookup_num "ps_declare_font" p sym_Scale)         in
-          let letterspacing = Option.from_option num_zero
-                               (lookup_num "ps_declare_font" p sym_LetterSpacing) in
+          let flp = decode_font_load_params "ps_declare_font" params in
 
           add_node ps
             (Node.Command (location ps)
@@ -1004,17 +1058,7 @@ value ps_declare_font res args = match args with
                 n fam ser sha
                 (Machine.decode_num "ps_declare_font" s1,
                  Machine.decode_num "ps_declare_font" s2)
-                {
-                  (FontMetric.empty_load_params)
-
-                  with
-
-                  FontMetric.flp_encoding       = encoding;
-                  FontMetric.flp_letter_spacing = letterspacing;
-                  FontMetric.flp_size           = scale;
-                  FontMetric.flp_hyphen_glyph   = get_glyph hyphen;
-                  FontMetric.flp_skew_glyph     = get_glyph skew
-                }))
+                flp))
         })
   }
 | _ -> assert False

@@ -97,8 +97,8 @@ In addition, \ant\ provides several improvements over~\TeX\?:
 \section{Invoking ant}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\ant\ translates its input file into a \dvi-file. Rudimentary support for
-PostScript and \pdf\ output is also implemented. The program is invoked as
+\ant\ translates its input file into a \dvi- or \pdf-file. Rudimentary support for
+PostScript and \textsc{svg} output is also implemented. The program is invoked as
 \begin{code}
   \cs{ant} \csopt{options} \csarg{input file}
 \end{code}
@@ -113,13 +113,13 @@ Currently, the following options are supported\?:
 
   \noindent
   \begin{table}
-    \quad\cs{e}\quad& the engine\hfill\ntr
-    \quad\cs{g}\quad& galley breaking\hfill\ntr
-    \quad\cs{i}\quad& the current input\hfill\ntr
-    \quad\cs{l}\quad& line breaking\hfill\ntr
+    \quad\cs{e}\quad& the engine &
     \quad\cs{m}\quad& macro expansion\hfill\ntr
+    \quad\cs{g}\quad& galley breaking &
     \quad\cs{p}\quad& page layout\hfill\ntr
-    \quad\cs{s}\quad& various stacks\hfill%
+    \quad\cs{i}\quad& the current input &
+    \quad\cs{s}\quad& various stacks\hfill\ntr
+    \quad\cs{l}\quad& line breaking\hfill\ntr
   \end{table}
   \vskip{1ex}%
 \end{longdescription}
@@ -1235,7 +1235,7 @@ The following table lists all predefined operators in order of increasing priori
 
 \paragraph{Simple expressions}
 Simple expressions are either literals, variables, or complex expressions enclosed in parenthesis.
-The discuss the various cases separately.
+We discuss the various cases separately.
 \begin{display}\small
   \begin{table}
   \hfill $\nterm{simple-expr} ::= {}$ & \nterm{lid}    & ${} \mvert \nterm{symbol}$ \ntr

@@ -17,6 +17,7 @@ value decl_sym str = Machine.string_to_symbol (UString.uc_string_of_ascii str);
 value sym_Accent               = decl_sym "Accent";
 value sym_AddToGalley          = decl_sym "AddToGalley";
 value sym_AdjDemerits          = decl_sym "AdjDemerits";
+value sym_Adjustments          = decl_sym "Adjustments";
 value sym_Alignment            = decl_sym "Alignment";
 value sym_Base                 = decl_sym "Base";
 value sym_BaselineSkip         = decl_sym "BaselineSkip";
@@ -76,6 +77,7 @@ value sym_HyphenTable          = decl_sym "HyphenTable";
 value sym_Image                = decl_sym "Image";
 value sym_IndexPosition        = decl_sym "IndexPosition";
 value sym_Inner                = decl_sym "Inner";
+value sym_Kern                 = decl_sym "Kern";
 value sym_Leading              = decl_sym "Leading";
 value sym_Left                 = decl_sym "Left";
 value sym_LeftHyphenMin        = decl_sym "LeftHyphenMin";
@@ -83,6 +85,7 @@ value sym_LeftRight            = decl_sym "LeftRight";
 value sym_LeftSkip             = decl_sym "LeftSkip";
 value sym_Letter               = decl_sym "Letter";
 value sym_LetterSpacing        = decl_sym "LetterSpacing";
+value sym_Ligature             = decl_sym "Ligature";
 value sym_LineBreakParams      = decl_sym "LineBreakParams";
 value sym_LineParams           = decl_sym "LineParams";
 value sym_LinePenalty          = decl_sym "LinePenalty";
@@ -292,13 +295,14 @@ value lookup decode dict key = do
   [ Not_found -> None ]
 };
 
-value lookup_string name dict key = lookup (decode_uc_string      name) dict key;
-value lookup_bool   name dict key = lookup (decode_bool           name) dict key;
-value lookup_int    name dict key = lookup (decode_int            name) dict key;
+value lookup_string name dict key = lookup (decode_uc_string    name) dict key;
+value lookup_bool   name dict key = lookup (decode_bool         name) dict key;
+value lookup_int    name dict key = lookup (decode_int          name) dict key;
 value lookup_num    name dict key = lookup (Machine.decode_num  name) dict key;
-value lookup_symbol name dict key = lookup (decode_symbol         name) dict key;
-value lookup_dict   name dict key = lookup (decode_dict           name) dict key;
-value lookup_tuple  name dict key = lookup (decode_tuple          name) dict key;
+value lookup_symbol name dict key = lookup (decode_symbol       name) dict key;
+value lookup_dict   name dict key = lookup (decode_dict         name) dict key;
+value lookup_tuple  name dict key = lookup (decode_tuple        name) dict key;
+value lookup_list   name dict key = lookup (Machine.decode_list name) dict key;
 
 (* generic unwrapper for opaque types *)
 

@@ -1,5 +1,6 @@
 
 open XNum;
+open Maps;
 open Unicode.Types;
 open Logging;
 open Dim;
@@ -45,14 +46,21 @@ type glyph_item 'font 'box 'cmd =
                   * array (glyph_item 'font 'box 'cmd))
 ];
 
-type replacement_cmd =
+type adjustment_command =
 [ ConstGlyph of glyph_desc
 | ConstKern of num and num
-| CopyGlyph of int
-| CopyCommands of int and int
+| CopyGlyph of int             (* glyph index               *)
+| CopyCommands of int and int  (* first index, second index *)
 ];
 
-type replacement = (list replacement_cmd * int);
+type adjustment = (list adjustment_command * int);
+
+type adjustment_table =
+[ NoAdjustment
+| DirectLookup of DynUCTrie.t adjustment
+| ClassLookup of IntMap.t int and DynUCTrie.t adjustment
+| ClassPairLookup of int and IntMap.t int and IntMap.t int and array adjustment
+];
 
 type glyph_composer 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd) ->
@@ -60,7 +68,11 @@ type glyph_composer 'font 'box 'cmd =
 
 type substitution 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd) ->
-  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * replacement);
+  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * adjustment);
+
+type subst_trie 'a = (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option adjustment));
+
+type adj_trie_state = (int * list int);
 
 (* auxilliary functions *)
 
@@ -109,25 +121,180 @@ value last_real_item items from_pos to_pos = do
   }
 };
 
-(* ligatures and substitutions *)
+(* adjustments *)
 
-(*
-type pattern =
-[ Const of glyph_desc
-| Class of GlyphSet.t
+value single_positioning_cmd pre_kern shift post_kern = do
+{
+  [CopyCommands 0 0;
+   ConstKern pre_kern shift;
+   CopyGlyph 0;
+   ConstKern post_kern num_zero;
+   CopyCommands 1 1]
+};
+
+value simple_pair_kerning_cmd kern = do
+{
+  [CopyCommands 0 0;
+   CopyGlyph 0;
+   CopyCommands 1 1;
+   ConstKern kern num_zero;
+   CopyGlyph 1;
+   CopyCommands 2 2]
+};
+
+value pair_positioning_cmd pre_kern shift1 mid_kern shift2 post_kern = do
+{
+  [CopyCommands 0 0;
+   ConstKern pre_kern shift1;
+   CopyGlyph 0;
+   CopyCommands 1 1;
+   ConstKern mid_kern shift2;
+   CopyGlyph 1;
+   ConstKern post_kern num_zero;
+   CopyCommands 2 2]
+};
+
+value replace_with_single_glyph_cmd num_glyphs new_glyph = do
+{
+  [CopyCommands 0 0;
+   ConstGlyph new_glyph;
+   CopyCommands 1 num_glyphs]
+};
+
+value replace_with_multiple_glyphs_cmd num_glyphs new_glyphs = do
+{
+  [CopyCommands 0 0
+   :: Array.fold_right
+        (fun g cmds -> [ConstGlyph g :: cmds])
+        new_glyphs
+        [CopyCommands 1 num_glyphs]]
+};
+
+value tex_ligature_cmd lig keep1 keep2 = do
+{
+  if keep1 then
+    if keep2 then
+      [CopyCommands 0 0; CopyGlyph 0; ConstGlyph lig; CopyCommands 1 1; CopyGlyph 1; CopyCommands 2 2]
+    else
+      [CopyCommands 0 0; CopyGlyph 0; ConstGlyph lig; CopyCommands 1 2]
+  else
+    if keep2 then
+      [CopyCommands 0 0; ConstGlyph lig; CopyCommands 1 1; CopyGlyph 1; CopyCommands 2 2]
+    else
+      [CopyCommands 0 0; ConstGlyph lig; CopyCommands 1 2]
+};
+
+value lookup_adjustment adj_table glyphs = match adj_table with
+[ NoAdjustment                -> None
+| DirectLookup trie           -> DynUCTrie.lookup_list glyphs trie
+| ClassLookup classes trie    -> do
+  {
+    let c = List.map
+             (fun g -> try IntMap.find g classes
+                       with [ Not_found -> 0])
+             glyphs
+    in
+
+    DynUCTrie.lookup_list c trie
+  }
+| ClassPairLookup n c1 c2 arr -> match glyphs with
+  [ [g1; g2] -> do
+    {
+      try
+        let i1 = IntMap.find g1 c1 in
+        let i2 = IntMap.find g2 c2 in
+
+        Some arr.(n * i1 + i2)
+      with
+      [ Not_found -> None ]
+    }
+  | _ -> None
+  ]
 ];
 
-value match_pattern pattern glyph = match pattern with
-[ Const g -> g = glyph
-| Class c -> GlyphSet.mem glyph c
+value get_lookup_depth adj = match adj with
+[ NoAdjustment            -> 0
+| DirectLookup trie       -> DynUCTrie.depth trie
+| ClassLookup _ trie      -> DynUCTrie.depth trie
+| ClassPairLookup _ _ _ _ -> 2
 ];
-*)
+
+value lookup_adjustments adjustments glyphs = do
+{
+  iter adjustments
+
+  where rec iter adjustments = match adjustments with
+  [ []        -> None
+  | [a::adjs] -> match lookup_adjustment a glyphs with
+    [ None          -> iter adjs
+    | (Some _) as r -> r
+    ]
+  ]
+};
+
+value max_adjustment_depth adjustments = do
+{
+  List.fold_left
+    (fun depth adj -> max depth (get_lookup_depth adj))
+    0
+    adjustments
+};
+
+value lookup2_adjustments adjustments glyphs = do
+{
+  iter1 adjustments
+
+  where rec iter1 adjustments = match adjustments with
+  [ []        -> None
+  | [a::adjs] -> do
+    {
+      iter2 0
+
+      where rec iter2 i = do
+      {
+        if i >= Array.length a then
+          iter1 adjs
+        else match lookup_adjustment a.(i) glyphs with
+        [ None          -> iter2 (i+1)
+        | (Some _) as r -> r
+        ]
+      }
+    }
+  ]
+};
+
+value max2_adjustment_depth adjustments = do
+{
+  List.fold_left
+    (fun depth adj ->
+      Array.fold_left
+        (fun depth a -> max depth (get_lookup_depth a))
+        depth
+        adj)
+    0
+    adjustments
+};
+
+value make_adjustment_trie adjustments = do
+{
+  let max_depth = max_adjustment_depth adjustments in
+
+  let is_empty (n, _)        = (n > max_depth)      in
+  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
+  let root_value (_, glyphs) =
+    lookup_adjustments adjustments (List.rev glyphs)
+  in
+
+  ((is_empty, prefix, root_value), (0, []))
+};
+
+(* applying adjustments *)
 
 value match_substitution_trie (is_empty, prefix_trie, root_value) subst_trie items = do
 {
   let return_match found = match found with
-  [ (_,      _,    None)      -> None
-  | (prefix, rest, Some repl) -> Some (prefix, rest, repl)
+  [ (_,      _,    None)     -> None
+  | (prefix, rest, Some adj) -> Some (prefix, rest, adj)
   ]
   in
 
@@ -162,11 +329,11 @@ value match_substitution_dyntrie subst_trie items = do
   match_substitution_trie (DynUCTrie.is_empty, DynUCTrie.prefix, DynUCTrie.root_value) subst_trie items
 };
 
-value apply_substitution font glyphs cmds rest replacement = do
+value apply_substitution font glyphs cmds rest adjustment = do
 {
-  iter replacement
+  iter adjustment
 
-  where rec iter replacement = match replacement with
+  where rec iter adjustment = match adjustment with
   [ []      -> rest
   | [r::rs] -> match r with
     [ ConstGlyph glyph       -> [`Glyph (glyph, font) :: iter rs]
@@ -275,10 +442,10 @@ value substitute font find_subst items = do
   where rec iter items = match items with
   [ [] -> ListBuilder.get result
   | _  -> match find_subst items with
-    [ Some (prefix, rest, (replacement, skip)) -> do
+    [ Some (prefix, rest, (adj, skip)) -> do
       {
-        let (glyphs, cmds) = separate_items prefix                                in
-        let new_items      = apply_substitution font glyphs cmds rest replacement in
+        let (glyphs, cmds) = separate_items prefix                        in
+        let new_items      = apply_substitution font glyphs cmds rest adj in
 
         iter (skip_prefix skip new_items)
       }

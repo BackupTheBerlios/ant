@@ -70,10 +70,10 @@ value next_lig_kern lk_array pos = do
       let op = operand lk in
 
       (next_pos, n,
-       Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1))
+       GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1))
     }
     else
-      (next_pos, n, Kern (kern lk))
+      (next_pos, n, GlyphMetric.Kern (kern lk))
   }
   else
     (-1, -1, NoLigKern)
@@ -95,14 +95,44 @@ value rec get_lig_kern lk_array pos next_char = do
     {
       let op = operand lk in
 
-      Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1)
+      GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1)
     }
     else
-      Kern (kern lk)
+      GlyphMetric.Kern (kern lk)
   else if s < 128 then
     get_lig_kern lk_array (pos + s + 1) next_char
   else
     NoLigKern
+};
+
+value rec list_lig_kerns lk_array pos = do
+{
+  let lk = lk_array.(pos) in
+  let s  = skip lk in
+  let n  = next lk in
+
+  if s > 128 then
+    []
+  else if is_lig lk then do
+  {
+    let op = operand lk in
+
+    let l = (n, GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1)) in
+
+    if s < 128 then
+      [l :: list_lig_kerns lk_array (pos + s + 1)]
+    else
+      [l]
+  }
+  else do
+  {
+    let k = (n, GlyphMetric.Kern (kern lk)) in
+
+    if s < 128 then
+      [k :: list_lig_kerns lk_array (pos + s + 1)]
+    else
+      [k]
+  }
 };
 
 end;
@@ -149,49 +179,53 @@ value tfm_kerning lig_kern font c1 c2 = do
   ];
 };
 
-(*
-value make_ligature_trie first_char metrics lig_kern = do
+value get_adjustment_table lig_kern_table glyphs first_glyph last_glyph = do
 {
-  let (_, trie) =
-    Array.fold_left
-      (fun (i, trie) gm -> match gm.gm_extra with
-        [ GXI_LigKern lk -> do
-          {
-            iter lk trie
+  iter first_glyph DynUCTrie.empty
 
-            where rec iter lk trie = match LigKern.next_lig_kern lig_kern lk with
-            [ (_, _, LigKern.None)                 -> (i+1, trie)
-            | (next, glyph, LigKern.Lig c s k1 k2) -> do
+  where rec iter g adj = do
+  {
+    if g > last_glyph then
+      if DynUCTrie.is_empty adj then
+        []
+      else
+        [Substitute.DirectLookup adj]
+    else match glyphs.(g - first_glyph).gm_extra with
+    [ GXI_LigKern lk -> do
+      {
+        let lks = LigKern.list_lig_kerns lig_kern_table lk in
+
+        add_lig_kern lks adj
+
+        where rec add_lig_kern lks adj = match lks with
+        [ []       -> iter (g+1) adj
+        | [l::lks] -> match l with
+            [ (g2, GlyphMetric.Ligature c s k1 k2) -> do
               {
-                let repl = if k1 then [ConstGlyph (Simple i)] else []
-                         @ [ConstGlyph (Simple c)]
-                         @ if k2 then [ConstGlyph (Simple glyph)] else []
-                in
-
-                iter
-                  next
-                  (GlyphTrie.add_list
-                    [Simple i; Simple glyph]
-                    (repl, s)
-                    trie)
+                add_lig_kern
+                  lks
+                  (DynUCTrie.add_list
+                    [g; g2]
+                    (tex_ligature_cmd (Simple c) k1 k2, s)
+                    adj)
               }
-            | (next, _, _) -> iter next trie
+            | (g2, GlyphMetric.Kern x) -> do
+              {
+                add_lig_kern
+                  lks
+                  (DynUCTrie.add_list
+                    [g; g2]
+                    (simple_pair_kerning_cmd x, 1)
+                    adj)
+              }
+            | (_, NoLigKern) -> assert False
             ]
-          }
-        | _ -> (i+1, trie)
-        ])
-      (first_char, GlyphTrie.empty)
-      metrics
-  in
-
-  trie
+        ]
+      }
+    | _ -> iter (g+1) adj
+    ]
+  }
 };
-
-value make_kerning_trie first_char metrics lig_kern = do
-{
-  GlyphTrie.empty
-};
-*)
 
 value get_glyph_bitmap bitmaps fm code = do
 {
@@ -259,9 +293,11 @@ value make_glyph_metric params width height depth italic lig exten (w,x1,x2,r) =
   }
 };
 
-value tfm_composer fm _ _ = do
+value tfm_composer adj fm _ _ = do
 {
-  simple_composer fm (simple_ligature_substitution fm)
+  let (trie, state) = make_adjustment_trie adj in
+
+  simple_composer fm (match_substitution_trie trie state)
 };
 
 value read_tfm file name params = do
@@ -270,10 +306,10 @@ value read_tfm file name params = do
 
   let _file_length  = IO.read_be_u16 ic in
   let header_length = IO.read_be_u16 ic in
-  let first_char    = IO.read_be_u16 ic in
-  let last_char     = IO.read_be_u16 ic in
+  let first_glyph   = IO.read_be_u16 ic in
+  let last_glyph    = IO.read_be_u16 ic in
 
-  let glyph_metric_table_len = last_char - first_char + 1 in
+  let glyph_metric_table_len = last_glyph - first_glyph + 1 in
 
   let width_table_len  = IO.read_be_u16 ic in
   let height_table_len = IO.read_be_u16 ic in
@@ -308,6 +344,11 @@ value read_tfm file name params = do
   let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig in
   let gm_table  = Array.map (fun x -> make_glyph_metric params width height depth italic lig_cmds ext x) glyph_metric in
 
+  let adjustment_table =
+      params.flp_extra_adjustments
+    @ get_adjustment_table lig_cmds gm_table first_glyph last_glyph
+  in
+
   let hyphen_glyph = match params.flp_hyphen_glyph with
   [ Undef -> Simple 45
   | h     -> h
@@ -321,13 +362,15 @@ value read_tfm file name params = do
   ]
   in
 
+  let composer x y = tfm_composer adjustment_table x y in
+
   {
     name                = name;
     ps_name             = name;
     file_name           = file;
     font_type           = Other;
-    first_glyph         = first_char;
-    last_glyph          = last_char;
+    first_glyph         = first_glyph;
+    last_glyph          = last_glyph;
     glyph_metric        = gm_table;
     design_size         = design_size;
     at_size             = size;
@@ -340,7 +383,7 @@ value read_tfm file name params = do
                              draw_displaced_simple_glyph params.flp_letter_spacing num_zero;
     accent_base_point   = accent_base_point_x_height;
     accent_attach_point = accent_attach_point_top;
-    get_composer        = tfm_composer;
+    get_composer        = composer;
     kerning             = tfm_kerning lig_cmds;
     get_glyph_bitmap    = (get_glyph_bitmap (ref None));
     get_glyph_name      = (fun g -> Printf.sprintf "c%d" g);

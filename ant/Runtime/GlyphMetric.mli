@@ -47,6 +47,6 @@ type char_item 'box 'cmd =
 value zero_kern_info     : extra_kern_info;
 value empty_glyph_metric : glyph_metric;
 value merge_kern_infos   : extra_kern_info -> extra_kern_info -> extra_kern_info;
-value get_after_kerning  : glyph_metric -> border_glyph -> lig_kern;
-value get_before_kerning : glyph_metric -> border_glyph -> lig_kern;
+value get_after_kerning  : glyph_metric -> border_glyph -> num;
+value get_before_kerning : glyph_metric -> border_glyph -> num;
 

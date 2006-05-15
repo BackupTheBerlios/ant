@@ -1,5 +1,6 @@
 
 open XNum;
+open Maps;
 open Unicode.Types;
 
 type border_glyph =
@@ -41,14 +42,21 @@ type glyph_item 'font 'box 'cmd =
                   * array (glyph_item 'font 'box 'cmd))
 ];
 
-type replacement_cmd =
+type adjustment_command =
 [ ConstGlyph of glyph_desc
 | ConstKern of num and num
 | CopyGlyph of int
 | CopyCommands of int and int
 ];
 
-type replacement = (list replacement_cmd * int);
+type adjustment = (list adjustment_command * int);
+
+type adjustment_table =
+[ NoAdjustment
+| DirectLookup of DynUCTrie.t adjustment
+| ClassLookup of IntMap.t int and DynUCTrie.t adjustment
+| ClassPairLookup of int and IntMap.t int and IntMap.t int and array adjustment
+];
 
 type glyph_composer 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd) ->
@@ -56,14 +64,30 @@ type glyph_composer 'font 'box 'cmd =
 
 type substitution 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd) ->
-  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * replacement);
+  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * adjustment);
+
+type subst_trie 'a = (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option adjustment));
+
+type adj_trie_state = 'a;
 
 value first_real_item_list : list (glyph_item 'font 'box 'cmd) -> option (glyph_item 'font 'box 'cmd);
 value first_real_item      : array (glyph_item 'font 'box 'cmd) -> int -> int -> option (glyph_item 'font 'box 'cmd);
 value last_real_item       : array (glyph_item 'font 'box 'cmd) -> int -> int -> option (glyph_item 'font 'box 'cmd);
 
-value match_substitution_dyntrie : DynUCTrie.t replacement -> substitution 'font 'box 'cmd;
-value match_substitution_trie    : (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option replacement)) -> 'a -> substitution 'font 'box 'cmd;
+value single_positioning_cmd           : num -> num -> num -> list adjustment_command;
+value simple_pair_kerning_cmd          : num -> list adjustment_command;
+value pair_positioning_cmd             : num -> num -> num -> num -> num -> list adjustment_command;
+value replace_with_single_glyph_cmd    : int -> glyph_desc -> list adjustment_command;
+value replace_with_multiple_glyphs_cmd : int -> array glyph_desc -> list adjustment_command;
+value tex_ligature_cmd                 : glyph_desc -> bool -> bool -> list adjustment_command;
+
+value lookup2_adjustments   : list (array adjustment_table) -> uc_list -> option adjustment;
+value max2_adjustment_depth : list (array adjustment_table) -> int;
+
+value make_adjustment_trie : list adjustment_table -> (subst_trie adj_trie_state * adj_trie_state);
+
+value match_substitution_dyntrie : DynUCTrie.t adjustment -> substitution 'font 'box 'cmd;
+value match_substitution_trie    : subst_trie 'a -> 'a -> substitution 'font 'box 'cmd;
 
 value substitute           : 'font -> substitution 'font 'box 'cmd -> glyph_composer 'font 'box 'cmd;
 

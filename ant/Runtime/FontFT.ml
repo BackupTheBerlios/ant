@@ -1,5 +1,6 @@
 
 open XNum;
+open Maps;
 open Unicode;
 open Substitute;
 open GlyphMetric;
@@ -17,7 +18,7 @@ value ft_kerning face scale c1 c2 = do
     NoLigKern
 };
 
-value make_glyph_metric scale glyph = do
+value make_glyph_metric params scale glyph = do
 {
   let (width, height, h_off, v_off, adv) = glyph_metrics glyph in
 
@@ -39,9 +40,8 @@ value make_glyph_metric scale glyph = do
     zero_kern_info
   in
 
-
   {
-    gm_width      = scale */ num_of_int adv;
+    gm_width      = scale */ num_of_int adv +/ num_two */ params.flp_letter_spacing;
     gm_height     = scale */ num_of_int v_off;
     gm_depth      = scale */ num_of_int (height - v_off);
     gm_italic     = r;
@@ -50,7 +50,7 @@ value make_glyph_metric scale glyph = do
   }
 };
 
-value get_glyph_metric scale face = do
+value get_glyph_metric params scale face = do
 {
   let num_glyphs = face_num_glyphs face                     in
   let gm         = Array.make num_glyphs empty_glyph_metric in
@@ -59,7 +59,7 @@ value get_glyph_metric scale face = do
   {
     ft_load_glyph face i (ft_load_no_hinting + ft_load_no_scale + ft_load_linear_design);
 
-    gm.(i - 1) := make_glyph_metric scale (face_glyph face)
+    gm.(i - 1) := make_glyph_metric params scale (face_glyph face)
   };
 
   gm
@@ -159,274 +159,228 @@ value pos_to_pre_kern scale pos = do
 
 value pos_to_post_kern scale pos = do
 {
+  (* FIX: Should this be |h_adv_off - x_off| ? *)
   ConstKern (scale */ num_of_int pos.OTF_Pos_Subst.p_h_adv_off)
             num_zero
 };
 
-value position_to_repl scale g p = do
+value position_to_adj scale p = do
 {
-  ([pos_to_pre_kern scale p;
-    ConstGlyph (Simple g);
-    pos_to_post_kern scale p;
-    CopyCommands 1 1],
-    0)
+  (single_positioning_cmd
+    (scale */ num_of_int p.OTF_Pos_Subst.p_x_off)
+    (scale */ num_of_int p.OTF_Pos_Subst.p_y_off)
+    (scale */ num_of_int p.OTF_Pos_Subst.p_h_adv_off),
+   0)
 };
 
-value kern_to_repl scale g1 g2 p1 p2 = do
+value kern_to_adj scale p1 p2 = do
 {
-  ([CopyCommands 0 0;
-   pos_to_pre_kern scale p1;
-   ConstGlyph (Simple g1);
-   pos_to_post_kern scale p1;
-   CopyCommands 1 1;
-   pos_to_pre_kern scale p2;
-   ConstGlyph (Simple g2);
-   pos_to_post_kern scale p2;
-   CopyCommands 2 2],
+  (pair_positioning_cmd
+    (scale */ num_of_int p1.OTF_Pos_Subst.p_x_off)
+    (scale */ num_of_int p1.OTF_Pos_Subst.p_y_off)
+    (scale */ num_of_int (p1.OTF_Pos_Subst.p_h_adv_off + p2.OTF_Pos_Subst.p_x_off))
+    (scale */ num_of_int p2.OTF_Pos_Subst.p_y_off)
+    (scale */ num_of_int p2.OTF_Pos_Subst.p_h_adv_off),
    1)
 };
 
-value substitution_to_repl g = do
+value substitution_to_adj g = do
 {
-  ([CopyCommands 0 0;
-    ConstGlyph (Simple g);
-    CopyCommands 1 1],
+  (replace_with_single_glyph_cmd 1 (Simple g),
+   0)
+};
+
+value multi_subst_to_adj glyphs = do
+{
+  (replace_with_multiple_glyphs_cmd 1 (Array.map (fun g -> Simple g) glyphs),
     0)
 };
 
-value multi_subst_to_repl glyphs = do
+value ligature_to_adj n lig = do
 {
-  ([CopyCommands 0 0 ::
-    Array.fold_right
-      (fun g cmds -> [ConstGlyph (Simple g) :: cmds])
-      glyphs
-      [CopyCommands 1 1]],
-    0)
+  (replace_with_single_glyph_cmd n (Simple lig),
+   0)
 };
 
-value ligature_to_repl lig = do
+value pos_rule_to_adj scale glyphs rule = do
 {
-  ([CopyCommands 0 0;
-    ConstGlyph (Simple lig);
-    CopyCommands 1 1],
-    0)
-};
-
-value pos_rule_to_repl scale glyphs rule = do
-{
-  let lookups = Array.make
-                  (List.length glyphs)
-                  { OTF_Pos_Subst.l_flags = 0; OTF_Pos_Subst.l_commands = [||] }
-                in
+  let lookups = Array.make (Array.length glyphs) [||] in
 
   Array.iter
     (fun l -> do
       {
-        lookups.(l.OTF_Pos_Subst.prr_seq_idx) := l.OTF_Pos_Subst.prr_lookup;
+        lookups.(l.OTF_Pos_Subst.prr_seq_idx) :=
+          l.OTF_Pos_Subst.prr_lookup.OTF_Pos_Subst.l_commands
       })
     rule;
 
-  let repl = ListBuilder.make () in
+  let adjs = ListBuilder.make () in
 
-  ListBuilder.add repl (CopyCommands 0 0);
+  ListBuilder.add adjs (CopyCommands 0 0);
 
-  iter_glyphs 0 glyphs
+  for i = 0 to Array.length glyphs - 1 do
+  {
+    let cmds = lookups.(i) in
 
-  where rec iter_glyphs i glyphs = match glyphs with
-  [ []      -> (ListBuilder.get repl, 0)
-  | [g::gs] -> do
+    iter_cmds 0
+
+    where rec iter_cmds k = do
     {
-      let cmds = lookups.(i).OTF_Pos_Subst.l_commands in
-
-      iter_cmds 0
-
-      where rec iter_cmds k = do
+      if k >= Array.length cmds then do
       {
-        if k >= Array.length cmds then do
-        {
-          ListBuilder.add_list repl [ConstGlyph (Simple g); CopyCommands i i];
-
-          iter_glyphs (i+1) gs
-        }
-        else match cmds.(k) with
-        [ OTF_Pos_Subst.Position pos -> do
-          {
-            try do
-            {
-              let p = Tag.IntMap.find g pos in
-
-              ListBuilder.add_list repl
-                [pos_to_pre_kern scale p;
-                 ConstGlyph (Simple g);
-                 pos_to_post_kern scale p;
-                 CopyCommands i i];
-
-              iter_glyphs (i+1) gs
-            }
-            with
-            [ Not_found -> iter_cmds (k+1) ]
-          }
-        | _ -> iter_cmds (k+1)
-        ]
+        ListBuilder.add_list adjs
+          [ConstGlyph (Simple glyphs.(i));
+           CopyCommands (i+1) (i+1)];
       }
+      else match cmds.(k) with
+      [ OTF_Pos_Subst.Position pos -> do
+        {
+          try do
+          {
+            let p = IntMap.find glyphs.(i) pos in
+
+            ListBuilder.add_list adjs
+              [pos_to_pre_kern scale p;
+               ConstGlyph (Simple glyphs.(i));
+               pos_to_post_kern scale p;
+               CopyCommands (i+1) (i+1)];
+          }
+          with
+          [ Not_found -> iter_cmds (k+1) ]
+        }
+      | _ -> iter_cmds (k+1)
+      ]
     }
-  ]
+  };
+
+  (ListBuilder.get adjs, 0)
 };
 
-value subst_rule_to_repl glyphs rule = do
+value subst_rule_to_adj glyphs rule = do
 {
-  let lookups = Array.make
-                  (List.length glyphs)
-                  { OTF_Pos_Subst.l_flags = 0; OTF_Pos_Subst.l_commands = [||] }
-                in
+  let lookups = Array.make (Array.length glyphs) [||] in
 
   Array.iter
     (fun l -> do
       {
-        lookups.(l.OTF_Pos_Subst.prr_seq_idx) := l.OTF_Pos_Subst.prr_lookup;
+        lookups.(l.OTF_Pos_Subst.prr_seq_idx) :=
+          l.OTF_Pos_Subst.prr_lookup.OTF_Pos_Subst.l_commands
       })
     rule;
 
-  let repl = ListBuilder.make () in
+  let adjs = ListBuilder.make () in
 
-  ListBuilder.add repl (CopyCommands 0 0);
+  ListBuilder.add adjs (CopyCommands 0 0);
 
-  iter_glyphs 0 glyphs
+  for i = 0 to Array.length glyphs - 1 do
+  {
+    let cmds = lookups.(i) in
 
-  where rec iter_glyphs i glyphs = match glyphs with
-  [ []      -> (ListBuilder.get repl, 0)
-  | [g::gs] -> do
+    iter_cmds 0
+
+    where rec iter_cmds k = do
     {
-      let cmds = lookups.(i).OTF_Pos_Subst.l_commands in
-
-      iter_cmds 0
-
-      where rec iter_cmds k = do
+      if k >= Array.length cmds then do
       {
-        if k >= Array.length cmds then do
-        {
-          ListBuilder.add_list repl [ConstGlyph (Simple g); CopyCommands i i];
-
-          iter_glyphs (i+1) gs
-        }
-        else match cmds.(k) with
-        [ OTF_Pos_Subst.Substitution subst -> do
-          {
-            try do
-            {
-              let g2 = Tag.IntMap.find g subst in
-
-              ListBuilder.add_list repl
-                [ConstGlyph (Simple g2);
-                 CopyCommands i i];
-
-               iter_glyphs (i+1) gs
-            }
-            with
-            [ Not_found -> iter_cmds (k+1) ]
-          }
-        | _ -> iter_cmds (k+1)
-        ]
+        ListBuilder.add_list adjs
+          [ConstGlyph (Simple glyphs.(i));
+           CopyCommands (i+1) (i+1)];
       }
+      else match cmds.(k) with
+      [ OTF_Pos_Subst.Substitution subst -> do
+        {
+          try do
+          {
+            let g2 = IntMap.find glyphs.(i) subst in
+
+            ListBuilder.add_list adjs
+              [ConstGlyph (Simple g2);
+               CopyCommands (i+1) (i+1)];
+          }
+          with
+          [ Not_found -> iter_cmds (k+1) ]
+        }
+      | _ -> iter_cmds (k+1)
+      ]
     }
-  ]
+  };
+
+  (ListBuilder.get adjs, 0)
 };
 
-value command_to_repl scale cmd glyphs = match cmd with
-[ OTF_Pos_Subst.NoCommand    -> None
-| OTF_Pos_Subst.Position pos -> match glyphs with
-  [ [g] -> do
-    {
-      try
-        let p = Tag.IntMap.find g pos in
-
-        Some (position_to_repl scale g p)
-      with
-      [ Not_found -> None ]
-    }
-  | _ -> None
-  ]
-| OTF_Pos_Subst.CursiveAnchors anchors -> None (* FIX *)
+value pos_subst_to_adjsutment scale cmd = match cmd with
+[ OTF_Pos_Subst.NoCommand    -> NoAdjustment
+| OTF_Pos_Subst.Position pos -> do
+  {
+    DirectLookup
+      (IntMap.fold
+        (fun g p trie -> DynUCTrie.add_list [g] (position_to_adj scale p) trie)
+        pos
+        DynUCTrie.empty)
+  }
+| OTF_Pos_Subst.CursiveAnchors entry exit -> NoAdjustment (* FIX *)
 | OTF_Pos_Subst.MarkToBaseAnchors _ _
 | OTF_Pos_Subst.MarkToLigAnchors  _ _
-| OTF_Pos_Subst.MarkToMarkAnchors _ _ -> None
-| OTF_Pos_Subst.Kern kerns -> match glyphs with
-  [ [g1; g2] -> do
-    {
-      try
-        let k        = Tag.IntMap.find g1 kerns in
-        let (p1, p2) = Tag.IntMap.find g2 k in
-
-        Some (kern_to_repl scale g1 g2 p1 p2)
-      with
-      [ Not_found -> None ]
-    }
-  | _ -> None
-  ]
-| OTF_Pos_Subst.KernClass n classes1 classes2 pos1 pos2 -> match glyphs with
-  [ [g1; g2] -> do
-    {
-      try
-        let c1 = Tag.IntMap.find g1 classes1 in
-        let c2 = Tag.IntMap.find g2 classes2 in
-        let p1 = pos1.(n * c1 + c2) in
-        let p2 = pos2.(n * c1 + c2) in
-
-        Some (kern_to_repl scale g1 g2 p1 p2)
-      with
-      [ Not_found -> None ]
-    }
-  | _ -> None
-  ]
-| OTF_Pos_Subst.Substitution subst -> match glyphs with
-  [ [g] -> do
-    {
-      try
-        let g2 = Tag.IntMap.find g subst in
-
-        Some (substitution_to_repl g2)
-      with
-      [ Not_found -> None ]
-    }
-  | _ -> None
-  ]
-| OTF_Pos_Subst.Multiple map -> match glyphs with
-  [ [g] -> do
-    {
-      try
-        let gs = Tag.IntMap.find g map in
-
-        Some (multi_subst_to_repl gs)
-      with
-      [ Not_found -> None ]
-    }
-  | _ -> None
-  ]
-| OTF_Pos_Subst.Alternate map -> None (* FIX *)
+| OTF_Pos_Subst.MarkToMarkAnchors _ _ -> NoAdjustment
+| OTF_Pos_Subst.Kern kerns -> do
+  {
+    DirectLookup
+      (IntMap.fold
+        (fun g1 m trie ->
+          IntMap.fold
+            (fun g2 (p1,p2) trie ->
+              DynUCTrie.add_list
+                [g1; g2]
+                (kern_to_adj scale p1 p2)
+                trie)
+            m
+            trie)
+        kerns
+        DynUCTrie.empty)
+  }
+| OTF_Pos_Subst.KernClass n classes1 classes2 pos1 pos2 -> do
+  {
+    ClassPairLookup n classes1 classes2
+      (Array.init (Array.length pos1)
+        (fun i -> kern_to_adj scale pos1.(i) pos2.(i)))
+  }
+| OTF_Pos_Subst.Substitution subst -> do
+  {
+    DirectLookup
+      (IntMap.fold
+        (fun g s trie -> DynUCTrie.add_list [g] (substitution_to_adj s) trie)
+        subst
+        DynUCTrie.empty)
+  }
+| OTF_Pos_Subst.Multiple map -> do
+  {
+    DirectLookup
+      (IntMap.fold
+        (fun g s trie -> DynUCTrie.add_list [g] (multi_subst_to_adj s) trie)
+        map
+        DynUCTrie.empty)
+  }
+| OTF_Pos_Subst.Alternate map -> NoAdjustment (* FIX *)
 | OTF_Pos_Subst.Ligature ligs -> do
   {
-    match DynUCTrie.lookup_list glyphs ligs with
-    [ None     -> None
-    | Some lig -> Some (ligature_to_repl lig)
-    ]
+    DirectLookup
+      (DynUCTrie.mapi
+        (fun gs s -> ligature_to_adj (Array.length gs) s)
+        ligs)
   }
 | OTF_Pos_Subst.ContextGlyphPos rules -> do
   {
-    try
-      let rule = DynUCTrie.find_list glyphs rules in
-
-      Some (pos_rule_to_repl scale glyphs rule)
-    with
-    [ Not_found -> None ]
+    DirectLookup
+      (DynUCTrie.mapi
+        (fun gs r -> pos_rule_to_adj scale gs r)
+        rules)
   }
 | OTF_Pos_Subst.ContextGlyphSubst rules -> do
   {
-    try
-      let rule = DynUCTrie.find_list glyphs rules in
-
-      Some (subst_rule_to_repl glyphs rule)
-    with
-    [ Not_found -> None ]
+    DirectLookup
+      (DynUCTrie.mapi
+        (fun gs r -> subst_rule_to_adj gs r)
+        rules)
   }
 (*
 | OTF_Pos_Subst.ContextClassPos      of IntMap.t int and array (pos_subst_rule (array int))
@@ -443,79 +397,15 @@ value command_to_repl scale cmd glyphs = match cmd with
 | OTF_Pos_Subst.ChainCoverageSubst   of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
 | OTF_Pos_Subst.ReverseSubst         of array int and array int and array (array int) and array (array int)
 *)
-| _ -> None
+| _ -> NoAdjustment
 ];
 
-value get_lookup_depth cmd = match cmd with
-[ OTF_Pos_Subst.NoCommand               -> 0
-| OTF_Pos_Subst.Position _              -> 1
-| OTF_Pos_Subst.CursiveAnchors _        -> 0 (* FIX *)
-| OTF_Pos_Subst.MarkToBaseAnchors _ _
-| OTF_Pos_Subst.MarkToLigAnchors  _ _
-| OTF_Pos_Subst.MarkToMarkAnchors _ _   -> 0
-| OTF_Pos_Subst.Kern _                  -> 2
-| OTF_Pos_Subst.KernClass _ _ _ _ _     -> 2
-| OTF_Pos_Subst.Substitution _          -> 1
-| OTF_Pos_Subst.Multiple _              -> 1
-| OTF_Pos_Subst.Alternate _             -> 1 (* FIX *)
-| OTF_Pos_Subst.Ligature ligs           -> DynUCTrie.depth ligs
-| OTF_Pos_Subst.ContextGlyphPos rules   -> DynUCTrie.depth rules
-| OTF_Pos_Subst.ContextGlyphSubst rules -> DynUCTrie.depth rules
-(*
-| OTF_Pos_Subst.ContextClassPos      of IntMap.t int and array (pos_subst_rule (array int))
-| OTF_Pos_Subst.ContextClassSubst    of IntMap.t int and array (pos_subst_rule (array int))
-| OTF_Pos_Subst.ContextCoveragePos   of array (pos_subst_rule (array (array int)))
-| OTF_Pos_Subst.ContextCoverageSubst of array (pos_subst_rule (array (array int)))
-| OTF_Pos_Subst.ChainGlyphPos        of (array (pos_subst_rule (array int * array int * array int)))
-| OTF_Pos_Subst.ChainGlyphSubst      of (array (pos_subst_rule (array int * array int * array int)))
-| OTF_Pos_Subst.ChainClassPos        of IntMap.t int and IntMap.t int and IntMap.t int and
-                                        array (pos_subst_rule (array int * array int * array int))
-| OTF_Pos_Subst.ChainClassSubst      of IntMap.t int and IntMap.t int and IntMap.t int and
-                                        array (pos_subst_rule (array int * array int * array int))
-| OTF_Pos_Subst.ChainCoveragePos     of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
-| OTF_Pos_Subst.ChainCoverageSubst   of array (pos_subst_rule (array (array int) * array (array int) * array (array int)))
-| OTF_Pos_Subst.ReverseSubst         of array int and array int and array (array int) and array (array int)
-*)
-| _ -> 0
-];
-
-value lookup_repl scale lookups glyphs = do
+value lookup_to_adjustment scale lookups = do
 {
-  iter_lookups lookups
-
-  where rec iter_lookups lookups = match lookups with
-  [ []      -> None
-  | [l::ls] -> do
-    {
-      let cmds = l.OTF_Pos_Subst.l_commands in
-
-      iter_commands 0
-
-      where rec iter_commands k = do
-      {
-        if k >= Array.length cmds then
-          iter_lookups ls
-        else match command_to_repl scale cmds.(k) glyphs with
-        [ None   -> iter_commands (k+1)
-        | Some r -> Some r
-        ]
-      }
-    }
-  ]
-};
-
-value max_lookup_depth lookups = do
-{
-  List.fold_left
-    (fun depth l -> do
-      {
-        Array.fold_left
-          (fun depth cmd ->
-             max depth (get_lookup_depth cmd))
-          depth
-          l.OTF_Pos_Subst.l_commands
-      })
-    0
+  List.map
+    (fun l -> Array.map
+                (pos_subst_to_adjsutment scale)
+                l.OTF_Pos_Subst.l_commands)
     lookups
 };
 
@@ -539,6 +429,7 @@ value make_matcher memo_table scale pos_subst script features = do
     with
     [ Not_found -> do
       {
+        (* FIX: instead of translating the lookups to adjustments every time, do it just once *)
         let f_tags = SymbolSet.fold
                        (fun set f ->
                          Tag.TagSet.add
@@ -548,13 +439,14 @@ value make_matcher memo_table scale pos_subst script features = do
                        features
                      in
         let lookups = OTF_Pos_Subst.get_lookups pos_subst s_tag l_tag f_tags in
+        let adj     = lookup_to_adjustment scale lookups in
 
-        let max_depth = max_lookup_depth lookups in
+        let max_depth = max2_adjustment_depth adj in
 
         let is_empty (n, _)        = (n > max_depth)      in
         let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
         let root_value (_, glyphs) =
-          lookup_repl scale lookups (List.rev glyphs)
+          lookup2_adjustments adj (List.rev glyphs)
         in
 
         let trie = (is_empty, prefix, root_value) in
@@ -576,56 +468,6 @@ value get_composer pos_subst p_table s_table scale = match pos_subst with
 | (Some p, Some s) -> fun fm scr feat -> two_phase_composer fm (make_matcher s_table scale s scr feat)
                                                                (make_matcher p_table scale p scr feat)
 ];
-(*
-value get_subst_table memo_table scale pos_subst script features = do
-{
-  let s = UString.uc_string_to_ascii script in
-
-  let (s_tag, l_tag) =
-    if Array.length script = 9 && s.[4] = '.' then
-      (Tag.make_tag (String.sub s 0 4),
-       Tag.make_tag (String.sub s 5 4))
-    else if Array.length script = 4 then
-      (Tag.make_tag s, Tag.dflt_tag)
-    else
-      (Tag.latn_tag, Tag.dflt_tag)
-  in
-
-  let trie =
-    try
-      lookup_composer !memo_table s_tag l_tag features
-    with
-    [ Not_found -> do
-      {
-        let f_tags = SymbolSet.fold
-                       (fun set f ->
-                         Tag.TagSet.add
-                           (Tag.make_tag_uc (SymbolTable.symbol_to_string f))
-                           set)
-                       Tag.TagSet.empty
-                       features
-                     in
-        let lookups = OTF_Pos_Subst.get_lookups pos_subst s_tag l_tag f_tags            in
-        let trie    = List.fold_left (add_lookup_to_trie scale) DynUCTrie.empty lookups in
-
-        !memo_table := add_composer !memo_table s_tag l_tag features trie;
-
-        trie
-      }
-    ]
-  in
-
-  match_substitution_trie (DynUCTrie.is_empty, DynUCTrie.prefix, DynUCTrie.root_value) trie
-};
-
-value get_composer pos_subst p_table s_table scale = match pos_subst with
-[ (None,   None)   -> fun fm _   _    -> simple_composer    fm (simple_ligature_substitution fm)
-| (None,   Some s) -> fun fm scr feat -> simple_composer    fm (get_subst_table s_table scale s scr feat)
-| (Some p, None)   -> fun fm scr feat -> simple_composer    fm (get_subst_table p_table scale p scr feat)
-| (Some p, Some s) -> fun fm scr feat -> two_phase_composer fm (get_subst_table s_table scale s scr feat)
-                                                               (get_subst_table p_table scale p scr feat)
-];
-*)
 
 end;
 
@@ -674,13 +516,13 @@ value read_ft file name params = do
                      ]
                      in
 
-  let size         = params.flp_size                  in
-  let scale        = size // num_of_int em            in
-  let design_size  = scale */ num_of_int (asc - desc) in
-  let glyph_metric = get_glyph_metric scale face      in
-  let space_glyph  = ft_get_char_index face 32        in
-  let x_glyph      = ft_get_char_index face 102       in
-  let m_glyph      = ft_get_char_index face 77        in
+  let size         = params.flp_size                    in
+  let scale        = size // num_of_int em              in
+  let design_size  = scale */ num_of_int (asc - desc)   in
+  let glyph_metric = get_glyph_metric params scale face in
+  let space_glyph  = ft_get_char_index face 32          in
+  let x_glyph      = ft_get_char_index face 102         in
+  let m_glyph      = ft_get_char_index face 77          in
   let space        = if space_glyph > 0 then                               (* width of " "  *)
                        glyph_metric.(space_glyph - 1).gm_width
                      else
@@ -702,6 +544,14 @@ value read_ft file name params = do
                      ]
                      in
 
+  let (enc,dec) = match params.flp_encoding with
+  [ [| |] -> (builtin_encoding face,
+              builtin_decoding face)
+  | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
+              Encodings.array_decoding m)
+  ]
+  in
+
   let s_table         = ref Composer.empty_table in
   let p_table         = ref Composer.empty_table in
   let composer fm s f = Composer.get_composer pos_subst p_table s_table scale fm s f in
@@ -716,8 +566,8 @@ value read_ft file name params = do
     design_size         = design_size;
     at_size             = size;
     check_sum           = num_zero;
-    get_glyph           = builtin_encoding face;
-    get_unicode         = builtin_decoding face;
+    get_glyph           = enc;
+    get_unicode         = dec;
     get_composer        = composer;
     kerning             = fun _ c1 c2 -> ft_kerning face scale c1 c2;
     draw_simple_glyph   = draw_simple_glyph;

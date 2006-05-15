@@ -90,12 +90,13 @@ and simple_cmd =
 
 type font_load_params =
 {
-  flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing : num;                         (* additional letter spacing   *)
-  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size              : num;                         (* scale font to this size     *)
+  flp_encoding          : array uc_string;             (* overrides built in encoding *)
+  flp_hyphen_glyph      : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph        : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing    : num;                         (* additional letter spacing   *)
+  flp_extra_adjustments : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_kern        : list (int * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)
@@ -302,8 +303,16 @@ value get_lig_kern font glyph1 glyph2 = match (glyph1, glyph2) with
 | (Simple g1,   Accent _ g2) -> font.kerning font g1 g2
 | (Accent _ g1, Simple g2)   -> font.kerning font g1 g2
 | (Accent _ g1, Accent _ g2) -> font.kerning font g1 g2
-| (Border b,    g)           -> get_after_kerning  (get_glyph_metric font g) b
-| (g,           Border b)    -> get_before_kerning (get_glyph_metric font g) b
+| (Border b,    g)           -> let k = get_after_kerning  (get_glyph_metric font g) b in
+                                if k <>/ num_zero then
+                                  Kern k
+                                else
+                                  NoLigKern
+| (g,           Border b)    -> let k = get_before_kerning (get_glyph_metric font g) b in
+                                if k <>/ num_zero then
+                                  Kern k
+                                else
+                                  NoLigKern
 | _                          -> NoLigKern
 ];
 
@@ -323,8 +332,7 @@ value simple_ligature_substitution font items = do
   match get_lig_kern font g1 g2 with
   [ Ligature c s k1 k2 -> do
     {
-      (* FIX: copy commands *)
-      let repl = if k1 then
+      let adjs = if k1 then
                    [CopyCommands 0 0; ConstGlyph g1; CopyCommands 1 1]
                  else
                    [CopyCommands 0 1]
@@ -335,11 +343,11 @@ value simple_ligature_substitution font items = do
                    [CopyCommands 2 2]
       in
 
-      Some ([`Glyph gf2 ::  p2], rest2, (repl, s))
+      Some ([`Glyph gf2 ::  p2], rest2, (adjs, s))
     }
   | Kern x -> do
     {
-      let repl =
+      let adjs =
         [CopyCommands 0 0;
          ConstGlyph g1;
          CopyCommands 1 1;
@@ -348,7 +356,7 @@ value simple_ligature_substitution font items = do
          CopyCommands 2 2]
       in
 
-      Some ([`Glyph gf2 ::  p2], rest2, (repl, 1))
+      Some ([`Glyph gf2 ::  p2], rest2, (adjs, 1))
     }
   | NoLigKern -> None
   ]
@@ -527,11 +535,12 @@ value empty_font =
 
 value empty_load_params =
 {
-  flp_size           = num_zero;
-  flp_encoding       = [| |];
-  flp_hyphen_glyph   = Undef;
-  flp_skew_glyph     = Undef;
-  flp_letter_spacing = num_zero;
-  flp_extra_kern     = []
+  flp_size              = num_zero;
+  flp_encoding          = [| |];
+  flp_hyphen_glyph      = Undef;
+  flp_skew_glyph        = Undef;
+  flp_letter_spacing    = num_zero;
+  flp_extra_adjustments = [];
+  flp_extra_kern        = []
 };
 

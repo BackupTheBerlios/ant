@@ -1,5 +1,6 @@
 
 open XNum;
+open Maps;
 open Unicode.Types;
 
 module Tag =
@@ -132,7 +133,6 @@ value cvar_tag = make_tag "cvar";
 module OrderedTag = struct type t = tag; value compare = (compare : tag -> tag -> int); end;
 module TagMap = Map.Make(OrderedTag);
 module TagSet = Set.Make(OrderedTag);
-module IntMap = Map.Make(struct type t = int; value compare = (compare : int -> int -> int); end);
 
 value init_map num get_key get_value = do
 {
@@ -258,7 +258,7 @@ and pos_subst_rule 'a =
 and pos_subst_command =
 [ NoCommand
 | Position             of IntMap.t positioning
-| CursiveAnchors       of IntMap.t (option (int * int) * option (int * int))
+| CursiveAnchors       of IntMap.t (int * int) and IntMap.t (int * int)
 | MarkToBaseAnchors    of array (int * int * int * int) and array (int * array (int * int))
 | MarkToLigAnchors     of array (int * int * int * int) and array (int * array (array (int * int)))
 | MarkToMarkAnchors    of array (int * int * int * int) and array (int * array (int * int))
@@ -1227,33 +1227,40 @@ value gpos_cursive table table_off = do
 
     let glyphs = get_coverage_table table (table_off + coverage) in
 
-    let read_anchors i = do
+    iter 0 IntMap.empty IntMap.empty
+
+    where rec iter i entry_map exit_map = do
     {
-      let (entry, exit) = offsets.(i) in
+      if i >= num then
+        CursiveAnchors entry_map exit_map
+      else do
+      {
+        let (entry, exit) = offsets.(i) in
 
-      let entry_pos =
-        if entry = 0 then
-          None
-        else
-          Some (read_u16 table (table_off + entry + 2),
-                read_u16 table (table_off + entry + 4))
-      in
-      let exit_pos =
-        if exit = 0 then
-          None
-        else
-          Some (read_u16 table (table_off + exit + 2),
-                read_u16 table (table_off + exit + 4))
-      in
+        let new_entry =
+          if entry = 0 then
+            entry_map
+          else
+            IntMap.add
+              glyphs.(i)
+              (read_u16 table (table_off + entry + 2),
+               read_u16 table (table_off + entry + 4))
+             entry_map
+        in
+        let new_exit =
+          if exit = 0 then
+            exit_map
+          else
+            IntMap.add
+              glyphs.(i)
+              (read_u16 table (table_off + exit + 2),
+               read_u16 table (table_off + exit + 4))
+             exit_map
+        in
 
-      (entry_pos, exit_pos)
+        iter (i+1) new_entry new_exit
+      }
     }
-    in
-
-    CursiveAnchors
-      (init_map num
-        (fun i -> glyphs.(i))
-        read_anchors)
   }
 };
 

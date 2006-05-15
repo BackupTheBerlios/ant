@@ -1,4 +1,6 @@
 
+open Maps;
+
 module Tag:
 sig
 
@@ -11,7 +13,6 @@ value tag_to_string : tag -> string;
 module OrderedTag : sig type t = tag; value compare : tag -> tag -> int; end;
 module TagMap : Map.S with type key = tag;
 module TagSet : Set.S with type elt = tag;
-module IntMap : Map.S with type key = int;
 
 value latn_tag : tag;
 value dflt_tag : tag;
@@ -66,7 +67,7 @@ and pos_subst_rule 'a =
 and pos_subst_command =
 [ NoCommand
 | Position             of IntMap.t positioning
-| CursiveAnchors       of IntMap.t (option (int * int) * option (int * int))
+| CursiveAnchors       of IntMap.t (int * int) and IntMap.t (int * int)
 | MarkToBaseAnchors    of array (int * int * int * int) and array (int * array (int * int))
 | MarkToLigAnchors     of array (int * int * int * int) and array (int * array (array (int * int)))
 | MarkToMarkAnchors    of array (int * int * int * int) and array (int * array (int * int))
