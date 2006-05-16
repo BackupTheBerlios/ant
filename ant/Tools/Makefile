@@ -65,7 +65,9 @@ MLFLAGS  = -rectypes -pp "$(MLPP) $(MLPP_PA)" -I $(GMP_LIB) $(DEBUGFLAGS)
 %: %.$(CMO)
 	$(MLC) -o $@ $(wordlist 3,$(words $+),$+)
 
-PWD := $(shell pwd)# fix bug with ocamlc -a
+empty:=
+space:= $(empty) $(empty)
+PWD := $(subst $(space),\$(space),$(shell pwd))# fix bug with ocamlc -a
 
 TOOLS     = Num$(MATH_LIB) OrderedInt Maps Option XList XNum XString Zlib IO LinForm Constraint PlanePartition \
             ListBuilder ShortestPath
