@@ -18,7 +18,9 @@ external face_glyph             : face -> glyph_slot                          = 
 external face_metrics           : face -> (int * int * int * int * int * int) = "face_metrics";
 external glyph_metrics          : glyph_slot -> (int * int * int * int * int) = "glyph_metrics";
 external ft_get_glyph_name      : face -> int -> string                       = "get_glyph_name";
-external ft_get_module_name     : face -> string                              = "get_module_name";
+external ft_is_sfnt             : face -> bool                                = "is_sfnt";
+external ft_is_postscript       : face -> bool                                = "is_postscript";
+external ft_has_ps_glyph_names  : face -> bool                                = "has_ps_glyph_names";
 value    glyph_to_bitmap        : glyph_slot -> (int * int * Bitmap.bitmap);
 value    ft_set_char_size       : face -> num -> int -> unit;
 value    ft_get_glyph           : face -> int -> glyph_slot;

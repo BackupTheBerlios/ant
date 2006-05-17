@@ -56,6 +56,7 @@ type adjustment_table =
 | DirectLookup of DynUCTrie.t adjustment
 | ClassLookup of IntMap.t int and DynUCTrie.t adjustment
 | ClassPairLookup of int and IntMap.t int and IntMap.t int and array adjustment
+| AnchorPair of IntMap.t (num * num) and IntMap.t (num * num)
 ];
 
 type glyph_composer 'font 'box 'cmd =

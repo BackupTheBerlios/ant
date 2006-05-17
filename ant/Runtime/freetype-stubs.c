@@ -6,6 +6,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#include FT_TYPE1_TABLES_H
 
 static FT_Library library;
 
@@ -312,17 +313,38 @@ CAMLprim value glyph_to_bitmap(value glyph)
   CAMLreturn(block);
 };
 
-/* This is a hack, but there doesn't seem to be another way to get this information. */
-
-#include <freetype/internal/ftobjs.h>
-
-CAMLprim value get_module_name(value f)
+CAMLprim value is_sfnt(value f)
 {
   CAMLparam1(f);
   FT_Face face;
 
   face = *(FT_Face *)Data_custom_val(f);
 
-  CAMLreturn(copy_string(face->driver->root.clazz->module_name));
+  CAMLreturn(Val_bool(FT_IS_SFNT(face) != 0));
+};
+
+/* Hack: In order to find out whether the font is PostScript,
+ * we call FT_Get_PS_Font_Private and check for an error. */
+
+CAMLprim value is_postscript(value f)
+{
+  CAMLparam1(f);
+  FT_Face face;
+  PS_PrivateRec p;
+
+  face = *(FT_Face *)Data_custom_val(f);
+
+  CAMLreturn(Val_bool(!FT_IS_SFNT(face) &&
+                      (FT_Get_PS_Font_Private(face, &p) == 0)));
+};
+
+CAMLprim value has_ps_glyph_names(value f)
+{
+  CAMLparam1(f);
+  FT_Face face;
+
+  face = *(FT_Face *)Data_custom_val(f);
+
+  CAMLreturn(Val_bool(FT_Has_PS_Glyph_Names(face) != 0));
 };
 

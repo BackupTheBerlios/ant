@@ -33,6 +33,7 @@ Tools/all Tools/Tools.$(CMA) $(PARSERS):
 
 depend:
 	cd Tools; $(MAKE_TOOLS) depend
+	mkdir -p lib
 	touch lib/Images.ml lib/Images.mli lib/Unicode.ml lib/Unicode.mli lib/Runtime.ml lib/Runtime.mli \
 	      lib/Typesetting.ml lib/Typesetting.mli lib/VM.ml lib/VM.mli lib/Engine.ml lib/Engine.mli \
 	      lib/Markup.ml lib/Markup.mli

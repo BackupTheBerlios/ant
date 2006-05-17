@@ -60,6 +60,7 @@ type adjustment_table =
 | DirectLookup of DynUCTrie.t adjustment
 | ClassLookup of IntMap.t int and DynUCTrie.t adjustment
 | ClassPairLookup of int and IntMap.t int and IntMap.t int and array adjustment
+| AnchorPair of IntMap.t (num * num) and IntMap.t (num * num)
 ];
 
 type glyph_composer 'font 'box 'cmd =
@@ -154,6 +155,19 @@ value pair_positioning_cmd pre_kern shift1 mid_kern shift2 post_kern = do
    CopyCommands 2 2]
 };
 
+(* This does not work in general. We need a new adjustment_command! *)
+
+value anchor_pair_cmd (x1,y1) (x2,y2) = do
+{
+  (* FIX: What if the first glyph is already shifted? *)
+  [CopyCommands 0 0;
+   CopyGlyph 0;
+   CopyCommands 1 1;
+   ConstKern (x1 -/ x2) (y1 -/ y2);
+   CopyGlyph 1;
+   CopyCommands 2 2]
+};
+
 value replace_with_single_glyph_cmd num_glyphs new_glyph = do
 {
   [CopyCommands 0 0;
@@ -210,6 +224,20 @@ value lookup_adjustment adj_table glyphs = match adj_table with
     }
   | _ -> None
   ]
+| AnchorPair entry exit -> match glyphs with
+  [ [g1; g2] -> do
+    {
+      try
+        let a = IntMap.find g1 exit  in
+        let b = IntMap.find g2 entry in
+
+        (* FIX: Replace the x coordinate of a = (x,y) by glyph_width - x *)
+        Some (anchor_pair_cmd a b, 1)
+      with
+      [ Not_found -> None ]
+    }
+  | _ -> None
+  ]
 ];
 
 value get_lookup_depth adj = match adj with
@@ -217,6 +245,7 @@ value get_lookup_depth adj = match adj with
 | DirectLookup trie       -> DynUCTrie.depth trie
 | ClassLookup _ trie      -> DynUCTrie.depth trie
 | ClassPairLookup _ _ _ _ -> 2
+| AnchorPair _ _          -> 2
 ];
 
 value lookup_adjustments adjustments glyphs = do

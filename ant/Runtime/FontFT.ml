@@ -475,20 +475,18 @@ value read_ft file name params = do
 {
   let face = ft_new_face file in
 
-  match ft_get_module_name face with
-  [ "type1" -> do
-    {
-      (* look for an afm file *)
+  if ft_is_postscript face then do
+  {
+    (* look for an afm file *)
 
-      if String.length file >= 4 then
-        ignore (ft_attach_file face (String.sub file 0 (String.length file - 4) ^ ".afm"))
-      else ();
+    if String.length file >= 4 then
+      ignore (ft_attach_file face (String.sub file 0 (String.length file - 4) ^ ".afm"))
+    else ();
 
-      ft_attach_file face (file ^ ".afm");
-      ()
-    }
-  | _ -> ()
-  ];
+    ft_attach_file face (file ^ ".afm");
+    ()
+  }
+  else ();
 
   let (em, asc, desc, _height, _ul_pos, _ul_thick) =
     face_metrics face
@@ -505,15 +503,15 @@ value read_ft file name params = do
     [ _ -> (Tag.TagMap.empty, (None, None)) ]
   in
 
-  let font_type    = match ft_get_module_name face with
-                     [ "type1"    -> PostScript
-                     | "truetype" -> if is_cff tables then
-                                       OpenTypeCFF
-                                     else
-                                       TrueType
-                     | "cff"       -> OpenTypeCFF
-                     | _           -> Other
-                     ]
+  let font_type    = if ft_is_sfnt face then
+                       if is_cff tables then
+                         OpenTypeCFF
+                       else
+                         TrueType
+                     else if ft_is_postscript face then
+                       PostScript
+                     else
+                       Other
                      in
 
   let size         = params.flp_size                    in
