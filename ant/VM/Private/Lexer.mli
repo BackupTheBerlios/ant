@@ -39,6 +39,7 @@ type token_class =
 | ELSE
 | ELSEIF
 | END
+| FORCE
 | BEGIN
 | MATCH
 | WITH

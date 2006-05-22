@@ -202,7 +202,8 @@ and ev_command_box env builder _loc cmd = do
 
     match cmd with
     [ `ParCmd  c -> match c with
-      [ Box.VInsert _ _ -> log_string "vinsert"
+      [ Box.VInsert _ _       -> log_string "vinsert"
+      | Box.CallParFunction _ -> log_string "call-par-function"
       ]
     | `PageCmd c -> match c with
       [ Box.SetNextLayout l -> do
@@ -217,9 +218,9 @@ and ev_command_box env builder _loc cmd = do
           log_string " = ";
           log_uc_string v
         }
-      | Box.CallFunction _ -> do
+      | Box.CallPageFunction _ -> do
         {
-          log_string "call-function"
+          log_string "call-page-function"
         }
       | Box.Float (n, _) -> do
         {

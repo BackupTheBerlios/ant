@@ -44,17 +44,6 @@ and partial_value =
 | Dictionary of SymbolMap.t unknown
 | Opaque of Opaque.opaque unknown
 ]
-(*
-and constraints =
-{
-  equal_to    : list unknown;            (* unknowns that are equal to this one *)
-  equations   : list linear_constraint; (* equations containing the unknown    *)
-  inequations : list linear_constraint; (* inequations containing it          *)
-  relations   : list relation           (* relations containing it            *)
-}
-and linear_constraint = (compare * LinForm.lin_form unknown)
-                (* b = a_0x_0 +...+ a_nx_n   =>   (Equal, b, [(a_0,x_0); ...; (a_n,x_n)]) *)
-*)
 and term =
 [ TConstant of partial_value
 | TGlobal of unknown
@@ -78,6 +67,7 @@ and statement =
 | SIfThen of term and statement
 | SIfThenElse of term and statement and statement
 | SRelation of list unknown
+| SForce of array term
 ]
 and pattern_check =
 [ PCAnything

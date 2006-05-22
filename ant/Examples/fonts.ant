@@ -98,6 +98,7 @@
              "\u2329", "\u232a", "\u007c", "\u2016", "\u2195", "\u21d5", "\u005c", "\u2240",
              "\u221a", "\u2a3f", "\u2207", "\u222b", "\u2294", "\u2293", "\u2291", "\u2292",
              "\u00a7", "\u2020", "\u2021", "\u00b6", "\u2663", "\u2662", "\u2661", "\u2660");
+    kern := [(45, 10 * 0.25, 10 * 0.25)]; ;; -
     cmr  := "Computer Modern Roman";
     cms  := "Computer Modern Sans Serif";
     cmt  := "Computer Modern Typewriter";
@@ -127,14 +128,14 @@
     ui   := "upright italic";
   end
   begin
-    ps_declare_font "cmr5.tfm"     cmr  med  nor ( 0, 6) { Encoding := ot_1 } >>
-    ps_declare_font "cmr6.tfm"     cmr  med  nor ( 6, 7) { Encoding := ot_1 } >>
-    ps_declare_font "cmr7.tfm"     cmr  med  nor ( 7, 8) { Encoding := ot_1 } >>
-    ps_declare_font "cmr8.tfm"     cmr  med  nor ( 8, 9) { Encoding := ot_1 } >>
-    ps_declare_font "cmr9.tfm"     cmr  med  nor ( 9,10) { Encoding := ot_1 } >>
-    ps_declare_font "cmr10.tfm"    cmr  med  nor (10,12) { Encoding := ot_1 } >>
-    ps_declare_font "cmr12.tfm"    cmr  med  nor (12,17) { Encoding := ot_1 } >>
-    ps_declare_font "cmr17.tfm"    cmr  med  nor (17, 0) { Encoding := ot_1 } >>
+    ps_declare_font "cmr5.tfm"     cmr  med  nor ( 0, 6) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr6.tfm"     cmr  med  nor ( 6, 7) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr7.tfm"     cmr  med  nor ( 7, 8) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr8.tfm"     cmr  med  nor ( 8, 9) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr9.tfm"     cmr  med  nor ( 9,10) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr10.tfm"    cmr  med  nor (10,12) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr12.tfm"    cmr  med  nor (12,17) { Encoding := ot_1 | BorderKern := kern } >>
+    ps_declare_font "cmr17.tfm"    cmr  med  nor (17, 0) { Encoding := ot_1 | BorderKern := kern } >>
     ps_declare_font "cmti7.tfm"    cmr  med  it  ( 0, 8) { Encoding := ot_1 } >>
     ps_declare_font "cmti8.tfm"    cmr  med  it  ( 8, 9) { Encoding := ot_1 } >>
     ps_declare_font "cmti9.tfm"    cmr  med  it  ( 9,10) { Encoding := ot_1 } >>

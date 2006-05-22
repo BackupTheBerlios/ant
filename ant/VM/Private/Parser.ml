@@ -57,6 +57,7 @@ and stmt =
 [ SEquation of term and term
 | SIfThen of term and stmt
 | SIfThenElse of term and stmt and stmt
+| SForce of array term
 ];
 
 type stmt_or_expr =
@@ -327,16 +328,24 @@ and parse_stmt_list_expr lexer = do
 (*
   stmt =
       expr "=" expr
+    | "force" simple-expr-list
     | "if" expr "then" stmt ("elseif" expr "then" stmt)^* ["else" stmt] "end"
 *)
 
 and parse_stmt first_token lexer = match first_token with
-[ IF -> parse_if_stmt lexer
+[ IF    -> parse_if_stmt lexer
+| FORCE -> do
+  {
+    let (terms, tok) = parse_simple_expr_list (read_token lexer) lexer in
+
+    (SForce (Array.of_list terms), tok)
+  }
 | _  -> match parse_expr first_token lexer with
-  [ (e0, EQUAL) -> match parse_expr (read_token lexer) lexer with
-    [ (e1, SEMICOLON) -> (SEquation e0 e1, read_token lexer)
-    | _               -> syntax_error lexer "; expected"
-    ]
+  [ (e0, EQUAL) -> do
+    {
+      let (e1, tok) = parse_expr (read_token lexer) lexer in
+      (SEquation e0 e1, tok)
+    }
   | _ -> syntax_error lexer "= expected" (* FIX: relations *)
   ]
 ]
@@ -449,7 +458,12 @@ and parse_stmt_or_expr first_token lexer = match first_token with
     }
   | stmt -> stmt
   ]
-| _ -> match parse_expr first_token lexer with
+| FORCE -> do
+  {
+    let (s, t) = parse_stmt FORCE lexer in
+    (Statement s, t)
+  }
+| _     -> match parse_expr first_token lexer with
   [ (e0, EQUAL) -> do
     {
       let (e1, tok) = parse_expr (read_token lexer) lexer in

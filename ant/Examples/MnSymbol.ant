@@ -165,8 +165,12 @@ declare_math_accent  name font glyph math_code := { ps := ps };
 ;; define a list of math symbols
 
 declare_symbols font n []          ps := ps;
-declare_symbols font n [s, c : ss] ps := (declare_symbols font (n+1) ss
-                                           (ps_define_math_symbol s c font n ps));
+declare_symbols font n [s, c : ss] ps :=
+  local new_ps := ps_define_math_symbol s c font n ps;
+  begin
+    force new_ps,
+    declare_symbols font (n+1) ss new_ps
+  end;
 
 \endALdeclarations
 

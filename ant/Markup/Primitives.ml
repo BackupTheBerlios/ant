@@ -2123,7 +2123,22 @@ value measure_position ps = do
   }
   in
 
-  add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.CallFunction f)))
+  add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.CallPageFunction f)))
+};
+
+value measure_line ps = do
+{
+  let name = arg_expanded ps in
+
+  let f line = do
+  {
+    let str = Printf.sprintf "%i" line in
+
+    add_reference ps name (Array.of_list (UString.of_string str))
+  }
+  in
+
+  add_node ps (Node.CommandBox (location ps) (`ParCmd (Box.CallParFunction f)))
 };
 
 (* colours *)
@@ -2941,6 +2956,7 @@ value initialise ps = do
   def_unexpandable_cmd "\\addreference"       add_ref;
   def_expandable_cmd   "\\lookupreference"    get_ref expand_get_ref;
   def_unexpandable_cmd "\\measureposition"    measure_position;
+  def_unexpandable_cmd "\\measureline"        measure_line;
 
   (* math *)
 

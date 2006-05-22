@@ -1120,6 +1120,17 @@ and execute env stmt = match stmt with
                  ])
   }
 | SRelation _ -> ()  (* FIX *)
+| SForce xs -> do
+  {
+    let n = Array.length xs in
+
+    for i = 1 to n do
+    {
+      cont
+        (fun () -> let x = unevaluated env xs.(n - i) in
+                   evaluate_unknown x)
+    }
+  }
 ]
 
 (* Set <x> to the value of <y>. *)

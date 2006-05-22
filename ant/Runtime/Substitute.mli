@@ -64,8 +64,10 @@ type glyph_composer 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd);
 
 type substitution 'font 'box 'cmd =
-  list (glyph_item 'font 'box 'cmd) ->
-  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * adjustment);
+  list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) ->
+  option (list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) *
+          list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) *
+          adjustment);
 
 type subst_trie 'a = (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option adjustment));
 

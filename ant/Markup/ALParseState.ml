@@ -961,6 +961,25 @@ value ps_new_galley res args = match args with
 
 (* fonts *)
 
+value decode_extra_kern name k = do
+{
+  let x = decode_tuple name k in
+  let n = Array.length x      in
+
+  if n < 2 || n > 7 then
+    Types.runtime_error (name ^ ": invalid border kern data")
+  else
+    (decode_int name x.(0),
+     {
+       GlyphMetric.ki_after_margin   = if n < 2 then num_zero else Machine.decode_num name x.(1);
+       GlyphMetric.ki_before_margin  = if n < 3 then num_zero else Machine.decode_num name x.(2);
+       GlyphMetric.ki_after_foreign  = if n < 4 then num_zero else Machine.decode_num name x.(3);
+       GlyphMetric.ki_before_foreign = if n < 5 then num_zero else Machine.decode_num name x.(4);
+       GlyphMetric.ki_after_space    = if n < 6 then num_zero else Machine.decode_num name x.(5);
+       GlyphMetric.ki_before_space   = if n < 7 then num_zero else Machine.decode_num name x.(6)
+     })
+};
+
 value decode_font_load_params name params = do
 {
   let get_glyph g = if g < 0 then Substitute.Undef else Substitute.Simple g in
@@ -973,19 +992,62 @@ value decode_font_load_params name params = do
                           (lookup_tuple name p sym_Encoding))
                       in
   let hyphen        = Option.from_option (-1)
-                       (lookup_int name p sym_HyphenGlyph)   in
+                       (lookup_int name p sym_HyphenGlyph)     in
   let skew          = Option.from_option (-1)
-                       (lookup_int name p sym_SkewGlyph)     in
+                       (lookup_int name p sym_SkewGlyph)       in
   let scale         = Option.from_option num_one
-                       (lookup_num name p sym_Scale)         in
+                       (lookup_num name p sym_Scale)           in
   let letterspacing = Option.from_option num_zero
-                       (lookup_num name p sym_LetterSpacing) in
+                       (lookup_num name p sym_LetterSpacing)   in
   let adjustments   = Option.from_option []
-                       (lookup_list name p sym_Adjustments)  in
+                       (lookup_list name p sym_Adjustments)    in
+  let auto_lig      = Option.from_option False
+                       (lookup_bool name p sym_AutoLigatures)  in
+  let extra_kern    = List.map
+                        (decode_extra_kern name)
+                        (Option.from_option []
+                          (lookup_list name p sym_BorderKern)) in
 
-  iter DynUCTrie.empty [] adjustments
+  let ligs = if auto_lig then do
+    {
+      let rec lookup_glyph i char = do
+      {
+        if i >= Array.length encoding then
+          -1
+        else if encoding.(i) = [|char|] then
+          i
+        else
+          lookup_glyph (i+1) char
+      }
+      in
 
-  where rec iter extra_adj extra_kern adjustments = match adjustments with
+      iter 0 DynUCTrie.empty
+
+      where rec iter i l = do
+      {
+        if i >= Array.length encoding then
+          l
+        else do
+        {
+          let n = Array.length encoding.(i) in
+
+          if n > 1 then
+            iter (i+1) (DynUCTrie.add_string
+                         (Array.map (lookup_glyph 0) encoding.(i))
+                         (Substitute.replace_with_single_glyph_cmd n (Substitute.Simple i), 0)
+                         l)
+          else
+            iter (i+1) l
+        }
+      }
+    }
+    else
+      DynUCTrie.empty
+  in
+
+  iter ligs adjustments
+
+  where rec iter extra_adj adjustments = match adjustments with
   [ [] -> {
             FontMetric.flp_encoding          = encoding;
             FontMetric.flp_letter_spacing    = letterspacing;
@@ -999,38 +1061,34 @@ value decode_font_load_params name params = do
                                                  [Substitute.DirectLookup extra_adj]
           }
   | [a::adjs] -> match decode_tuple name a with
-    [ [| glyphs; cmd |] -> do
+    [ [| glyphs; sym; val |] -> do
       {
-        let gs = decode_uc_string name glyphs in
+        let gs = List.map
+                   (decode_int name)
+                   (Machine.decode_list name glyphs)
+                 in
+        let s  = decode_symbol name sym in
 
-        match decode_tuple name cmd with
-        [ [| sym; val |] -> do
-          {
-            let s = decode_symbol name sym in
+        if s = sym_Kern then do
+        {
+          let v = Machine.decode_num name val          in
+          let c = Substitute.simple_pair_kerning_cmd v in
 
-            if s = sym_Kern then do
-            {
-              let v = Machine.decode_num name val          in
-              let c = Substitute.simple_pair_kerning_cmd v in
+          iter (DynUCTrie.add_list gs (c, 1) extra_adj) adjs
+        }
+        else if s = sym_Ligature then do
+        {
+          let v = decode_int name val in
+          let c = Substitute.replace_with_single_glyph_cmd
+                    2 (Substitute.Simple v)
+          in
 
-              iter (DynUCTrie.add_string gs (c, 1) extra_adj) extra_kern adjs
-            }
-            else if s = sym_Ligature then do
-            {
-              let v = decode_char name val in
-              let c = Substitute.replace_with_single_glyph_cmd
-                        2 (Substitute.Simple v)
-              in
-
-              iter (DynUCTrie.add_string gs (c, 0) extra_adj) extra_kern adjs
-            }
-            else
-              Types.runtime_error (name ^ ": unknown adjustment command, Kern or Ligature expected")
-          }
-        | _ -> Types.runtime_error (name ^ ": pair expected")
-        ]
+          iter (DynUCTrie.add_list gs (c, 0) extra_adj) adjs
+        }
+        else
+          Types.runtime_error (name ^ ": unknown adjustment command, Kern or Ligature expected")
       }
-    | _ -> Types.runtime_error (name ^ ": pair expected")
+    | _ -> Types.runtime_error (name ^ ": triple expected")
     ]
   ]
 };

@@ -68,8 +68,10 @@ type glyph_composer 'font 'box 'cmd =
   list (glyph_item 'font 'box 'cmd);
 
 type substitution 'font 'box 'cmd =
-  list (glyph_item 'font 'box 'cmd) ->
-  option (list (glyph_item 'font 'box 'cmd) * list (glyph_item 'font 'box 'cmd) * adjustment);
+  list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) ->
+  option (list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) *
+          list (glyph_item 'font 'box 'cmd * list (glyph_item 'font 'box 'cmd)) *
+          adjustment);
 
 type subst_trie 'a = (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option adjustment));
 
@@ -126,33 +128,30 @@ value last_real_item items from_pos to_pos = do
 
 value single_positioning_cmd pre_kern shift post_kern = do
 {
-  [CopyCommands 0 0;
-   ConstKern pre_kern shift;
+  [ConstKern pre_kern shift;
    CopyGlyph 0;
    ConstKern post_kern num_zero;
-   CopyCommands 1 1]
+   CopyCommands 0 0]
 };
 
 value simple_pair_kerning_cmd kern = do
 {
-  [CopyCommands 0 0;
-   CopyGlyph 0;
-   CopyCommands 1 1;
+  [CopyGlyph 0;
+   CopyCommands 0 0;
    ConstKern kern num_zero;
    CopyGlyph 1;
-   CopyCommands 2 2]
+   CopyCommands 1 1]
 };
 
 value pair_positioning_cmd pre_kern shift1 mid_kern shift2 post_kern = do
 {
-  [CopyCommands 0 0;
-   ConstKern pre_kern shift1;
+  [ConstKern pre_kern shift1;
    CopyGlyph 0;
-   CopyCommands 1 1;
+   CopyCommands 0 0;
    ConstKern mid_kern shift2;
    CopyGlyph 1;
    ConstKern post_kern num_zero;
-   CopyCommands 2 2]
+   CopyCommands 1 1]
 };
 
 (* This does not work in general. We need a new adjustment_command! *)
@@ -160,42 +159,39 @@ value pair_positioning_cmd pre_kern shift1 mid_kern shift2 post_kern = do
 value anchor_pair_cmd (x1,y1) (x2,y2) = do
 {
   (* FIX: What if the first glyph is already shifted? *)
-  [CopyCommands 0 0;
-   CopyGlyph 0;
-   CopyCommands 1 1;
+  [CopyGlyph 0;
+   CopyCommands 0 0;
    ConstKern (x1 -/ x2) (y1 -/ y2);
    CopyGlyph 1;
-   CopyCommands 2 2]
+   CopyCommands 1 1]
 };
 
 value replace_with_single_glyph_cmd num_glyphs new_glyph = do
 {
-  [CopyCommands 0 0;
-   ConstGlyph new_glyph;
-   CopyCommands 1 num_glyphs]
+  [ConstGlyph new_glyph;
+   CopyCommands 0 (num_glyphs-1)]
 };
 
 value replace_with_multiple_glyphs_cmd num_glyphs new_glyphs = do
 {
-  [CopyCommands 0 0
-   :: Array.fold_right
-        (fun g cmds -> [ConstGlyph g :: cmds])
-        new_glyphs
-        [CopyCommands 1 num_glyphs]]
+  Array.fold_right
+    (fun g cmds -> [ConstGlyph g :: cmds])
+    new_glyphs
+    [CopyCommands 0 (num_glyphs-1)]
 };
 
 value tex_ligature_cmd lig keep1 keep2 = do
 {
   if keep1 then
     if keep2 then
-      [CopyCommands 0 0; CopyGlyph 0; ConstGlyph lig; CopyCommands 1 1; CopyGlyph 1; CopyCommands 2 2]
+      [CopyGlyph 0; ConstGlyph lig; CopyCommands 0 0; CopyGlyph 1; CopyCommands 1 1]
     else
-      [CopyCommands 0 0; CopyGlyph 0; ConstGlyph lig; CopyCommands 1 2]
+      [CopyGlyph 0; ConstGlyph lig; CopyCommands 0 1]
   else
     if keep2 then
-      [CopyCommands 0 0; ConstGlyph lig; CopyCommands 1 1; CopyGlyph 1; CopyCommands 2 2]
+      [ConstGlyph lig; CopyCommands 0 0; CopyGlyph 1; CopyCommands 1 1]
     else
-      [CopyCommands 0 0; ConstGlyph lig; CopyCommands 1 2]
+      [ConstGlyph lig; CopyCommands 0 1]
 };
 
 value lookup_adjustment adj_table glyphs = match adj_table with
@@ -319,7 +315,41 @@ value make_adjustment_trie adjustments = do
 
 (* applying adjustments *)
 
-value match_substitution_trie (is_empty, prefix_trie, root_value) subst_trie items = do
+value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_value) subst_trie items = do
+{
+  let return_match found = match found with
+  [ (_,      _,    None)     -> None
+  | (prefix, rest, Some adj) -> Some (List.rev prefix, rest, adj)
+  ]
+  in
+
+  iter ([], items, None) [] items subst_trie
+
+  where rec iter found prefix items trie = match items with
+  [ [((`Glyph (g,_), _) as i) :: is] -> do
+    {
+      if is_empty trie then
+        return_match found
+      else match g with
+      [ Simple x -> do
+        {
+          let new_prefix = [i :: prefix]      in
+          let next       = prefix_trie trie x in
+
+          match root_value next with
+          [ Some _ as adj -> iter (new_prefix, is, adj) new_prefix is next
+          | None          -> iter found                 new_prefix is next
+          ]
+        }
+      | _ -> return_match found
+      ]
+    }
+  | _ -> return_match found
+  ]
+};
+
+(*
+value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_value) subst_trie items = do
 {
   let return_match found = match found with
   [ (_,      _,    None)     -> None
@@ -352,12 +382,133 @@ value match_substitution_trie (is_empty, prefix_trie, root_value) subst_trie ite
   | [i :: is] -> iter found [i :: prefix] is trie
   ]
 };
+*)
 
 value match_substitution_dyntrie subst_trie items = do
 {
   match_substitution_trie (DynUCTrie.is_empty, DynUCTrie.prefix, DynUCTrie.root_value) subst_trie items
 };
 
+
+value apply_substitution font glyphs rest adjustments = do
+{
+  iter [] (`Glyph (Undef, font)) [] adjustments
+
+  where rec iter result g cmds adjustment = match adjustment with
+  [ [] -> match List.rev_append result [(g, List.rev cmds) :: rest] with
+    [ [(_, first_cmds) :: glyphs] -> (first_cmds, glyphs)
+    | []                          -> assert False
+    ]
+  | [a::adjs] -> match a with
+    [ ConstGlyph glyph       -> iter [(g, List.rev cmds) :: result]
+                                     (`Glyph (glyph, font))
+                                     []
+                                     adjs
+    | CopyGlyph idx          -> iter [(g, List.rev cmds) :: result]
+                                     (fst (List.nth glyphs idx))
+                                     []
+                                     adjs
+    | ConstKern x y          -> if x <>/ num_zero || y <>/ num_zero then
+                                  iter result g [`Kern x y :: cmds] adjs
+                                else
+                                  iter result g cmds adjs
+    | CopyCommands idx1 idx2 -> do
+      {
+        (* FIX: also collect movable commands before and after the interval? *)
+
+        add (idx2 - idx1) cmds (XList.drop idx1 glyphs)
+
+        where rec add i cmds old_cmds = do
+        {
+          if i < 0 then
+            iter result g cmds adjs
+          else match old_cmds with
+          [ []            -> iter result g cmds adjs
+          | [(_,c) :: cs] -> add (i-1) (List.rev_append c cmds) cs
+          ]
+        }
+      }
+    ]
+  ]
+};
+
+value separate_items items = do
+{
+  let rec get_commands cmds items = match items with
+  [ [] -> (List.rev cmds, [])
+  | [i :: is] -> match i with
+    [ `Command _
+    | `Break _
+    | `Kern _  -> get_commands [i :: cmds] is
+    | `Box _
+    | `Glyph _ -> (List.rev cmds, items)
+    ]
+  ]
+  in
+
+  let (first_commands, items) = get_commands [] items in
+
+  iter [] items
+
+  where rec iter result items = match items with
+  [ []        -> (first_commands, List.rev result)
+  | [g :: is] -> do
+    {
+      (* <g> is either a `Box or a `Glyph *)
+
+      let (cmds, rest) = get_commands [] is in
+
+      iter [(g,cmds) :: result] rest
+    }
+  ]
+};
+
+value substitute font find_subst items = do
+{
+  let result = ListBuilder.make () in
+
+  let (first_commands, glyphs) = separate_items items in
+
+  ListBuilder.add_list result first_commands;
+
+  (* |skip_prefix <skip> <glyphs>| moves the first <skip> glyphs from <glyphs> to <result>. *)
+
+  let rec skip_prefix skip glyphs = do
+  {
+    if skip <= 0 then
+      glyphs
+    else match glyphs with
+    [ []               -> []
+    | [(g,cmds) :: gs] -> do
+      {
+        ListBuilder.add      result g;
+        ListBuilder.add_list result cmds;
+
+        skip_prefix (skip - 1) gs
+      }
+    ]
+  }
+  in
+
+  iter glyphs
+
+  where rec iter glyphs = match glyphs with
+  [ [] -> ListBuilder.get result
+  | _  -> match find_subst glyphs with
+    [ Some (prefix, rest, (adj, skip)) -> do
+      {
+        let (cmds, new_glyphs) = apply_substitution font prefix rest adj in
+
+        ListBuilder.add_list result cmds;
+
+        iter (skip_prefix skip new_glyphs)
+      }
+    | None -> iter (skip_prefix 1 glyphs)
+    ]
+  ]
+};
+
+(*
 value apply_substitution font glyphs cmds rest adjustment = do
 {
   iter adjustment
@@ -482,4 +633,5 @@ value substitute font find_subst items = do
     ]
   ]
 };
+*)
 

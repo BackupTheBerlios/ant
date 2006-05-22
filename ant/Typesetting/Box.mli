@@ -64,6 +64,7 @@ and gfx_cmd = graphic_command dim box
 
 and par_cmd =
 [ VInsert of bool and (list box)
+| CallParFunction of int -> unit
 ]
 
 and floating = (uc_string * list extended_glyph_item)
@@ -71,7 +72,7 @@ and floating = (uc_string * list extended_glyph_item)
 and page_cmd =
 [ SetNextLayout of uc_string
 | SetMark of uc_string and uc_string
-| CallFunction of page_info -> (num * num) -> unit
+| CallPageFunction of page_info -> (num * num) -> unit
 | Float of floating
 ]
 

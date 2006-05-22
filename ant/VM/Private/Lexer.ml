@@ -43,6 +43,7 @@ type token_class =
 | ELSE
 | ELSEIF
 | END
+| FORCE
 | BEGIN
 | MATCH
 | WITH
@@ -448,6 +449,7 @@ value keywords = do
   add_token "else"   ELSE;
   add_token "elseif" ELSEIF;
   add_token "end"    END;
+  add_token "force"  FORCE;
   add_token "begin"  BEGIN;
   add_token "match"  MATCH;
   add_token "with"   WITH;
@@ -658,6 +660,7 @@ value token_to_string tok = match tok with
 | ELSE          -> UString.uc_string_of_ascii "else"
 | ELSEIF        -> UString.uc_string_of_ascii "elseif"
 | END           -> UString.uc_string_of_ascii "end"
+| FORCE         -> UString.uc_string_of_ascii "force"
 | BEGIN         -> UString.uc_string_of_ascii "begin"
 | MATCH         -> UString.uc_string_of_ascii "match"
 | WITH          -> UString.uc_string_of_ascii "with"

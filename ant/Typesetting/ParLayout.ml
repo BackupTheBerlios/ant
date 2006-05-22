@@ -1684,21 +1684,36 @@ value break_paragraph loc items par_params line_break_params hyphen_params = do
 
 value layout_line width line_no line par_params = do
 {
+  let rec process_commands boxes = match boxes with
+  [ []      -> []
+  | [b::bs] -> match b.b_contents with
+    [ CommandBox (`ParCmd (CallParFunction f)) -> do
+      {
+        f line_no;
+        process_commands bs
+      }
+    | _ -> [b :: process_commands bs]
+    ]
+  ]
+  in
+
   let (left_indent, right_indent) = par_params.par_shape line_no in
 
-  let boxes = par_params.post_process_line
-                ([new_glue_box
-                    (dim_add par_params.left_skip (fixed_dim left_indent))
-                    dim_zero
-                    True False
-                 ]
-               @ line
-               @ [new_glue_box
-                    (dim_add par_params.right_skip (fixed_dim right_indent))
-                    dim_zero
-                    True False
-                 ])
-              in
+  let boxes =
+    process_commands
+      (par_params.post_process_line
+        ([new_glue_box
+            (dim_add par_params.left_skip (fixed_dim left_indent))
+            dim_zero
+            True False
+         ]
+       @ line
+       @ [new_glue_box
+            (dim_add par_params.right_skip (fixed_dim right_indent))
+            dim_zero
+            True False
+         ]))
+  in
 
   HBox.make_to width boxes
 };

@@ -320,45 +320,17 @@ value get_glyph_composer font script features = font.get_composer font script fe
 
 value simple_ligature_substitution font items = do
 {
-  let rec find_first_glyph prefix items = match items with
-  [ []               -> (prefix, (Undef, font), [])
-  | [`Glyph g :: is] -> (prefix, g, is)
-  | [i :: is]        -> find_first_glyph [i :: prefix] is
-  ]
-  in
-  let (p1, ((g1,_) as gf1), rest1) = find_first_glyph []                 items in
-  let (p2, ((g2,_) as gf2), rest2) = find_first_glyph [`Glyph gf1 :: p1] rest1 in
-
-  match get_lig_kern font g1 g2 with
-  [ Ligature c s k1 k2 -> do
-    {
-      let adjs = if k1 then
-                   [CopyCommands 0 0; ConstGlyph g1; CopyCommands 1 1]
-                 else
-                   [CopyCommands 0 1]
-               @ [ConstGlyph (Simple c)]
-               @ if k2 then
-                   [ConstGlyph g2; CopyCommands 2 2]
-                 else
-                   [CopyCommands 2 2]
-      in
-
-      Some ([`Glyph gf2 ::  p2], rest2, (adjs, s))
-    }
-  | Kern x -> do
-    {
-      let adjs =
-        [CopyCommands 0 0;
-         ConstGlyph g1;
-         CopyCommands 1 1;
-         ConstKern x num_zero;
-         ConstGlyph g2;
-         CopyCommands 2 2]
-      in
-
-      Some ([`Glyph gf2 ::  p2], rest2, (adjs, 1))
-    }
-  | NoLigKern -> None
+  match items with
+  [ [((`Glyph (g1, _), _) as gf1); ((`Glyph (g2, _), _) as gf2) :: rest] -> match get_lig_kern font g1 g2 with
+    [ Ligature c s k1 k2 -> Some ([gf1; gf2],
+                                  rest,
+                                  (tex_ligature_cmd (Simple c) k1 k2, s))
+    | Kern x             -> Some ([gf1; gf2],
+                                  rest,
+                                  (simple_pair_kerning_cmd x, 1))
+    | NoLigKern          -> None
+    ]
+  | _ -> None
   ]
 };
 

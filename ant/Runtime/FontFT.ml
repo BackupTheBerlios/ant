@@ -18,7 +18,7 @@ value ft_kerning face scale c1 c2 = do
     NoLigKern
 };
 
-value make_glyph_metric params scale glyph = do
+value make_glyph_metric params scale glyph_idx glyph = do
 {
   let (width, height, h_off, v_off, adv) = glyph_metrics glyph in
 
@@ -28,20 +28,32 @@ value make_glyph_metric params scale glyph = do
   let l = scale */ num_of_int left_bound  in
   let r = scale */ num_of_int right_bound in
 
+  let user_kern_info = try
+    let ki = List.assoc glyph_idx params.flp_extra_kern in
+    {
+      ki_after_space    = params.flp_size */ ki.ki_after_space;
+      ki_before_space   = params.flp_size */ ki.ki_before_space;
+      ki_after_margin   = params.flp_size */ ki.ki_after_margin;
+      ki_before_margin  = params.flp_size */ ki.ki_before_margin;
+      ki_after_foreign  = params.flp_size */ ki.ki_after_foreign;
+      ki_before_foreign = params.flp_size */ ki.ki_before_foreign
+    }
+  with [ Not_found -> zero_kern_info ] in
+
   (* If these values are zero we do not need to allocate a new structure. *)
   let kern_info = if left_bound <> 0 || right_bound <> 0 then
     {
-      (zero_kern_info)
+      (user_kern_info)
       with
-      ki_after_foreign  = l;
-      ki_before_foreign = r
+      ki_after_foreign  = l +/ user_kern_info.ki_after_foreign;
+      ki_before_foreign = r +/ user_kern_info.ki_before_foreign
     }
   else
-    zero_kern_info
+    user_kern_info
   in
 
   {
-    gm_width      = scale */ num_of_int adv +/ num_two */ params.flp_letter_spacing;
+    gm_width      = scale */ num_of_int adv +/ num_two */ params.flp_size */ params.flp_letter_spacing;
     gm_height     = scale */ num_of_int v_off;
     gm_depth      = scale */ num_of_int (height - v_off);
     gm_italic     = r;
@@ -52,6 +64,9 @@ value make_glyph_metric params scale glyph = do
 
 value get_glyph_metric params scale face = do
 {
+  let (em, _asc, _desc, _height, _ul_pos, _ul_thick) =
+    face_metrics face
+  in
   let num_glyphs = face_num_glyphs face                     in
   let gm         = Array.make num_glyphs empty_glyph_metric in
 
@@ -59,7 +74,7 @@ value get_glyph_metric params scale face = do
   {
     ft_load_glyph face i (ft_load_no_hinting + ft_load_no_scale + ft_load_linear_design);
 
-    gm.(i - 1) := make_glyph_metric params scale (face_glyph face)
+    gm.(i - 1) := make_glyph_metric params scale i (face_glyph face)
   };
 
   gm
@@ -127,6 +142,8 @@ value builtin_decoding face glyph = do
 module Composer =
 struct
 
+(* table to memorise already computed composers *)
+
 module SymbolTrie = SymbolSet.SymbolTrie;
 
 value empty_table = [];
@@ -146,6 +163,9 @@ value rec lookup_composer table script lang features = match table with
                      else
                        lookup_composer xs script lang features
 ];
+
+
+(* translating lookups to adjustments *)
 
 (* move the next glyph by |pos.p_x_off| and |pos.p_y_off| *)
 
@@ -216,8 +236,6 @@ value pos_rule_to_adj scale glyphs rule = do
 
   let adjs = ListBuilder.make () in
 
-  ListBuilder.add adjs (CopyCommands 0 0);
-
   for i = 0 to Array.length glyphs - 1 do
   {
     let cmds = lookups.(i) in
@@ -230,7 +248,7 @@ value pos_rule_to_adj scale glyphs rule = do
       {
         ListBuilder.add_list adjs
           [ConstGlyph (Simple glyphs.(i));
-           CopyCommands (i+1) (i+1)];
+           CopyCommands i i];
       }
       else match cmds.(k) with
       [ OTF_Pos_Subst.Position pos -> do
@@ -243,7 +261,7 @@ value pos_rule_to_adj scale glyphs rule = do
               [pos_to_pre_kern scale p;
                ConstGlyph (Simple glyphs.(i));
                pos_to_post_kern scale p;
-               CopyCommands (i+1) (i+1)];
+               CopyCommands i i];
           }
           with
           [ Not_found -> iter_cmds (k+1) ]
@@ -270,8 +288,6 @@ value subst_rule_to_adj glyphs rule = do
 
   let adjs = ListBuilder.make () in
 
-  ListBuilder.add adjs (CopyCommands 0 0);
-
   for i = 0 to Array.length glyphs - 1 do
   {
     let cmds = lookups.(i) in
@@ -284,7 +300,7 @@ value subst_rule_to_adj glyphs rule = do
       {
         ListBuilder.add_list adjs
           [ConstGlyph (Simple glyphs.(i));
-           CopyCommands (i+1) (i+1)];
+           CopyCommands i i];
       }
       else match cmds.(k) with
       [ OTF_Pos_Subst.Substitution subst -> do
@@ -295,7 +311,7 @@ value subst_rule_to_adj glyphs rule = do
 
             ListBuilder.add_list adjs
               [ConstGlyph (Simple g2);
-               CopyCommands (i+1) (i+1)];
+               CopyCommands i i];
           }
           with
           [ Not_found -> iter_cmds (k+1) ]
@@ -402,14 +418,117 @@ value pos_subst_to_adjsutment scale cmd = match cmd with
 
 value lookup_to_adjustment scale lookups = do
 {
-  List.map
+  Array.map
     (fun l -> Array.map
                 (pos_subst_to_adjsutment scale)
                 l.OTF_Pos_Subst.l_commands)
     lookups
 };
 
-value make_matcher memo_table scale pos_subst script features = do
+(* table mapping a lang-sys to its adjustments *)
+
+type lang_sys =
+{
+  ls_required    : array int;         (* index to at_adjustment_tables *)
+  ls_tags        : array Tag.tag;
+  ls_adjustments : array (array int)  (* index to at_adjustment_tables *)
+};
+
+type adj_table =
+{
+  at_scripts           : Tag.TagMap.t (Tag.TagMap.t lang_sys);
+  at_adjustment_tables : array (array adjustment_table);
+  at_user_adjustments  : array adjustment_table
+};
+
+value make_adjustment_table ps_table scale user_adjustments = do
+{
+  let conv_script s = do
+  {
+    Tag.TagMap.map
+      (fun ls -> do
+        {
+          let r = match ls.OTF_Pos_Subst.ls_required with
+            [ None   -> [||]
+            | Some f -> f.OTF_Pos_Subst.f_lookups
+            ]
+          in
+          let t = Array.map (fun f -> f.OTF_Pos_Subst.f_tag)     ls.OTF_Pos_Subst.ls_features in
+          let l = Array.map (fun f -> f.OTF_Pos_Subst.f_lookups) ls.OTF_Pos_Subst.ls_features in
+
+          {
+            ls_required    = r;
+            ls_tags        = t;
+            ls_adjustments = l
+          }
+        })
+      s
+  }
+  in
+  {
+    at_scripts           = Tag.TagMap.map conv_script ps_table.OTF_Pos_Subst.t_scripts;
+    at_adjustment_tables = lookup_to_adjustment scale ps_table.OTF_Pos_Subst.t_lookups;
+    at_user_adjustments  = Array.of_list user_adjustments
+  }
+};
+
+value get_adjustments adj_table script lang_sys features = do
+{
+  let mark_feature_adjs used adjs = do
+  {
+    Array.iter
+      (fun i -> used.(i) := True)
+      adjs
+  }
+  in
+  let mark_lang_sys_adjs used lang_sys features = do
+  {
+    mark_feature_adjs used lang_sys.ls_required;
+
+    for i = 0 to Array.length lang_sys.ls_tags - 1 do
+    {
+      if Tag.TagSet.mem lang_sys.ls_tags.(i) features then
+        mark_feature_adjs used lang_sys.ls_adjustments.(i)
+      else ()
+    }
+  }
+  in
+
+  let num_adjs = Array.length adj_table.at_adjustment_tables in
+  let marks    = Array.make num_adjs False                   in
+
+  let ls = try do
+  {
+    let s = Tag.TagMap.find script adj_table.at_scripts in
+
+    try
+      Tag.TagMap.find lang_sys s
+    with [ Not_found -> Tag.TagMap.find Tag.dflt_tag s ]
+  }
+  with [ Not_found -> { ls_required = [||]; ls_tags = [||]; ls_adjustments = [||] } ] in
+
+  mark_lang_sys_adjs marks ls features;
+
+  let (_, active) =
+    Array.fold_right
+      (fun l (i, lu) -> do
+        {
+          if marks.(i) then
+            (i-1, [l :: lu])
+          else
+            (i-1, lu)
+        })
+      adj_table.at_adjustment_tables
+      (num_adjs - 1, [])
+  in
+
+  match adj_table.at_user_adjustments with
+  [ [||] -> active
+  | _    -> [adj_table.at_user_adjustments :: active]
+  ]
+};
+
+value make_matcher memo_table scale adj_table script features = do
 {
   let s = UString.uc_string_to_ascii script in
 
@@ -429,7 +548,6 @@ value make_matcher memo_table scale pos_subst script features = do
     with
     [ Not_found -> do
       {
-        (* FIX: instead of translating the lookups to adjustments every time, do it just once *)
         let f_tags = SymbolSet.fold
                        (fun set f ->
                          Tag.TagSet.add
@@ -438,8 +556,7 @@ value make_matcher memo_table scale pos_subst script features = do
                        Tag.TagSet.empty
                        features
                      in
-        let lookups = OTF_Pos_Subst.get_lookups pos_subst s_tag l_tag f_tags in
-        let adj     = lookup_to_adjustment scale lookups in
+        let adj = get_adjustments adj_table s_tag l_tag f_tags in
 
         let max_depth = max2_adjustment_depth adj in
 
@@ -461,11 +578,39 @@ value make_matcher memo_table scale pos_subst script features = do
   match_substitution_trie trie (0, [])
 };
 
-value get_composer pos_subst p_table s_table scale = match pos_subst with
-[ (None,   None)   -> fun fm _   _    -> simple_composer    fm (simple_ligature_substitution fm)
-| (None,   Some s) -> fun fm scr feat -> simple_composer    fm (make_matcher s_table scale s scr feat)
-| (Some p, None)   -> fun fm scr feat -> simple_composer    fm (make_matcher p_table scale p scr feat)
-| (Some p, Some s) -> fun fm scr feat -> two_phase_composer fm (make_matcher s_table scale s scr feat)
+value make_simple_matcher face scale extra_adjustments = do
+{
+  let max_depth = max2_adjustment_depth extra_adjustments in
+
+  let is_empty (n, _)        = (n > max_depth)      in
+  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
+  let root_value (n, glyphs) = do
+  {
+    match lookup2_adjustments extra_adjustments (List.rev glyphs) with
+    [ (Some _) as cmds -> cmds
+    | None             -> do
+      {
+        match glyphs with
+        [ [g2; g1] -> match ft_kerning face scale g1 g2 with
+          [ NoLigKern          -> None
+          | Kern k             -> Some (simple_pair_kerning_cmd k, 1)
+          | Ligature l s k1 k2 -> Some (tex_ligature_cmd (Simple l) k1 k2, s)
+          ]
+        | _ -> None
+        ]
+      }
+    ]
+  }
+  in
+
+  match_substitution_trie (is_empty, prefix, root_value) (0, [])
+};
+
+value get_composer face scale extra_adj adj_tables p_table s_table fm scr feat = match adj_tables with
+[ (None,   None)   -> simple_composer    fm (make_simple_matcher face scale extra_adj)
+| (None,   Some s) -> simple_composer    fm (make_matcher s_table scale s scr feat)
+| (Some p, None)   -> simple_composer    fm (make_matcher p_table scale p scr feat)
+| (Some p, Some s) -> two_phase_composer fm (make_matcher s_table scale s scr feat)
                                                                (make_matcher p_table scale p scr feat)
 ];
 
@@ -552,7 +697,22 @@ value read_ft file name params = do
 
   let s_table         = ref Composer.empty_table in
   let p_table         = ref Composer.empty_table in
-  let composer fm s f = Composer.get_composer pos_subst p_table s_table scale fm s f in
+  let adj_table       = match pos_subst with
+  [ (None,   None)   -> (None, None)
+  | (Some p, None)   -> (Some (Composer.make_adjustment_table p scale params.flp_extra_adjustments), None)
+  | (None,   Some s) -> (None, Some (Composer.make_adjustment_table s scale params.flp_extra_adjustments))
+  | (Some p, Some s) -> (Some (Composer.make_adjustment_table p scale params.flp_extra_adjustments),
+                         Some (Composer.make_adjustment_table s scale []))
+  ]
+  in
+
+  let composer fm s f =
+    Composer.get_composer
+      face scale
+      [Array.of_list params.flp_extra_adjustments]
+      adj_table p_table s_table
+      fm s f
+  in
 
   {
     name                = name;
@@ -568,7 +728,12 @@ value read_ft file name params = do
     get_unicode         = dec;
     get_composer        = composer;
     kerning             = fun _ c1 c2 -> ft_kerning face scale c1 c2;
-    draw_simple_glyph   = draw_simple_glyph;
+    draw_simple_glyph   = if params.flp_letter_spacing =/ num_zero then
+                             draw_simple_glyph
+                           else
+                             draw_displaced_simple_glyph
+                               (scale */ num_of_int em */ params.flp_letter_spacing)
+                               num_zero;
     accent_base_point   = accent_base_point_x_height;
     accent_attach_point = accent_attach_point_top;
     get_glyph_bitmap    = get_glyph_bitmap face;

@@ -1640,6 +1640,7 @@ value parse_glyf table glyph_locations = do
 
 end;
 
+(*
 module CFF =
 struct
 
@@ -1659,6 +1660,7 @@ value parse_cff table = do
 };
 
 end;
+*)
 
 module Parse_OTF =
 struct

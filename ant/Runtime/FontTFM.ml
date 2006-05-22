@@ -252,20 +252,34 @@ value make_lig_kern kern (x1,x2,x3,x4) = do
     LigKern.KernCmd x1 x2 kern.(0x100 * (x3 - 128) + x4)
 };
 
-value make_glyph_metric params width height depth italic lig exten (w,x1,x2,r) = do
+value make_glyph_metric glyph_idx params size width height depth italic lig exten (w,x1,x2,r) = do
 {
   let h  = x1 lsr 4    in
   let d  = x1 land 0xf in
   let i  = x2 lsr 2    in
   let t  = x2 land 0x3 in
 
+  let user_kern_info = try
+    let ki = List.assoc glyph_idx params.flp_extra_kern in
+    {
+      ki_after_space    = size */ ki.ki_after_space;
+      ki_before_space   = size */ ki.ki_before_space;
+      ki_after_margin   = size */ ki.ki_after_margin;
+      ki_before_margin  = size */ ki.ki_before_margin;
+      ki_after_foreign  = size */ ki.ki_after_foreign;
+      ki_before_foreign = size */ ki.ki_before_foreign
+    }
+  with [ Not_found -> zero_kern_info ] in
+
   (* If italic.(i) = 0 then we do not need to allocate a new structure. *)
   let kern_info = if italic.(i) <>/ num_zero then
     {
-      (zero_kern_info) with ki_before_foreign = italic.(i)
+      (user_kern_info)
+      with
+      ki_before_foreign = italic.(i) +/ user_kern_info.ki_before_foreign
     }
   else
-    zero_kern_info
+    user_kern_info
   in
 
   let extra = match t with
@@ -275,8 +289,7 @@ value make_glyph_metric params width height depth italic lig exten (w,x1,x2,r) =
            (if LigKern.is_lig lk && LigKern.skip lk > 128 then
               256 * LigKern.operand lk + LigKern.remainder lk
             else
-              r
-           )
+              r)
   | 2 -> GXI_List r
   | _ -> let (t,m,b,r) = exten.(r) in
          GXI_Extendable t m b r
@@ -284,7 +297,7 @@ value make_glyph_metric params width height depth italic lig exten (w,x1,x2,r) =
   in
 
   {
-    gm_width      = width.(w) +/ num_two */ params.flp_letter_spacing;
+    gm_width      = width.(w) +/ num_two */ size */ params.flp_letter_spacing;
     gm_height     = height.(h);
     gm_depth      = depth.(d);
     gm_italic     = italic.(i);
@@ -342,7 +355,12 @@ value read_tfm file name params = do
   let param     = read_array ic read_fix param_table_len     in
 
   let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig in
-  let gm_table  = Array.map (fun x -> make_glyph_metric params width height depth italic lig_cmds ext x) glyph_metric in
+  let gm_table  = Array.mapi
+                    (fun i gm -> make_glyph_metric (i + first_glyph)
+                                   params size width height depth italic
+                                   lig_cmds ext gm)
+                    glyph_metric
+                  in
 
   let adjustment_table =
       params.flp_extra_adjustments
@@ -380,7 +398,9 @@ value read_tfm file name params = do
     draw_simple_glyph   = if params.flp_letter_spacing =/ num_zero then
                              draw_simple_glyph
                            else
-                             draw_displaced_simple_glyph params.flp_letter_spacing num_zero;
+                             draw_displaced_simple_glyph
+                               (size */ params.flp_letter_spacing)
+                               num_zero;
     accent_base_point   = accent_base_point_x_height;
     accent_attach_point = accent_attach_point_top;
     get_composer        = composer;
@@ -396,7 +416,7 @@ value read_tfm file name params = do
         space_stretch    = if param_table_len >  2 then size */ param.( 2) else num_zero;
         space_shrink     = if param_table_len >  3 then size */ param.( 3) else num_zero;
         x_height         = if param_table_len >  4 then size */ param.( 4) else num_zero;
-        quad             = if param_table_len >  5 then size */ param.( 5) else num_zero;
+        quad             = if param_table_len >  5 then size */ param.( 5) else design_size;
         extra_space      = if param_table_len >  6 then size */ param.( 6) else num_zero;
         num_shift_1      = if param_table_len >  7 then size */ param.( 7) else num_zero;
         num_shift_2      = if param_table_len >  8 then size */ param.( 8) else num_zero;

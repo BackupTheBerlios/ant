@@ -277,7 +277,7 @@ value layout_page_with_floats page_layout floats state = do
 
 value rec execute_command_boxes page_info x y box = match box.b_contents with
 [ CommandBox (`PageCmd cmd) -> match cmd with
-  [ CallFunction f-> do
+  [ CallPageFunction f-> do
     {
       f page_info (x, y);
 

@@ -9,34 +9,40 @@
     it   := "italic";
   end
   begin
-    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam med  nor ( 0,  6) {} >>
-    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 6,  9) {} >>
-    ps_declare_font "MinionPro-Regular.otf"        fam med  nor ( 9, 12) {} >>
-    ps_declare_font "MinionPro-Subh.otf"           fam med  nor (12, 15) {} >>
-    ps_declare_font "MinionPro-Disp.otf"           fam med  nor (15,  0) {} >>
-    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam med  it  ( 0,  6) {} >>
-    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 6,  9) {} >>
-    ps_declare_font "MinionPro-It.otf"             fam med  it  ( 9, 12) {} >>
-    ps_declare_font "MinionPro-ItSubh.otf"         fam med  it  (12, 15) {} >>
-    ps_declare_font "MinionPro-ItDisp.otf"         fam med  it  (15,  0) {} >>
-    ps_declare_font "MinionPro-BoldCapt.otf"       fam sb   nor ( 0,  6) {} >>
-    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 6,  9) {} >>
-    ps_declare_font "MinionPro-Semibold.otf"       fam sb   nor ( 9, 12) {} >>
-    ps_declare_font "MinionPro-SemiboldSubh.otf"   fam sb   nor (12, 15) {} >>
-    ps_declare_font "MinionPro-SemiboldDisp.otf"   fam sb   nor (15,  0) {} >>
-    ps_declare_font "MinionPro-BoldItCapt.otf"     fam sb   it  ( 0,  6) {} >>
-    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 6,  9) {} >>
-    ps_declare_font "MinionPro-SemiboldIt.otf"     fam sb   it  ( 9, 12) {} >>
-    ps_declare_font "MinionPro-SemiboldItSubh.otf" fam sb   it  (12, 15) {} >>
-    ps_declare_font "MinionPro-SemiboldItDisp.otf" fam sb   it  (15,  0) {} >>
-    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 0,  9) {} >>
-    ps_declare_font "MinionPro-Bold.otf"           fam bold nor ( 9, 12) {} >>
-    ps_declare_font "MinionPro-BoldSubh.otf"       fam bold nor (12, 15) {} >>
-    ps_declare_font "MinionPro-BoldDisp.otf"       fam bold nor (15,  0) {} >>
-    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 0,  9) {} >>
-    ps_declare_font "MinionPro-BoldIt.otf"         fam bold it  ( 9, 12) {} >>
-    ps_declare_font "MinionPro-BoldItSubh.otf"     fam bold it  (12, 15) {} >>
-    ps_declare_font "MinionPro-BoldItDisp.otf"     fam bold it  (15,  0) {}
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam med  nor ( 0,    6)   { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 6,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 7.5,  8.5) {} >>
+    ps_declare_font "MinionPro-Regular.otf"        fam med  nor ( 8.5, 13.1) { BorderKern := [(14, 0.25, 0.25)] } >>
+    ps_declare_font "MinionPro-Subh.otf"           fam med  nor (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-Disp.otf"           fam med  nor (20,    0)   {} >>
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam med  it  ( 0,    6)   { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 6,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 7.5,  8.5) {} >>
+    ps_declare_font "MinionPro-It.otf"             fam med  it  ( 8.5, 13.1) {} >>
+    ps_declare_font "MinionPro-ItSubh.otf"         fam med  it  (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-ItDisp.otf"         fam med  it  (20,    0)   {} >>
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam sb   nor ( 0,    6)   { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 6,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 7.5,  8.5) {} >>
+    ps_declare_font "MinionPro-Semibold.otf"       fam sb   nor ( 8.5, 13.1) {} >>
+    ps_declare_font "MinionPro-SemiboldSubh.otf"   fam sb   nor (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-SemiboldDisp.otf"   fam sb   nor (20,    0)   {} >>
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam sb   it  ( 0,    6)   { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 6,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 7.5,  8.5) {} >>
+    ps_declare_font "MinionPro-SemiboldIt.otf"     fam sb   it  ( 8.5, 13.1) {} >>
+    ps_declare_font "MinionPro-SemiboldItSubh.otf" fam sb   it  (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-SemiboldItDisp.otf" fam sb   it  (20,    0)   { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 0,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 7.5,  8.5) {} >>
+    ps_declare_font "MinionPro-Bold.otf"           fam bold nor ( 8.5, 13.1) {} >>
+    ps_declare_font "MinionPro-BoldSubh.otf"       fam bold nor (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-BoldDisp.otf"       fam bold nor (20,    0)   {} >>
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 0,    7.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 7.5,  8.5) { LetterSpacing := 0.04 } >>
+    ps_declare_font "MinionPro-BoldIt.otf"         fam bold it  ( 8.5, 13.1) {} >>
+    ps_declare_font "MinionPro-BoldItSubh.otf"     fam bold it  (13.1, 20)   {} >>
+    ps_declare_font "MinionPro-BoldItDisp.otf"     fam bold it  (20,    0)   {}
   end
 }
 

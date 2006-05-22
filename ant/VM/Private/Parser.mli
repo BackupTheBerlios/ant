@@ -57,6 +57,7 @@ and stmt =
 [ SEquation of term and term
 | SIfThen of term and stmt
 | SIfThenElse of term and stmt and stmt
+| SForce of array term
 ];
 
 value parse_program    : lexer -> list decl;

@@ -534,12 +534,7 @@ and compile_local_declarations scope decls = do
               else
                 init.(var) := t
             }
-          | TDictionary dict -> do
-            {
-              let (_, var) = Scope.lookup_local new_scope name in
-
-              init.(var) := term
-            }
+          | TDictionary _
           | TTrigger _ -> do
             {
               let (_, var) = Scope.lookup_local new_scope name in
@@ -578,6 +573,7 @@ and compile_statement scope stmt = match stmt with
 | Parser.SIfThenElse p s0 s1 -> SIfThenElse (compile_expr scope p)
                                             (compile_statement scope s0)
                                             (compile_statement scope s1)
+| Parser.SForce xs           -> SForce      (Array.map (compile_expr scope) xs)
 ];
 
 value rec compile_global_declarations scope decls = do

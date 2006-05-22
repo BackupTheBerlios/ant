@@ -1144,7 +1144,7 @@ value initialise_environment () = do
       Galley.baseline_skip      = dim_12pt;
       Galley.line_skip_limit    = num_zero;
       Galley.line_skip          = dim_1pt;
-      Galley.leading            = Galley.leading_TeX;
+      Galley.leading            = Galley.leading_skyline;
       Galley.club_widow_penalty = fun _ k -> if k > 1 then
                                     num_zero
                                   else

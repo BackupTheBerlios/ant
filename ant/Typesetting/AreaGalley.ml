@@ -83,7 +83,7 @@ value rec process_marks marks page_state = match marks with
 
             ps_new_floats = [ f :: page_state.ps_new_floats ]
           }
-    | CallFunction _ -> process_marks ms page_state
+    | CallPageFunction _ -> process_marks ms page_state
     ]
   | `GfxCmd _ -> process_marks ms page_state
   ]
