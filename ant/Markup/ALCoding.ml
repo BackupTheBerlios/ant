@@ -223,7 +223,7 @@ value decode_int name x = do
   if is_integer_num n then
     int_of_num n
   else
-    Types.runtime_error (name ^ ": integer expected but got " ^ Types.type_name !x)
+    Types.runtime_error (name ^ ": integer expected but got arbitrary number")
 };
 
 value decode_bool name x = do

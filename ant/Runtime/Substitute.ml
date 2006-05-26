@@ -315,7 +315,7 @@ value make_adjustment_trie adjustments = do
 
 (* applying adjustments *)
 
-value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_value) subst_trie items = do
+value match_substitution_trie get_border_glyph (is_empty, prefix_trie, root_value) subst_trie items = do
 {
   let return_match found = match found with
   [ (_,      _,    None)     -> None
@@ -328,9 +328,7 @@ value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_va
   where rec iter found prefix items trie = match items with
   [ [((`Glyph (g,_), _) as i) :: is] -> do
     {
-      if is_empty trie then
-        return_match found
-      else match g with
+      let rec match_with_glyph g = match g with
       [ Simple x -> do
         {
           let new_prefix = [i :: prefix]      in
@@ -341,8 +339,15 @@ value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_va
           | None          -> iter found                 new_prefix is next
           ]
         }
-      | _ -> return_match found
+      | Border b -> match_with_glyph (get_border_glyph b)
+      | _        -> return_match found
       ]
+      in
+
+      if is_empty trie then
+        return_match found
+      else
+        match_with_glyph g
     }
   | _ -> return_match found
   ]
@@ -384,9 +389,9 @@ value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_va
 };
 *)
 
-value match_substitution_dyntrie subst_trie items = do
+value match_substitution_dyntrie get_border_glyph subst_trie items = do
 {
-  match_substitution_trie (DynUCTrie.is_empty, DynUCTrie.prefix, DynUCTrie.root_value) subst_trie items
+  match_substitution_trie get_border_glyph (DynUCTrie.is_empty, DynUCTrie.prefix, DynUCTrie.root_value) subst_trie items
 };
 
 

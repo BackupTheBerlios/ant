@@ -528,7 +528,7 @@ value get_adjustments adj_table script lang_sys features = do
   ]
 };
 
-value make_matcher memo_table scale adj_table script features = do
+value make_matcher memo_table scale get_border_glyph adj_table script features = do
 {
   let s = UString.uc_string_to_ascii script in
 
@@ -575,10 +575,10 @@ value make_matcher memo_table scale adj_table script features = do
     ]
   in
 
-  match_substitution_trie trie (0, [])
+  match_substitution_trie get_border_glyph trie (0, [])
 };
 
-value make_simple_matcher face scale extra_adjustments = do
+value make_simple_matcher face scale get_border_glyph extra_adjustments = do
 {
   let max_depth = max2_adjustment_depth extra_adjustments in
 
@@ -603,16 +603,20 @@ value make_simple_matcher face scale extra_adjustments = do
   }
   in
 
-  match_substitution_trie (is_empty, prefix, root_value) (0, [])
+  match_substitution_trie get_border_glyph (is_empty, prefix, root_value) (0, [])
 };
 
-value get_composer face scale extra_adj adj_tables p_table s_table fm scr feat = match adj_tables with
-[ (None,   None)   -> simple_composer    fm (make_simple_matcher face scale extra_adj)
-| (None,   Some s) -> simple_composer    fm (make_matcher s_table scale s scr feat)
-| (Some p, None)   -> simple_composer    fm (make_matcher p_table scale p scr feat)
-| (Some p, Some s) -> two_phase_composer fm (make_matcher s_table scale s scr feat)
-                                                               (make_matcher p_table scale p scr feat)
-];
+value get_composer face scale get_border_glyph (pos, subst) p_table s_table fm scr feat = do
+{
+  if Array.length pos.at_adjustment_tables = 0 then
+    simple_composer fm (make_matcher s_table scale get_border_glyph subst scr feat)
+  else
+    if Array.length subst.at_adjustment_tables = 0 then
+      simple_composer fm (make_matcher p_table scale get_border_glyph pos scr feat)
+    else
+      two_phase_composer fm (make_matcher s_table scale get_border_glyph subst scr feat)
+                            (make_matcher p_table scale get_border_glyph pos   scr feat)
+};
 
 end;
 
@@ -639,13 +643,19 @@ value read_ft file name params = do
 
   let (tables, pos_subst) = try do
     {
-      let tables    = read_font_tables file in
-      let pos_subst = get_pos_subst tables  in
+      let tables = read_font_tables file in
 
-      (tables, pos_subst)
+      match get_pos_subst tables with
+      [ (Some p, Some s) -> (tables, (p, s))
+      | (Some p, None)   -> (tables, (p, OTF_Pos_Subst.empty_pos_subst))
+      | (None,   Some s) -> (tables, (OTF_Pos_Subst.empty_pos_subst, s))
+      | (None,   None)   -> (tables, (OTF_Pos_Subst.empty_pos_subst,
+                                      OTF_Pos_Subst.empty_pos_subst))
+      ]
     }
     with
-    [ _ -> (Tag.TagMap.empty, (None, None)) ]
+    [ _ -> (Tag.TagMap.empty, (OTF_Pos_Subst.empty_pos_subst,
+                               OTF_Pos_Subst.empty_pos_subst)) ]
   in
 
   let font_type    = if ft_is_sfnt face then
@@ -695,21 +705,38 @@ value read_ft file name params = do
   ]
   in
 
-  let s_table         = ref Composer.empty_table in
-  let p_table         = ref Composer.empty_table in
-  let adj_table       = match pos_subst with
-  [ (None,   None)   -> (None, None)
-  | (Some p, None)   -> (Some (Composer.make_adjustment_table p scale params.flp_extra_adjustments), None)
-  | (None,   Some s) -> (None, Some (Composer.make_adjustment_table s scale params.flp_extra_adjustments))
-  | (Some p, Some s) -> (Some (Composer.make_adjustment_table p scale params.flp_extra_adjustments),
-                         Some (Composer.make_adjustment_table s scale []))
+  let last_glyph = face_num_glyphs face - 1 in
+
+  let get_border_glyph b = match b with
+  [ Margin  -> Simple (last_glyph + 1)
+  | Space   -> Simple (last_glyph + 2)
+  | Foreign -> Simple (last_glyph + 3)
   ]
+  in
+
+
+  let s_table   = ref Composer.empty_table in
+  let p_table   = ref Composer.empty_table in
+
+  let adj_table = do
+  {
+    let (p,s) = pos_subst in
+
+    (Composer.make_adjustment_table p scale
+       (add_border_kern
+         (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
+         params.flp_size
+         params.flp_extra_kern
+         params.flp_extra_pos),
+     Composer.make_adjustment_table s scale
+       params.flp_extra_subst)
+  }
   in
 
   let composer fm s f =
     Composer.get_composer
       face scale
-      [Array.of_list params.flp_extra_adjustments]
+      get_border_glyph
       adj_table p_table s_table
       fm s f
   in
@@ -720,7 +747,7 @@ value read_ft file name params = do
     file_name           = file;
     font_type           = font_type;
     first_glyph         = 1;
-    last_glyph          = face_num_glyphs face - 1;
+    last_glyph          = last_glyph;
     design_size         = design_size;
     at_size             = size;
     check_sum           = num_zero;
@@ -742,6 +769,9 @@ value read_ft file name params = do
       {
         hyphen_glyph     = hyphen_glyph;
         skew_glyph       = params.flp_skew_glyph;
+        margin_glyph     = Simple (last_glyph + 1);
+        space_glyph      = Simple (last_glyph + 2);
+        foreign_glyph    = Simple (last_glyph + 3);
         slant            = num_zero;
         space            = space;
         space_stretch    = space // num_of_int 2;

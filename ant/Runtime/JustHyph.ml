@@ -116,7 +116,7 @@ value rec convert_to_glyphs_and_add_breaks hyphen_params font composer items = d
   ]
   in
 
-  let hg     = font.parameter.hyphen_glyph   in
+  let hg     = get_hyphen_glyph font         in
   let word   = collect_characters 0 [] items in
   let breaks = Hyphenation.hyphenate
                  hyphen_params.hyphen_table

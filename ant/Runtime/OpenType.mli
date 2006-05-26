@@ -116,6 +116,8 @@ type pos_subst_table =
   t_size    : option size_params
 };
 
+value empty_pos_subst : pos_subst_table;
+
 value get_lookups : pos_subst_table -> tag -> tag -> TagSet.t -> list lookup;
 
 end;

@@ -10,7 +10,7 @@ value jobname       = ref "";
 value input_file    = ref "";
 value output_file   = ref "";
 value log_file      = ref "";
-value output_format = ref DVI;
+value output_format = ref PDF;
 
 value start_job name = do
 {

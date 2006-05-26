@@ -12,6 +12,9 @@ type font_parameter =
 {
   hyphen_glyph     : glyph_desc;
   skew_glyph       : glyph_desc;
+  margin_glyph     : glyph_desc;
+  space_glyph      : glyph_desc;
+  foreign_glyph    : glyph_desc;
   slant            : num;
   space            : num;
   space_stretch    : num;
@@ -92,13 +95,14 @@ and simple_cmd =
 
 type font_load_params =
 {
-  flp_size              : num;                         (* scale font to this size     *)
-  flp_encoding          : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph      : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph        : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing    : num;                         (* additional letter spacing   *)
-  flp_extra_adjustments : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_kern        : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size           : num;                         (* scale font to this size     *)
+  flp_encoding       : array uc_string;             (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                         (* additional letter spacing   *)
+  flp_extra_pos      : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_subst    : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)
@@ -127,6 +131,8 @@ value two_phase_composer           : font_metric
                                        -> substitution font_metric 'box 'cmd
                                        -> substitution font_metric 'box 'cmd
                                        -> glyph_composer font_metric 'box 'cmd;
+value add_border_kern              : int -> int -> int -> num -> list (int * extra_kern_info)
+                                       -> list adjustment_table -> list adjustment_table;
 
 value get_glyph_metric            : font_metric -> glyph_desc -> glyph_metric;
 value next_glyph                  : font_metric -> glyph_desc -> glyph_desc;
@@ -135,9 +141,13 @@ value get_lig_kern                : font_metric -> glyph_desc -> glyph_desc -> l
 value draw_simple_glyph           : font_metric -> int -> simple_box;
 value draw_displaced_simple_glyph : num -> num -> font_metric -> int -> simple_box;
 value draw_glyph                  : font_metric -> glyph_desc -> simple_box;
-value set_encoding                : font_metric -> (uc_char -> glyph_desc) -> (glyph_desc -> uc_string) -> font_metric;
-value set_hyphen_char             : font_metric -> glyph_desc -> font_metric;
-value set_skew_char               : font_metric -> glyph_desc -> font_metric;
+
+value get_hyphen_glyph  : font_metric -> glyph_desc;
+value get_skew_glyph    : font_metric -> glyph_desc;
+value get_margin_glyph  : font_metric -> glyph_desc;
+value get_space_glyph   : font_metric -> glyph_desc;
+value get_foreign_glyph : font_metric -> glyph_desc;
+value get_border_glyph  : font_metric -> border_glyph -> glyph_desc;
 
 value accent_base_point           : font_metric -> glyph_metric -> (num * num);
 value accent_attach_point         : font_metric -> glyph_metric -> (num * num);

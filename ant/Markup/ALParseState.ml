@@ -1045,20 +1045,24 @@ value decode_font_load_params name params = do
       DynUCTrie.empty
   in
 
-  iter ligs adjustments
+  iter DynUCTrie.empty ligs adjustments
 
-  where rec iter extra_adj adjustments = match adjustments with
+  where rec iter extra_pos extra_subst adjustments = match adjustments with
   [ [] -> {
-            FontMetric.flp_encoding          = encoding;
-            FontMetric.flp_letter_spacing    = letterspacing;
-            FontMetric.flp_size              = scale;
-            FontMetric.flp_hyphen_glyph      = get_glyph hyphen;
-            FontMetric.flp_skew_glyph        = get_glyph skew;
-            FontMetric.flp_extra_kern        = extra_kern;
-            FontMetric.flp_extra_adjustments = if DynUCTrie.is_empty extra_adj then
-                                                 []
-                                               else
-                                                 [Substitute.DirectLookup extra_adj]
+            FontMetric.flp_encoding       = encoding;
+            FontMetric.flp_letter_spacing = letterspacing;
+            FontMetric.flp_size           = scale;
+            FontMetric.flp_hyphen_glyph   = get_glyph hyphen;
+            FontMetric.flp_skew_glyph     = get_glyph skew;
+            FontMetric.flp_extra_kern     = extra_kern;
+            FontMetric.flp_extra_pos      = if DynUCTrie.is_empty extra_pos then
+                                              []
+                                            else
+                                              [Substitute.DirectLookup extra_pos];
+            FontMetric.flp_extra_subst    = if DynUCTrie.is_empty extra_subst then
+                                              []
+                                            else
+                                              [Substitute.DirectLookup extra_subst]
           }
   | [a::adjs] -> match decode_tuple name a with
     [ [| glyphs; sym; val |] -> do
@@ -1074,7 +1078,7 @@ value decode_font_load_params name params = do
           let v = Machine.decode_num name val          in
           let c = Substitute.simple_pair_kerning_cmd v in
 
-          iter (DynUCTrie.add_list gs (c, 1) extra_adj) adjs
+          iter (DynUCTrie.add_list gs (c, 1) extra_pos) extra_subst adjs
         }
         else if s = sym_Ligature then do
         {
@@ -1083,7 +1087,7 @@ value decode_font_load_params name params = do
                     2 (Substitute.Simple v)
           in
 
-          iter (DynUCTrie.add_list gs (c, 0) extra_adj) adjs
+          iter extra_pos (DynUCTrie.add_list gs (c, 0) extra_subst) adjs
         }
         else
           Types.runtime_error (name ^ ": unknown adjustment command, Kern or Ligature expected")

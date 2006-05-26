@@ -161,20 +161,96 @@ value rec compile_expr scope expr = match expr with
 | Parser.TApp f args -> TApplication
                           (compile_expr scope f)
                           (List.map (compile_expr scope) args)
-| Parser.TTuple xs   -> TConsTuple (Array.of_list (List.map (compile_expr scope) xs))
-| Parser.TList xs    -> do
+| Parser.TTuple xs -> do
   {
-    List.fold_right
-      (fun x y -> TConsList (compile_expr scope x) y)
-      xs
-      (TConstant Nil)
+    let rec compile_elements is_const n els xs = match xs with
+    [ []      -> (is_const, n, els)
+    | [y::ys] -> do
+      {
+        let e = compile_expr scope y in
+        let c = is_const
+                && match e with
+                   [ TConstant _ -> True
+                   | _           -> False
+                   ]
+        in
+
+        compile_elements c (n+1) [e :: els] ys
+      }
+    ]
+    in
+
+    let (is_const, n, elements) = compile_elements True 0 [] xs in
+
+    if is_const then do
+    {
+      let values = Array.make n (ref Unbound) in
+
+      List.fold_left
+        (fun i t -> match t with
+          [ TConstant v -> do
+            {
+              values.(i) := ref v;
+              i-1
+            }
+          | _ -> assert False
+          ])
+        (n-1)
+        elements;
+
+      TConstant (Tuple values)
+    }
+    else do
+    {
+      let terms = Array.make n (TConstant Unbound) in
+
+      List.fold_left
+        (fun i t -> do
+          {
+            terms.(i) := t;
+            i-1
+          })
+        (n-1)
+        elements;
+
+      TConsTuple terms
+    }
+  }
+| Parser.TList xs -> do
+  {
+    iter xs
+
+    where rec iter xs = match xs with
+    [ []      -> TConstant Nil
+    | [y::ys] -> do
+      {
+        let t    = compile_expr scope y in
+        let tail = iter ys              in
+
+        match (t,tail) with
+        [ (TConstant a, TConstant b) -> TConstant (List (ref a) (ref b))
+        | _                          -> TConsList t tail
+        ]
+      }
+    ]
   }
 | Parser.TListTail xs tail   -> do
   {
-    List.fold_right
-      (fun x y -> TConsList (compile_expr scope x) y)
-      xs
-      (compile_expr scope tail)
+    iter xs
+
+    where rec iter xs = match xs with
+    [ []      -> compile_expr scope tail
+    | [y::ys] -> do
+      {
+        let t    = compile_expr scope y in
+        let rest = iter ys              in
+
+        match (t,rest) with
+        [ (TConstant a, TConstant b) -> TConstant (List (ref a) (ref b))
+        | _                          -> TConsList t rest
+        ]
+      }
+    ]
   }
 | Parser.TFun cases -> do
   {
@@ -199,7 +275,7 @@ value rec compile_expr scope expr = match expr with
   }
 | Parser.TSequence stmts expr -> do
   {
-    TSequence 
+    TSequence
       (Array.of_list (List.map (compile_statement scope) stmts))
       (compile_expr scope expr)
   }

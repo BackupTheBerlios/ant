@@ -307,6 +307,13 @@ type pos_subst_table =
   t_size    : option size_params
 };
 
+value empty_pos_subst =
+{
+  t_scripts = TagMap.empty;
+  t_lookups = [||];
+  t_size    = None
+};
+
 value make_pos_subst_table scripts lookups size =
 {
   t_scripts = scripts;

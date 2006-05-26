@@ -179,35 +179,34 @@ value tfm_kerning lig_kern font c1 c2 = do
   ];
 };
 
-value get_adjustment_table lig_kern_table glyphs first_glyph last_glyph = do
+value get_adjustment_tables lig_kern_table glyphs first_glyph last_glyph = do
 {
-  iter first_glyph DynUCTrie.empty
+  iter first_glyph DynUCTrie.empty DynUCTrie.empty
 
-  where rec iter g adj = do
+  where rec iter g pos subst = do
   {
     if g > last_glyph then
-      if DynUCTrie.is_empty adj then
-        []
-      else
-        [Substitute.DirectLookup adj]
+      (if DynUCTrie.is_empty pos   then [] else [Substitute.DirectLookup pos],
+       if DynUCTrie.is_empty subst then [] else [Substitute.DirectLookup subst])
     else match glyphs.(g - first_glyph).gm_extra with
     [ GXI_LigKern lk -> do
       {
         let lks = LigKern.list_lig_kerns lig_kern_table lk in
 
-        add_lig_kern lks adj
+        add_lig_kern lks pos subst
 
-        where rec add_lig_kern lks adj = match lks with
-        [ []       -> iter (g+1) adj
+        where rec add_lig_kern lks pos subst = match lks with
+        [ []       -> iter (g+1) pos subst
         | [l::lks] -> match l with
             [ (g2, GlyphMetric.Ligature c s k1 k2) -> do
               {
                 add_lig_kern
                   lks
+                  pos
                   (DynUCTrie.add_list
                     [g; g2]
                     (tex_ligature_cmd (Simple c) k1 k2, s)
-                    adj)
+                    subst)
               }
             | (g2, GlyphMetric.Kern x) -> do
               {
@@ -216,13 +215,14 @@ value get_adjustment_table lig_kern_table glyphs first_glyph last_glyph = do
                   (DynUCTrie.add_list
                     [g; g2]
                     (simple_pair_kerning_cmd x, 1)
-                    adj)
+                    pos)
+                  subst
               }
             | (_, NoLigKern) -> assert False
             ]
         ]
       }
-    | _ -> iter (g+1) adj
+    | _ -> iter (g+1) pos subst
     ]
   }
 };
@@ -306,11 +306,13 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
   }
 };
 
-value tfm_composer adj fm _ _ = do
+value tfm_composer pos subst fm _ _ = do
 {
-  let (trie, state) = make_adjustment_trie adj in
+  let (p_trie, p_state) = make_adjustment_trie pos   in
+  let (s_trie, s_state) = make_adjustment_trie subst in
 
-  simple_composer fm (match_substitution_trie trie state)
+  two_phase_composer fm (match_substitution_trie (get_border_glyph fm) s_trie s_state)
+                        (match_substitution_trie (get_border_glyph fm) p_trie p_state)
 };
 
 value read_tfm file name params = do
@@ -362,10 +364,14 @@ value read_tfm file name params = do
                     glyph_metric
                   in
 
-  let adjustment_table =
-      params.flp_extra_adjustments
-    @ get_adjustment_table lig_cmds gm_table first_glyph last_glyph
-  in
+  let (p,s)       = get_adjustment_tables lig_cmds gm_table first_glyph last_glyph in
+  let pos_table   = add_border_kern
+                      (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
+                      size
+                      params.flp_extra_kern
+                      (params.flp_extra_pos @ p)
+                    in
+  let subst_table = params.flp_extra_subst @ s in
 
   let hyphen_glyph = match params.flp_hyphen_glyph with
   [ Undef -> Simple 45
@@ -380,7 +386,7 @@ value read_tfm file name params = do
   ]
   in
 
-  let composer x y = tfm_composer adjustment_table x y in
+  let composer x y = tfm_composer pos_table subst_table x y in
 
   {
     name                = name;
@@ -411,6 +417,9 @@ value read_tfm file name params = do
       {
         hyphen_glyph     = hyphen_glyph;
         skew_glyph       = params.flp_skew_glyph;
+        margin_glyph     = Simple (last_glyph + 1);
+        space_glyph      = Simple (last_glyph + 2);
+        foreign_glyph    = Simple (last_glyph + 3);
         slant            = if param_table_len >  0 then param.( 0) else num_zero;
         space            = if param_table_len >  1 then size */ param.( 1) else num_zero;
         space_stretch    = if param_table_len >  2 then size */ param.( 2) else num_zero;

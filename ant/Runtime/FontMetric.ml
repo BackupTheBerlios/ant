@@ -12,6 +12,9 @@ type font_parameter =
 {
   hyphen_glyph     : glyph_desc;
   skew_glyph       : glyph_desc;
+  margin_glyph     : glyph_desc;
+  space_glyph      : glyph_desc;
+  foreign_glyph    : glyph_desc;
   slant            : num;
   space            : num;
   space_stretch    : num;
@@ -90,13 +93,14 @@ and simple_cmd =
 
 type font_load_params =
 {
-  flp_size              : num;                         (* scale font to this size     *)
-  flp_encoding          : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph      : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph        : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing    : num;                         (* additional letter spacing   *)
-  flp_extra_adjustments : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_kern        : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size           : num;                         (* scale font to this size     *)
+  flp_encoding       : array uc_string;             (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                         (* additional letter spacing   *)
+  flp_extra_pos      : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_subst    : list adjustment_table;       (* additional kerning pairs and ligatures *)
+  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)
@@ -342,6 +346,44 @@ value two_phase_composer font find_subst1 find_subst2 items = do
     (Substitute.substitute font find_subst1 items)
 };
 
+value add_border_kern margin_glyph space_glyph foreign_glyph size border_kern adjustments = do
+{
+  let add_kern g1 g2 kern trie = do
+  {
+    if kern =/ num_zero then
+      trie
+    else
+      DynUCTrie.add_string
+        [|g1; g2|]
+        (simple_pair_kerning_cmd (size */ kern), 1)
+        trie
+  }
+  in
+
+  iter border_kern DynUCTrie.empty
+
+  where rec iter kern trie = match kern with
+  [ [] -> do
+    {
+      if DynUCTrie.is_empty trie then
+        adjustments
+      else
+        [DirectLookup trie :: adjustments]
+    }
+  | [(g,ki) :: ks] -> do
+    {
+      iter ks
+        (add_kern margin_glyph g ki.ki_after_margin
+          (add_kern g margin_glyph ki.ki_before_margin
+            (add_kern space_glyph g ki.ki_after_space
+              (add_kern g space_glyph ki.ki_before_space
+                (add_kern foreign_glyph g ki.ki_after_foreign
+                  (add_kern g foreign_glyph ki.ki_before_foreign
+                    trie))))))
+    }
+  ]
+};
+
 (* Default value for |draw_simple_glyph|. *)
 
 value draw_simple_glyph font glyph = SimpleGlyph glyph font;
@@ -356,7 +398,14 @@ value draw_displaced_simple_glyph dx dy font glyph = do
 value rec draw_glyph font glyph = match glyph with
 [ Undef
 | Border _   -> Empty
-| Simple g   -> font.draw_simple_glyph font g
+| Simple g   -> do
+  {
+    (* <g> might be a non-existing glyph index, indicating e.g. a border glyph *)
+    if g >= font.first_glyph && g <= font.last_glyph then
+      font.draw_simple_glyph font g
+    else
+      Empty
+  }
 | Accent a g -> do
   {
     let a_gm = get_glyph_metric font (Simple a) in
@@ -365,8 +414,8 @@ value rec draw_glyph font glyph = match glyph with
     let (pos_x, pos_y) = accent_position font a_gm font g_gm in
 
     Group
-      [Graphic.PutBox num_zero num_zero (SimpleGlyph g font);
-       Graphic.PutBox pos_x    pos_y    (SimpleGlyph a font)];
+      [Graphic.PutBox num_zero num_zero (draw_glyph font (Simple g));
+       Graphic.PutBox pos_x    pos_y    (draw_glyph font (Simple a))];
   }
 | Sequence gs -> do
   {
@@ -399,33 +448,17 @@ value rec draw_glyph font glyph = match glyph with
   }
 ];
 
-value set_encoding font enc dec =
-{
-  (font)
+value get_hyphen_glyph  fm = fm.parameter.hyphen_glyph;
+value get_skew_glyph    fm = fm.parameter.skew_glyph;
+value get_margin_glyph  fm = fm.parameter.margin_glyph;
+value get_space_glyph   fm = fm.parameter.space_glyph;
+value get_foreign_glyph fm = fm.parameter.foreign_glyph;
 
-  with
-
-  get_glyph   = enc;
-  get_unicode = dec
-};
-
-value set_hyphen_char font c =
-{
-  (font)
-
-  with
-
-  parameter = { (font.parameter) with hyphen_glyph = c }
-};
-
-value set_skew_char font c =
-{
-  (font)
-
-  with
-
-  parameter = { (font.parameter) with skew_glyph = c }
-};
+value get_border_glyph fm b = match b with
+[ Margin  -> get_margin_glyph  fm
+| Space   -> get_space_glyph   fm
+| Foreign -> get_foreign_glyph fm
+];
 
 (* Shorthand to access the dimension of a normal and an extended space of the font. *)
 
@@ -451,6 +484,9 @@ value empty_parameter =
 {
   hyphen_glyph     = Undef;
   skew_glyph       = Undef;
+  margin_glyph     = Undef;
+  space_glyph      = Undef;
+  foreign_glyph    = Undef;
   slant            = num_zero;
   space            = num_zero;
   space_stretch    = num_zero;
@@ -507,12 +543,13 @@ value empty_font =
 
 value empty_load_params =
 {
-  flp_size              = num_zero;
-  flp_encoding          = [| |];
-  flp_hyphen_glyph      = Undef;
-  flp_skew_glyph        = Undef;
-  flp_letter_spacing    = num_zero;
-  flp_extra_adjustments = [];
-  flp_extra_kern        = []
+  flp_size           = num_zero;
+  flp_encoding       = [| |];
+  flp_hyphen_glyph   = Undef;
+  flp_skew_glyph     = Undef;
+  flp_letter_spacing = num_zero;
+  flp_extra_pos      = [];
+  flp_extra_subst    = [];
+  flp_extra_kern     = []
 };
 

@@ -73,6 +73,9 @@ value make_virtual_font name size glyphs lig_kern params = do
       {
         hyphen_glyph     = Simple 45;
         skew_glyph       = Undef;
+        margin_glyph     = Undef;
+        space_glyph      = Undef;
+        foreign_glyph    = Undef;
         slant            = params.(0);
         space            = size */ params.(1);
         space_stretch    = size */ params.(2);

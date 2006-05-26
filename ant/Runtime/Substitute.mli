@@ -89,8 +89,8 @@ value max2_adjustment_depth : list (array adjustment_table) -> int;
 
 value make_adjustment_trie : list adjustment_table -> (subst_trie adj_trie_state * adj_trie_state);
 
-value match_substitution_dyntrie : DynUCTrie.t adjustment -> substitution 'font 'box 'cmd;
-value match_substitution_trie    : subst_trie 'a -> 'a -> substitution 'font 'box 'cmd;
+value match_substitution_dyntrie : (border_glyph -> glyph_desc) -> DynUCTrie.t adjustment -> substitution 'font 'box 'cmd;
+value match_substitution_trie    : (border_glyph -> glyph_desc) -> subst_trie 'a -> 'a -> substitution 'font 'box 'cmd;
 
 value substitute           : 'font -> substitution 'font 'box 'cmd -> glyph_composer 'font 'box 'cmd;
 
