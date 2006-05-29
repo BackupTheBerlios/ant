@@ -38,7 +38,12 @@ value continue2              = CStack.cont2;
 value continue3              = CStack.cont3;
 value continue4              = CStack.cont4;
 
-value set_unknown x v = Evaluate.forced_unify x (ref v);
+value set_unknown x v = do
+{
+  CStack.start_vm ();
+  Evaluate.forced_unify x (ref v);
+  CStack.end_vm ()
+};
 
 value evaluate x = do
 {

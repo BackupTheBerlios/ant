@@ -34,6 +34,7 @@ and partial_value =
 | PatternFunction of int and environment and int and int and
                      list (list pattern_check * option term * term)
                                             (* arity, stack_depth, num_vars, patterns *)
+| Chain of array unknown
 | Relation of int and list statement        (* aritiy, local variables, and equations *)
 | Application of partial_value and list unknown
 | Nil
@@ -56,6 +57,7 @@ and term =
 | TIfThenElse of term and term and term
 | TLocalScope of array term and term
 | TSequence of array statement and term
+| TDo of array term
 | TMatch of term and int and int and list (list pattern_check * option term * term)
 | TUnify of term and term
 | TTrigger of statement

@@ -946,8 +946,8 @@ and read_simple_expr read_atom conv stream = do
 
   match UCStream.get_char stream 0 with
   [ (-1) -> raise (Failure "parse error")
-  | 123  -> read_paren 125
-  | 40   -> read_paren 41
+  | 123  -> read_paren 125  (* { *)
+  | 40   -> read_paren 41   (* ( *)
 (* FIX: does not work since we cannot depend on the Macro module.
   | 92   -> do
     {
@@ -1064,21 +1064,21 @@ value read_range stream = do
 {
   skip_spaces stream;
 
-  let n1 = if UCStream.next_char stream = 45 then
+  let n1 = if UCStream.next_char stream = 45 then  (* - *)
              num_zero
            else
-             read_number stream
+             read_simple_num_expression stream
            in
 
   skip_spaces stream;
 
-  if UCStream.next_char stream = 45 then do
+  if UCStream.next_char stream = 45 then do (* - *)
   {
     UCStream.remove stream 1;
 
     skip_spaces stream;
 
-    let n2 = read_number stream in
+    let n2 = read_simple_num_expression stream in
 
     skip_spaces stream;
 

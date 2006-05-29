@@ -1,14 +1,47 @@
 
+open XNum;
 open Runtime;
 open Logging;
+open Typesetting;
 open Engine;
 open ParseState;
+
+value pdf_spec_num = ref 0;
+
+value insert_source_special ps = do
+{
+  let ((file, line, col) as loc) = location ps in
+
+  if file <> "" then do
+  {
+    let dvi_spec = Printf.sprintf "src:%d:%d %s" line col file in
+
+    let pdf_spec _ (x,y) = do
+    {
+      let x_pos = int_of_float (float_of_num x *. 65536.0) in
+      let y_pos = int_of_float (float_of_num y *. 65536.0) in
+
+      IO.printf !Job.src_special_stream "(%s\nl %d %d\np %d %d %d\n)\n" file !pdf_spec_num line !pdf_spec_num x_pos y_pos;
+
+      !pdf_spec_num := !pdf_spec_num + 1
+    }
+    in
+
+    add_node ps (Node.CommandBox loc (`Special (`DVI_Special dvi_spec)));
+    add_node ps (Node.CommandBox loc (`PageCmd (Box.CallPageFunction pdf_spec)))
+  }
+  else ()
+};
 
 (* |begin_paragraph| starts a new paragraph, |end_paragraph| adds the current paragraph to the page. *)
 
 value begin_paragraph ps = do
 {
-  open_node_list ps `Paragraph
+  open_node_list ps `Paragraph;
+
+  if !Job.source_specials then
+    insert_source_special ps
+  else ()
 };
 
 value end_paragraph ps = do

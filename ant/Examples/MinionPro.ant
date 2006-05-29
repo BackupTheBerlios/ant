@@ -232,41 +232,41 @@
 ;;  (184,~0.030,~0.030),  ;; ydieresis
 ;;  (253,~0.030,~0.030)]; ;; yacute
   end
-  begin
-    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam med  nor ( 0,    6)   { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 6,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 7.5,  8.5) {} >>
-    ps_declare_font "MinionPro-Regular.otf"        fam med  nor ( 8.5, 13.1) { BorderKern := rm_kern } >>
-    ps_declare_font "MinionPro-Subh.otf"           fam med  nor (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-Disp.otf"           fam med  nor (20,    0)   {} >>
-    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam med  it  ( 0,    6)   { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 6,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 7.5,  8.5) {} >>
-    ps_declare_font "MinionPro-It.otf"             fam med  it  ( 8.5, 13.1) {} >>
-    ps_declare_font "MinionPro-ItSubh.otf"         fam med  it  (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-ItDisp.otf"         fam med  it  (20,    0)   {} >>
-    ps_declare_font "MinionPro-BoldCapt.otf"       fam sb   nor ( 0,    6)   { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 6,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 7.5,  8.5) {} >>
-    ps_declare_font "MinionPro-Semibold.otf"       fam sb   nor ( 8.5, 13.1) {} >>
-    ps_declare_font "MinionPro-SemiboldSubh.otf"   fam sb   nor (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-SemiboldDisp.otf"   fam sb   nor (20,    0)   {} >>
-    ps_declare_font "MinionPro-BoldItCapt.otf"     fam sb   it  ( 0,    6)   { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 6,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 7.5,  8.5) {} >>
-    ps_declare_font "MinionPro-SemiboldIt.otf"     fam sb   it  ( 8.5, 13.1) {} >>
-    ps_declare_font "MinionPro-SemiboldItSubh.otf" fam sb   it  (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-SemiboldItDisp.otf" fam sb   it  (20,    0)   { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 0,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 7.5,  8.5) {} >>
-    ps_declare_font "MinionPro-Bold.otf"           fam bold nor ( 8.5, 13.1) {} >>
-    ps_declare_font "MinionPro-BoldSubh.otf"       fam bold nor (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-BoldDisp.otf"       fam bold nor (20,    0)   {} >>
-    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 0,    7.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 7.5,  8.5) { LetterSpacing := 0.04 } >>
-    ps_declare_font "MinionPro-BoldIt.otf"         fam bold it  ( 8.5, 13.1) {} >>
-    ps_declare_font "MinionPro-BoldItSubh.otf"     fam bold it  (13.1, 20)   {} >>
-    ps_declare_font "MinionPro-BoldItDisp.otf"     fam bold it  (20,    0)   {}
+  do
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam med  nor ( 0,    6)   { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 6,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-Capt.otf"           fam med  nor ( 7.5,  8.5) {};
+    ps_declare_font "MinionPro-Regular.otf"        fam med  nor ( 8.5, 13.1) { BorderKern := rm_kern };
+    ps_declare_font "MinionPro-Subh.otf"           fam med  nor (13.1, 20)   {};
+    ps_declare_font "MinionPro-Disp.otf"           fam med  nor (20,    0)   {};
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam med  it  ( 0,    6)   { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 6,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-ItCapt.otf"         fam med  it  ( 7.5,  8.5) {};
+    ps_declare_font "MinionPro-It.otf"             fam med  it  ( 8.5, 13.1) {};
+    ps_declare_font "MinionPro-ItSubh.otf"         fam med  it  (13.1, 20)   {};
+    ps_declare_font "MinionPro-ItDisp.otf"         fam med  it  (20,    0)   {};
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam sb   nor ( 0,    6)   { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 6,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-SemiboldCapt.otf"   fam sb   nor ( 7.5,  8.5) {};
+    ps_declare_font "MinionPro-Semibold.otf"       fam sb   nor ( 8.5, 13.1) {};
+    ps_declare_font "MinionPro-SemiboldSubh.otf"   fam sb   nor (13.1, 20)   {};
+    ps_declare_font "MinionPro-SemiboldDisp.otf"   fam sb   nor (20,    0)   {};
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam sb   it  ( 0,    6)   { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 6,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-SemiboldItCapt.otf" fam sb   it  ( 7.5,  8.5) {};
+    ps_declare_font "MinionPro-SemiboldIt.otf"     fam sb   it  ( 8.5, 13.1) {};
+    ps_declare_font "MinionPro-SemiboldItSubh.otf" fam sb   it  (13.1, 20)   {};
+    ps_declare_font "MinionPro-SemiboldItDisp.otf" fam sb   it  (20,    0)   { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 0,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-BoldCapt.otf"       fam bold nor ( 7.5,  8.5) {};
+    ps_declare_font "MinionPro-Bold.otf"           fam bold nor ( 8.5, 13.1) {};
+    ps_declare_font "MinionPro-BoldSubh.otf"       fam bold nor (13.1, 20)   {};
+    ps_declare_font "MinionPro-BoldDisp.otf"       fam bold nor (20,    0)   {};
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 0,    7.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-BoldItCapt.otf"     fam bold it  ( 7.5,  8.5) { LetterSpacing := 0.04 };
+    ps_declare_font "MinionPro-BoldIt.otf"         fam bold it  ( 8.5, 13.1) {};
+    ps_declare_font "MinionPro-BoldItSubh.otf"     fam bold it  (13.1, 20)   {};
+    ps_declare_font "MinionPro-BoldItDisp.otf"     fam bold it  (20,    0)   {};
   end
 }
 
@@ -276,72 +276,74 @@
 \setmathfont{ math-family = 1; family = MinionPro; series = medium; shape = italic }
 
 \ALcommand{
-  ps_define_math_symbol "\\ldotp" Punct 1 0x0f >>
+do
+  ps_define_math_symbol "\\ldotp" Punct 1 0x0f;
 
-  ps_set_math_code '!' Ordinary 0 0x02 0 0x02 >>
-  ps_set_math_code ',' Punct    1 0x0d 1 0x0d >>
-  ps_set_math_code '.' Ordinary 1 0x0f 1 0x0f >>
-  ps_set_math_code '/' Ordinary 1 0x10 1 0x10 >>
-  ps_set_math_code '0' Ordinary 0 0x11 0 0x11 >>
-  ps_set_math_code '1' Ordinary 0 0x12 0 0x12 >>
-  ps_set_math_code '2' Ordinary 0 0x13 0 0x13 >>
-  ps_set_math_code '3' Ordinary 0 0x14 0 0x14 >>
-  ps_set_math_code '4' Ordinary 0 0x15 0 0x15 >>
-  ps_set_math_code '5' Ordinary 0 0x16 0 0x16 >>
-  ps_set_math_code '6' Ordinary 0 0x17 0 0x17 >>
-  ps_set_math_code '7' Ordinary 0 0x18 0 0x18 >>
-  ps_set_math_code '8' Ordinary 0 0x19 0 0x19 >>
-  ps_set_math_code '9' Ordinary 0 0x1a 0 0x1a >>
-  ps_set_math_code ':' Relation 0 0x1b 0 0x1b >>
-  ps_set_math_code ';' Punct    0 0x1c 0 0x1c >>
-  ps_set_math_code '?' Ordinary 0 0x20 0 0x20 >>
-  ps_set_math_code '@' Ordinary 0 0x21 0 0x21 >>
-  ps_set_math_code '`' Ordinary 0 0x41 0 0x41 >>
+  ps_set_math_code '!' Ordinary 0 0x02 0 0x02;
+  ps_set_math_code ',' Punct    1 0x0d 1 0x0d;
+  ps_set_math_code '.' Ordinary 1 0x0f 1 0x0f;
+  ps_set_math_code '/' Ordinary 1 0x10 1 0x10;
+  ps_set_math_code '0' Ordinary 0 0x11 0 0x11;
+  ps_set_math_code '1' Ordinary 0 0x12 0 0x12;
+  ps_set_math_code '2' Ordinary 0 0x13 0 0x13;
+  ps_set_math_code '3' Ordinary 0 0x14 0 0x14;
+  ps_set_math_code '4' Ordinary 0 0x15 0 0x15;
+  ps_set_math_code '5' Ordinary 0 0x16 0 0x16;
+  ps_set_math_code '6' Ordinary 0 0x17 0 0x17;
+  ps_set_math_code '7' Ordinary 0 0x18 0 0x18;
+  ps_set_math_code '8' Ordinary 0 0x19 0 0x19;
+  ps_set_math_code '9' Ordinary 0 0x1a 0 0x1a;
+  ps_set_math_code ':' Relation 0 0x1b 0 0x1b;
+  ps_set_math_code ';' Punct    0 0x1c 0 0x1c;
+  ps_set_math_code '?' Ordinary 0 0x20 0 0x20;
+  ps_set_math_code '@' Ordinary 0 0x21 0 0x21;
+  ps_set_math_code '`' Ordinary 0 0x41 0 0x41;
 
-  ps_define_math_symbol "\\alpha"            NoMath 1 0x03b1 >>
-  ps_define_math_symbol "\\beta"             NoMath 1 0x03b2 >>
-  ps_define_math_symbol "\\gamma"            NoMath 1 0x03b3 >>
-  ps_define_math_symbol "\\delta"            NoMath 1 0x03b4 >>
-  ps_define_math_symbol "\\epsilon"          NoMath 1 0x03b5 >>
-  ps_define_math_symbol "\\zeta"             NoMath 1 0x03b6 >>
-  ps_define_math_symbol "\\eta"              NoMath 1 0x03b7 >>
-  ps_define_math_symbol "\\theta"            NoMath 1 0x03b8 >>
-  ps_define_math_symbol "\\iota"             NoMath 1 0x03b9 >>
-  ps_define_math_symbol "\\kappa"            NoMath 1 0x03ba >>
-  ps_define_math_symbol "\\lambda"           NoMath 1 0x03bb >>
-  ps_define_math_symbol "\\mu"               NoMath 1 0x03bc >>
-  ps_define_math_symbol "\\nu"               NoMath 1 0x03bd >>
-  ps_define_math_symbol "\\xi"               NoMath 1 0x03be >>
-  ps_define_math_symbol "\\pi"               NoMath 1 0x03c0 >>
-  ps_define_math_symbol "\\rho"              NoMath 1 0x03c1 >>
-  ps_define_math_symbol "\\sigma"            NoMath 1 0x03c3 >>
-  ps_define_math_symbol "\\tau"              NoMath 1 0x03c4 >>
-  ps_define_math_symbol "\\upsilon"          NoMath 1 0x03c5 >>
-  ps_define_math_symbol "\\phi"              NoMath 1 0x03d5 >>
-  ps_define_math_symbol "\\chi"              NoMath 1 0x03c7 >>
-  ps_define_math_symbol "\\psi"              NoMath 1 0x03c8 >>
-  ps_define_math_symbol "\\omega"            NoMath 1 0x03c9 >>
-  ps_define_math_symbol "\\varepsilon"       NoMath 1 0x03b5 >>
-  ps_define_math_symbol "\\vartheta"         NoMath 1 0x03d1 >>
-  ps_define_math_symbol "\\varpi"            NoMath 1 0x03d6 >>
-  ps_define_math_symbol "\\varrho"           NoMath 1 0x03c1 >>
-  ps_define_math_symbol "\\varsigma"         NoMath 1 0x03c2 >>
-  ps_define_math_symbol "\\varphi"           NoMath 1 0x03c6 >>
-  ps_define_math_symbol "\\varkappa"         NoMath 1 0x03f0 >>
-  ps_define_math_symbol "\\Gamma"            NoMath 1 0x0393 >>
-  ps_define_math_symbol "\\Delta"            NoMath 1 0x0394 >>
-  ps_define_math_symbol "\\Theta"            NoMath 1 0x0398 >>
-  ps_define_math_symbol "\\Lambda"           NoMath 1 0x039b >>
-  ps_define_math_symbol "\\Xi"               NoMath 1 0x039e >>
-  ps_define_math_symbol "\\Pi"               NoMath 1 0x03a0 >>
-  ps_define_math_symbol "\\Sigma"            NoMath 1 0x03a3 >>
-  ps_define_math_symbol "\\Upsilon"          NoMath 1 0x03a5 >>
-  ps_define_math_symbol "\\Phi"              NoMath 1 0x03a6 >>
-  ps_define_math_symbol "\\Psi"              NoMath 1 0x03a8 >>
-  ps_define_math_symbol "\\Omega"            NoMath 1 0x03a9 >>
-  ps_define_math_symbol "\\imath"            NoMath 1 0x0131 >>
-  ps_define_math_symbol "\\ell"              NoMath 1 0x2113 >>
-  ps_define_math_symbol "\\partial"          NoMath 1 0x2202
+  ps_define_math_symbol "\\alpha"            NoMath 1 0x03b1;
+  ps_define_math_symbol "\\beta"             NoMath 1 0x03b2;
+  ps_define_math_symbol "\\gamma"            NoMath 1 0x03b3;
+  ps_define_math_symbol "\\delta"            NoMath 1 0x03b4;
+  ps_define_math_symbol "\\epsilon"          NoMath 1 0x03b5;
+  ps_define_math_symbol "\\zeta"             NoMath 1 0x03b6;
+  ps_define_math_symbol "\\eta"              NoMath 1 0x03b7;
+  ps_define_math_symbol "\\theta"            NoMath 1 0x03b8;
+  ps_define_math_symbol "\\iota"             NoMath 1 0x03b9;
+  ps_define_math_symbol "\\kappa"            NoMath 1 0x03ba;
+  ps_define_math_symbol "\\lambda"           NoMath 1 0x03bb;
+  ps_define_math_symbol "\\mu"               NoMath 1 0x03bc;
+  ps_define_math_symbol "\\nu"               NoMath 1 0x03bd;
+  ps_define_math_symbol "\\xi"               NoMath 1 0x03be;
+  ps_define_math_symbol "\\pi"               NoMath 1 0x03c0;
+  ps_define_math_symbol "\\rho"              NoMath 1 0x03c1;
+  ps_define_math_symbol "\\sigma"            NoMath 1 0x03c3;
+  ps_define_math_symbol "\\tau"              NoMath 1 0x03c4;
+  ps_define_math_symbol "\\upsilon"          NoMath 1 0x03c5;
+  ps_define_math_symbol "\\phi"              NoMath 1 0x03d5;
+  ps_define_math_symbol "\\chi"              NoMath 1 0x03c7;
+  ps_define_math_symbol "\\psi"              NoMath 1 0x03c8;
+  ps_define_math_symbol "\\omega"            NoMath 1 0x03c9;
+  ps_define_math_symbol "\\varepsilon"       NoMath 1 0x03b5;
+  ps_define_math_symbol "\\vartheta"         NoMath 1 0x03d1;
+  ps_define_math_symbol "\\varpi"            NoMath 1 0x03d6;
+  ps_define_math_symbol "\\varrho"           NoMath 1 0x03c1;
+  ps_define_math_symbol "\\varsigma"         NoMath 1 0x03c2;
+  ps_define_math_symbol "\\varphi"           NoMath 1 0x03c6;
+  ps_define_math_symbol "\\varkappa"         NoMath 1 0x03f0;
+  ps_define_math_symbol "\\Gamma"            NoMath 1 0x0393;
+  ps_define_math_symbol "\\Delta"            NoMath 1 0x0394;
+  ps_define_math_symbol "\\Theta"            NoMath 1 0x0398;
+  ps_define_math_symbol "\\Lambda"           NoMath 1 0x039b;
+  ps_define_math_symbol "\\Xi"               NoMath 1 0x039e;
+  ps_define_math_symbol "\\Pi"               NoMath 1 0x03a0;
+  ps_define_math_symbol "\\Sigma"            NoMath 1 0x03a3;
+  ps_define_math_symbol "\\Upsilon"          NoMath 1 0x03a5;
+  ps_define_math_symbol "\\Phi"              NoMath 1 0x03a6;
+  ps_define_math_symbol "\\Psi"              NoMath 1 0x03a8;
+  ps_define_math_symbol "\\Omega"            NoMath 1 0x03a9;
+  ps_define_math_symbol "\\imath"            NoMath 1 0x0131;
+  ps_define_math_symbol "\\ell"              NoMath 1 0x2113;
+  ps_define_math_symbol "\\partial"          NoMath 1 0x2202;
+end
 }
 
 % vim:set ft=tex fenc=utf8:

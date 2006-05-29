@@ -8,12 +8,43 @@
 \include{manual.sty}
 \include{manual.refdb}
 
+% \beginALdeclarations
+% 
+% measure_line ref ps := ps_insert_string ("\\measureline{" + ref + "}") ps;
+% 
+% set_par_shape left_right line_1 line_2 indent other :=
+%   "\\setparameter{this-paragraph}{ " + left_right + "-par-shape = { " +
+%   line_1 + "-" + line_2 + ":" + indent + "} " + other + " }";
+% 
+% build_command ref line len indent :=
+%   "\\measureline{" + ref + "}" +
+%   set_par_shape "right" ("{" + line + "-1}") line len "; par-fill-skip = 0pt plus 2em" +
+%   "\\par\\vskip{-24pt}" +
+%   set_par_shape "left" "0" "1" indent "; par-indent = 0pt";
+% 
+% join_pars :=
+%   local len indent n line;
+%   ps_arg_expanded len >>
+%   ps_arg_expanded indent >>
+%   ps_get_counter n "join-pars counter" >>
+%   ps_set_counter "join-pars counter" (n + 1) >>
+%   (local ref := "unique id " + to_string n;
+%    ps_lookup_reference line ref >>
+%    ps_insert_string (build_command ref line len indent));
+% 
+% \endALdeclarations
+% 
+% \ALcommand{ps_new_counter "join-pars counter" 0 None}
+% \definecommand{\joinpars}{\ALcommand{join_pars}}
+% 
+% \joinpars{13em}{13em}%
+
 \begin{document}
 \setparameter{line}{ leading = skyline }
-%\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
+\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
 \begingalley{toc}
 \setparameter{line}{ leading = skyline }
-%\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
+\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
 
 \begingroup
 \setparameter{paragraph}{ par-indent = 0pt }
@@ -106,8 +137,9 @@ Currently, the following options are supported\?:
 \begin{longdescription}
 \item{\cs{--help}}prints a help message.
 \item{\cs{--format=}\csarg{format}}selects the output format.
-  Supported are \cs{dvi} (default), \cs{pdf}, \cs{ps}, and \cs{svg}.
+  Supported are \cs{dvi}, \cs{pdf} (default), \cs{ps}, and \cs{svg}.
   The latter two are only partially implemented.
+\item{\cs{--src-specials}}enables generation of source specials.
 \item{\cs{--debug=}\csarg{flags}}enables debug messages.
   \csarg{flags} is a combination of the following letters\?:
 
@@ -917,8 +949,8 @@ do not hold. The parameter \csarg{arguments} consists of a list of letters speci
 arguments\?:
 
 \begin{description}
-\item{\cs{m}}mandantory argument
-\item{\cs{s}}optional \cs{*}
+\item{\cs{m}}mandatory argument
+\item{\cs{s}}optional~\cs{*}
 \item{\cs{o}}optional argument with empty default
 \item{\blue\cs{O}\texttt\textlbrace\csarg{default}\texttt\textrbrace}%
 optional argument with default value
@@ -1043,7 +1075,7 @@ They can be loaded with the command
 \begin{code}
   \cs{\measureposition} \csarg{name}
 \end{code}
-creates a reference with value
+creates a reference \csarg{name} with value
 \begin{code}
   {\blue\texttt\textlbrace\csarg{page-no}\texttt\textrbrace%
   \texttt\textlbrace\csarg{x-pos}\texttt\textrbrace%
@@ -1051,6 +1083,11 @@ creates a reference with value
 \end{code}
 where \csarg{x-pos} and \csarg{y-pos} are the current
 position relative to the upper left corner of the area.
+\begin{code}
+  \cs{\measureline} \csarg{name}
+\end{code}
+creates a reference \csarg{name} whose value is the current line number,
+counted from the beginning of the paragraph.
 
 
 \section{AL -- the ant language}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

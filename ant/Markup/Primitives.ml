@@ -217,7 +217,7 @@ value parse_par_shape left_stream right_stream = do
   {
     let (a,b) = Parser.read_range stream in
 
-    if UCStream.next_char stream = 58 then do
+    if UCStream.next_char stream = 58 then do  (* : *)
     {
       UCStream.remove stream 1;
       Parser.skip_spaces stream;

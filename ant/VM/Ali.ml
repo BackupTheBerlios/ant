@@ -185,8 +185,9 @@ value rec print_partial x = match x with
 | Primitive1 _    -> Printf.printf " <primitive>"
 | Primitive2 _    -> Printf.printf " <primitive>"
 | PrimitiveN _ _  -> Printf.printf " <primitive>"
-| SimpleFunction _ _ _ -> Printf.printf " <sfun>"
+| SimpleFunction _ _ _      -> Printf.printf " <sfun>"
 | PatternFunction _ _ _ _ _ -> Printf.printf " <pfun>"
+| Chain _                   -> Printf.printf " <cfun>"
 | Relation _ _ -> Printf.printf " <rel>"
 | Nil -> Printf.printf " []"
 | List a b -> do

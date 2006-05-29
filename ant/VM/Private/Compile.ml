@@ -279,6 +279,10 @@ value rec compile_expr scope expr = match expr with
       (Array.of_list (List.map (compile_statement scope) stmts))
       (compile_expr scope expr)
   }
+| Parser.TDo exprs -> do
+  {
+    TDo (Array.of_list (List.map (compile_expr scope) exprs))
+  }
 | Parser.TIfThenElse p e0 e1 -> TIfThenElse
                                   (compile_expr scope p)
                                   (compile_expr scope e0)

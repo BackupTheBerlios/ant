@@ -466,8 +466,8 @@ and ev_paragraph env _builder loc boxes = do
       (current_composer    env)
       (Galley.hyphen_params (current_galley env))
   in
-  let new_env  = eval_node_list (set_space_factor env num_one) b boxes in
-  let bs       = get ()                                                in
+  let new_env = eval_node_list (set_space_factor env num_one) b boxes in
+  let bs      = get ()                                                in
 
   if !tracing_engine then do
   {

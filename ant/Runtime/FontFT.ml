@@ -465,10 +465,63 @@ value make_adjustment_table ps_table scale user_adjustments = do
       s
   }
   in
+
   {
     at_scripts           = Tag.TagMap.map conv_script ps_table.OTF_Pos_Subst.t_scripts;
     at_adjustment_tables = lookup_to_adjustment scale ps_table.OTF_Pos_Subst.t_lookups;
     at_user_adjustments  = Array.of_list user_adjustments
+  }
+};
+
+value make_simple_adjustment_table face scale user_adjustments = do
+{
+  let kerns_to_adjustments face scale = do
+  {
+    let last = face_num_glyphs face in
+
+    iter 1 1 DynUCTrie.empty
+
+    where rec iter g1 g2 adj = do
+    {
+      if g1 > last then
+        adj
+      else if g2 > last then
+        iter (g1 + 1) 1 adj
+      else do
+      {
+        let (k,_) = ft_get_kerning face g1 g2 ft_kerning_unscaled in
+
+        let new_adj =
+          if k <> 0 then
+            DynUCTrie.add_string
+              [|g1; g2|]
+              (Substitute.simple_pair_kerning_cmd (scale */ num_of_int k),
+               1)
+              adj
+          else
+            adj
+        in
+
+        iter g1 (g2 + 1) new_adj
+      }
+    }
+  }
+  in
+
+  let n   = List.length user_adjustments  in
+  let adj = Array.make (n+1) NoAdjustment in
+
+  List.fold_left
+    (fun i a -> do { adj.(i) := a; (i+1) })
+    0
+    user_adjustments;
+
+  adj.(n) := DirectLookup (kerns_to_adjustments face scale);
+
+  {
+    at_scripts           = Tag.TagMap.empty;
+    at_adjustment_tables = [||];
+    at_user_adjustments  = adj
   }
 };
 
@@ -608,10 +661,10 @@ value make_simple_matcher face scale get_border_glyph extra_adjustments = do
 
 value get_composer face scale get_border_glyph (pos, subst) p_table s_table fm scr feat = do
 {
-  if Array.length pos.at_adjustment_tables = 0 then
+  if Array.length pos.at_adjustment_tables = 0 && Array.length pos.at_user_adjustments = 0 then
     simple_composer fm (make_matcher s_table scale get_border_glyph subst scr feat)
   else
-    if Array.length subst.at_adjustment_tables = 0 then
+    if Array.length subst.at_adjustment_tables = 0 && Array.length subst.at_user_adjustments = 0 then
       simple_composer fm (make_matcher p_table scale get_border_glyph pos scr feat)
     else
       two_phase_composer fm (make_matcher s_table scale get_border_glyph subst scr feat)
@@ -640,34 +693,6 @@ value read_ft file name params = do
   let (em, asc, desc, _height, _ul_pos, _ul_thick) =
     face_metrics face
   in
-
-  let (tables, pos_subst) = try do
-    {
-      let tables = read_font_tables file in
-
-      match get_pos_subst tables with
-      [ (Some p, Some s) -> (tables, (p, s))
-      | (Some p, None)   -> (tables, (p, OTF_Pos_Subst.empty_pos_subst))
-      | (None,   Some s) -> (tables, (OTF_Pos_Subst.empty_pos_subst, s))
-      | (None,   None)   -> (tables, (OTF_Pos_Subst.empty_pos_subst,
-                                      OTF_Pos_Subst.empty_pos_subst))
-      ]
-    }
-    with
-    [ _ -> (Tag.TagMap.empty, (OTF_Pos_Subst.empty_pos_subst,
-                               OTF_Pos_Subst.empty_pos_subst)) ]
-  in
-
-  let font_type    = if ft_is_sfnt face then
-                       if is_cff tables then
-                         OpenTypeCFF
-                       else
-                         TrueType
-                     else if ft_is_postscript face then
-                       PostScript
-                     else
-                       Other
-                     in
 
   let size         = params.flp_size                    in
   let scale        = size // num_of_int em              in
@@ -714,22 +739,57 @@ value read_ft file name params = do
   ]
   in
 
+  let s_table = ref Composer.empty_table in
+  let p_table = ref Composer.empty_table in
 
-  let s_table   = ref Composer.empty_table in
-  let p_table   = ref Composer.empty_table in
-
-  let adj_table = do
+  let (font_type, adj_table) = do
   {
-    let (p,s) = pos_subst in
+    let (tables, pos, subst) = try do
+      {
+        let tables = read_font_tables file in
 
-    (Composer.make_adjustment_table p scale
-       (add_border_kern
-         (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
-         params.flp_size
-         params.flp_extra_kern
-         params.flp_extra_pos),
-     Composer.make_adjustment_table s scale
-       params.flp_extra_subst)
+        match get_pos_subst tables with
+        [ (Some p, Some s) -> (tables, p, s)
+        | (Some p, None)   -> (tables, p, OTF_Pos_Subst.empty_pos_subst)
+        | (None,   Some s) -> (tables, OTF_Pos_Subst.empty_pos_subst, s)
+        | (None,   None)   -> (tables, OTF_Pos_Subst.empty_pos_subst,
+                                       OTF_Pos_Subst.empty_pos_subst)
+        ]
+      }
+      with
+      [ _ -> (Tag.TagMap.empty,
+              OTF_Pos_Subst.empty_pos_subst,
+              OTF_Pos_Subst.empty_pos_subst) ]
+    in
+
+    let font_type =
+      if ft_is_sfnt face then
+        if is_cff tables then
+          OpenTypeCFF
+        else
+          TrueType
+      else if ft_is_postscript face then
+        PostScript
+      else
+        Other
+    in
+
+    let user_pos =
+      add_border_kern
+        (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
+        params.flp_size
+        params.flp_extra_kern
+        params.flp_extra_pos
+    in
+    let pos_adj =
+      if Array.length pos.OTF_Pos_Subst.t_lookups = 0 then
+        Composer.make_simple_adjustment_table face scale user_pos
+      else
+        Composer.make_adjustment_table pos scale user_pos
+    in
+    let subst_adj = Composer.make_adjustment_table subst scale params.flp_extra_subst in
+
+    (font_type, (pos_adj, subst_adj))
   }
   in
 

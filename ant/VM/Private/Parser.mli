@@ -46,6 +46,7 @@ type term =
 | TFun of list (list pattern * option term * term)
 | TLocal of list decl and term
 | TSequence of list stmt and term
+| TDo of list term
 | TIfThenElse of term and term and term
 | TMatch of term and list (pattern * option term * term)
 ]

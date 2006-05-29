@@ -46,6 +46,7 @@ type term =
 | TFun of list (list pattern * option term * term)
 | TLocal of list decl and term
 | TSequence of list stmt and term
+| TDo of list term
 | TIfThenElse of term and term and term
 | TMatch of term and list (pattern * option term * term)
 ]
@@ -432,6 +433,20 @@ and parse_expr_pri pri first_token lexer = match first_token with
   }
 ]
 
+and parse_do_expr lexer = do
+{
+  TDo (iter (read_token lexer))
+
+  where rec iter tok = match parse_expr tok lexer with
+  [ (e, SEMICOLON) -> match read_token lexer with
+                      [ END -> [e]
+                      | tok -> [e :: iter tok]
+                      ]
+  | (e, END)       -> [e]
+  | _              -> syntax_error lexer "end or ; expected"
+  ]
+}
+
 and parse_if_expr lexer = match parse_expr (read_token lexer) lexer with
 [ (p, THEN) -> match parse_stmt_list_expr lexer with
   [ (e0, ELSE) -> match parse_stmt_list_expr lexer with
@@ -646,6 +661,8 @@ and parse_simple_expr first_tok lexer = match first_tok with
   [ (e, END) -> (e, read_token lexer)
   | _        -> syntax_error lexer "end expected"
   ]
+| DO    -> let e = parse_do_expr lexer in
+           (e, read_token lexer)
 | IF    -> let e = parse_if_expr lexer in
            (e, read_token lexer)
 | MATCH -> match parse_expr (read_token lexer) lexer with

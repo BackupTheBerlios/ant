@@ -143,6 +143,20 @@ and evaluate_term x env term = do
   | TConsList y z              -> !x := List (unevaluated env y) (unevaluated env z)
   | TSimpleFunction arity term -> !x := SimpleFunction arity env term
   | TPatternFunction a s n p   -> !x := PatternFunction a env s n p
+  | TDo terms                  -> do
+    {
+      let chain = Array.init
+                    (Array.length terms)
+                    (fun i -> unevaluated env terms.(i))
+      in
+
+      !x := Chain chain;
+
+      for i = 0 to Array.length chain - 1 do
+      {
+        cont (fun () -> evaluate_unknown chain.(i))
+      }
+    }
   | TDictionary dict           -> do
     {
       !x := Dictionary
@@ -953,6 +967,39 @@ and evaluate_application x f args = match f with
         (fun () -> evaluate_application x !result rest)
     }
   }
+| Chain funs -> do
+  {
+    let eval_chain funs arg = do
+    {
+      let len     = Array.length funs                           in
+      let results = Array.init (len + 1) (fun _ -> ref Unbound) in
+
+      results.(len) := arg;
+
+      cont (fun () -> !x := !(results.(0)));
+
+      for i = 1 to len do
+      {
+        cont2
+          (fun () -> evaluate_unknown results.(i))
+          (fun () -> evaluate_application results.(i - 1) !(funs.(len - i)) [results.(i)])
+      }
+    }
+    in
+
+    match args with
+    [ [a]      -> eval_chain funs a
+    | [a :: b] -> do
+      {
+        let c = ref Unbound in
+
+        cont2
+          (fun () -> eval_chain funs a)
+          (fun () -> evaluate_application x !c b)
+      }
+    | _ -> assert False
+    ]
+  }
 | Application f2 args2 -> do
   {
     evaluate_application x f2 (args2 @ args)
@@ -1179,7 +1226,7 @@ and forced_unify x y = do
   cont2
     (fun () -> unify res x y)
     (fun () -> if not !res then
-                 runtime_error "unification error"
+                 runtime_error ("unification error: " ^ type_name !x ^ " and " ^ type_name !y)
                else ())
 }
 
