@@ -1,4 +1,4 @@
-\definecommand\version{0.7}
+\definecommand\version{0.8}
 \include{allib.ant}
 %\include{FontSite.ant}
 \include{fonts.ant}
