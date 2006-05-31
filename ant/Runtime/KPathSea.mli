@@ -6,6 +6,7 @@ type file_type =
 |  `TFM
 |  `Type1
 |  `TrueType
+|  `OpenType
 ];
 
 value init       : string -> int -> string -> unit;

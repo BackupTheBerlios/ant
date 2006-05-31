@@ -8,6 +8,7 @@ type file_type =
 |  `TFM
 |  `Type1
 |  `TrueType
+|  `OpenType
 ];
 
 value pk_format       =  1;
@@ -16,6 +17,7 @@ value afm_format      =  4;
 value tex_format      = 26;
 value type1_format    = 32;
 value truetype_format = 36;
+value opentype_format = 47;
 
 external init_prog           : string -> int -> string -> string -> unit = "kpse_init_prog_wrapper";
 external set_program_name    : string -> string -> unit                  = "kpse_set_program_name_wrapper";
@@ -38,6 +40,7 @@ value find_file name file_type must_exists = match file_type with
 | `TeX      -> kpse_find_file name tex_format      must_exists
 | `Type1    -> kpse_find_file name type1_format    must_exists
 | `TrueType -> kpse_find_file name truetype_format must_exists
+| `OpenType -> kpse_find_file name opentype_format must_exists
 | _         -> name
 ];
 

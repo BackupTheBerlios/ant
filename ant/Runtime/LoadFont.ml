@@ -9,8 +9,8 @@ value supported_formats =
   (".PFB", `Type1);
   (".pfa", `Type1);
   (".PFA", `Type1);
-  (".otf", `Type1);
-  (".OTF", `Type1);
+  (".otf", `OpenType);
+  (".OTF", `OpenType);
   (".ttf", `TrueType);
   (".TTF", `TrueType);
   (".ttc", `TrueType);
@@ -43,6 +43,7 @@ value load_font name load_params = do
   else match find_font name with
   [ (file, basename, `TFM)      -> FontTFM.read_tfm file basename load_params
   | (file, basename, `Type1)    -> FontFT.read_ft   file basename load_params
+  | (file, basename, `OpenType) -> FontFT.read_ft   file basename load_params
   | (file, basename, `TrueType) -> FontFT.read_ft   file basename load_params
   | _                           -> assert False
   ]
