@@ -3,6 +3,7 @@
 %\include{FontSite.ant}
 \include{LatinModern.ant}
 \definecommand\FontFamilySans{Latin Modern Sans Serif}
+\definecommand\FontFamilyTypewriter{Latin Modern Typewriter}
 \include{fonts.ant}
 \include{MinionPro.ant}
 \definecommand\scshape{\setparameter{font}{ features = {liga,kern,smcp} }}
