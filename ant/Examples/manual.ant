@@ -1,6 +1,8 @@
 \definecommand\version{0.8}
 \include{allib.ant}
 %\include{FontSite.ant}
+\include{LatinModern.ant}
+\definecommand\FontFamilySans{Latin Modern Sans Serif}
 \include{fonts.ant}
 \include{MinionPro.ant}
 \definecommand\scshape{\setparameter{font}{ features = {liga,kern,smcp} }}
@@ -40,10 +42,8 @@
 % \joinpars{13em}{13em}%
 
 \begin{document}
-\setparameter{line}{ leading = skyline }
 \setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
 \begingalley{toc}
-\setparameter{line}{ leading = skyline }
 \setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
 
 \begingroup
@@ -139,7 +139,7 @@ Currently, the following options are supported\?:
 \item{\cs{--format=}\csarg{format}}selects the output format.
   Supported are \cs{dvi}, \cs{pdf} (default), \cs{ps}, and \cs{svg}.
   The latter two are only partially implemented.
-\item{\cs{--src-specials}}enables generation of source specials.
+\item{\cs{--src-specials}}enables the generation of source specials.
 \item{\cs{--debug=}\csarg{flags}}enables debug messages.
   \csarg{flags} is a combination of the following letters\?:
 
@@ -654,21 +654,10 @@ These counters can be modified to create entries spanning several columns or row
 
 
 \begin{code}
-\cs{\declarefont} \csarg{file} \csarg{encoding} \csarg{family} \csarg{series} \csarg{weight}
+\cs{\declarefont} \csarg{file} \csarg{family} \csarg{series} \csarg{weight}
   \csarg{size} \csarg{params}
 \end{code}
-Declares a new font. \csarg{size} can be a range. Supported encodings are\?:
-
-\begin{displaytable}
-  \cs{OT1}     & \TeX\ \textsc{ot1} encoding \ntr
-  \cs{T1}      & \TeX\ \textsc{t1} encoding \ntr
-  \cs{TT1}     & the encoding of cmtt \ntr
-  \cs{OML}     & \TeX\ \textsc{oml} encoding \ntr
-  \cs{OMS}     & \TeX\ \textsc{oms} encoding \ntr
-  \cs{raw}     & no encoding \ntr
-  \cs{builtin} & the encoding is stored in the font
-\end{displaytable}
-The parameters are\?:
+Declares a new font. \csarg{size} can be a range. The parameters are\?:
 \begin{longdescription}
 \item{\cs{hyphen}\quad (integer, default $45$)}
   the hyphen character.

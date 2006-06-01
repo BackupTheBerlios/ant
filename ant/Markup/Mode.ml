@@ -7,6 +7,7 @@ open Engine;
 open ParseState;
 
 value pdf_spec_num = ref 0;
+value pdf_page     = ref (-1);
 
 value insert_source_special ps = do
 {
@@ -16,10 +17,17 @@ value insert_source_special ps = do
   {
     let dvi_spec = Printf.sprintf "src:%d:%d %s" line col file in
 
-    let pdf_spec _ (x,y) = do
+    let pdf_spec pi (x,y) = do
     {
       let x_pos = int_of_float (float_of_num x *. 65536.0) in
       let y_pos = int_of_float (float_of_num y *. 65536.0) in
+
+      if pi.Box.pi_page_no <> !pdf_page then do
+      {
+        IO.printf !Job.src_special_stream "s %d\n" pi.Box.pi_page_no;
+        !pdf_page := pi.Box.pi_page_no
+      }
+      else ();
 
       IO.printf !Job.src_special_stream "(%s\nl %d %d\np %d %d %d\n)\n" file !pdf_spec_num line !pdf_spec_num x_pos y_pos;
 

@@ -42,7 +42,7 @@ value start_job name = do
       {
         !src_special_stream := IO.make_out_stream !src_special_file;
         IO.write_string !src_special_stream basename;
-        IO.write_string !src_special_stream "\nversion 0\ns 1\n";
+        IO.write_string !src_special_stream "\nversion 0\n";
       }
       else ()
     }

@@ -1130,7 +1130,7 @@ value initialise_environment () = do
   let par_params =
     {
       ParLayout.measure           = num_of_int 345;
-      ParLayout.par_indent        = fixed_dim (num_of_int 20);
+      ParLayout.par_indent        = dim_12pt;
       ParLayout.par_fill_skip     = dim_fil;
       ParLayout.left_skip         = dim_zero;
       ParLayout.right_skip        = dim_zero;
@@ -1155,7 +1155,7 @@ value initialise_environment () = do
     {
       ParLayout.pre_tolerance          = num_of_int   100;
       ParLayout.tolerance              = num_of_int   200;
-      ParLayout.looseness              =         0;
+      ParLayout.looseness              =                0;
       ParLayout.line_penalty           = num_of_int    10;
       ParLayout.adj_demerits           = num_of_int 10000;
       ParLayout.double_hyphen_demerits = num_of_int 10000;
@@ -1175,7 +1175,7 @@ value initialise_environment () = do
                                    with
                                    [ Not_found -> do
                                      {
-                                       log_string "\nError: Britisch hyphenation patterns not found!";
+                                       log_string "\nError: British hyphenation patterns not found!";
                                        exit 1
                                      }
                                    ];
@@ -1194,7 +1194,7 @@ value initialise_environment () = do
       Galley.victorian_spacing = False
     }
   in
-  let math_params       =
+  let math_params =
     {
       MathLayout.thin_math_skip  = fixed_dim (num_of_int 3);
       MathLayout.med_math_skip   = {
@@ -1211,9 +1211,9 @@ value initialise_environment () = do
                                      d_shrink_factor  = num_zero;
                                      d_shrink_order   = 0
                                    };
-      MathLayout.script_space    = fixed_dim (num_of_ints 1 2);
-      MathLayout.rel_penalty     = num_of_int 500;
-      MathLayout.binop_penalty   = num_of_int 700;
+      MathLayout.script_space         = fixed_dim (num_of_ints 1 2);
+      MathLayout.rel_penalty          = num_of_int 500;
+      MathLayout.binop_penalty        = num_of_int 700;
       MathLayout.delimiter_factor     = num_of_ints 901 1000;
       MathLayout.delimiter_shortfall  = num_of_int 5;
       MathLayout.null_delimiter_space = fixed_dim (num_of_ints 12 10)
