@@ -65,7 +65,9 @@ value str_par_indent             = UString.uc_string_of_ascii "par-indent";
 value str_par_fill_skip          = UString.uc_string_of_ascii "par-fill-skip";
 value str_par_params             = UString.uc_string_of_ascii "par-params";
 value str_par_skip               = UString.uc_string_of_ascii "par-skip";
+value str_post_break             = UString.uc_string_of_ascii "post-break";
 value str_post_process_line      = UString.uc_string_of_ascii "post-process-line";
+value str_pre_break              = UString.uc_string_of_ascii "pre-break";
 value str_pre_tolerance          = UString.uc_string_of_ascii "pre-tolerance";
 value str_register               = UString.uc_string_of_ascii "register";
 value str_rel_penalty            = UString.uc_string_of_ascii "rel-penalty";
@@ -283,6 +285,21 @@ value parse_par_shape left_stream right_stream = do
   par_shape
 };
 
+value parse_boxes ps code env = do
+{
+  let nodes = execute_string_in_mode ps code `HBox in
+
+  let (b, get) =
+    Compose.hyph_only_builder
+      (Environment.current_font_metric env)
+      (Environment.current_composer    env)
+      (Galley.hyphen_params (Environment.current_galley env))
+  in
+  let _ = Evaluate.eval_node_list env b nodes in
+
+  get ()
+};
+
 value parse_annotation ps left_annotation right_annotation = do
 {
   let new_ps = duplicate ps in
@@ -320,8 +337,10 @@ value par_param_dict =
   (DynUCTrie.add_string str_par_skip          ()
   (DynUCTrie.add_string str_left_annotation   ()
   (DynUCTrie.add_string str_right_annotation  ()
+  (DynUCTrie.add_string str_pre_break         ()
+  (DynUCTrie.add_string str_post_break        ()
   (DynUCTrie.add_string str_post_process_line ()
-    DynUCTrie.empty))))))))));
+    DynUCTrie.empty))))))))))));
 
 value parse_par_param ps loc dict = do
 {
@@ -337,6 +356,8 @@ value parse_par_param ps loc dict = do
   let par_skip          = lookup_dim    dict str_par_skip         in
   let left_ann          = lookup_list   dict str_left_annotation  in
   let right_ann         = lookup_list   dict str_right_annotation in
+  let pre_break         = lookup_list   dict str_pre_break        in
+  let post_break        = lookup_list   dict str_post_break       in
   let post_process_line = None (* FIX *)                          in
 
   let par_shape = match (par_shape_left, par_shape_right) with
@@ -355,8 +376,18 @@ value parse_par_param ps loc dict = do
   | (None,   None,   None)   -> None
   ]
   in
+  let pre_break2 = match pre_break with
+  [ Some p -> Some (parse_boxes ps p)
+  | None   -> None
+  ]
+  in
+  let post_break2 = match post_break with
+  [ Some p -> Some (parse_boxes ps p)
+  | None   -> None
+  ]
+  in
 
-  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, post_process)
+  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, pre_break2, post_break2, post_process)
 };
 
 value line_break_param_dict =
@@ -863,7 +894,29 @@ value image ps = do
   }
   in
 
-  let get_dpi options info = do
+  let get_scale options dpi = do
+  {
+    if dpi >/ num_zero then
+      num_one
+    else do
+    {
+      try
+        match DynUCTrie.lookup_string str_dpi options with
+        [ Some (Some str) -> Parser.str_expr_to_num str // num_of_int 100 
+                             (* LoadImage assumed a default dpi value of 100. *)
+        | _               -> raise Not_found
+        ]
+      with
+      [ Not_found -> do
+        {
+          log_warn (location ps) "No dpi value specified!";
+          num_one
+        }
+      ]
+    }
+  }
+  in
+(*  let get_dpi options info = do
   {
     match CamlImages.Images.dpi info with
     [ Some dpi -> num_of_ints (int_of_float (10000.0 *. dpi)) 10000
@@ -885,11 +938,57 @@ value image ps = do
     ]
   }
   in
+  *)
 
   let options = opt_key_val  ps in
   let file    = arg_expanded ps in
 
   try
+    let (_, image_width, image_height, image_dpi) = LoadImage.get_dimensions (UString.bytes_to_string file) in
+
+    match DynUCTrie.lookup_string str_width options with
+    [ Some (Some w) -> do
+      {
+        let width  = Parser.str_expr_to_skip w in
+        let height = match DynUCTrie.lookup_string str_height options with
+                     [ Some (Some h) -> Parser.str_expr_to_skip h
+                     | _             -> fun e -> width e // image_width */ image_height
+                     ]
+                     in
+
+        add_image file width height
+      }
+    | _ -> match DynUCTrie.lookup_string str_height options with
+      [ Some (Some h) -> do
+        {
+          let height = Parser.str_expr_to_skip h in
+          let width  = match DynUCTrie.lookup_string str_height options with
+                       [ Some (Some w) -> Parser.str_expr_to_skip w
+                       | _             -> fun e -> height e // image_height */ image_width
+                       ]
+                       in
+
+          add_image file width height
+        }
+      | _ -> do
+        {
+          let scale  = get_scale options image_dpi in
+          let width  = scale */ image_width        in
+          let height = scale */ image_height       in
+
+          add_image file (fun _ -> width) (fun _ -> height)
+        }
+      ]
+    ]
+  with
+  [ _ -> do
+    {
+      log_warn (location ps) "Cannot load image `";
+      log_uc_list file;
+      log_string "'!"
+    }
+  ]
+(*
     let (_, header) = CamlImages.Images.file_format (UString.bytes_to_string file) in
 
     match DynUCTrie.lookup_string str_width options with
@@ -936,6 +1035,7 @@ value image ps = do
       log_string "'!"
     }
   ]
+*)
 };
 
 value parbox ps = do
@@ -1761,7 +1861,7 @@ value no_indent ps = do
 
   add_node ps (Node.Command (location ps)
     (Environment.set_current_par_params
-      (None, Some (fun _ -> dim_zero), None, None, None, None, None, None)))
+      (None, Some (fun _ -> dim_zero), None, None, None, None, None, None, None, None)))
 };
 
 value indent ps = do
@@ -1773,7 +1873,7 @@ value indent ps = do
       {
         let p = Galley.par_params (Environment.current_galley env) in
         Environment.set_current_par_params
-          (None, Some (fun _ -> p.ParLayout.par_indent), None, None, None, None, None, None)
+          (None, Some (fun _ -> p.ParLayout.par_indent), None, None, None, None, None, None, None, None)
           loc env
       }))
 };

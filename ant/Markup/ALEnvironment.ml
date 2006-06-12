@@ -306,8 +306,10 @@ value decode_par_params name params = do
      lookup_dim name d sym_ParFillSkip,
      lookup_dim name d sym_LeftSkip,
      lookup_dim name d sym_RightSkip,
-     None, (* FIX: lookup_ name d sym_ParShape *)
+     None, (* FIX: lookup_ name d sym_ParShape  *)
      lookup_dim name d sym_ParSkip,
+     None, (* FIX: lookup_ name d sym_PreBreak  *)
+     None, (* FIX: lookup_ name d sym_PostBreak *)
      None) (* FIX: lookup_ name d sym_PostProcessLine *)
   | _ -> Types.runtime_error (name ^ ": invalid argument")
   ]

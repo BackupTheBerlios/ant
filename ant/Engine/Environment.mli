@@ -22,8 +22,10 @@ type dim_arg  = environment -> dim;
 type line_param_arg =
   (dim_arg * skip_arg * dim_arg * (box -> box -> Galley.line_params -> dim) * (int -> int -> num));
 type par_param_arg  =
-  (num * dim_arg * dim_arg * dim_arg * dim_arg * (environment -> int -> (num * num)) *
-   dim_arg * (environment -> list box -> list box));
+  (num * dim_arg * dim_arg * dim_arg * dim_arg * (environment -> int -> (num * num)) * dim_arg *
+   (environment -> list extended_glyph_item) *
+   (environment -> list extended_glyph_item) *
+   (environment -> list box -> list box));
 type line_break_param_arg = (num * num * int * num * num * num * num * skip_arg * num * skip_arg * bool);
 type hyphen_param_arg = (uc_string * num * num * int * int * uc_string);
 type space_param_arg = (num * option dim_arg * option dim_arg * bool);
@@ -33,6 +35,8 @@ type math_param_arg =
 type par_param_modifier  =
   (option num * option dim_arg * option dim_arg * option dim_arg * option dim_arg *
    option (environment -> int -> (num * num)) * option dim_arg *
+   option (environment -> list extended_glyph_item) *
+   option (environment -> list extended_glyph_item) *
    option (environment -> list box -> list box));
 type line_param_modifier =
   (option dim_arg * option skip_arg * option dim_arg * option (box -> box -> Galley.line_params -> dim) *

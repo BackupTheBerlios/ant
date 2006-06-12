@@ -33,8 +33,6 @@ type font_table = DynUCTrie.t (list font_definition);
 
 (* table of fonts *)
 
-value font_table = ref DynUCTrie.empty;
-
 value get_font_list font_table family = do
 {
   try

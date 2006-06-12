@@ -6,7 +6,7 @@ type pdf_value =
 | Bool of bool
 | Int of int
 | Float of float
-| String of IO.iorstream
+| String of IO.irstream
 | Stream of pdf_dictionary and IO.iorstream
 | Symbol of string
 | Array of list pdf_value
@@ -880,13 +880,13 @@ and read_file pdf file_desc = do
           [ String str -> str           (* FIX: translate name *)
           | _          -> match lookup_reference pdf (dict_lookup dict "DOS") with
             [ String str -> str         (* FIX: translate name *)
-            | _          -> IO.make_buffer_stream 4
+            | _          -> (IO.make_buffer_stream 4 :> IO.irstream)
             ]
           ]
         ]
       ]
     }
-  | _ -> IO.make_buffer_stream 4
+  | _ -> (IO.make_buffer_stream 4 :> IO.irstream)
   ]
   in
 
@@ -956,7 +956,7 @@ and read_value pdf = do
   skip_white_space_and_comments pdf.file;
 
   match IO.peek_char pdf.file 0 with
-  [ '(' -> String (read_string pdf.file)
+  [ '(' -> String (read_string pdf.file :> IO.irstream)
   | '<' -> do
     {
       if IO.peek_char pdf.file 1 = '<' then do
@@ -971,7 +971,7 @@ and read_value pdf = do
           Dictionary dict
       }
       else
-        String (read_string pdf.file)
+        String (read_string pdf.file :> IO.irstream)
     }
   | '[' -> Array (read_array pdf)
   | '/' -> Symbol (read_symbol pdf.file)

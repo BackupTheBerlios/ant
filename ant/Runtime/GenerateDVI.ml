@@ -314,15 +314,15 @@ value rec write_pages state pages = do
   }
   and write_boxes_image width height file_name _box_h _box_v state = do
   {
-    let (fmt, _) = CamlImages.Images.file_format file_name in
+    let (fmt, _, _, _) = LoadImage.get_dimensions file_name in
 
     match fmt with
-    [ CamlImages.Images.Ps -> do
+    [ LoadImage.PostScript -> do
       {
         let w = pt_to_bp width  in
         let h = pt_to_bp height in
 
-        let (x0, y0, x1, y1) = match CamlImages.Ps.get_bounding_box file_name with
+        let (x0, y0, x1, y1) = match LoadImage.get_bounding_box file_name with
         [ Some (x0, y0, x1, y1) -> (float_of_int x0, float_of_int y0,
                                     float_of_int x1, float_of_int y1)
         | None                  -> (0.0, 0.0, w, h)
@@ -336,7 +336,7 @@ value rec write_pages state pages = do
           (Printf.sprintf "PSfile=\"%s\" llx=%f lly=%f urx=%f ury=%f rwi=%f rhi=%f"
                           file_name x0 y0 x1 y1 w h)
       }
-    | CamlImages.Images.Bmp ->
+    | LoadImage.Bmp ->
         write_special state.os
           (Printf.sprintf "em: graph %s, %f pt, %f pt"
                           file_name

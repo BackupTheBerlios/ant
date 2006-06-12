@@ -6,7 +6,7 @@ type pdf_value =
 | Bool of bool
 | Int of int
 | Float of float
-| String of IO.iorstream
+| String of IO.irstream
 | Stream of pdf_dictionary and IO.iorstream
 | Symbol of string
 | Array of list pdf_value

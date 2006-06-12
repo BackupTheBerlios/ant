@@ -59,8 +59,10 @@ type dim_arg  = environment -> dim;
 type line_param_arg =
   (dim_arg * skip_arg * dim_arg * (box -> box -> Galley.line_params -> dim) * (int -> int -> num));
 type par_param_arg  =
-  (num * dim_arg * dim_arg * dim_arg * dim_arg * (environment -> int -> (num * num)) *
-   dim_arg * (environment -> list box -> list box));
+  (num * dim_arg * dim_arg * dim_arg * dim_arg * (environment -> int -> (num * num)) * dim_arg *
+   (environment -> list extended_glyph_item) *
+   (environment -> list extended_glyph_item) *
+   (environment -> list box -> list box));
 type line_break_param_arg = (num * num * int * num * num * num * num * skip_arg * num * skip_arg * bool);
 type hyphen_param_arg = (uc_string * num * num * int * int * uc_string);
 type space_param_arg = (num * option dim_arg * option dim_arg * bool);
@@ -70,6 +72,8 @@ type math_param_arg =
 type par_param_modifier  =
   (option num * option dim_arg * option dim_arg * option dim_arg * option dim_arg *
    option (environment -> int -> (num * num)) * option dim_arg *
+   option (environment -> list extended_glyph_item) *
+   option (environment -> list extended_glyph_item) *
    option (environment -> list box -> list box));
 type line_param_modifier =
   (option dim_arg * option skip_arg * option dim_arg * option (box -> box -> Galley.line_params -> dim) *
@@ -151,6 +155,7 @@ value restore_environment env = do
     with
 
     galleys      = new_galley_table;
+    font_table   = env.font_table;
     page_layouts = env.page_layouts;
     page_no      = env.page_no;
     pages        = env.pages
@@ -226,7 +231,7 @@ value set_galley_table env galleys = { (env) with galleys = galleys };
 value set_galley galley _ env = set_galley_table env (PTable.set env.galleys galley);
 
 value modify_par_params
-  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, post_process_line)
+  (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, pre_break, post_break, post_process_line)
   env p =
 {
   ParLayout.measure = match measure with
@@ -256,6 +261,14 @@ value modify_par_params
   ParLayout.par_skip = match par_skip with
     [ Some x -> x env
     | None   -> p.ParLayout.par_skip
+    ];
+  ParLayout.pre_break = match pre_break with
+    [ Some x -> x env
+    | None   -> p.ParLayout.pre_break
+    ];
+  ParLayout.post_break = match post_break with
+    [ Some x -> x env
+    | None   -> p.ParLayout.post_break
     ];
   ParLayout.post_process_line = match post_process_line with
     [ Some x -> x env
@@ -1132,10 +1145,12 @@ value initialise_environment () = do
       ParLayout.measure           = num_of_int 345;
       ParLayout.par_indent        = dim_12pt;
       ParLayout.par_fill_skip     = dim_fil;
+      ParLayout.par_skip          = dim_zero;
       ParLayout.left_skip         = dim_zero;
       ParLayout.right_skip        = dim_zero;
-      ParLayout.par_shape         = fun [_ -> (num_zero, num_zero)];
-      ParLayout.par_skip          = dim_zero;
+      ParLayout.par_shape         = fun _ -> (num_zero, num_zero);
+      ParLayout.pre_break         = [];
+      ParLayout.post_break        = [];
       ParLayout.post_process_line = fun l -> l
     }
   in

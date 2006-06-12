@@ -519,59 +519,24 @@ value new_image state file = do
     }
   }
   in
-  let get_colourmap x = do
-  {
-    let cs = IO.make_buffer_stream 0x100  in
-    let cm = x.CamlImages.Index8.colormap in
-
-    for i = 0 to cm.CamlImages.Color.max do
-    {
-      let (r,g,b) = CamlImages.get_index8_colourmap x i in
-
-      IO.write_byte cs r;
-      IO.write_byte cs g;
-      IO.write_byte cs b
-    };
-    cs
-  }
-  in
-  let image_info img = match img with
-  [ CamlImages.Images.Index8 x  -> (PDF.Array [PDF.Symbol "Indexed";
-                                               PDF.Symbol "DeviceRGB";
-                                               PDF.Int 255;
-                                               PDF.String (get_colourmap x)],
-                                    8,
-                                    CamlImages.Index8.get_scanline x,
-                                    conv_id)
-  | CamlImages.Images.Index16 x -> (PDF.Symbol "DeviceRGB",
-                                    8,
-                                    CamlImages.Rgb24.get_scanline (CamlImages.Index16.to_rgb24 x),
-                                    conv_id)
-  | CamlImages.Images.Rgb24 x   -> (PDF.Symbol "DeviceRGB",
-                                    8,
-                                    CamlImages.Rgb24.get_scanline x,
-                                    conv_id)
-  | CamlImages.Images.Rgba32 x  -> (PDF.Symbol "DeviceRGB",
-                                    8,
-                                    CamlImages.Rgba32.get_scanline x,
-                                    conv_rgba)
-  | CamlImages.Images.Cmyk32 x  -> (PDF.Symbol "DeviceCMYK",
-                                    8,
-                                    CamlImages.Cmyk32.get_scanline x,
-                                    conv_id)
+  let image_info img = match img.LoadImage.bm_format with
+  [ LoadImage.RGB        -> (PDF.Symbol "DeviceRGB",  conv_id)
+  | LoadImage.RGBA       -> (PDF.Symbol "DeviceRGB",  conv_rgba)
+  | LoadImage.CMYK       -> (PDF.Symbol "DeviceCMYK", conv_id)
+  | LoadImage.Indexed cm -> (PDF.Array [PDF.Symbol "Indexed";
+                                        PDF.Symbol "DeviceRGB";
+                                        PDF.Int ((2 lsl img.LoadImage.bm_depth) - 1);
+                                        PDF.String (IO.make_string_stream cm)],
+                             conv_id)
   ]
   in
-  let image_data scan conv img = do
+  let image_data img conv = do
   {
-    let (w, h) = CamlImages.Images.size img in
-    let cs     = IO.make_buffer_stream (w * h / 8) in
+    let cs  = IO.make_buffer_stream (img.LoadImage.bm_width * img.LoadImage.bm_height / 8) in
 
-
-    for i = 0 to h - 1 do
+    for y = 0 to img.LoadImage.bm_height - 1 do
     {
-      let s = scan i in
-
-      conv cs s
+      conv cs (img.LoadImage.bm_scanline y)
     };
     cs
   }
@@ -581,9 +546,8 @@ value new_image state file = do
 
   state.images := state.images @ [(file, obj)];
 
-  let img             = CamlImages.Images.load file [] in
-  let (width, height) = CamlImages.Images.size img     in
-  let (colsp, bits, scan, conv) = image_info img       in
+  let img           = LoadImage.read_bitmap file in
+  let (colsp, conv) = image_info img             in
 
   PDF.set_object state.pdf obj
     (PDF.Stream
@@ -591,12 +555,12 @@ value new_image state file = do
         ("Type",             PDF.Symbol "XObject");
         ("Subtype",          PDF.Symbol "Image");
         ("Name",             PDF.Symbol (Printf.sprintf "G%d" n));
-        ("Width",            PDF.Int width);
-        ("Height",           PDF.Int height);
+        ("Width",            PDF.Int img.LoadImage.bm_width);
+        ("Height",           PDF.Int img.LoadImage.bm_height);
         ("ColorSpace",       colsp);
-        ("BitsPerComponent", PDF.Int bits)
+        ("BitsPerComponent", PDF.Int img.LoadImage.bm_depth)
       ]
-      (image_data scan conv img));
+      (image_data img conv));
 
   (n, obj)
 };

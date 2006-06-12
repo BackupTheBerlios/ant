@@ -36,10 +36,12 @@ type par_params =
   measure           : num;
   par_indent        : dim;
   par_fill_skip     : dim;
+  par_skip          : dim;
   left_skip         : dim;
   right_skip        : dim;
   par_shape         : int -> (num * num);
-  par_skip          : dim;
+  pre_break         : (*int ->*) list extended_glyph_item;
+  post_break        : (*int ->*) list extended_glyph_item;
   post_process_line : list box -> list box
 };
 
@@ -1108,7 +1110,7 @@ value compute_line graph partial_line previous current = do
       (* compute rivers *)
 
       let rec rev_append_rivers r1 r2 = match r1 with
-      [ []       -> assert False  (* Rivers have odd length. *)
+      [ []      -> assert False  (* Rivers have odd length. *)
       | [x::xs] -> match r2 with
           [ []      -> assert False
           | [y::ys] -> List.rev_append xs [xdim_add x y :: ys]
@@ -1147,18 +1149,62 @@ value compute_line graph partial_line previous current = do
   | _            -> []
   ]
   in
+  let prefix_with_list list array = match list with
+  [ []      -> array
+  | [x::xs] -> do
+    {
+      let l = List.length list                      in
+      let a = Array.make (l + Array.length array) x in
+
+      List.fold_left
+        (fun i x -> do { a.(i) := x; i + 1 })
+        1
+        xs;
+
+      for i = 0 to Array.length array - 1 do
+      {
+        a.(l + i) := array.(i);
+      };
+
+      a
+    }
+  ]
+  in
+  let postfix_with_list list array = match list with
+  [ []      -> array
+  | [x::xs] -> do
+    {
+      let l = List.length list in
+      let a = Array.make (l + Array.length array) x in
+
+      List.fold_left
+        (fun i x -> do { a.(i + Array.length array) := x; i + 1 })
+        1
+        xs;
+
+      for i = 0 to Array.length array - 1 do
+      {
+        a.(i) := array.(i);
+      };
+
+      a
+    }
+  ]
+  in
 
   if partial_line.pl_position < 0 then do
   {
     (* no precomputed information available *)
 
     let post_break = match graph.bg_items.(previous) with
-    [ `Break (_, _, _, p, _) -> p
+    [ `Break (_, _, _, p, _) -> prefix_with_list graph.bg_par_params.post_break p
+                                (* FIX: post_break should depend on the line number *)
     | _                      -> assert False
     ]
     in
     let pre_break = match graph.bg_items.(current) with
-    [ `Break (_, _, p, _, _) -> p
+    [ `Break (_, _, p, _, _) -> postfix_with_list graph.bg_par_params.pre_break p
+                                (* FIX: pre_break should depend on the line number *)
     | _                      -> assert False
     ]
     in
@@ -1285,7 +1331,8 @@ value compute_line graph partial_line previous current = do
     (* we have already precomputed a prefix of the line *)
 
     let pre_break = match graph.bg_items.(current) with
-    [ `Break (_, _, p, _, _) -> p
+    [ `Break (_, _, p, _, _) -> postfix_with_list graph.bg_par_params.pre_break p
+                                (* FIX: pre_break should depend on the line number *)
     | _                      -> assert False
     ]
     in
@@ -1340,13 +1387,10 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
   iter (-1) breaks previous_breaks
 
   where rec iter last_line_no new_breaks breaks = match breaks with
-  [ []      -> do
-    {
-      match !new_line with
-      [ None               -> (new_breaks, Some partial_line)
-      | Some (_, _, _, pl) -> (new_breaks, Some pl)
-      ]
-    }
+  [ [] -> match !new_line with
+          [ None               -> (new_breaks, Some partial_line)
+          | Some (_, _, _, pl) -> (new_breaks, Some pl)
+          ]
   | [b::bs] -> do
     {
       if b.bp_line_no = last_line_no then
@@ -1388,10 +1432,10 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
           ]
           in
 
-          let total_width = xdim_to_dim
-                              (xdim_add line_width
-                                        graph.bg_left_right_skip)
-                            in
+          let total_width =
+            xdim_to_dim
+              (xdim_add line_width graph.bg_left_right_skip)
+          in
           let adj_ratio = adjustment_ratio total_width goal_width in
           let badness   = dim_scale_badness adj_ratio             in
 

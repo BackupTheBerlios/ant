@@ -28,10 +28,12 @@ type par_params =
   measure           : num;
   par_indent        : dim;
   par_fill_skip     : dim;
+  par_skip          : dim;
   left_skip         : dim;
   right_skip        : dim;
   par_shape         : int -> (num * num);
-  par_skip          : dim;
+  pre_break         : (*int ->*) list extended_glyph_item;
+  post_break        : (*int ->*) list extended_glyph_item;
   post_process_line : list box -> list box
 };
 
