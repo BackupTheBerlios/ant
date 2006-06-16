@@ -87,7 +87,7 @@ value bitmap_to_type3_glyph state fm g = do
 
   let contents = PDF.alloc_object state.pdf in
 
-  PDF.set_object state.pdf contents (PDF.Stream [] cs);
+  PDF.set_object state.pdf contents (PDF.Stream [] (cs :> IO.irstream));
 
   ((min_x, min_y, max_x, max_y), PDF.Reference contents 0)
 };
@@ -200,7 +200,7 @@ value new_type3_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] cmap_data);
+  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
 
   PDF.set_object state.pdf obj
     (PDF.Dictionary
@@ -266,7 +266,7 @@ value new_type1_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] cmap_data);
+  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
 
   if is_cff then do
   {
@@ -275,7 +275,7 @@ value new_type1_font state font_name fm encoding = do
     let font_data = IO.from_string cff                     in
 
     PDF.set_object state.pdf ff
-      (PDF.Stream [("Subtype", PDF.Symbol "Type1C")] font_data)
+      (PDF.Stream [("Subtype", PDF.Symbol "Type1C")] (font_data :> IO.irstream))
   }
   else do
   {
@@ -287,7 +287,7 @@ value new_type1_font state font_name fm encoding = do
         [("Length1", PDF.Int len1);
          ("Length2", PDF.Int len2);
          ("Length3", PDF.Int len3)]
-        font_data)
+        (font_data :> IO.irstream))
   };
 
   PDF.set_object state.pdf fd
@@ -363,7 +363,7 @@ value new_truetype_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] cmap_data);
+  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
 
   let font   = OpenType.read_font_tables fm.file_name in
   let subset = IO.make_buffer_stream 0x10000          in
@@ -372,7 +372,7 @@ value new_truetype_font state font_name fm encoding = do
 
   let len = IO.bytes_written subset in
 
-  PDF.set_object state.pdf ff (PDF.Stream [("Length1", PDF.Int len)] subset);
+  PDF.set_object state.pdf ff (PDF.Stream [("Length1", PDF.Int len)] (subset :> IO.irstream));
 
   PDF.set_object state.pdf fd
     (PDF.Dictionary
@@ -433,7 +433,7 @@ value make_font_obj state font_number font_def = do
   where rec iter i objs = do
   {
     if i >= font_def.used_glyphs then
-      objs
+      List.rev objs
     else do
     {
       let encoding = Array.make (min 0x100 (font_def.used_glyphs - i)) (-1) in
@@ -458,7 +458,7 @@ value make_font_obj state font_number font_def = do
       ]
       in
 
-      let obj = new_font state (Printf.sprintf "F%d.%d" font_number i) font_def.font encoding in
+      let obj = new_font state (Printf.sprintf "F%d.%d" font_number (i / 0x100)) font_def.font encoding in
 
       iter (i + 0x100) [obj :: objs]
     }
@@ -502,7 +502,7 @@ value load_font state font char = do
 
 (* images *)
 
-value new_image state file = do
+value new_bitmap_image state idx file = do
 {
   let conv_id cs s = do
   {
@@ -513,9 +513,9 @@ value new_image state file = do
   {
     for i = 0 to String.length s / 4 - 1 do
     {
-      IO.write_char cs s.[3*i];
-      IO.write_char cs s.[3*i+1];
-      IO.write_char cs s.[3*i+2]
+      IO.write_char cs s.[4*i];
+      IO.write_char cs s.[4*i+1];
+      IO.write_char cs s.[4*i+2]
     }
   }
   in
@@ -542,30 +542,84 @@ value new_image state file = do
   }
   in
   let obj = PDF.alloc_object state.pdf in
-  let n   = List.length state.images   in
 
   state.images := state.images @ [(file, obj)];
 
   let img           = LoadImage.read_bitmap file in
   let (colsp, conv) = image_info img             in
+  let bits          = if img.LoadImage.bm_depth <= 8 then
+                        8
+                      else
+                        16
+                      in
 
   PDF.set_object state.pdf obj
     (PDF.Stream
       [
         ("Type",             PDF.Symbol "XObject");
         ("Subtype",          PDF.Symbol "Image");
-        ("Name",             PDF.Symbol (Printf.sprintf "G%d" n));
+        ("Name",             PDF.Symbol (Printf.sprintf "G%d" idx));
         ("Width",            PDF.Int img.LoadImage.bm_width);
         ("Height",           PDF.Int img.LoadImage.bm_height);
         ("ColorSpace",       colsp);
-        ("BitsPerComponent", PDF.Int img.LoadImage.bm_depth)
+        ("BitsPerComponent", PDF.Int bits)
       ]
-      (image_data img conv));
+      (image_data img conv :> IO.irstream));
 
-  (n, obj)
+  obj
 };
 
-value load_image state file = do
+value new_pdf_image state idx file = do
+{
+  let obj = PDF.alloc_object state.pdf  in
+  let fsp = PDF.alloc_object state.pdf  in
+  let ef  = PDF.alloc_object state.pdf  in
+  let buf = IO.make_rand_in_stream file in
+
+  let bboxes = PDF.get_dimensions file in
+  let (x0, y0, x1, y1) = List.nth bboxes 1 in (* FIX *)
+
+  state.images := state.images @ [(file, obj)];
+
+  PDF.set_object state.pdf obj
+    (PDF.Dictionary
+      [
+        ("Type",             PDF.Symbol "XObject");
+        ("Subtype",          PDF.Symbol "Form");
+        ("Name",             PDF.Symbol (Printf.sprintf "G%d" idx));
+        ("BBox",             PDF.Array [PDF.Float x0; PDF.Float y0; PDF.Float x1; PDF.Float y1]);
+        ("Ref",              PDF.Dictionary
+                             [("F",    PDF.Reference fsp 0);
+                              ("Page", PDF.Int 1)
+                             ])
+      ]);
+  PDF.set_object state.pdf fsp
+    (PDF.Dictionary
+      [
+        ("Type", PDF.Symbol "Filespec");
+        ("F",    PDF.String (IO.from_string (Printf.sprintf "G%d" idx) :> IO.irstream));
+        ("EF",   PDF.Dictionary [("F", PDF.Reference ef 0)])
+      ]);
+  PDF.set_object state.pdf ef
+    (PDF.Stream
+      [("Type", PDF.Symbol "EmbeddedFile")]
+      buf);
+
+  obj
+};
+
+value new_image state idx file fmt = do
+{
+  let obj = match fmt with
+  [ LoadImage.PDF -> new_pdf_image    state idx file
+  | _             -> new_bitmap_image state idx file
+  ]
+  in
+
+  state.images := state.images @ [(file, obj)]
+};
+
+value load_image state file fmt = do
 {
   find 0 state.images
 
@@ -577,13 +631,17 @@ value load_image state file = do
       else
         find (n + 1) is
     }
-  | [] -> fst (new_image state file)
+  | [] -> do
+    {
+      new_image state n file fmt;
+      n
+    }
   ]
 };
 
-value select_image state file = do
+value select_image state file fmt = do
 {
-  let n = load_image state file in
+  let n = load_image state file fmt in
 
   IO.printf state.os " /G%d " n
 };
@@ -633,7 +691,7 @@ value rec write_box state x y box = match box with
 [ Empty           -> ()
 | Rule w h        -> write_rule  state x y w h
 | SimpleGlyph g f -> write_char  state x y g f
-| Image w h f     -> write_image state x y w h f
+| Image w h f fmt -> write_image state x y w h f fmt
 | Group bs        -> write_group state x y bs
 | Command cmd     -> match cmd with
     [ `DVI_Special _ -> ()
@@ -656,13 +714,16 @@ and write_char state x y c f = do
   IO.printf state.os "<%02x> Tj " (cn land 0xff);
   ()
 }
-and write_image state x y width height file = do
+and write_image state x y width height file fmt = do
 {
   end_text_mode state;
 
-  IO.printf       state.os "q %f 0 0 %f %f %f cm "
-                           (pt_to_bp width) (pt_to_bp height) (pt_to_bp x) (pt_to_bp y);
-  select_image    state    file;
+  IO.printf state.os
+    "q %f 0 0 %f %f %f cm "
+    (pt_to_bp width) (pt_to_bp height) (pt_to_bp x) (pt_to_bp y);
+
+  select_image state file fmt;
+
   IO.write_string state.os "Do Q "
 }
 and write_path state x y path_cmd path = do
@@ -811,7 +872,7 @@ value create_page state parent page = do
 
   write_box state num_zero page.p_height page.p_contents;
 
-  PDF.set_object state.pdf contents (PDF.Stream [] state.os);
+  PDF.set_object state.pdf contents (PDF.Stream [] (state.os :> IO.irstream));
 
   PDF.set_object state.pdf page_obj
     (PDF.Dictionary

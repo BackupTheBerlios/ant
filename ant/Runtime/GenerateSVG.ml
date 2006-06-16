@@ -623,7 +623,7 @@ value rec write_box state x y box = match box with
 [ Empty           -> ()
 | Rule w h        -> write_rule  state x y w h
 | SimpleGlyph g f -> write_char  state x y g f
-| Image w h f     -> write_image state x y w h f
+| Image w h f fmt -> write_image state x y w h f fmt
 | Group bs        -> write_group state x y bs
 | Command cmd     -> match cmd with
     [ `DVI_Special _ -> ()
@@ -643,7 +643,7 @@ and write_char state x y c f = do
   IO.write_utf8_char state.os cn;
   IO.write_string    state.os "</text>"
 }
-and write_image state x y width height file = do
+and write_image state x y width height file _fmt = do
 {
   IO.printf state.os "<image x=\"%fpt\" y=\"%fpt\" width=\"%fpt\" height=\"%fpt\" xlink:href=\"%s\"/>"
     (pt_to_bp x) (pt_to_bp y) (pt_to_bp width) (pt_to_bp height) file

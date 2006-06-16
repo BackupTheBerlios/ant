@@ -7,7 +7,7 @@ type pdf_value =
 | Int of int
 | Float of float
 | String of IO.irstream
-| Stream of pdf_dictionary and IO.iorstream
+| Stream of pdf_dictionary and IO.irstream
 | Symbol of string
 | Array of list pdf_value
 | Dictionary of pdf_dictionary
@@ -246,7 +246,7 @@ value ascii_hex_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      cs
+      (cs :> IO.irstream)
     }
     else do
     {
@@ -255,7 +255,7 @@ value ascii_hex_decode stream = do
       if c = '>' then do
       {
         IO.seek cs 0;
-        cs
+        (cs :> IO.irstream)
       }
       else do
       {
@@ -267,7 +267,7 @@ value ascii_hex_decode stream = do
         {
           IO.write_byte cs (16 * hex_to_dec c);
           IO.seek cs 0;
-          cs
+          (cs :> IO.irstream)
         }
         else do
         {
@@ -290,7 +290,7 @@ value ascii_85_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      cs
+      (cs :> IO.irstream)
     }
     else do
     {
@@ -299,7 +299,7 @@ value ascii_85_decode stream = do
       if c = 126 then do
       {
         IO.seek cs 0;
-        cs
+        (cs :> IO.irstream)
       }
       else if c = 122 then do
       {
@@ -382,7 +382,7 @@ value run_length_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      cs
+      (cs :> IO.irstream)
     }
     else do
     {
@@ -402,7 +402,7 @@ value run_length_decode stream = do
   }
 };
 
-value apply_filter filter param stream = do
+value apply_filter filter param (stream : IO.irstream) = do
 {
   let filters = match filter with
   [ Symbol f -> [Symbol f]
@@ -899,17 +899,17 @@ and read_file pdf file_desc = do
 
     close_in ic;
 
-    cs
+    (cs :> IO.irstream)
   }
   else
-    IO.make_buffer_stream 4
+    (IO.make_buffer_stream 4 :> IO.irstream)
 }
 and read_stream pdf dict = do
 {
   skip_white_space_and_comments pdf.file;
 
   if not (read_keyword pdf.file "stream") then
-    IO.make_buffer_stream 4
+    (IO.make_buffer_stream 4 :> IO.irstream)
   else do
   {
     if IO.read_char pdf.file = '\r' then do
@@ -921,12 +921,12 @@ and read_stream pdf dict = do
     else ();
 
     let len  = value_to_int (lookup_reference pdf (dict_lookup dict "Length")) in
-    let data = (IO.sub_stream pdf.file len) in
+    let data = (IO.sub_stream pdf.file len :> IO.irstream)                     in
 
     skip_eol pdf.file;
 
     if not (read_keyword pdf.file "endstream") then
-      IO.make_buffer_stream 4
+      (IO.make_buffer_stream 4 :> IO.irstream)
     else do
     {
       match lookup_reference pdf (dict_lookup dict "F") with
@@ -966,7 +966,7 @@ and read_value pdf = do
         skip_white_space_and_comments pdf.file;
 
         if IO.peek_string pdf.file 0 6 = "stream" then
-          Stream dict (read_stream pdf dict)
+          Stream dict (read_stream pdf dict :> IO.irstream)
         else
           Dictionary dict
       }
@@ -1062,7 +1062,7 @@ value rec read_xrefs is file pos = do
         let entry = IO.read_string is 20 in
 
         Scanf.sscanf entry "%10d %5d %c"
-          (fun pos rev c -> do
+          (fun pos rev _c -> do
             {
               if rev > file.revs.(start + i) then do
               {
@@ -1092,6 +1092,15 @@ value rec read_xrefs is file pos = do
     }
   }
 };
+
+value rec get_object pdf val = match val with
+[ Reference idx _ -> do
+  {
+    let obj = load_object pdf idx in
+    get_object pdf obj.data
+  }
+| _               -> val
+];
 
 value read_pdf_file filename = do
 {
@@ -1181,6 +1190,40 @@ value read_pdf_file filename = do
   with [ _ -> create_pdf (IO.make_buffer_stream 0x10 :> IO.irstream) 1.0 ]
 };
 
+value get_dimensions filename = do
+{
+  let pdf = read_pdf_file filename in
+
+  let get_num x = match get_object pdf x with
+  [ Int i   -> float_of_int i
+  | Float f -> f
+  | _       -> 0.0
+  ]
+  in
+  let get_dim page = do
+  {
+    match get_object pdf page with
+    [ Dictionary dict -> match dict_lookup dict "MediaBox" with
+      [ Array [x0; y0; x1; y1] -> (get_num x0, get_num y0, get_num x1, get_num y1)
+      | _                      -> (0.0, 0.0, 0.0, 0.0)
+      ]
+    | _ -> (0.0, 0.0, 0.0, 0.0)
+    ]
+  }
+  in
+
+  match get_object pdf pdf.root with
+  [ Dictionary root -> match get_object pdf (dict_lookup root "Pages") with
+    [ Dictionary pages -> match get_object pdf (dict_lookup pages "Kids") with
+      [ Array kids -> List.map get_dim kids
+      | _ -> []
+      ]
+    | _ -> []
+    ]
+  | _ -> []
+  ]
+};
+
 (* writing PDF *)
 
 value write_bool os x = do
@@ -1263,7 +1306,7 @@ and write_dictionary os dict = do
     dict;
   IO.write_string os ">>\n";
 }
-and write_stream os dict str = do
+and write_stream os dict (str : IO.irstream) = do
 {
   IO.seek str 0;
 

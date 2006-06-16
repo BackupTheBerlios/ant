@@ -46,7 +46,7 @@ and contents_type =
 | CharBox of glyph_desc and font_metric
 | GlueBox of bool and bool
 | RuleBox
-| ImageBox of string
+| ImageBox of string and LoadImage.format
 | CompBox of list gfx_cmd
 | MathBox of math_code and box
 | BreakBox of num and bool and list box and list box and list box
@@ -98,7 +98,7 @@ value rec log_box box = match box.b_contents with
       log_string "|"
 | CompBox _    -> log_string "[]"
 | RuleBox      -> log_string "[--]"
-| ImageBox f   -> do { log_string "<"; log_string f; log_string ">" }
+| ImageBox f _ -> do { log_string "<"; log_string f; log_string ">" }
 | EmptyBox     -> ()
 | MathBox _ b  -> log_box b
 | CommandBox _ -> log_string "[!]"
@@ -165,7 +165,7 @@ value rec long_dump_box box = do
       log_string ")"
     }
   | RuleBox      -> log_string "\n(rule-box)"
-  | ImageBox f   -> do
+  | ImageBox f _ -> do
     {
       log_string "\n(image-box ";
       dump_dims box;
@@ -225,7 +225,7 @@ value is_real_box box = match box.b_contents with
 | CharBox _ _
 | GlueBox _ _
 | RuleBox
-| ImageBox _
+| ImageBox _ _
 | CompBox _
 | ProcBox _
 | MathBox _ _         -> True
@@ -586,12 +586,12 @@ value make_vphantom box = do
   Image boxes contain a reference to an external image file.
 *)
 
-value new_image_box width height file =
+value new_image_box width height file format =
 {
   b_width    = fixed_dim width;
   b_height   = fixed_dim height;
   b_depth    = dim_zero;
-  b_contents = ImageBox file
+  b_contents = ImageBox file format
 };
 
 (*
@@ -717,7 +717,7 @@ value rec draw_box page_info x y box = match box.b_contents with
                                box.b_width.d_base
                                (box.b_height.d_base +/ box.b_depth.d_base))
                           ]
-| ImageBox file      -> Image box.b_width.d_base box.b_height.d_base file
+| ImageBox file fmt  -> Image box.b_width.d_base box.b_height.d_base file fmt
 | MathBox _ b        -> draw_box page_info x y b
 | CompBox cmds       -> do
   {

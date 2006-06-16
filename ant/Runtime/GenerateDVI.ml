@@ -199,7 +199,7 @@ value rec write_pages state pages = do
   [ Empty           -> clear_stack state
   | SimpleGlyph g f -> write_boxes_char g f box_h box_v state
   | Rule w h        -> write_boxes_rule w h box_h box_v state
-  | Image w h f     -> write_boxes_image w h f box_h box_v state
+  | Image w h f fmt -> write_boxes_image w h f fmt box_h box_v state
   | Group bs        -> write_boxes_group bs box_h box_v state
   | Command cmd     -> match cmd with
       [ `DVI_Special str -> do
@@ -312,10 +312,8 @@ value rec write_pages state pages = do
 
     clear_stack state
   }
-  and write_boxes_image width height file_name _box_h _box_v state = do
+  and write_boxes_image width height file_name fmt _box_h _box_v state = do
   {
-    let (fmt, _, _, _) = LoadImage.get_dimensions file_name in
-
     match fmt with
     [ LoadImage.PostScript -> do
       {

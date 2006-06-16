@@ -153,6 +153,6 @@ value make_rand_in_stream : string -> irstream;
 value make_buffer_stream  : int -> iorstream;
 value make_string_stream  : string -> irstream;
 
-value compress   : #iorstream -> int -> iorstream;
-value uncompress : #iorstream -> iorstream;
+value compress   : #irstream -> int -> irstream;
+value uncompress : #irstream -> irstream;
 

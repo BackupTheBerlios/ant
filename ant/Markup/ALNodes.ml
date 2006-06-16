@@ -49,6 +49,29 @@ value decode_glue_function name f = do
   (fun _ b -> b)
 };
 
+value encode_image_format f = match f with
+[ LoadImage.Bitmap     -> Types.Symbol sym_Bitmap
+| LoadImage.Bmp        -> Types.Symbol sym_Bmp
+| LoadImage.PostScript -> Types.Symbol sym_PostScript
+| LoadImage.PDF        -> Types.Symbol sym_PDF
+];
+
+value decode_image_format name f = do
+{
+  let s = decode_symbol name f in
+
+  if s = sym_Bitmap then
+    LoadImage.Bitmap
+  else if s = sym_Bmp then
+    LoadImage.Bmp
+  else if s = sym_PostScript then
+    LoadImage.PostScript
+  else if s = sym_PDF then
+    LoadImage.PDF
+  else
+    Types.runtime_error (name ^ ": invalid image format")
+};
+
 (* nodes *)
 
 value make_node0 sym loc =
@@ -138,8 +161,9 @@ value rec encode_node node = match node with
                                         (encode_dim_arg w)
                                         (encode_dim_arg h)
                                         (encode_dim_arg d)
-| Node.Image loc f w h             -> make_node3 sym_Image loc
+| Node.Image loc f fmt w h         -> make_node4 sym_Image loc
                                         (Machine.uc_list_to_char_list (UString.of_string f))
+                                        (encode_image_format fmt)
                                         (encode_skip_arg w)
                                         (encode_skip_arg h)
 | Node.Accent loc a c              -> make_node2 sym_Accent loc
@@ -386,9 +410,10 @@ value rec decode_node name node = do
                 (decode_dim_arg name h)
                 (decode_dim_arg name d)
             else if s = sym_Image then
-              let (loc, f, w, h) = decode_tuple3 name xs in
+              let (loc, f, fmt, w, h) = decode_tuple4 name xs in
               Node.Image loc
                 (UString.to_string (Machine.decode_string name f))
+                (decode_image_format name fmt)
                 (decode_skip_arg name w)
                 (decode_skip_arg name h)
             else if s = sym_Accent then

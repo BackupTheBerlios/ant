@@ -82,7 +82,7 @@ and simple_box =
 [ Empty
 | SimpleGlyph of int and font_metric
 | Rule of num and num
-| Image of num and num and string
+| Image of num and num and string and LoadImage.format
 | Group of list (graphic_command num simple_box)
 | Command of simple_cmd
 ]

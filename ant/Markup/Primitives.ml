@@ -888,9 +888,9 @@ value rule ps = do
 
 value image ps = do
 {
-  let add_image file width height = do
+  let add_image file fmt width height = do
   {
-    add_node ps (Node.Image (location ps) (UString.to_string file) width height)
+    add_node ps (Node.Image (location ps) (UString.to_string file) fmt width height)
   }
   in
 
@@ -943,8 +943,18 @@ value image ps = do
   let options = opt_key_val  ps in
   let file    = arg_expanded ps in
 
+  let page = match DynUCTrie.lookup_string str_page options with
+  [ Some (Some p) -> do
+    {
+      let n = Parser.str_expr_to_num p in
+      int_of_num (floor_num n) - 1
+    }
+  | _ -> 0
+  ]
+  in
+
   try
-    let (_, image_width, image_height, image_dpi) = LoadImage.get_dimensions (UString.bytes_to_string file) in
+    let (fmt, image_width, image_height, image_dpi) = LoadImage.get_dimensions (UString.bytes_to_string file) page in
 
     match DynUCTrie.lookup_string str_width options with
     [ Some (Some w) -> do
@@ -956,7 +966,7 @@ value image ps = do
                      ]
                      in
 
-        add_image file width height
+        add_image file fmt width height
       }
     | _ -> match DynUCTrie.lookup_string str_height options with
       [ Some (Some h) -> do
@@ -968,7 +978,7 @@ value image ps = do
                        ]
                        in
 
-          add_image file width height
+          add_image file fmt width height
         }
       | _ -> do
         {
@@ -976,7 +986,7 @@ value image ps = do
           let width  = scale */ image_width        in
           let height = scale */ image_height       in
 
-          add_image file (fun _ -> width) (fun _ -> height)
+          add_image file fmt (fun _ -> width) (fun _ -> height)
         }
       ]
     ]

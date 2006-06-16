@@ -37,7 +37,7 @@ and node =
 | Glue of UCStream.location and dim_arg and dim_arg and bool and bool
 | Break of UCStream.location and option num and bool and list node and list node and list node
 | Rule of UCStream.location and dim_arg and dim_arg and dim_arg
-| Image of UCStream.location and string and skip_arg and skip_arg
+| Image of UCStream.location and string and LoadImage.format and skip_arg and skip_arg
 | Accent of UCStream.location and uc_char and list node
 | HBox of UCStream.location and list node
 | HBoxTo of UCStream.location and skip_arg and list node

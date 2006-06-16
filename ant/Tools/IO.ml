@@ -867,7 +867,7 @@ value compress cs level = do
           Zlib.deflate_end zs;
           seek new_cs 0;
           seek cs pos;
-          new_cs
+          (new_cs :> irstream)
         }
       }
     }
@@ -928,7 +928,7 @@ value uncompress cs = do
           Zlib.inflate_end zs;
           seek new_cs 0;
           seek cs pos;
-          new_cs
+          (new_cs :> irstream)
         }
       }
     }

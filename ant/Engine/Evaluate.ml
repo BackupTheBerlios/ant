@@ -60,7 +60,7 @@ value rec get_location node = match node with
 | Node.Glue loc _ _ _ _            -> loc
 | Node.Break loc _ _ _ _ _         -> loc
 | Node.Rule loc _ _ _              -> loc
-| Node.Image loc _ _ _             -> loc
+| Node.Image loc _ _ _ _           -> loc
 | Node.Accent loc _ _              -> loc
 | Node.HBox loc _                  -> loc
 | Node.HBoxTo loc _ _              -> loc
@@ -116,7 +116,7 @@ value rec eval_node env builder node = try
   | Node.Glue loc w h i d            -> ev_glue env builder loc w h i d
   | Node.Break loc p h pre post no   -> ev_break env builder loc p h pre post no
   | Node.Rule loc w h d              -> ev_rule env builder loc w h d
-  | Node.Image loc f w h             -> ev_image env builder loc f w h
+  | Node.Image loc f fmt w h         -> ev_image env builder loc f fmt w h
   | Node.Accent loc a c              -> ev_accent env builder loc a c
   | Node.HBox loc b                  -> ev_hbox env builder loc b
   | Node.HBoxTo loc w b              -> ev_hbox_to env builder loc w b
@@ -767,7 +767,7 @@ and ev_rule env builder _loc width height depth = do
   env
 }
 
-and ev_image env builder _loc file width height = do
+and ev_image env builder _loc file fmt width height = do
 {
   let w = width  env in
   let h = height env in
@@ -780,7 +780,7 @@ and ev_image env builder _loc file width height = do
   else ();
 
   Builder.add_box builder
-    (new_image_box w h file);
+    (new_image_box w h file fmt);
   env
 }
 

@@ -170,7 +170,7 @@ value write_page state no page = do
   [ Empty              -> ()
   | SimpleGlyph g f    -> write_boxes_char g f x y
   | Rule w h           -> write_boxes_rule w h x y
-  | Image w h f        -> write_boxes_image w h f x y
+  | Image w h f fmt    -> write_boxes_image w h f fmt x y
   | Group bs           -> write_boxes_group bs x y
   | Command cmd        -> match cmd with
       [ `DVI_Special _ -> ()
@@ -201,7 +201,7 @@ value write_page state no page = do
       x1 y1 x2 y1 x2 y2 x1 y2
     ; ()
   }
-  and write_boxes_image width height file x y = do
+  and write_boxes_image width height file fmt x y = do
   {
     (* FIX *)
     ()

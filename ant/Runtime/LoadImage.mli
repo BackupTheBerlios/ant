@@ -25,7 +25,7 @@ type bitmap =
   bm_scanline : int -> string
 };
 
-value get_dimensions   : string -> (format * num * num * num);
+value get_dimensions   : string -> int -> (format * num * num * num);
 value get_bounding_box : string -> option (int * int * int * int);
 
 value read_bitmap : string -> bitmap;

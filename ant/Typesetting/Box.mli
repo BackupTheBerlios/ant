@@ -45,7 +45,7 @@ and contents_type =
 | CharBox of glyph_desc and font_metric
 | GlueBox of bool and bool
 | RuleBox
-| ImageBox of string
+| ImageBox of string and LoadImage.format
 | CompBox of list gfx_cmd
 | MathBox of math_code and box
 | BreakBox of num and bool and list box and list box and list box
@@ -116,7 +116,7 @@ value make_phantom          : box -> box;
 value make_hphantom         : box -> box;
 value make_vphantom         : box -> box;
 
-value new_image_box        : num -> num -> string -> box;
+value new_image_box        : num -> num -> string -> LoadImage.format -> box;
 
 value new_math_box         : math_code -> box -> box;
 value is_math_box          : box -> bool;
