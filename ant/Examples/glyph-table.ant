@@ -1,0 +1,55 @@
+
+\include{defines.ant}
+\include{page-layout.ant}
+
+\ALcommand{
+  do
+    simple_page_layout A_4 11 12pt;
+    ps_declare_font "lmroman10-regular.otf" "Latin Modern" "medium" "normal" (0,0) {}
+  end}
+
+\beginALdeclarations
+
+print_table from to :=
+  "\\begintable\n" + iter_rows from to + "\\endtable\n"
+  where
+    iter_rows from to :=
+      if from > to then
+        ""
+      else
+        (print_row from to
+         + iter_rows (from + 16) to)
+      end;
+  end;
+
+print_row g max :=
+  "\\numfont\n" + to_string g + "\\newtableentry\\hskip{0.5em}\\rule{0.6pt}{12pt}{3pt}\\hskip{0.5em}\\newtableentry"
+  + iter g 0 max
+  where iter g n max :=
+    if g > max || n > 15 then
+      "\\newtablerow\n"
+    else
+      "\\hfil\\testfont\\glyph{" + to_string g + "}\\hfil\\newtableentry\\hskip{0.5em}\\rule{0.6pt}{12pt}{3pt}\\hskip{0.5em}\\newtableentry"
+      + iter (g+1) (n+1) max
+    end
+  end;
+
+\endALdeclarations
+
+\definecommand\numfont{\setparameter{font}{ family = {Latin Modern}; series = medium; shape = normal }}
+\definecommand\testfont{\setparameter{font}{ family = {test font}; series = medium; shape = normal }}
+\numfont
+
+\definecommand\glyphtable[mmm]{%
+  \numfont
+  \ALcommand{ps_declare_font "#1" "test font" "medium" "normal" (0,0) {}}%
+  \ALmacro{print_table (#2) (#3)}}
+
+\begingalley{main}
+  \glyphtable{bodo60.ttf}{0}{(512+255)}
+
+\endgalley
+
+\shipoutpages{left}{right}
+
+% vim:set ft=tex fenc=utf8:
