@@ -577,22 +577,24 @@ value new_pdf_image state idx file = do
   let buf = IO.make_rand_in_stream file in
 
   let bboxes = PDF.get_dimensions file in
-  let (x0, y0, x1, y1) = List.nth bboxes 1 in (* FIX *)
+  let (x0, y0, x1, y1) = List.nth bboxes 0 in (* FIX *)
 
   state.images := state.images @ [(file, obj)];
 
   PDF.set_object state.pdf obj
-    (PDF.Dictionary
+    (PDF.Stream
       [
         ("Type",             PDF.Symbol "XObject");
         ("Subtype",          PDF.Symbol "Form");
+        ("FormType",         PDF.Int 1);
         ("Name",             PDF.Symbol (Printf.sprintf "G%d" idx));
         ("BBox",             PDF.Array [PDF.Float x0; PDF.Float y0; PDF.Float x1; PDF.Float y1]);
         ("Ref",              PDF.Dictionary
                              [("F",    PDF.Reference fsp 0);
                               ("Page", PDF.Int 1)
                              ])
-      ]);
+      ]
+      (IO.from_string "" :> IO.irstream));
   PDF.set_object state.pdf fsp
     (PDF.Dictionary
       [

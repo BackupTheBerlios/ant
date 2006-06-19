@@ -183,25 +183,22 @@ value read_keyword is str = do
 {
   skip_white_space_and_comments is;
 
-  let look_ahead = IO.read_string is (String.length str) in
+  let len = String.length str in
 
-  if look_ahead = str then do
+  if IO.peek_string is 0 len = str then do
   {
-    let c = IO.peek_char is 0 in
+    let c = IO.peek_char is len in
 
-    if is_special c || is_white_space c then
-      True
-    else do
+    if is_special c || is_white_space c then do
     {
-      IO.skip is (-String.length look_ahead);
-      False
+      IO.skip is len;
+      True
     }
+    else
+      False
   }
-  else do
-  {
-    IO.skip is (-String.length look_ahead);
+  else
     False
-  }
 };
 
 (*
@@ -458,12 +455,12 @@ value rec read_int is = do
   match IO.peek_char is 0 with
   [ '+' -> do
     {
-      IO.read_char is;
+      IO.skip is 1;
       read_int is
     }
   | '-' -> do
     {
-      IO.read_char is;
+      IO.skip is 1;
       ~- (read_int is)
     }
   | _ -> do
@@ -478,7 +475,7 @@ value rec read_int is = do
           x
         else do
         {
-          IO.read_char is;
+          IO.skip is 1;
 
           iter (10 * x + int_of_char c - 48)
         }
@@ -766,6 +763,8 @@ value read_reference is = do
 
 value read_float_or_reference is = do
 {
+  let pos = IO.pos is in
+
   skip_digits 0
 
   where rec skip_digits i = do
@@ -784,7 +783,14 @@ value read_float_or_reference is = do
     if is_white_space c then
       skip_space (i+1)
     else if c >= '0' && c <= '9' then
-      read_reference is
+      match read_reference is with
+      [ Null -> do
+        {
+          IO.seek is pos;
+          Float (read_float is)
+        }
+      | r -> r
+      ]
     else
       Float (read_float is)
   }
@@ -800,7 +806,7 @@ value rec read_array pdf = do
   {
     let arr = ListBuilder.make () in
 
-    IO.read_char pdf.file;
+    IO.skip pdf.file 1;
 
     iter ()
 
@@ -808,8 +814,11 @@ value rec read_array pdf = do
     {
       skip_white_space_and_comments pdf.file;
 
-      if IO.peek_char pdf.file 0 = ']' then
+      if IO.peek_char pdf.file 0 = ']' then do
+      {
+        IO.skip pdf.file 1;
         ListBuilder.get arr
+      }
       else do
       {
         ListBuilder.add arr (read_value pdf);
@@ -1057,6 +1066,8 @@ value rec read_xrefs is file pos = do
       let start = read_int is in
       let len   = read_int is in
 
+      skip_white_space_and_comments is;
+
       for i = 0 to len - 1 do
       {
         let entry = IO.read_string is 20 in
@@ -1073,22 +1084,23 @@ value rec read_xrefs is file pos = do
             })
       };
 
-       skip_white_space_and_comments is;
+      skip_white_space_and_comments is;
 
-       let c = IO.peek_char is 0 in
+      let c = IO.peek_char is 0 in
 
-       if c >= '0' && c <= '9' then
-         read_subsection ()
-       else do
-       {
-         let trailer = read_dictionary file in
+      if c >= '0' && c <= '9' then
+        read_subsection ()
+      else if IO.read_string is 7 = "trailer" then do
+      {
+        let trailer = read_dictionary file in
 
-         match dict_lookup trailer "Prev" with
-         [ Int   pos -> read_xrefs is file pos
-         | Float pos -> read_xrefs is file (int_of_float pos)
-         | _         -> ()
-         ]
-       }
+        match dict_lookup trailer "Prev" with
+        [ Int   pos -> read_xrefs is file pos
+        | Float pos -> read_xrefs is file (int_of_float pos)
+        | _         -> ()
+        ]
+      }
+      else ()
     }
   }
 };
@@ -1121,17 +1133,21 @@ value read_pdf_file filename = do
       {
         if pos < 0 then
           pdf
-        else if IO.peek_string is pos 7 = "trailer" then
-          match read_trailer pos with
-          [ None   -> iter (pos - 7)
-          | Some x -> x
-          ]
-        else
-          iter (pos - 1)
+        else do
+        {
+          IO.seek is pos;
+
+          if IO.read_string is 7 = "trailer" then
+            match read_trailer () with
+            [ None   -> iter (pos - 7)
+            | Some x -> x
+            ]
+          else
+            iter (pos - 1)
+        }
       }
-      where read_trailer pos = do
+      where read_trailer () = do
       {
-        IO.seek is pos;
 
         let trailer = read_dictionary pdf in
 

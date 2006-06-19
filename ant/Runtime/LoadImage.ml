@@ -31,7 +31,20 @@ value bp_to_pt x = num_of_float x */ num_of_ints 7227 7200;
 
 value get_dimensions file page = do
 {
-  try
+  let s   = IO.make_in_stream file in
+  let buf = IO.read_string s 5     in
+
+  if buf = "%PDF-" then do
+  {
+    let bboxes = PDF.get_dimensions file in
+
+    let (x0, y0, x1, y1) = List.nth bboxes page in
+    let w = bp_to_pt (x1 -. x0) in
+    let h = bp_to_pt (y1 -. y0) in
+
+    (PDF, w, h, num_of_ints 7227 100)
+  }
+  else try
     let (fmt, header) = CamlImages.Images.file_format file in
 
     let f = match fmt with
@@ -58,24 +71,7 @@ value get_dimensions file page = do
 
     (f, width, height, dpi)
   with
-  [ _ -> do
-    {
-      let s   = IO.make_in_stream file in
-      let buf = IO.read_string s 6     in
-
-      if buf = "%%PDF-" then do
-      {
-        let bboxes = PDF.get_dimensions file in
-
-        let (x0, y0, x1, y1) = List.nth bboxes page in
-        let w = bp_to_pt (x1 -. x0) in
-        let h = bp_to_pt (y1 -. y0) in
-
-        (PDF, w, h, num_zero)
-      }
-      else
-        (Bitmap, num_zero, num_zero, num_zero)
-    }]
+  [ _ -> (Bitmap, num_zero, num_zero, num_zero) ]
 };
 
 value get_bounding_box = CamlImages.Ps.get_bounding_box;
