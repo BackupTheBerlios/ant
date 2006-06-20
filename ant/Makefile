@@ -55,12 +55,13 @@ clean: Examples/clean
 	done
 
 distclean: clean Examples/distclean
+	rm -rf CVS */CVS */*/CVS
 	rm -f ant Unicode/GenUnicodeTable Util/GenHyphTable Engine/HyphenTable.ml VM/ali */.viminfo
 
 DATE := $(shell date +"%Y%m%d")
 
-ARCHIVE_FILES =  ant/Config.mk ant/Makefile ant/README ant/data/hyphen ant/Engine \
-                 ant/Examples/*.{ant,sty,tex} ant/Examples/Makefile.inc \
+ARCHIVE_FILES =  ant/Config.mk ant/Makefile ant/README ant/ant.1 ant/data/hyphen ant/Engine \
+                 ant/Examples/*.{ant,sty} ant/Examples/Makefile.inc \
                  ant/lib ant/Images ant/Main ant/Markup ant/Packages \
                  ant/Unicode ant/Runtime ant/Tools ant/Typesetting ant/Util ant/VM
 archive: distclean
