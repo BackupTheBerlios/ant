@@ -105,7 +105,7 @@ value horizontal_extendable width font left mid right rep = do
                     in
   let rep_list    = XList.repeat num_reps (new_glyph_box rep font) in
 
-  (HBox.make
+  (HBox.make HBox.LR
     ( (if left  <> Undef then [new_glyph_box left  font] else [])
     @ rep_list
     @ (if mid   <> Undef then [new_glyph_box mid   font] else [])

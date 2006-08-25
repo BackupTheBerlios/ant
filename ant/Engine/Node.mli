@@ -39,9 +39,9 @@ and node =
 | Rule of UCStream.location and dim_arg and dim_arg and dim_arg
 | Image of UCStream.location and string and LoadImage.format and skip_arg and skip_arg
 | Accent of UCStream.location and uc_char and list node
-| HBox of UCStream.location and list node
-| HBoxTo of UCStream.location and skip_arg and list node
-| HBoxSpread of UCStream.location and skip_arg and list node
+| HBox of UCStream.location and [= `LR | `RL | `Default] and list node
+| HBoxTo of UCStream.location and [= `LR | `RL | `Default] and skip_arg and list node
+| HBoxSpread of UCStream.location and [= `LR | `RL | `Default] and skip_arg and list node
 | VBox of UCStream.location and list node
 | VBoxTo of UCStream.location and skip_arg and list node
 | VBoxSpread of UCStream.location and skip_arg and list node

@@ -171,7 +171,7 @@ value make num_columns num_rows entries line_params = do
   | [e::es] -> [Graphic.PutBox
                   (xdim_to_dim col_start.(e.te_left))
                   (dim_neg (xdim_to_dim row_start.(e.te_baseline)))
-                  (HBox.make_to (sum_widths e.te_left e.te_right).d_base e.te_contents)
+                  (HBox.make_to HBox.LR (sum_widths e.te_left e.te_right).d_base e.te_contents)
                :: layout es]
   ]
 };

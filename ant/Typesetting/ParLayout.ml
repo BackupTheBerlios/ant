@@ -1759,6 +1759,6 @@ value layout_line width line_no line par_params = do
          ]))
   in
 
-  HBox.make_to width boxes
+  HBox.make_to HBox.LR width boxes
 };
 

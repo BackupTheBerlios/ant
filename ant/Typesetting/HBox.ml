@@ -5,6 +5,8 @@ open Logging;
 open Dim;
 open Box;
 
+type direction = [ LR | RL ];
+
 (* The maximal badness tolerated by make. *)
 
 value max_h_badness = ref (num_of_int 1000);
@@ -78,7 +80,11 @@ value calc_width_and_glue boxes = do
   ]
 };
 
-value layout boxes = match boxes with
+(* |layout <direction> <boxes>| computes the positions of the boxes and puts them into a
+   hbox in left-right order.
+*)
+
+value layout dir boxes = match boxes with
 [ []  -> empty_box
 | [b] -> match b.b_contents with
   [ CommandBox (`GfxCmd c) -> new_compound_box dim_zero dim_zero dim_zero [c]
@@ -89,7 +95,13 @@ value layout boxes = match boxes with
     let (width, height, depth) = dimensions boxes    in
     let result                 = ListBuilder.make () in
 
-    iter xdim_zero boxes
+    let start_x = match dir with
+    [ LR -> xdim_zero
+    | RL -> dim_to_xdim width
+    ]
+    in
+
+    iter start_x boxes
 
     where rec iter x boxes = match boxes with
     [ []      -> new_compound_box width height depth (ListBuilder.get result)
@@ -99,21 +111,34 @@ value layout boxes = match boxes with
           ListBuilder.add result c;
           iter x  bs
         }
-      | _ -> do
-        {
-          ListBuilder.add result
-            (Graphic.PutBox
-              (xdim_select_order x width.d_stretch_order width.d_shrink_order)
-              dim_zero
-              b);
-          iter (xdim_add_dim x b.b_width) bs
-        }
+      | _ -> match dir with
+        [ LR -> do
+          {
+            ListBuilder.add result
+              (Graphic.PutBox
+                (xdim_select_order x width.d_stretch_order width.d_shrink_order)
+                dim_zero
+                b);
+            iter (xdim_add_dim x b.b_width) bs
+          }
+        | RL -> do
+          {
+            let new_x = xdim_sub_dim x b.b_width in
+
+            ListBuilder.add result
+              (Graphic.PutBox
+                (xdim_select_order new_x width.d_stretch_order width.d_shrink_order)
+                dim_zero
+                b);
+            iter new_x bs
+          }
+        ]
       ]
     ]
   }
 ];
 
-value layout_scaled (orig_width, height, depth) scaled_width boxes = do
+value layout_scaled dir (orig_width, height, depth) scaled_width boxes = do
 {
   let (factor, order) = adjustment_ratio orig_width scaled_width in
   let ratio           = if factor </ num_of_int (-1) && order = 0 then
@@ -144,7 +169,13 @@ value layout_scaled (orig_width, height, depth) scaled_width boxes = do
 
   let result = ListBuilder.make () in
 
-  iter xdim_zero boxes
+  let start_x = match dir with
+  [ LR -> xdim_zero
+  | RL -> dim_to_xdim (fixed_dim scaled_width)
+  ]
+  in
+
+  iter start_x boxes
 
   where rec iter x boxes = match boxes with
   [ []      -> new_compound_box (fixed_dim scaled_width) height depth (ListBuilder.get result)
@@ -154,36 +185,47 @@ value layout_scaled (orig_width, height, depth) scaled_width boxes = do
         ListBuilder.add result c;
         iter x bs
       }
-    | _                      -> do
-      {
-        let box = scale_box_horiz b ratio in
+    | _ -> match dir with
+      [ LR -> do
+        {
+          let box = scale_box_horiz b ratio in
 
-        ListBuilder.add result (Graphic.PutBox (fixed_dim x.xd_base) dim_zero box);
+          ListBuilder.add result (Graphic.PutBox (fixed_dim x.xd_base) dim_zero box);
 
-        iter (xdim_add_dim x box.b_width) bs
-      }
+          iter (xdim_add_dim x box.b_width) bs
+        }
+      | RL -> do
+        {
+          let box   = scale_box_horiz b ratio    in
+          let new_x = xdim_sub_dim x box.b_width in
+
+          ListBuilder.add result (Graphic.PutBox (fixed_dim new_x.xd_base) dim_zero box);
+
+          iter new_x bs
+        }
+      ]
     ]
   ]
 };
 
-value make boxes = layout boxes;
+value make dir boxes = layout dir boxes;
 
-value make_to width boxes = do
+value make_to dir width boxes = do
 {
-  layout_scaled (dimensions boxes) width boxes
+  layout_scaled dir (dimensions boxes) width boxes
 };
 
-value make_scaled factor boxes = do
+value make_scaled dir factor boxes = do
 {
   let (w, h, d) = dimensions boxes in
 
-  layout_scaled (w, h, d) (factor */ w.d_base) boxes
+  layout_scaled dir (w, h, d) (factor */ w.d_base) boxes
 };
 
-value make_spread amount boxes = do
+value make_spread dir amount boxes = do
 {
   let (w, h, d) = dimensions boxes in
 
-  layout_scaled (w, h, d) (w.d_base +/ amount) boxes
+  layout_scaled dir (w, h, d) (w.d_base +/ amount) boxes
 };
 

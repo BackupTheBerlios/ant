@@ -24,9 +24,9 @@ value layout params page area floats page_state = do
 
   let make_box items = do
   {
-    let boxes = List.map extended_item_to_box items                  in
-    let box   = resize_box_horiz_upto (HBox.make boxes) width        in
-    let shift = fixed_dim ((width -/ box.b_width.d_base) // num_two) in
+    let boxes = List.map extended_item_to_box items                   in
+    let box   = resize_box_horiz_upto (HBox.make HBox.LR boxes) width in
+    let shift = fixed_dim ((width -/ box.b_width.d_base) // num_two)  in
 
     new_compound_box
       (fixed_dim width)

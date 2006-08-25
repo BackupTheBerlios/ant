@@ -17,6 +17,8 @@ type mode =
 |  `Paragraph
 |  `Math
 |  `HBox
+|  `LRBox
+|  `RLBox
 |  `VBox
 |  `Table
 ];
@@ -50,6 +52,8 @@ value mode_to_string mode = match mode with
 | `Paragraph -> "paragraph"
 | `Math      -> "math"
 | `HBox      -> "hbox"
+| `LRBox     -> "lrbox"
+| `RLBox     -> "rlbox"
 | `VBox      -> "vbox"
 | `Table     -> "table"
 | _          -> "unknown"

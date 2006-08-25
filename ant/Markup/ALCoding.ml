@@ -44,6 +44,7 @@ value sym_CrampedDisplay       = decl_sym "CrampedDisplay";
 value sym_CrampedScript        = decl_sym "CrampedScript";
 value sym_CrampedScript2       = decl_sym "CrampedScriptScript";
 value sym_CrampedText          = decl_sym "CrampedText";
+value sym_Default              = decl_sym "Default";
 value sym_DelimiterFactor      = decl_sym "DelimiterFactor";
 value sym_DelimiterShortfall   = decl_sym "DelimiterShortfall";
 value sym_Direct               = decl_sym "Direct";
@@ -96,6 +97,8 @@ value sym_LinePenalty          = decl_sym "LinePenalty";
 value sym_LineSkip             = decl_sym "LineSkip";
 value sym_LineSkipLimit        = decl_sym "LineSkipLimit";
 value sym_Looseness            = decl_sym "Looseness";
+value sym_LR                   = decl_sym "LR";
+value sym_LRBox                = decl_sym "LRBox";
 value sym_Math                 = decl_sym "Math";
 value sym_MathAccent           = decl_sym "MathAccent";
 value sym_MathChar             = decl_sym "MathChar";
@@ -146,6 +149,8 @@ value sym_RightHyphenMin       = decl_sym "RightHyphenMin";
 value sym_RightSkip            = decl_sym "RightSkip";
 value sym_RiverDemerits        = decl_sym "RiverDemerits";
 value sym_RiverThreshold       = decl_sym "RiverThreshold";
+value sym_RL                   = decl_sym "RL";
+value sym_RLBox                = decl_sym "RLBox";
 value sym_Root                 = decl_sym "Root";
 value sym_Round                = decl_sym "Round";
 value sym_Rule                 = decl_sym "Rule";
@@ -491,6 +496,8 @@ value encode_mode m = match m with
 | `Paragraph -> Types.Symbol sym_Paragraph
 | `Math      -> Types.Symbol sym_Math
 | `HBox      -> Types.Symbol sym_HBox
+| `LRBox     -> Types.Symbol sym_LRBox
+| `RLBox     -> Types.Symbol sym_RLBox
 | `VBox      -> Types.Symbol sym_VBox
 | `Table     -> Types.Symbol sym_Table
 ];
@@ -512,6 +519,10 @@ value decode_mode name m = do
         `Math
       else if s = sym_HBox then
         `HBox
+      else if s = sym_LRBox then
+        `LRBox
+      else if s = sym_RLBox then
+        `RLBox
       else if s = sym_VBox then
         `VBox
       else if s = sym_Table then
@@ -520,6 +531,32 @@ value decode_mode name m = do
         Types.runtime_error (name ^ ": invalid mode")
     }
   | _ -> Types.runtime_error (name ^ ": invalid mode")
+  ]
+};
+
+value encode_hbox_dir d = match d with
+[ `LR      -> Types.Symbol sym_LR
+| `RL      -> Types.Symbol sym_RL
+| `Default -> Types.Symbol sym_Default
+];
+
+value decode_hbox_dir name d = do
+{
+  Machine.evaluate d;
+
+  match !d with
+  [ Types.Symbol s -> do
+    {
+      if s = sym_LR then
+        `LR
+      else if s = sym_RL then
+        `RL
+      else if s = sym_Default then
+        `Default
+      else
+        Types.runtime_error (name ^ ": invalid direction")
+    }
+  | _ -> Types.runtime_error (name ^ ": invalid direction")
   ]
 };
 

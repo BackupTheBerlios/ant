@@ -84,7 +84,23 @@ value end_hbox ps = do
 {
   match close_node_list ps `HBox with
   [ []    -> ()
-  | nodes -> add_node ps (Node.HBox (location ps) nodes)
+  | nodes -> add_node ps (Node.HBox (location ps) `Default nodes)
+  ]
+};
+
+value end_lrbox ps = do
+{
+  match close_node_list ps `LRBox with
+  [ []    -> ()
+  | nodes -> add_node ps (Node.HBox (location ps) `LR nodes)
+  ]
+};
+
+value end_rlbox ps = do
+{
+  match close_node_list ps `RLBox with
+  [ []    -> ()
+  | nodes -> add_node ps (Node.HBox (location ps) `RL nodes)
   ]
 };
 
@@ -92,8 +108,8 @@ value end_hbox ps = do
 
 value ensure_par_mode ps = match current_mode ps with
 [ `Galley                    -> begin_paragraph ps
-| `Paragraph | `Math | `HBox -> ()
 | `VBox                      -> begin_hbox ps
+| `Paragraph | `Math | `HBox | `LRBox | `RLBox -> ()
 | m                          -> log_error (location ps)
                                   ("You can't start a paragraph in "
                                  ^ ParseState.mode_to_string m
@@ -110,7 +126,9 @@ value leave_par_mode ps = match current_mode ps with
                   end_math ps;
                   end_paragraph ps
                 }
-| `HBox      -> end_hbox ps
+| `HBox      -> end_hbox  ps
+| `LRBox     -> end_lrbox ps
+| `RLBox     -> end_rlbox ps
 | m          -> log_error (location ps)
                   ("Mode "
                  ^ ParseState.mode_to_string m
@@ -150,7 +168,7 @@ value set_mode ps mode = do
                     True
                   }
   | `Math      -> True
-  | `HBox      -> do
+  | `HBox | `LRBox | `RLBox -> do
                   {
                     begin_math ps;
                     True

@@ -749,24 +749,32 @@ value kern ps = do
   let skip = arg_TeX_dim ps in
 
   match current_mode ps with
-  [ `Galley    | `VBox         -> add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) skip True True)
-  | `Paragraph | `HBox | `Math -> add_node ps (Node.Glue (location ps) skip (fun _ -> dim_zero) True True)
-  | _                          -> ()
+  [ `Galley    | `VBox      -> add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) skip True True)
+  | `Paragraph | `HBox
+  | `LRBox | `RLBox | `Math -> add_node ps (Node.Glue (location ps) skip (fun _ -> dim_zero) True True)
+  | _                       -> ()
   ]
 };
 
-value hbox ps = do
+value hbox dir ps = do
 {
-  let close_hbox               contents = add_node ps (Node.HBox       (location ps)        contents) in
-  let close_hbox_to     width  contents = add_node ps (Node.HBoxTo     (location ps) width  contents) in
-  let close_hbox_spread amount contents = add_node ps (Node.HBoxSpread (location ps) amount contents) in
+  let close_hbox               contents = add_node ps (Node.HBox       (location ps) dir        contents) in
+  let close_hbox_to     width  contents = add_node ps (Node.HBoxTo     (location ps) dir width  contents) in
+  let close_hbox_spread amount contents = add_node ps (Node.HBoxSpread (location ps) dir amount contents) in
+
+  let mode = match dir with
+  [ `LR      -> `LRBox
+  | `RL      -> `RLBox
+  | `Default -> `HBox
+  ]
+  in
 
   let open_hbox close_command = do
   {
     if CharCode.cat_code (UCStream.next_char ps.input_stream) = CharCode.BeginGroup then do
     {
 (*      Mode.ensure_par_mode ps; *)
-      close_command (arg_execute ps `HBox)
+      close_command (arg_execute ps mode)
     }
     else
       log_warn (location ps) "syntax error in \\hbox!";
@@ -1316,8 +1324,8 @@ value end_text ps = do
     }
   | `HBox | `Table ->
       List.iter (add_node ps) nodes
-  | `Math | `VBox  ->
-      add_node ps (Node.HBox (location ps) nodes)
+  | `Math | `LRBox | `RLBox | `VBox  ->
+      add_node ps (Node.HBox (location ps) `Default nodes)
   ]
 };
 
@@ -1998,7 +2006,8 @@ value put_math_char ps = do
 value nobreak_space ps = do
 {
   match current_mode ps with
-  [ `Paragraph | `HBox -> add_node ps (Node.Space (location ps))
+  [ `Paragraph | `HBox
+  | `LRBox | `RLBox    -> add_node ps (Node.Space (location ps))
   | _                  -> ()
   ];
 };
@@ -2006,7 +2015,8 @@ value nobreak_space ps = do
 value break_space ps = do
 {
   match current_mode ps with
-  [ `Paragraph | `HBox -> do
+  [ `Paragraph | `HBox
+  | `LRBox | `RLBox    -> do
     {
       add_node ps (Node.Break (location ps) None False [] [] []);
       add_node ps (Node.Space (location ps))
@@ -2025,7 +2035,8 @@ value expand_break_space ps _ = do
 value newline ps = do
 {
   match current_mode ps with
-  [ `Paragraph | `HBox -> do
+  [ `Paragraph | `HBox
+  | `LRBox | `RLBox    -> do
     {
       add_node ps (Node.Break (location ps) None False [] [] []);
       add_node ps (Node.Space (location ps))
@@ -2973,7 +2984,9 @@ value initialise ps = do
   def_unexpandable_cmd "\\vskip"             vskip;
   def_unexpandable_cmd "\\kern"              kern;
 
-  def_unexpandable_cmd "\\hbox"              hbox;
+  def_unexpandable_cmd "\\hbox"              (hbox `Default);
+  def_unexpandable_cmd "\\lrbox"             (hbox `LR);
+  def_unexpandable_cmd "\\rlbox"             (hbox `RL);
   def_unexpandable_cmd "\\vbox"              vbox;
   def_unexpandable_cmd "\\phantom"           phantom;
   def_unexpandable_cmd "\\hphantom"          hphantom;

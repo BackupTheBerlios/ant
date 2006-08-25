@@ -169,12 +169,15 @@ value rec encode_node node = match node with
 | Node.Accent loc a c              -> make_node2 sym_Accent loc
                                         (Types.Char a)
                                         (encode_node_list c)
-| Node.HBox loc b                  -> make_node1 sym_HBox loc
+| Node.HBox loc d b                -> make_node2 sym_HBox loc
+                                        (encode_hbox_dir d)
                                         (encode_node_list b)
-| Node.HBoxTo loc w b              -> make_node2 sym_HBoxTo loc
+| Node.HBoxTo loc d w b            -> make_node3 sym_HBoxTo loc
+                                        (encode_hbox_dir d)
                                         (encode_skip_arg w)
                                         (encode_node_list b)
-| Node.HBoxSpread loc a b          -> make_node2 sym_HBoxSpread loc
+| Node.HBoxSpread loc d a b        -> make_node3 sym_HBoxSpread loc
+                                        (encode_hbox_dir d)
                                         (encode_skip_arg a)
                                         (encode_node_list b)
 | Node.VBox loc b                  -> make_node1 sym_VBox loc
@@ -422,17 +425,20 @@ value rec decode_node name node = do
                 (decode_char name c)
                 (decode_node_list name n)
             else if s = sym_HBox then
-              let (loc, n) = decode_tuple1 name xs in
+              let (loc, d, n) = decode_tuple2 name xs in
               Node.HBox loc
+                (decode_hbox_dir name d)
                 (decode_node_list name n)
             else if s = sym_HBoxTo then
-              let (loc, w, n) = decode_tuple2 name xs in
+              let (loc, d, w, n) = decode_tuple3 name xs in
               Node.HBoxTo loc
+                (decode_hbox_dir name d)
                 (decode_skip_arg name w)
                 (decode_node_list name n)
             else if s = sym_HBoxSpread then
-              let (loc, a, n) = decode_tuple2 name xs in
+              let (loc, d, a, n) = decode_tuple3 name xs in
               Node.HBoxSpread loc
+                (decode_hbox_dir name d)
                 (decode_skip_arg name a)
                 (decode_node_list name n)
             else if s = sym_VBox then

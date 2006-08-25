@@ -62,9 +62,9 @@ value rec get_location node = match node with
 | Node.Rule loc _ _ _              -> loc
 | Node.Image loc _ _ _ _           -> loc
 | Node.Accent loc _ _              -> loc
-| Node.HBox loc _                  -> loc
-| Node.HBoxTo loc _ _              -> loc
-| Node.HBoxSpread loc _ _          -> loc
+| Node.HBox loc _ _                -> loc
+| Node.HBoxTo loc _ _ _            -> loc
+| Node.HBoxSpread loc _ _ _        -> loc
 | Node.VBox loc _                  -> loc
 | Node.VBoxTo loc _ _              -> loc
 | Node.VBoxSpread loc _ _          -> loc
@@ -118,9 +118,9 @@ value rec eval_node env builder node = try
   | Node.Rule loc w h d              -> ev_rule env builder loc w h d
   | Node.Image loc f fmt w h         -> ev_image env builder loc f fmt w h
   | Node.Accent loc a c              -> ev_accent env builder loc a c
-  | Node.HBox loc b                  -> ev_hbox env builder loc b
-  | Node.HBoxTo loc w b              -> ev_hbox_to env builder loc w b
-  | Node.HBoxSpread loc a b          -> ev_hbox_spread env builder loc a b
+  | Node.HBox loc d b                -> ev_hbox env builder loc d b
+  | Node.HBoxTo loc d w b            -> ev_hbox_to env builder loc d w b
+  | Node.HBoxSpread loc d a b        -> ev_hbox_spread env builder loc d a b
   | Node.VBox loc b                  -> ev_vbox env builder loc b
   | Node.VBoxTo loc h b              -> ev_vbox_to env builder loc h b
   | Node.VBoxSpread loc a b          -> ev_vbox_spread env builder loc a b
@@ -820,11 +820,18 @@ and ev_accent env builder loc acc chr = do
 
 (* boxes *)
 
-and ev_hbox env builder _loc boxes = do
+and ev_hbox env builder _loc dir boxes = do
 {
   if !tracing_engine then
     log_string "\n#E: hbox"
   else ();
+
+  let d  = match dir with
+  [ `LR      -> HBox.LR
+  | `RL      -> HBox.RL
+  | `Default -> HBox.LR (* FIX: take value from par-param *)
+  ]
+  in
 
   let (composer, get) =
     Compose.ligature_builder
@@ -832,14 +839,14 @@ and ev_hbox env builder _loc boxes = do
       (current_composer    env)
       (Galley.hyphen_params (current_galley env))
   in
-  let e        = eval_grouped_list env composer boxes in
-  let bs       = get ()                               in
+  let e  = eval_grouped_list env composer boxes in
+  let bs = get ()                               in
 
-  Builder.add_box builder (HBox.make bs);
+  Builder.add_box builder (HBox.make d bs);
   e
 }
 
-and ev_hbox_to env builder _loc width boxes = do
+and ev_hbox_to env builder _loc dir width boxes = do
 {
   let w = width env in
 
@@ -850,6 +857,13 @@ and ev_hbox_to env builder _loc width boxes = do
   }
   else ();
 
+  let d  = match dir with
+  [ `LR      -> HBox.LR
+  | `RL      -> HBox.RL
+  | `Default -> HBox.LR (* FIX: take value from par-param *)
+  ]
+  in
+
   let (composer, get) =
     Compose.ligature_builder
       (current_font_metric env)
@@ -859,11 +873,11 @@ and ev_hbox_to env builder _loc width boxes = do
   let e        = eval_grouped_list env composer boxes in
   let bs       = get ()                               in
 
-  Builder.add_box builder (HBox.make_to w bs);
+  Builder.add_box builder (HBox.make_to d w bs);
   e
 }
 
-and ev_hbox_spread env builder _loc amount boxes = do
+and ev_hbox_spread env builder _loc dir amount boxes = do
 {
   let a = amount env in
 
@@ -874,6 +888,13 @@ and ev_hbox_spread env builder _loc amount boxes = do
   }
   else ();
 
+  let d  = match dir with
+  [ `LR      -> HBox.LR
+  | `RL      -> HBox.RL
+  | `Default -> HBox.LR (* FIX: take value from par-param *)
+  ]
+  in
+
   let (composer, get) =
     Compose.ligature_builder
       (current_font_metric env)
@@ -883,7 +904,7 @@ and ev_hbox_spread env builder _loc amount boxes = do
   let e        = eval_grouped_list env composer boxes in
   let bs       = get ()                               in
 
-  Builder.add_box builder (HBox.make_spread a bs);
+  Builder.add_box builder (HBox.make_spread d a bs);
   e
 }
 
@@ -953,14 +974,14 @@ and ev_phantom env builder _loc horiz vert nodes = do
   if horiz then do
   {
     if vert then
-      Builder.add_box builder (make_phantom  (HBox.make boxes))
+      Builder.add_box builder (make_phantom  (HBox.make HBox.LR boxes))
     else
-      Builder.add_box builder (make_hphantom (HBox.make boxes))
+      Builder.add_box builder (make_hphantom (HBox.make HBox.LR boxes))
   }
   else do
   {
     if vert then
-      Builder.add_box builder (make_vphantom (HBox.make boxes))
+      Builder.add_box builder (make_vphantom (HBox.make HBox.LR boxes))
     else
       ()
   };
@@ -978,7 +999,7 @@ and ev_hleaders env builder _loc width nodes = do
   in
   let e        = eval_grouped_list env composer nodes in
   let boxes    = get ()                               in
-  let box      = HBox.make boxes                      in
+  let box      = HBox.make HBox.LR boxes              in
 
   let f _pi (x, _y) b = do
     {
@@ -1103,7 +1124,7 @@ and ev_math_code env builder _loc code nodes = do
   let get_box body = match body with
   [ []  -> new_glue_box dim_zero dim_zero False False
   | [b] -> MathLayout.remove_math_box b
-  | _   -> HBox.make (Compose.box_add_lig_kern body)
+  | _   -> HBox.make HBox.LR (Compose.box_add_lig_kern body)
   ]
   in
 
@@ -1174,7 +1195,7 @@ and ev_sub_script env builder _loc nodes = do
     Builder.add_box builder
       (new_math_box
         Box.SubScript
-        (HBox.make
+        (HBox.make HBox.LR
           (Compose.box_add_lig_kern
             (MathLayout.layout
               (current_math_style e)
@@ -1204,7 +1225,7 @@ and ev_super_script env builder _loc nodes = do
     Builder.add_box builder
       (new_math_box
         Box.SuperScript
-        (HBox.make
+        (HBox.make HBox.LR
           (Compose.box_add_lig_kern
             (MathLayout.layout
               (current_math_style e)
@@ -1324,7 +1345,7 @@ and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
   Builder.add_box builder
     (MathLayout.make_root
       (current_math_style env)
-      (HBox.make
+      (HBox.make HBox.LR
         (Compose.box_add_lig_kern
           (MathLayout.layout
             style body

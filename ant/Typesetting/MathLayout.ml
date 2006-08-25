@@ -230,9 +230,9 @@ value attach_scripts mbox (lt, lb, vt, vb, rt, rb) style super_shift font_params
       let space = math_params.script_space in
 
       if dim_is_zero space then
-        HBox.make (Compose.box_add_lig_kern script)
+        HBox.make HBox.LR (Compose.box_add_lig_kern script)
       else
-        HBox.make (Compose.box_add_lig_kern (script @ [new_glue_box space dim_zero False False]))
+        HBox.make HBox.LR (Compose.box_add_lig_kern (script @ [new_glue_box space dim_zero False False]))
     }
   }
   in
@@ -816,7 +816,7 @@ value simple_attach_delimiters style left_delim right_delim body font_params mat
 
   new_math_box
     Inner
-    (HBox.make
+    (HBox.make HBox.LR
       (Compose.box_add_lig_kern
         (layout style [left_del :: body @ [right_del]] font_params math_params)
       )
@@ -880,7 +880,7 @@ value attach_delimiters style delims bodies font_params math_params = do
 
           new_math_box
             Inner
-            (HBox.make
+            (HBox.make HBox.LR
               (Compose.box_add_lig_kern
                 (layout style (ListBuilder.get new_body) font_params math_params)))
         }
@@ -931,7 +931,7 @@ value attach_overline box clearance thickness = do
 
 value make_overline style boxes font_params math_params = do
 {
-  let body = HBox.make (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
+  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
 
   let thick  = (get_font_params font_params style).rule_thickness in
 
@@ -942,7 +942,7 @@ value make_overline style boxes font_params math_params = do
 
 value make_underline style boxes font_params math_params = do
 {
-  let body = HBox.make (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
+  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
 
   let thick  = (get_font_params font_params style).rule_thickness in
 
@@ -972,7 +972,7 @@ value make_fraction style num denom left_delim right_delim thickness
     {
       (* remove italic correction *)
 
-      HBox.make_to
+      HBox.make_to HBox.LR
         width.d_base
         (Compose.box_add_lig_kern
           [new_glue_box dim_ss dim_zero False False;
@@ -980,7 +980,7 @@ value make_fraction style num denom left_delim right_delim thickness
            new_glue_box dim_ss dim_zero False False]
         )
     }
-  | _ -> HBox.make_to
+  | _ -> HBox.make_to HBox.LR
            width.d_base
            (Compose.box_add_lig_kern
              [new_glue_box dim_ss dim_zero False False
@@ -1003,12 +1003,12 @@ value make_fraction style num denom left_delim right_delim thickness
   let num_box      = if num_width.d_base </ denom_width.d_base then
                        rebox denom_width num_boxes
                      else
-                       HBox.make (Compose.box_add_lig_kern num_boxes)
+                       HBox.make HBox.LR (Compose.box_add_lig_kern num_boxes)
                      in
   let denom_box    = if denom_width.d_base </ num_width.d_base then
                        rebox num_width denom_boxes
                      else
-                       HBox.make (Compose.box_add_lig_kern denom_boxes)
+                       HBox.make HBox.LR (Compose.box_add_lig_kern denom_boxes)
                      in
   let shift_up_1   = get_num_shift params style thick in
   let shift_down_1 = get_denom_shift params style     in
@@ -1094,7 +1094,7 @@ value make_root style box delim font_params math_params = do
                        clearance
                      in
 
-  HBox.make
+  HBox.make HBox.LR
     (Compose.box_add_lig_kern
       [shift_compound_vert (wrap_in_compound_box root) (box.b_height.d_base +/ real_clear);
        attach_overline box real_clear root.b_height.d_base]
@@ -1103,7 +1103,7 @@ value make_root style box delim font_params math_params = do
 
 value make_accent style char font boxes font_params math_params = do
 {
-  let body   = HBox.make (Compose.box_add_lig_kern (layout (cramped_style style) boxes font_params math_params)) in
+  let body   = HBox.make HBox.LR (Compose.box_add_lig_kern (layout (cramped_style style) boxes font_params math_params)) in
   let width  = body.b_width.d_base  in
   let height = body.b_height.d_base in
 

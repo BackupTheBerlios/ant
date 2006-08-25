@@ -15,6 +15,8 @@ type mode =
 |  `Paragraph
 |  `Math
 |  `HBox
+|  `LRBox
+|  `RLBox
 |  `VBox
 |  `Table
 ];
