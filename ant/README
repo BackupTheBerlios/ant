@@ -48,7 +48,19 @@ following variables:
   $ make depend
   $ make
 
+You might get errors about a stack overflow. In this case you can increase
+your stack size either by
+
+  $ ulimit -s 16384              (if you use the native compilers, OPT=".opt")
+
+or by
+
+  $ make OCAMLRUNPARAM="l=16M"   (if you use the bytecode version, OPT="").
+
 (5) Further documentation can be found in the file “manual.pdf”. The
 directory “Examples” contains some example ant sources including the
-source of the manual.
+source of the manual. Note that some of these examples use fonts not normally
+installed in a TeX system. To compile these documents you have to replace the
+corresponding \include{...} command by \include{fonts.ant} (which loads
+Computer Modern).
 
