@@ -957,6 +957,148 @@ value rec prim_to_string res x = match !x with
 | _            -> runtime_error "to_string: invalid argument"
 ];
 
+(* format_string *)
+
+type format_string_part =
+[ FS_Literal of uc_list
+| FS_String
+| FS_Int
+| FS_Float
+];
+
+value parse_token fmt = match fmt with
+[ [115 :: xs] -> do (* s *)
+  {
+    (FS_String, xs)
+  }
+| [100 :: xs] -> do (* d *)
+  {
+    (FS_Int, xs)
+  }
+| [102 :: xs] -> do (* f *)
+  {
+    (FS_Float, xs)
+  }
+| [37 :: xs] -> do (* % *)
+  {
+    (FS_Literal [37], xs)
+  }
+| _ -> runtime_error "format_string: invalid format"
+];
+
+value parse_format_string fmt = do
+{
+  iter [] 0 fmt
+
+  where rec iter res n fmt = match fmt with
+  [ []         -> (res, n)
+  | [37 :: xs] -> do            (* % *)
+    {
+      let (t, ys) = parse_token xs in
+
+      match t with
+      [ FS_Literal _ -> iter [t :: res] n     ys
+      | _            -> iter [t :: res] (n+1) ys
+      ]
+    }
+  | _ -> do
+    {
+      iter2 [] fmt
+
+      where rec iter2 lit fmt = match fmt with
+      [ []
+      | [37 :: _] -> iter [FS_Literal (List.rev lit) :: res] n fmt
+      | [c :: cs] -> iter2 [c :: lit] cs
+      ]
+    }
+  ]
+};
+
+value rec output_format_string fmt n res args = do
+{
+  let rec add_string res str = match str with
+  [ []      -> res
+  | [c::cs] -> do
+    {
+      let r = ref Unbound in
+      !res := List (ref (Char c)) r;
+      add_string r cs
+    }
+  ]
+  in
+
+  iter res fmt args
+
+  where rec iter res fmt args = match fmt with
+  [ []                     -> !res := Nil
+  | [FS_Literal str :: fs] -> do
+    {
+      let r = add_string res str in
+
+      iter r fs args
+    }
+  | [FS_String :: fs] -> match args with
+    [ [a::bs] -> do
+      {
+        let str = ref [] in
+
+        cont2
+          (fun () -> evaluate_char_list "format_string" str a)
+          (fun () -> do
+            {
+              let r = add_string res !str in
+              iter r fs bs
+            })
+      }
+    | _ -> assert False
+    ]
+  | [FS_Int :: fs] -> match args with
+    [ [a::bs] -> do
+      {
+        let n = ref num_zero in
+        cont2
+          (fun () -> Evaluate.evaluate_num "format_string" n a)
+          (fun () -> do
+            {
+              let s = string_of_num !n in
+              let r = add_string res (UString.string_to_bytes s) in
+              iter r fs bs
+            })
+      }
+    | _ -> assert False
+    ]
+  | [FS_Float :: fs] -> match args with
+    [ [a::bs] -> do
+      {
+        let n = ref num_zero in
+        cont2
+          (fun () -> Evaluate.evaluate_num "format_string" n a)
+          (fun () -> do
+            {
+              let s = string_of_num !n in
+              let r = add_string res (UString.string_to_bytes s) in
+              iter r fs bs
+            })
+      }
+    | _ -> assert False
+    ]
+  ]
+};
+
+value prim_format_string res fmt_string = do
+{
+  let fmt = ref [] in
+
+  cont2
+    (fun () -> evaluate_char_list "format_string" fmt fmt_string)
+    (fun () -> do
+      {
+        let (f, n) = parse_format_string !fmt in
+
+        !res := PrimitiveN n (output_format_string f n)
+      })
+};
+
 value prim_to_tuple res x = do
 {
   let lst = ref [] in
@@ -1314,13 +1456,14 @@ value initial_scope () = do
 
   (* lists and tuples *)
 
-  add1 "length"    prim_length;
-  add1 "to_string" prim_to_string;
-  add1 "to_list"   prim_to_list;
-  add1 "to_tuple"  prim_to_tuple;
-  add1 "dir"       prim_dir;
-  add1 "angle"     prim_angle;
-  add2 "rotate"    prim_rotate;
+  add1 "length"        prim_length;
+  add1 "to_string"     prim_to_string;
+  add1 "format_string" prim_format_string;
+  add1 "to_list"       prim_to_list;
+  add1 "to_tuple"      prim_to_tuple;
+  add1 "dir"           prim_dir;
+  add1 "angle"         prim_angle;
+  add2 "rotate"        prim_rotate;
 
   (* characters *)
 

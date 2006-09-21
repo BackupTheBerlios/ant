@@ -1078,7 +1078,11 @@ value read_range stream = do
 
     skip_spaces stream;
 
-    let n2 = read_simple_num_expression stream in
+    let n2 = if UCStream.next_char stream = (-1) then
+               num_zero
+             else
+               read_simple_num_expression stream
+             in
 
     skip_spaces stream;
 

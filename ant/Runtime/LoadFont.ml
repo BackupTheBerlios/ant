@@ -40,12 +40,15 @@ value load_font name load_params = do
 {
   if name = "" then
     FontMetric.empty_font
-  else match find_font name with
-  [ (file, basename, `TFM)      -> FontTFM.read_tfm file basename load_params
-  | (file, basename, `Type1)    -> FontFT.read_ft   file basename load_params
-  | (file, basename, `OpenType) -> FontFT.read_ft   file basename load_params
-  | (file, basename, `TrueType) -> FontFT.read_ft   file basename load_params
-  | _                           -> assert False
-  ]
+  else try
+    match find_font name with
+    [ (file, basename, `TFM)      -> FontTFM.read_tfm file basename load_params
+    | (file, basename, `Type1)    -> FontFT.read_ft   file basename load_params
+    | (file, basename, `OpenType) -> FontFT.read_ft   file basename load_params
+    | (file, basename, `TrueType) -> FontFT.read_ft   file basename load_params
+    | _                           -> assert False
+    ]
+  with
+  [ Not_found -> FontFT.read_ft name name load_params ]
 };
 
