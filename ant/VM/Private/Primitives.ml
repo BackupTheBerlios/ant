@@ -959,32 +959,99 @@ value rec prim_to_string res x = match !x with
 
 (* format_string *)
 
-type format_string_part =
-[ FS_Literal of uc_list
-| FS_String
-| FS_Int
-| FS_Float
+type number_format =
+[ NF_Decimal
+| NF_Hexadecimal
+| NF_HEXADECIMAL
+| NF_Roman
+| NF_ROMAN
+| NF_Alpha
+| NF_ALPHA
 ];
 
-value parse_token fmt = match fmt with
-[ [115 :: xs] -> do (* s *)
-  {
-    (FS_String, xs)
-  }
-| [100 :: xs] -> do (* d *)
-  {
-    (FS_Int, xs)
-  }
-| [102 :: xs] -> do (* f *)
-  {
-    (FS_Float, xs)
-  }
-| [37 :: xs] -> do (* % *)
-  {
-    (FS_Literal [37], xs)
-  }
-| _ -> runtime_error "format_string: invalid format"
+type format_spec =
+[ FS_Literal of uc_list
+| FS_String of bool and int
+| FS_List of format_spec and uc_list
+| FS_Number of bool and bool and int and int and number_format
 ];
+
+value parse_token fmt = do
+{
+  let rec parse_type align sign len len2 fmt = match fmt with
+  [ [115 :: xs] -> do (* s *)
+    {
+      if sign || len2 > 0 then
+        runtime_error "format_string: invalid format"
+      else
+        (FS_String align len, xs)
+    }
+  | [100 :: xs] -> (* d *)
+      (FS_Number align sign len len2 NF_Decimal,     xs)
+  | [120 :: xs] -> (* x *)
+      (FS_Number align sign len len2 NF_Hexadecimal, xs)
+  | [88 :: xs]  -> (* X *)
+      (FS_Number align sign len len2 NF_HEXADECIMAL, xs)
+  | [114 :: xs] -> (* r *)
+      (FS_Number align sign len len2 NF_Roman,       xs)
+  | [82 :: xs]  -> (* R *)
+      (FS_Number align sign len len2 NF_ROMAN,       xs)
+  | [97 :: xs] -> (* a *)
+      (FS_Number align sign len len2 NF_Alpha,       xs)
+  | [65 :: xs]  -> (* A *)
+      (FS_Number align sign len len2 NF_ALPHA,       xs)
+  | _ -> runtime_error "format_string: invalid format"
+  ]
+  and parse_len2 align sign len len2 fmt = match fmt with
+  [ [c :: cs] -> do
+    {
+      if c >= 48 && c < 58 then
+        parse_len2 align sign len (10 * len2 + c - 48) cs
+      else
+        parse_type align sign len len2 fmt
+    }
+  | _ -> runtime_error "format_string: invalid format"
+  ]
+  and parse_frac align sign len fmt = match fmt with
+  [ [46 :: xs] -> parse_len2 align sign len 0 xs    (* . *)
+  | _          -> parse_type align sign len 0 fmt
+  ]
+  and parse_len align sign len fmt = match fmt with
+  [ [c :: cs] -> do
+    {
+      if c >= 48 && c < 58 then
+        parse_len align sign (10 * len + c - 48) cs
+      else
+        parse_frac align sign len fmt
+    }
+  | _ -> runtime_error "format_string: invalid format"
+  ]
+  and parse_sign align fmt = match fmt with
+  [ [43 :: xs] -> parse_len align True  0 xs   (* + *)
+  | _          -> parse_len align False 0 fmt
+  ]
+  and parse_align fmt = match fmt with
+  [ [37 :: xs] -> (FS_Literal [37], xs)  (* % *)
+  | [91 :: xs] -> parse_list_spec xs     (* [ *)
+  | [45 :: xs] -> parse_sign True  xs    (* - *)
+  | _          -> parse_sign False fmt
+  ]
+  and parse_list_spec fmt = do
+  {
+    let (spec, f) = parse_align fmt in
+
+    iter [] f
+
+    where rec iter sep f = match f with
+    [ []         -> runtime_error "format_string: invalid format"
+    | [93 :: cs] -> (FS_List spec (List.rev sep), cs) (* ] *)
+    | [c :: cs]  -> iter [c :: sep] cs
+    ]
+  }
+  in
+
+  parse_align fmt
+};
 
 value parse_format_string fmt = do
 {
@@ -1026,6 +1093,108 @@ value rec output_format_string fmt n res args = do
     }
   ]
   in
+  let rec add_aligned_string res align len str = do
+  {
+    let rec add_space res n = do
+    {
+      if n <= 0 then
+        res
+      else do
+      {
+        let r = ref Unbound in
+        !res := List (ref (Char 32)) r;
+        add_space r (n-1)
+      }
+    }
+    in
+
+    if len <= 0 then
+      add_string res str
+    else do
+    {
+      let l = List.length str in
+
+      if align then
+        add_space
+          (add_string res str)
+          (l - len)
+      else
+        add_string
+          (add_space res (l - len))
+          str
+    }
+  }
+  in
+  let rec format_argument res var fmt arg = match fmt with
+  [ FS_Literal str -> do
+    {
+      !res := add_string var str
+    }
+  | FS_String align len -> do
+    {
+      cont2
+        (fun () -> Evaluate.evaluate_unknown arg)
+        (fun () -> match !arg with
+          [ Char c   -> !res := add_aligned_string var align len [c]
+          | Symbol s -> !res := add_aligned_string var align len (Array.to_list (symbol_to_string s))
+          | Nil      -> !res := add_aligned_string var align len []
+          | List _ _ -> do
+            {
+              let str = ref [] in
+
+              cont2
+                (fun () -> evaluate_char_list "format_string" str arg)
+                (fun () -> !res := add_aligned_string var align len !str)
+            }
+          | _ -> runtime_error "format_string: invalid argument for %s"
+          ])
+    }
+  | FS_List spec sep -> do
+    {
+      let lst = ref [] in
+
+      cont2
+        (fun () -> Evaluate.evaluate_list "format_string" lst arg)
+        (fun () -> match !lst with
+         [ []      -> !res := var
+         | [x::xs] -> do
+           {
+             let r = ref var in
+             cont2
+               (fun () -> format_argument r var spec x)
+               (fun () -> do
+                 {
+                   iter !r xs
+
+                   where rec iter var lst = match lst with
+                   [ []      -> !res := var
+                   | [x::xs] -> do
+                     {
+                       let r = ref var in
+                       cont3
+                         (fun () -> !r := add_string var sep)
+                         (fun () -> format_argument r !r spec x)
+                         (fun () -> iter !r xs)
+                     }
+                   ]
+                 })
+           }
+         ])
+    }
+  | FS_Number align sign len len2 nf -> do
+    {
+      let n = ref num_zero in
+      cont2
+        (fun () -> Evaluate.evaluate_num "format_string" n arg)
+        (fun () -> do
+          {
+            (* FIX *)
+            let s = string_of_num !n in
+            !res := add_string var (UString.string_to_bytes s)
+          })
+    }
+  ]
+  in
 
   iter res fmt args
 
@@ -1033,52 +1202,15 @@ value rec output_format_string fmt n res args = do
   [ []                     -> !res := Nil
   | [FS_Literal str :: fs] -> do
     {
-      let r = add_string res str in
-
-      iter r fs args
+      iter (add_string res str) fs args
     }
-  | [FS_String :: fs] -> match args with
-    [ [a::bs] -> do
+  | [f :: fs] -> match args with
+    [ [b::bs] -> do
       {
-        let str = ref [] in
-
+        let r = ref res in
         cont2
-          (fun () -> evaluate_char_list "format_string" str a)
-          (fun () -> do
-            {
-              let r = add_string res !str in
-              iter r fs bs
-            })
-      }
-    | _ -> assert False
-    ]
-  | [FS_Int :: fs] -> match args with
-    [ [a::bs] -> do
-      {
-        let n = ref num_zero in
-        cont2
-          (fun () -> Evaluate.evaluate_num "format_string" n a)
-          (fun () -> do
-            {
-              let s = string_of_num !n in
-              let r = add_string res (UString.string_to_bytes s) in
-              iter r fs bs
-            })
-      }
-    | _ -> assert False
-    ]
-  | [FS_Float :: fs] -> match args with
-    [ [a::bs] -> do
-      {
-        let n = ref num_zero in
-        cont2
-          (fun () -> Evaluate.evaluate_num "format_string" n a)
-          (fun () -> do
-            {
-              let s = string_of_num !n in
-              let r = add_string res (UString.string_to_bytes s) in
-              iter r fs bs
-            })
+          (fun () -> format_argument r res f b)
+          (fun () -> iter !r fs bs)
       }
     | _ -> assert False
     ]

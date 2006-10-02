@@ -13,6 +13,9 @@ Examples/manual.pdf: ant Examples/manual.ant Examples/manual.sty
 debug-manual: ant Examples/manual.ant Examples/manual.sty
 	cd Examples; ocamldebug $(addprefix -I ../,Tools $(DIRECTORIES)) ../ant $(ANTFLAGS) manual.ant
 
+debug-minimal: ant
+	cd Examples; ocamldebug $(addprefix -I ../,Tools $(DIRECTORIES)) ../ant $(ANTFLAGS) minimal.ant
+
 Examples/test.dvi: Examples/test.ant
 	./ant Examples/test.ant
 
