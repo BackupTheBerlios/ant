@@ -12,6 +12,8 @@ value add_primitives scope = do
   Array.iter
     (fun (n,p) -> bind_primitive scope n p)
     [|
+      ("ps_get_global",           PrimitiveN 3 ps_get_global);
+      ("ps_set_global",           PrimitiveN 3 ps_set_global);
       ("ps_next_char",            Primitive2 ps_next_char);
       ("ps_get_char",             PrimitiveN 3 ps_get_char);
       ("ps_remove_chars",         Primitive2 ps_remove_chars);

@@ -7,6 +7,7 @@ open Unicode.SymbolTable;
 
 module UString = Unicode.UString;  (* we cannot open Unicode because of the name clash with Types *)
 module UChar   = Unicode.UChar;
+module Format  = Unicode.Format;
 
 value cont  = CStack.cont;
 value cont2 = CStack.cont2;
@@ -1081,6 +1082,52 @@ value parse_format_string fmt = do
   ]
 };
 
+value number_to_string sign len2 nf x = do
+{
+  let to_str nf x = match nf with
+  [ NF_Decimal     -> Format.num_to_arabic  10 x
+  | NF_Hexadecimal -> Format.num_to_arabic  10 x
+  | NF_HEXADECIMAL -> Format.num_to_ARABIC  10 x
+  | NF_Roman       -> Format.num_to_roman      x
+  | NF_ROMAN       -> Format.num_to_ROMAN      x
+  | NF_Alpha       -> Format.num_to_alphabetic x
+  | NF_ALPHA       -> Format.num_to_ALPHABETIC x
+  ]
+  in
+
+  let pos_num_to_string len2 nf x = do
+  {
+    let y  = floor_num x in
+    let z  = x -/ y      in
+    let s1 = to_str nf y in
+
+    if len2 <= 0 then do
+    {
+      if z <=/ num_of_ints 1 10000000 then
+        s1
+      else
+        s1 @ add_fractional 7 z
+    }
+    else
+      s1 @ add_fractional len2 z
+  }
+  where add_fractional len x = do
+  {
+    let s = to_str nf (floor_num (x */ power_num num_ten (num_of_int len))) in
+    let l = List.length s in
+
+    [46 :: XList.repeat (len - l) 48 @ s]
+  }
+  in
+
+  if x </ num_zero then
+    [45 :: pos_num_to_string len2 nf (minus_num x)]
+  else if sign then
+    [43 :: pos_num_to_string len2 nf x]
+  else
+    pos_num_to_string len2 nf x
+};
+
 value rec output_format_string fmt n res args = do
 {
   let rec add_string res str = match str with
@@ -1093,17 +1140,17 @@ value rec output_format_string fmt n res args = do
     }
   ]
   in
-  let rec add_aligned_string res align len str = do
+  let rec add_aligned_string res align pad len str = do
   {
-    let rec add_space res n = do
+    let rec add_padding pad res n = do
     {
       if n <= 0 then
         res
       else do
       {
         let r = ref Unbound in
-        !res := List (ref (Char 32)) r;
-        add_space r (n-1)
+        !res := List (ref (Char pad)) r;
+        add_padding pad r (n-1)
       }
     }
     in
@@ -1115,12 +1162,13 @@ value rec output_format_string fmt n res args = do
       let l = List.length str in
 
       if align then
-        add_space
+        add_padding
+          pad
           (add_string res str)
           (l - len)
       else
         add_string
-          (add_space res (l - len))
+          (add_padding pad res (l - len))
           str
     }
   }
@@ -1135,16 +1183,16 @@ value rec output_format_string fmt n res args = do
       cont2
         (fun () -> Evaluate.evaluate_unknown arg)
         (fun () -> match !arg with
-          [ Char c   -> !res := add_aligned_string var align len [c]
-          | Symbol s -> !res := add_aligned_string var align len (Array.to_list (symbol_to_string s))
-          | Nil      -> !res := add_aligned_string var align len []
+          [ Char c   -> !res := add_aligned_string var align 32 len [c]
+          | Symbol s -> !res := add_aligned_string var align 32 len (Array.to_list (symbol_to_string s))
+          | Nil      -> !res := add_aligned_string var align 32 len []
           | List _ _ -> do
             {
               let str = ref [] in
 
               cont2
                 (fun () -> evaluate_char_list "format_string" str arg)
-                (fun () -> !res := add_aligned_string var align len !str)
+                (fun () -> !res := add_aligned_string var align 32 len !str)
             }
           | _ -> runtime_error "format_string: invalid argument for %s"
           ])
@@ -1188,9 +1236,8 @@ value rec output_format_string fmt n res args = do
         (fun () -> Evaluate.evaluate_num "format_string" n arg)
         (fun () -> do
           {
-            (* FIX *)
-            let s = string_of_num !n in
-            !res := add_string var (UString.string_to_bytes s)
+            !res := add_aligned_string var align 32 len
+                      (number_to_string sign len2 nf !n)
           })
     }
   ]

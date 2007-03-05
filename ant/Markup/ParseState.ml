@@ -36,6 +36,7 @@ type parse_state =
   environment_stack : Stack.t (uc_list * list uc_list);
   math_codes        : mutable Charmap.charmap (Box.math_code * (int * int) * (uc_char * uc_char));
   al_scope          : mutable VM.Machine.scope;
+  global_variables  : mutable SymbolTable.SymbolMap.t VM.Types.partial_value;
   counter_table     : mutable Counter.counter_table;
   old_references    : mutable DynUCTrie.t uc_string;
   references        : mutable DynUCTrie.t uc_string
@@ -74,6 +75,7 @@ value create () =
   environment_stack = Stack.create ();
   math_codes        = Charmap.create (Box.NoMath, (0, 0), (0, 0));
   al_scope          = VM.Machine.make_scope ();
+  global_variables  = SymbolTable.SymbolMap.empty;
   counter_table     = Counter.empty_table;
   old_references    = DynUCTrie.empty;
   references        = DynUCTrie.empty
@@ -97,6 +99,7 @@ value duplicate ps =
   environment_stack = Stack.create ();
   math_codes        = Charmap.copy ps.math_codes;
   al_scope          = ps.al_scope;
+  global_variables  = ps.global_variables;
   counter_table     = ps.counter_table;
   references        = ps.references;
   old_references    = ps.old_references
@@ -484,7 +487,7 @@ value gen_unique_name () = do
 {
   incr unique_name_counter;
 
-  UString.of_ascii " $uid " @ Counter.int_to_arabic !unique_name_counter
+  UString.of_ascii " $uid " @ Format.num_to_arabic 10 (num_of_int !unique_name_counter)
 };
 
 (* references *)

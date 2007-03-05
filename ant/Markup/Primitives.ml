@@ -1572,13 +1572,13 @@ value format_counter ps fmt ctr = do
   in
 
   match fmt with
-  [ [105] -> Counter.int_to_roman      (get_counter ps ctr)   (* "i" *)
-  | [73]  -> Counter.int_to_ROMAN      (get_counter ps ctr)   (* "I" *)
-  | [97]  -> Counter.int_to_alphabetic (get_counter ps ctr)   (* "a" *)
-  | [65]  -> Counter.int_to_ALPHABETIC (get_counter ps ctr)   (* "A" *)
-  | [114 :: str] -> repeat (get_counter ps ctr) str           (* "r{...}"      *)
-  | [115 :: str] -> select (get_counter ps ctr) str           (* "s{..}..{..}" *)
-  | _     -> Counter.int_to_arabic     (get_counter ps ctr)   (* "1" *)
+  [ [105] -> Format.num_to_roman      (num_of_int (get_counter ps ctr))   (* "i" *)
+  | [73]  -> Format.num_to_ROMAN      (num_of_int (get_counter ps ctr))   (* "I" *)
+  | [97]  -> Format.num_to_alphabetic (num_of_int (get_counter ps ctr))   (* "a" *)
+  | [65]  -> Format.num_to_ALPHABETIC (num_of_int (get_counter ps ctr))   (* "A" *)
+  | [114 :: str] -> repeat (get_counter ps ctr) str                  (* "r{...}" *)
+  | [115 :: str] -> select (get_counter ps ctr) str             (* "s{..}..{..}" *)
+  | _     -> Format.num_to_arabic 10  (num_of_int (get_counter ps ctr))   (* "1" *)
   ]
 };
 

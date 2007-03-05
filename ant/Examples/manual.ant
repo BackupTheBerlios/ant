@@ -1,13 +1,20 @@
 \definecommand\version{0.8}
 \include{allib.ant}
+
+% font definitions
+
 %\include{FontSite.ant}
 \include{LatinModern.ant}
 \definecommand\FontFamilySans{Latin Modern Sans Serif}
 \definecommand\FontFamilyTypewriter{Latin Modern Typewriter}
 \include{fonts.ant}
+
+% If you do not have MinionPro then comment out the next three lines.
 \include{MinionPro.ant}
 \definecommand\scshape{\setparameter{font}{ features = {liga,kern,smcp} }}
 \include{MnSymbol.ant}
+
+
 \include{manual.sty}
 \include{manual.refdb}
 
@@ -93,7 +100,15 @@ of texts outside this narrow scope. For instance, the current draft of the new o
 of \TeX\ since its source code is a total mess. Even after 20 years there are only versions with
 minor modifications available.
 
+:\hbox{If you can read this your glasses are upside down\?!}:
+
+:\lrbox{If you can read this your glasses are upside down\?!}:
+
+:\rlbox{If you can read this your glasses are upside down\?!}:
+
+
 For these reasons I decided to rewrite \ant\ from scratch aiming for a simple, clean, and modular design.
+%\setparameter{this-paragraph}{ pre-break = «; post-break = » }%
 In particular it is easily possible to replace parts of \ant\ with other implementations, say,
 adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 \textsc{p\kern{0.03em}d\kern{0.03em}f} files, or a different page layout algorithm.
@@ -110,6 +125,8 @@ adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 %     (Point,(u,0)),
 %     Cycle])
 %}}}
+
+%\image{test.pdf}
 
 The current version of \ant\ implements all the major features of \TeX\ but a lot of minor
 things are still missing.
@@ -1793,6 +1810,12 @@ Counters\?:
   \cs{ps_get_counter} \nterm{value} \nterm{name} \nterm{ps}
 
   \cs{ps_set_counter} \nterm{name} \nterm{value} \nterm{ps}
+\end{code}
+Global variables\?:
+\begin{code}
+  \cs{ps_get_global} \nterm{result} \nterm{name} \nterm{ps}
+
+  \cs{ps_get_global} \nterm{name} \nterm{value} \nterm{ps}
 \end{code}
 References\?:
 \begin{code}

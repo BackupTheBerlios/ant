@@ -1,5 +1,5 @@
 
-UNICODE_MOD = Unicode/Types Unicode/Charmap Unicode/UChar Unicode/UString Unicode/SymbolTable
+UNICODE_MOD = Unicode/Types Unicode/Charmap Unicode/UChar Unicode/UString Unicode/SymbolTable Unicode/Format
 UNICODE_ML  = $(addsuffix .ml,$(UNICODE_MOD))
 UNICODE_MLI = $(addsuffix .mli,$(UNICODE_MOD))
 UNICODE_CMO = $(addsuffix .$(CMO),$(UNICODE_MOD))

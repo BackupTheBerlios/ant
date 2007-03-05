@@ -34,6 +34,7 @@ type parse_state =
   environment_stack : Stack.t (uc_list * list uc_list);
   math_codes        : mutable Charmap.charmap (Box.math_code * (int * int) * (uc_char * uc_char));
   al_scope          : mutable VM.Machine.scope;
+  global_variables  : mutable SymbolTable.SymbolMap.t VM.Types.partial_value;
   counter_table     : mutable Counter.counter_table;
   old_references    : mutable DynUCTrie.t uc_string;
   references        : mutable DynUCTrie.t uc_string

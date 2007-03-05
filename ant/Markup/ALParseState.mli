@@ -14,6 +14,8 @@ value execute_ps_command        : string -> UCStream.istream -> (parse_state -> 
 value encode_command            : string -> command -> partial_value;
 value decode_command            : string -> unknown -> unknown -> command;
 
+value ps_get_global             : unknown -> list unknown -> unit;
+value ps_set_global             : unknown -> list unknown -> unit;
 value ps_next_char              : unknown -> unknown -> unknown -> unit;
 value ps_get_char               : unknown -> list unknown -> unit;
 value ps_remove_chars           : unknown -> unknown -> unknown -> unit;

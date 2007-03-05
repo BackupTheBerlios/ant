@@ -69,6 +69,41 @@ value ps_cmd name res parse_command f = do
 
 (* primitives *)
 
+(* globals *)
+
+value ps_get_global res args = match args with
+[ [var; sym; parse_command] -> do
+  {
+    ps_cmd "ps_get_global" res parse_command
+      (fun ps -> do
+        {
+          let s = decode_symbol "ps_get_global" sym in
+
+          try
+            Machine.set_unknown var (SymbolTable.SymbolMap.find s ps.global_variables)
+          with
+          [ Not_found -> () ]
+        })
+  }
+| _ -> assert False
+];
+
+value ps_set_global res args = match args with
+[ [sym; val; parse_command] -> do
+  {
+    ps_cmd "ps_set_global" res parse_command
+      (fun ps -> do
+        {
+          let s = decode_symbol "ps_set_global" sym in
+
+          Machine.evaluate val;
+
+          ps.global_variables := SymbolTable.SymbolMap.add s !val ps.global_variables
+        })
+  }
+| _ -> assert False
+];
+
 (* stream commands *)
 
 value ps_next_char res c parse_command = do
