@@ -17,8 +17,8 @@ SELFAUTODIR    := $(shell kpsewhich '--expand-var=$$SELFAUTODIR')
 SELFAUTOPARENT := $(shell kpsewhich '--expand-var=$$SELFAUTOPARENT')
 
 # compile flags for C files
-KPATHSEA_LFLAGS = -cclib -L/usr/local/teTeX/lib
-KPATHSEA_CFLAGS = -ccopt -I/usr/local/teTeX/include
+KPATHSEA_LFLAGS = -cclib -L$(SELFAUTOPARENT)/lib
+KPATHSEA_CFLAGS = -ccopt -I$(SELFAUTOPARENT)/include
 SELFAUTO_FLAGS  = -ccopt -DSELFAUTOLOC='\"$(SELFAUTOLOC)\"' \
                   -ccopt -DSELFAUTODIR='\"$(SELFAUTODIR)\"' \
                   -ccopt -DSELFAUTOPARENT='\"$(SELFAUTOPARENT)\"'

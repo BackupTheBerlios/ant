@@ -1833,6 +1833,10 @@ References\?:
 
   \cs{ps_write_references} \nterm{file} \nterm{ps}
 \end{code}
+Miscellaneous\?:
+\begin{code}
+  \cs{ps_dvi_special} \nterm{string} \nterm{ps}
+\end{code}
 Running the parser\?:
 \begin{code}
   \cs{ps_execute_next_char} \nterm{finished} \nterm{ps}

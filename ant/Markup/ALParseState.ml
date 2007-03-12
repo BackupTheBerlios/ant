@@ -1525,6 +1525,22 @@ value ps_write_references res file parse_command = do
       })
 };
 
+(* misc *)
+
+value ps_dvi_special res special parse_command = do
+{
+  ps_cmd "ps_dvi_special" res parse_command
+    (fun ps -> do
+      {
+        let s = Machine.decode_string "ps_dvi_special" special in
+
+        ParseState.add_node ps
+          (Node.CommandBox
+            (ParseState.location ps)
+            (`Special (`DVI_Special (UString.to_string s))))
+      })
+};
+
 (* running the parser *)
 
 value ps_execute_next_char res finished parse_command = do

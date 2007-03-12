@@ -77,6 +77,7 @@ value ps_fold_references        : unknown -> list unknown -> unit;
 value ps_store_old_references   : unknown -> unknown -> unit;
 value ps_compare_references     : unknown -> unknown -> unknown -> unit;
 value ps_write_references       : unknown -> unknown -> unknown -> unit;
+value ps_dvi_special            : unknown -> unknown -> unknown -> unit;
 value ps_execute_next_char      : unknown -> unknown -> unknown -> unit;
 value ps_execute_stream         : unknown -> unknown -> unknown -> unit;
 value ps_execute_argument       : unknown -> unknown -> unit;

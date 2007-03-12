@@ -86,6 +86,8 @@ value add_primitives scope = do
       ("ps_compare_references",   Primitive2 ps_compare_references);
       ("ps_write_references",     Primitive2 ps_write_references);
 
+      ("ps_dvi_special",          Primitive2 ps_dvi_special);
+
       ("ps_execute_next_char",    Primitive2 ps_execute_next_char);
       ("ps_execute_stream",       Primitive2 ps_execute_stream);
       ("ps_execute_argument",     Primitive1 ps_execute_argument);

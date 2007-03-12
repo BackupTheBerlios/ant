@@ -1,5 +1,5 @@
 
-VM_MOD         = VM/Opaque VM/Types VM/Private/VMPrivate VM/Machine
+VM_MOD         = VM/Opaque VM/Types VM/Private/VMPrivate VM/Serialise VM/Machine
 VM_ML          = $(addsuffix .ml,$(VM_MOD))
 VM_MLI         = $(addsuffix .mli,$(VM_MOD))
 VM_CMO         = $(addsuffix .$(CMO),$(VM_MOD))
