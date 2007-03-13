@@ -1,5 +1,5 @@
 
-type output_format = [ DVI | PDF | PS | SVG ];
+type output_format = [ DVI | XDVI | PDF | PS | SVG ];
 
 value time             : Unix.tm;
 value argv             : array string;

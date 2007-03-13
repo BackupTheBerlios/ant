@@ -2,7 +2,7 @@
 open Runtime;
 open Logging;
 
-type output_format = [ DVI | PDF | PS | SVG ];
+type output_format = [ DVI | XDVI | PDF | PS | SVG ];
 
 value time             = Unix.localtime (Unix.time ());
 value argv             = Sys.argv;
@@ -33,8 +33,9 @@ value start_job name = do
   !src_special_file := basename ^ ".pdfsync";
 
   match !output_format with
-  [ DVI -> !output_file := basename ^ ".dvi"
-  | PDF -> do
+  [ DVI  -> !output_file := basename ^ ".dvi"
+  | XDVI -> !output_file := basename ^ ".xdvi"
+  | PDF  -> do
     {
       !output_file := basename ^ ".pdf";
 

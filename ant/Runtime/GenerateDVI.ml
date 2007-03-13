@@ -7,10 +7,13 @@ open Substitute;
 open GlyphMetric;
 open FontMetric;
 
+type dvi_format = [ DVI | XDVI ];
+
 type state 'a =
 {
-  os   : mutable IO.ostream;
-  data : mutable 'a
+  os     : mutable IO.ostream;
+  format : dvi_format;
+  data   : mutable 'a
 };
 
 type draw_info =
@@ -84,8 +87,13 @@ value write_special os string = do
 
 value write_preamble state comment = do
 {
-  IO.write_be_u8  state.os 247;
-  IO.write_be_u8  state.os 2;
+  IO.write_be_u8 state.os 247;
+
+  match state.format with
+  [ DVI  -> IO.write_be_u8 state.os 2
+  | XDVI -> IO.write_be_u8 state.os 5
+  ];
+
   IO.write_be_u32 state.os (num_of_int 25400000);
   IO.write_be_u32 state.os (num_of_int 473628672);
   IO.write_be_u32 state.os (num_of_int 1000);
@@ -93,9 +101,9 @@ value write_preamble state comment = do
   IO.write_string state.os comment
 };
 
-(* |load_font <channel> <font> <font-index>| outputs the DVI-commands to load the given font. *)
+(* |load_tex_font <channel> <font> <font-index>| outputs the DVI-commands to load the given font. *)
 
-value load_font state font idx = do
+value load_tex_font state font idx = do
 {
   if idx < 0x100 then do
   {
@@ -119,6 +127,28 @@ value load_font state font idx = do
   IO.write_be_u8  state.os 0;
   IO.write_be_u8  state.os (String.length font.name);
   IO.write_string state.os font.name
+};
+
+value load_native_font state font idx = do
+{
+  IO.write_be_u8  state.os 252;
+  IO.write_be_u32 state.os (num_of_int idx);
+  write_rat       state.os font.at_size;
+  IO.write_be_u16 state.os 2;
+  IO.write_be_u8  state.os (String.length font.file_name + 2);
+  IO.write_be_u8  state.os 0;
+  IO.write_be_u8  state.os 0;
+  IO.write_string state.os "[";
+  IO.write_string state.os font.file_name;
+  IO.write_string state.os "]";
+};
+
+value load_font state font idx = do
+{
+  if state.format = XDVI && font.font_type <> Other then
+    load_native_font state font idx
+  else
+    load_tex_font state font idx
 };
 
 value rec write_font_defs state font_defs = match font_defs with
@@ -148,7 +178,12 @@ value write_postamble state = do
 
   IO.write_be_u8  state.os 249;
   IO.write_be_u32 state.os (num_of_int pos);
-  IO.write_be_u8  state.os 2;
+
+  match state.format with
+  [ DVI  -> IO.write_be_u8 state.os 2
+  | XDVI -> IO.write_be_u8 state.os 5
+  ];
+
   IO.write_be_u8  state.os 223;
   IO.write_be_u8  state.os 223;
   IO.write_be_u8  state.os 223;
@@ -271,6 +306,16 @@ value rec write_pages state pages = do
                                         loaded_fonts = new_loaded_fonts };
 
       write_boxes_char char font box_h box_v state
+    }
+    else if state.format = XDVI && font.font_type <> Other then do
+    {
+      IO.write_be_u8 state.os 254;
+      IO.write_be_u32 state.os delta_h;
+      IO.write_be_u16 state.os 1;
+      IO.write_be_u32 state.os (num_of_int 0);
+      IO.write_be_u16 state.os char;
+      state.data := { (state.data) with pos_h = state.data.pos_h +/ delta_h;
+                                        stack_depth = 0 }
     }
     else if char < 0x80 then do
     {
@@ -588,12 +633,13 @@ value rec write_pages state pages = do
   ]
 };
 
-value write_dvi_file name comment pages = do
+value write_file format name comment pages = do
 {
   let state =
   {
-    os   = (IO.make_out_stream name :> IO.ostream);
-    data =
+    os     = (IO.make_out_stream name :> IO.ostream);
+    format = format;
+    data   =
       {
         page_lengths = [];
         font_defs    = [];
@@ -604,12 +650,20 @@ value write_dvi_file name comment pages = do
   }
   in
 
-  write_preamble state comment;
-
-  write_pages state pages;
-
+  write_preamble  state comment;
+  write_pages     state pages;
   write_postamble state;
 
   IO.free state.os
+};
+
+value write_dvi_file name comment pages = do
+{
+  write_file DVI name comment pages
+};
+
+value write_xdvi_file name comment pages = do
+{
+  write_file XDVI name comment pages
 };
 

@@ -10,7 +10,7 @@ value print_help () = do
   print_string "This is ant, version 0.8.\n\n";
   print_string "USAGE: ant [options] <input-file>\n\n";
   print_string "Supported options are:\n\n";
-  print_string "--format=<fmt>    where <fmt> is either \"dvi\", \"ps\", \"pdf\", or \"svg\"\n";
+  print_string "--format=<fmt>    where <fmt> is \"dvi\", \"xdvi\", \"ps\", \"pdf\", or \"svg\"\n";
   print_string "--src-specials    enables the generation of source specials\n";
   print_string "--debug=<flags>   where <flags> may contain the following letters:\n";
   print_string "                    e   engine\n";
@@ -61,6 +61,11 @@ value rec process_options file args = match args with
         [ "dvi" -> do
           {
             !Job.output_format := Job.DVI;
+            process_options file args
+          }
+        | "xdvi" -> do
+          {
+            !Job.output_format := Job.XDVI;
             process_options file args
           }
         | "pdf" -> do
