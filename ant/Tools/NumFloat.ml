@@ -112,3 +112,48 @@ value int_of_num = int_of_float;
 
 value num_of_float x = x;
 
+value serialise_num os x = do
+{
+  let z    = Int64.bits_of_float x in
+  let mask = Int64.of_int 0xff     in
+  let b0   = Int64.logand z mask   in
+  let b1   = Int64.logand (Int64.shift_right_logical z  8) mask in
+  let b2   = Int64.logand (Int64.shift_right_logical z 16) mask in
+  let b3   = Int64.logand (Int64.shift_right_logical z 24) mask in
+  let b4   = Int64.logand (Int64.shift_right_logical z 32) mask in
+  let b5   = Int64.logand (Int64.shift_right_logical z 40) mask in
+  let b6   = Int64.logand (Int64.shift_right_logical z 48) mask in
+  let b7   = Int64.logand (Int64.shift_right_logical z 56) mask in
+
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b7));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b6));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b5));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b4));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b3));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b2));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b1));
+  IO_Base.io_write_char os (char_of_int (Int64.to_int b0));
+};
+
+value unserialise_num is = do
+{
+  let b7 = int_of_char (IO_Base.io_read_char is) in
+  let b6 = int_of_char (IO_Base.io_read_char is) in
+  let b5 = int_of_char (IO_Base.io_read_char is) in
+  let b4 = int_of_char (IO_Base.io_read_char is) in
+  let b3 = int_of_char (IO_Base.io_read_char is) in
+  let b2 = int_of_char (IO_Base.io_read_char is) in
+  let b1 = int_of_char (IO_Base.io_read_char is) in
+  let b0 = int_of_char (IO_Base.io_read_char is) in
+
+  let x0 = Int64.of_int (b0 lor (b1 lsl 8)) in
+  let x1 = Int64.of_int (b2 lor (b3 lsl 8)) in
+  let x2 = Int64.of_int (b4 lor (b5 lsl 8)) in
+  let x3 = Int64.of_int (b6 lor (b7 lsl 8)) in
+
+  let y0 = Int64.logor x0 (Int64.shift_left x1 16) in
+  let y1 = Int64.logor x2 (Int64.shift_left x3 16) in
+
+  Int64.float_of_bits (Int64.logor y0 (Int64.shift_left y1 32))
+};
+

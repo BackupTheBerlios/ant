@@ -39,7 +39,7 @@ Unicode/Tables.o: Unicode/Tables.c
 	mv Tables.o $@  # BUG: ocaml creates the object file in the current directory
 
 Unicode/Unicode.$(CMO): $(UNICODE_CMO) $(UNICODE_O)
-	$(MLC) -pack $(DEBUGFLAGS) -I Unicode -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I Unicode -o $@ $(CUSTOM) $^
 
 Unicode/Unicode.cmi Unicode/Unicode.o: Unicode/Unicode.$(CMO)
 	touch $@

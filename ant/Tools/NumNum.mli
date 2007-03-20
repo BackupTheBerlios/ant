@@ -55,3 +55,6 @@ value num_of_ints  : int -> int -> num;
 value float_of_num : num -> float;
 value num_of_float : float -> num;
 
+value serialise_num   : IO_Base.io [> IO_Base.io_w] -> num -> unit;
+value unserialise_num : IO_Base.io [> IO_Base.io_r] -> num;
+

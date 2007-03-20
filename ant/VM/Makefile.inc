@@ -18,13 +18,13 @@ else
 endif
 
 VM/Private/VMPrivate.$(CMO): $(VM_PRIVATE_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -I VM/Private -for-pack VM -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I VM/Private -for-pack VM -o $@ $(CUSTOM) $^
 
 VM/Private/VMPrivate.cmi VM/Private/VMPrivate.o: VM/Private/VMPrivate.$(CMO)
 	touch $@
 
 VM/VM.$(CMO): $(VM_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -I VM -I VM/Private -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I VM -I VM/Private -o $@ $(CUSTOM) $^
 
 VM/VM.cmi VM/VM.o: VM/VM.$(CMO)
 	touch $@

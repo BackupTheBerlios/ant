@@ -197,7 +197,7 @@ value embedd_type1_font font os = do
 
   skip_block_header is;
 
-  copy_part_2 is os is_bin;
+  copy_part_2 (IO.coerce_i is) (IO.coerce_o os) is_bin;
 
   let off2 = IO.pos os in
 

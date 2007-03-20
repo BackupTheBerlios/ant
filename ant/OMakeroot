@@ -1,0 +1,35 @@
+open build/C
+open build/OCaml
+open build/LaTeX
+
+open Ant
+
+DefineCommandVars()
+
+OCamlPackageModules(package, modules) =
+  section
+    # compile the modules with "-for-pack"
+    OCAMLFLAGS += -for-pack $(package)
+
+    foreach(m, $(modules))
+      if $(target-exists $(m).ml)
+        $(m).cmx $(m).o: $(m).ml
+      if $(target-exists $(m).mli)
+        $(m).cmi: $(m).mli
+
+OCamlPackageCopy(tag, dir, package) =
+  private.dest = $(dir)/$(basename $(package))
+
+  foreach(suf, cmo cmx cmi o)
+    $(dest).$(suf): $(package).$(suf)
+      ln-or-cp $< $@
+
+  if NATIVE_ENABLED
+    $(tag): $(dest).cmx $(dest).cmi $(dest).o
+  else
+    $(tag): $(dest).cmo $(dest).cmi
+
+
+.SUBDIRS: .
+
+# vim:set ft=make:

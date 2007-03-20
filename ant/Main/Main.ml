@@ -34,30 +34,33 @@ value rec process_options file args = match args with
   ]
 | [arg::args] -> do
   {
-    if arg = "" then
+    let len = String.length arg in
+
+    if len = 0 then
       process_options file args
-    else if arg.[0] = '-' then do
+    else if arg.[0] = '-' && len > 1 then do
     {
       let v = if arg.[1] = '-' then
-                String.sub arg 2 (String.length arg - 2)
+                String.sub arg 2 (len - 2)
               else
-                String.sub arg 1 (String.length arg - 1)
+                String.sub arg 1 (len - 1)
               in
+      let len = String.length v in
 
       if v = "help" then do
       {
         print_help ();
         None
       }
-      else if String.sub v 0 6 = "format" then do
+      else if len >= 6 && String.sub v 0 6 = "format" then do
       {
-        if String.length v = 6 || v.[6] <> '=' then do
+        if len = 6 || v.[6] <> '=' then do
         {
           print_string "Unknown option!\n\n";
           print_help ();
           None
         }
-        else match String.lowercase (String.sub v 7 (String.length v - 7)) with
+        else match String.lowercase (String.sub v 7 (len - 7)) with
         [ "dvi" -> do
           {
             !Job.output_format := Job.DVI;
@@ -91,9 +94,9 @@ value rec process_options file args = match args with
           }
         ];
       }
-      else if String.sub v 0 5 = "debug" then do
+      else if len >= 5 && String.sub v 0 5 = "debug" then do
       {
-        if String.length v = 5 then do
+        if len = 5 then do
         {
           !ParseState.tracing_macros := True;              (* default: --debug=m *)
           process_options file args
@@ -106,7 +109,7 @@ value rec process_options file args = match args with
         }
         else do
         {
-          for i = 6 to String.length v - 1 do
+          for i = 6 to len - 1 do
           {
             match v.[i] with
             [ 'e' -> !Engine.Evaluate.tracing_engine             := True
@@ -122,7 +125,7 @@ value rec process_options file args = match args with
           process_options file args
         }
       }
-      else if String.sub v 0 12 = "src-specials" then do
+      else if len >= 12 && String.sub v 0 12 = "src-specials" then do
       {
         !Job.source_specials := True;
         process_options file args
@@ -154,6 +157,20 @@ value main () = do
   [ None      -> ()
   | Some file -> do
     {
+      (* Check whether the file exists. *)
+      try
+        Unix.stat file
+      with
+      [ Unix.Unix_error err _ _ -> do
+        {
+          log_string Sys.argv.(0);
+          log_string ": ";
+          log_string (Unix.error_message err);
+          log_string "\n";
+          exit 1
+        }
+      ];
+
       Job.start_job file;
       Run.initialise ();
 

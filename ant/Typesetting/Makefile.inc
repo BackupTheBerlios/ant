@@ -16,7 +16,7 @@ else
 endif
 
 Typesetting/Typesetting.$(CMO): $(TYPESETTING_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -I Typesetting -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I Typesetting -o $@ $(CUSTOM) $^
 
 Typesetting/Typesetting.cmi Typesetting/Typesetting.o: Typesetting/Typesetting.$(CMO)
 	touch $@

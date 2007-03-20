@@ -1,0 +1,40 @@
+
+MODULES[] =
+  HyphenTable
+  Fonts
+  Environment
+  Node
+  Evaluate
+  Job
+  Output
+
+HYPHEN_FILES = $(addprefix $(ROOT)/data/hyphen/, $(addsuffix .hyphen, $(HYPHEN_PATTERNS)))
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles($(ROOT)/lib/Unicode.$(CMA) $(ROOT)/lib/Unicode.cmi $(ROOT)/lib/Unicode.a)
+LocalOCamlGeneratedFiles($(ROOT)/lib/Runtime.$(CMA) $(ROOT)/lib/Runtime.cmi $(ROOT)/lib/Runtime.a)
+LocalOCamlGeneratedFiles($(ROOT)/lib/VM.$(CMO) $(ROOT)/lib/VM.cmi $(ROOT)/lib/VM.o)
+LocalOCamlGeneratedFiles($(ROOT)/lib/Typesetting.$(CMO) $(ROOT)/lib/Typesetting.cmi $(ROOT)/lib/Typesetting.o)
+LocalOCamlGeneratedFiles(HyphenTable.ml)
+
+OCAMLFLAGS += -I .
+
+OCamlPackageModules(Engine, $(MODULES))
+
+OCamlPackage(Engine, $(MODULES))
+
+.PHONY: Engine-install
+
+OCamlPackageCopy(Engine-install, $(ROOT)/lib, Engine)
+
+HyphenTable.ml: ../Util/GenHyphTable :value: $(HYPHEN_FILES)
+	../Util/GenHyphTable $(HYPHEN_FILES) >$@
+
+section
+  OCAMLFLAGS    = -w Aes -warn-error P -rectypes -I $(ROOT)/Tools -I $(ROOT)/lib -for-pack Engine
+  OCAMLDEPFLAGS = -native
+
+  HyphenTable.$(CMO) HyphenTable.o: HyphenTable.ml :scanner: scan-ocaml-HyphenTable.ml
+
+# vim:set ft=make:

@@ -1,6 +1,6 @@
 
 NATIVE=1
-NATIVE_CAMLP4=1
+NATIVE_CAMLP4=
 
 #MATH_LIB=Gmp
 #MATH_LIB=Num
@@ -50,9 +50,9 @@ endif
 
 ifdef NATIVE_CAMLP4
   PARSERS =
-  MLPP    = ./Tools/camlp4opt
+  MLPP    = ./PreProc/camlp4opt
 else
-  PARSERS = ./Tools/pa_Num.cmo ./Tools/pa_extensions.cmo
+  PARSERS = ./PreProc/pa_Num.cmo ./PreProc/pa_extensions.cmo
   MLPP    = "camlp4r $(PARSERS)"
 endif
 

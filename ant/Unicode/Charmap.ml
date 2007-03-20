@@ -1,4 +1,6 @@
 
+open Types;
+
 type charmap 'a = array (array 'a);
 
 value create x = do

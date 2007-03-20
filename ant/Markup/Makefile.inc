@@ -14,7 +14,7 @@ else
 endif
 
 Markup/Markup.$(CMO): $(MARKUP_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -I Markup -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I Markup -o $@ $(CUSTOM) $^
 
 Markup/Markup.cmi Markup/Markup.o: Markup/Markup.$(CMO)
 	touch $@

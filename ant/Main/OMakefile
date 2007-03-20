@@ -1,0 +1,20 @@
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles(Unicode-install)
+LocalOCamlGeneratedFiles(Runtime-install)
+LocalOCamlGeneratedFiles(VM-install)
+LocalOCamlGeneratedFiles(Typesetting-install)
+LocalOCamlGeneratedFiles(Engine-install)
+LocalOCamlGeneratedFiles(Markup-install)
+
+OCAMLFLAGS += -I .
+
+OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/CamlImages $(ROOT)/lib/Runtime
+
+OCamlProgram(ant, $(ROOT)/lib/VM $(ROOT)/lib/Typesetting $(ROOT)/lib/Engine $(ROOT)/lib/Markup Main)
+
+$(ROOT)/ant: ant
+  cp ant $(ROOT)
+
+# vim:set ft=make:

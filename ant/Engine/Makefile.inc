@@ -24,7 +24,7 @@ Engine/HyphenTable.cmx: Engine/HyphenTable.ml Engine/HyphenTable.cmi
 	$(MLC_NAT) $(MLFLAGS) $(MLFLAGS_Engine_) -c $<
 
 Engine/Engine.$(CMO): Engine/HyphenTable.$(CMO) $(ENGINE_CMO)
-	$(MLC) -pack $(DEBUGFLAGS) -I Engine -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I Engine -o $@ $(CUSTOM) $^
 
 Engine/Engine.cmi Engine/Engine.o: Engine/Engine.$(CMO)
 	touch $@

@@ -1,0 +1,39 @@
+
+MODULES[] =
+  Counter
+  CharCode
+  Parser
+  ParseState
+  Group
+  Macro
+  Mode
+  ParseArgs
+  ALCoding
+  ALDim
+  ALEnvironment
+  ALGraphics
+  ALNodes
+  ALParseState
+  ALBindings
+  Primitives
+  Run
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles(Unicode-install)
+LocalOCamlGeneratedFiles(Runtime-install)
+LocalOCamlGeneratedFiles(VM-install)
+LocalOCamlGeneratedFiles(Typesetting-install)
+LocalOCamlGeneratedFiles(Engine-install)
+
+OCAMLFLAGS += -I .
+
+OCamlPackageModules(Markup, $(MODULES))
+
+OCamlPackage(Markup, $(MODULES))
+
+.PHONY: Markup-install
+
+OCamlPackageCopy(Markup-install, $(ROOT)/lib, Markup)
+
+# vim:set ft=make:

@@ -1,0 +1,35 @@
+
+.SUBDIRS: Private
+
+MODULES[] =
+  Opaque
+  Types
+  Private/VMPrivate
+  Serialise
+  Machine
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles(Unicode-install)
+LocalOCamlGeneratedFiles(Runtime-install)
+
+OCAMLFLAGS += -I Private
+
+Serialise.cmi: Serialise.mli Private/VMPrivate.$(CMO)
+Machine.cmi: Machine.mli Private/VMPrivate.$(CMO)
+Serialise.$(CMO) Serialise.o: Serialise.ml Private/VMPrivate.$(CMO)
+Machine.$(CMO) Machine.o: Machine.ml Private/VMPrivate.$(CMO)
+
+OCamlPackageModules(VM, $(MODULES))
+
+OCamlPackage(VM, $(MODULES))
+
+.PHONY: VM-install
+
+OCamlPackageCopy(VM-install, $(ROOT)/lib, VM)
+
+OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/CamlImages $(ROOT)/lib/Runtime
+
+OCamlProgram(Ali, Ali $(MODULES))
+
+# vim:set ft=make:

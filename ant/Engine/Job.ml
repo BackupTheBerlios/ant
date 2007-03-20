@@ -14,7 +14,7 @@ value output_file      = ref "";
 value src_special_file = ref "";
 value log_file         = ref "";
 
-value src_special_stream = ref (IO.make_buffer_stream 10 :> IO.ostream);
+value src_special_stream = ref (IO.coerce_o (IO.make_buffer_stream 10));
 
 value start_job name = do
 {

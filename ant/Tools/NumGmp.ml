@@ -203,3 +203,58 @@ value num_of_float x = do
   }
 };
 
+value serialise_num os x = do
+{
+  let n = Q.get_num x in
+  let d = Q.get_den x in
+
+  let s1 = Z.to_string_base 16 n in
+  let s2 = Z.to_string_base 16 d in
+
+  let l1 = String.length s1 in
+  let l2 = String.length s2 in
+
+  let b10 = l1          land 0xff in
+  let b11 = (l1 lsr  8) land 0xff in
+  let b12 = (l1 lsr 16) land 0xff in
+  let b13 = (l1 lsr 24) land 0xff in
+  let b20 = l2          land 0xff in
+  let b21 = (l2 lsr  8) land 0xff in
+  let b22 = (l2 lsr 16) land 0xff in
+  let b23 = (l2 lsr 24) land 0xff in
+
+  IO_Base.io_write_char os (char_of_int b13);
+  IO_Base.io_write_char os (char_of_int b12);
+  IO_Base.io_write_char os (char_of_int b11);
+  IO_Base.io_write_char os (char_of_int b10);
+  IO_Base.io_write_char os (char_of_int b23);
+  IO_Base.io_write_char os (char_of_int b22);
+  IO_Base.io_write_char os (char_of_int b21);
+  IO_Base.io_write_char os (char_of_int b20);
+  IO_Base.io_write_string os s1;
+  IO_Base.io_write_string os s2;
+};
+
+value unserialise_num is = do
+{
+  let b13 = int_of_char (IO_Base.io_read_char is) in
+  let b12 = int_of_char (IO_Base.io_read_char is) in
+  let b11 = int_of_char (IO_Base.io_read_char is) in
+  let b10 = int_of_char (IO_Base.io_read_char is) in
+  let b23 = int_of_char (IO_Base.io_read_char is) in
+  let b22 = int_of_char (IO_Base.io_read_char is) in
+  let b21 = int_of_char (IO_Base.io_read_char is) in
+  let b20 = int_of_char (IO_Base.io_read_char is) in
+
+  let len1 = b10 lor (b11 lsl 8) lor (b12 lsl 16) lor (b13 lsr 24) in
+  let len2 = b20 lor (b21 lsl 8) lor (b22 lsl 16) lor (b23 lsr 24) in
+
+  let s1 = IO_Base.io_read_string is len1 in
+  let s2 = IO_Base.io_read_string is len2 in
+
+  let d = Z.from_string_base 16 s1 in
+  let n = Z.from_string_base 16 s2 in
+
+  Q.from_zs d n
+};
+

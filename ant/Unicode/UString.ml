@@ -8,8 +8,8 @@ value write_uc    = ref (fun _ _ -> ());
 value to_u_conv   = ref (fun s -> s);
 value from_u_conv = ref (fun s -> s);
 
-value read_uc_char  cs   = !read_uc  (cs : #IO.istream :> IO.istream);
-value write_uc_char cs x = !write_uc (cs : #IO.ostream :> IO.ostream) x;
+value read_uc_char  cs   = !read_uc  (IO.coerce_i cs);
+value write_uc_char cs x = !write_uc (IO.coerce_o cs) x;
 value to_unicode    str  = !to_u_conv str;
 value from_unicode  str  = !from_u_conv str;
 

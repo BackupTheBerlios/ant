@@ -31,7 +31,7 @@ Runtime/freetype-stubs.o: Runtime/freetype-stubs.c
 #	$(CXX) -c -I$(CAML_LIB_DIR) $(OTF_CFLAGS) -o $@ $^
 
 Runtime/Runtime.$(CMO): $(RUNTIME_CMO) $(RUNTIME_O)
-	$(MLC) -pack $(DEBUGFLAGS) -I Runtime -o $@ $(CUSTOM) $^
+	$(MLC) -pack $(DEBUGFLAGS) -rectypes -I Runtime -o $@ $(CUSTOM) $^
 
 Runtime/Runtime.cmi: Runtime/Runtime.$(CMO)
 	touch $@

@@ -1,8 +1,8 @@
 
 open Types;
 
-value read_uc_char       : #IO.istream -> uc_char;
-value write_uc_char      : #IO.ostream -> uc_char -> unit;
+value read_uc_char       : IO.istream -> uc_char;
+value write_uc_char      : IO.ostream -> uc_char -> unit;
 value to_unicode         : list int -> uc_list;
 value from_unicode       : uc_list -> list int;
 value string_to_bytes    : string -> list int;

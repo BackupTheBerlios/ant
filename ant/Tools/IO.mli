@@ -1,158 +1,99 @@
 
 open XNum;
+open IO_Base;
 
-class type consumer =
-object
-  method consume : !'a . ('a -> (string * 'a)) -> 'a -> 'a;
-end;
+type istream   = IO_Base.istream;
+type irstream  = IO_Base.irstream;
+type ostream   = IO_Base.ostream;
+type orstream  = IO_Base.orstream;
+type iostream  = IO_Base.iostream;
+type iorstream = IO_Base.iorstream;
 
-class type producer =
-object
-  method produce : !'a . ('a -> string -> 'a) -> 'a -> 'a;
-end;
-
-class type random_access =
-object
-  method pos  : int;
-  method size : int;
-  method seek : int -> unit;
-end;
-
-class type basic_stream =
-object
-  method free : unit;
-end;
-
-class type virtual istream =
-object
-  inherit basic_stream;
-  inherit producer;
-  method virtual eof : bool;
-  method read_char   : char;
-  method read_string : int -> string;
-end;
-
-class type virtual ostream =
-object
-  inherit basic_stream;
-  inherit consumer;
-  method virtual bytes_written : int;
-  method write_char   : char -> unit;
-  method write_string : string -> unit;
-end;
-
-class type virtual irstream =
-object
-  inherit istream;
-  inherit random_access;
-end;
-
-class type virtual orstream =
-object
-  inherit ostream;
-  inherit random_access;
-end;
-
-class type virtual istream_consumer =
-object
-  inherit istream;
-  inherit consumer;
-end;
-
-class type virtual ostream_producer =
-object
-  inherit ostream;
-  inherit producer;
-end;
-
-class type virtual iostream =
-object
-  inherit istream;
-  inherit ostream;
-end;
-
-class type virtual iorstream =
-object
-  inherit iostream;
-  inherit random_access;
-end;
+value coerce_i   : io [> io_r   ] -> istream;
+value coerce_o   : io [> io_w   ] -> ostream;
+value coerce_ir  : io [> io_rs  ] -> irstream;
+value coerce_or  : io [> io_ws  ] -> orstream;
+value coerce_io  : io [> io_rw  ] -> iostream;
+value coerce_ior : io [> io_rws ] -> iorstream;
 
 (* IO routines *)
 
-value size          : #random_access -> int;
-value pos           : #random_access -> int;
-value seek          : #random_access -> int -> unit;
-value skip          : #istream -> int -> unit;
-value bytes_written : #ostream -> int;
-value eof           : #istream -> bool;
-value free          : #basic_stream -> unit;
+value size          : io [> io_s ] -> int;
+value pos           : io [> io_s ] -> int;
+value seek          : io [> io_s ] -> int -> unit;
+value skip          : io [> io_r ] -> int -> unit;
+value bytes_written : io [> io_w ] -> int;
+value eof           : io [> io_r ] -> bool;
+value free          : io 'a -> unit;
 
 (* Append the contents of a channel to a stream. *)
 
-value append_channel : #consumer -> in_channel -> unit;
+value append_channel : io [> io_w ] -> in_channel -> unit;
 
-value append : #ostream -> #producer -> unit;
+value append : io [> io_w ] -> io [> io_r ] -> unit;
 
 (* Write the contents of a stream to a channel. *)
 
-value to_channel : #producer -> out_channel -> unit;
+value to_channel : io [> io_r ] -> out_channel -> unit;
 
-value to_string   : #producer -> string;
+value to_string   : io [> io_r ] -> string;
 value from_string : string -> iorstream;
-value to_buffer   : #producer -> iorstream;
+value to_buffer   : io [> io_r ] -> iorstream;
 
-value sub_stream : #istream -> int -> iorstream;
+value sub_stream : io [> io_r ] -> int -> iorstream;
 
 (* reading from a stream *)
 
-value read_char   : #istream -> char;
-value read_byte   : #istream -> int;
-value read_string : #istream -> int -> string;
+value read_char   : io [> io_r ] -> char;
+value read_byte   : io [> io_r ] -> int;
+value read_string : io [> io_r ] -> int -> string;
 
-value peek_char   : #irstream -> int -> char;
-value peek_string : #irstream -> int -> int -> string;
-value skip_while  : #irstream -> (char -> bool) -> unit;
+value peek_char   : io [> io_rs  ] -> int -> char;
+value peek_string : io [> io_rs  ] -> int -> int -> string;
+value skip_while  : io [> io_rs  ] -> (char -> bool) -> unit;
 
 (* reading bigendian integers *)
 
-value read_be_u8  : #istream -> int;
-value read_be_u16 : #istream -> int;
-value read_be_u24 : #istream -> int;
-value read_be_u32 : #istream -> num;
-value read_be_i8  : #istream -> int;
-value read_be_i16 : #istream -> int;
-value read_be_i24 : #istream -> int;
-value read_be_i32 : #istream -> num;
+value read_be_u8  : io [> io_r ] -> int;
+value read_be_u16 : io [> io_r ] -> int;
+value read_be_u24 : io [> io_r ] -> int;
+value read_be_u32 : io [> io_r ] -> num;
+value read_be_i8  : io [> io_r ] -> int;
+value read_be_i16 : io [> io_r ] -> int;
+value read_be_i24 : io [> io_r ] -> int;
+value read_be_i32 : io [> io_r ] -> num;
 
-value read_utf8_char : #istream -> int;
+value read_utf8_char : io [> io_r ] -> int;
 
 (* writing to a stream *)
 
-value write_char   : #ostream -> char -> unit;
-value write_byte   : #ostream -> int -> unit;
-value write_string : #ostream -> string -> unit;
+value write_char   : io [> io_w ] -> char -> unit;
+value write_byte   : io [> io_w ] -> int -> unit;
+value write_string : io [> io_w ] -> string -> unit;
 
-value printf       : #ostream -> format4 'a unit string unit -> 'a;
+value printf       : io [> io_w ] -> format4 'a unit string unit -> 'a;
 
-value write_be_u8  : #ostream -> int -> unit;
-value write_be_u16 : #ostream -> int -> unit;
-value write_be_u24 : #ostream -> int -> unit;
-value write_be_u32 : #ostream -> num -> unit;
-value write_be_i8  : #ostream -> int -> unit;
-value write_be_i16 : #ostream -> int -> unit;
-value write_be_i24 : #ostream -> int -> unit;
-value write_be_i32 : #ostream -> num -> unit;
+value write_be_u8  : io [> io_w ] -> int -> unit;
+value write_be_u16 : io [> io_w ] -> int -> unit;
+value write_be_u24 : io [> io_w ] -> int -> unit;
+value write_be_u32 : io [> io_w ] -> num -> unit;
+value write_be_i8  : io [> io_w ] -> int -> unit;
+value write_be_i16 : io [> io_w ] -> int -> unit;
+value write_be_i24 : io [> io_w ] -> int -> unit;
+value write_be_i32 : io [> io_w ] -> num -> unit;
 
-value write_utf8_char : #ostream -> int -> unit;
+value write_utf8_char : io [> io_w ] -> int -> unit;
+
+(* compression *)
+
+value compress   : io [> io_rs ] -> int -> irstream;
+value uncompress : io [> io_rs ] -> irstream;
 
 (* implementations *)
 
 value make_in_stream      : string -> istream;
 value make_out_stream     : string -> ostream;
 value make_rand_in_stream : string -> irstream;
-value make_buffer_stream  : int -> iorstream;
+value make_buffer_stream  : int    -> iorstream;
 value make_string_stream  : string -> irstream;
-
-value compress   : #irstream -> int -> irstream;
-value uncompress : #irstream -> irstream;
 

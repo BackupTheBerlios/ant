@@ -1,0 +1,34 @@
+
+MODULES[] =
+  Box
+  Builder
+  Compose
+  HBox
+  VBox
+  Glyph
+  MathLayout
+  ParLayout
+  Galley
+  Page
+  PageLayout
+  AreaGalley
+  FloatVertical
+  Footnote
+  Table
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles(Unicode-install)
+LocalOCamlGeneratedFiles(Runtime-install)
+
+OCAMLFLAGS += -I .
+
+OCamlPackageModules(Typesetting, $(MODULES))
+
+OCamlPackage(Typesetting, $(MODULES))
+
+.PHONY: Typesetting-install
+
+OCamlPackageCopy(Typesetting-install, $(ROOT)/lib, Typesetting)
+
+# vim:set ft=make:

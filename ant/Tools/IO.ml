@@ -1,5 +1,6 @@
 
 open XNum;
+open IO_Base;
 
 value num_0x100       = num_of_int 0x100;
 value num_0x10000     = num_of_int 0x10000;
@@ -7,6 +8,815 @@ value num_0x1000000   = num_of_int 0x1000000;
 value num_0x100000000 = num_0x10000 */ num_0x10000;
 value num_0x80000000  = num_0x100000000 // num_of_int 2;
 
+type istream   = IO_Base.istream;
+type irstream  = IO_Base.irstream;
+type ostream   = IO_Base.ostream;
+type orstream  = IO_Base.orstream;
+type iostream  = IO_Base.iostream;
+type iorstream = IO_Base.iorstream;
+
+value coerce_i   = io_coerce_i;
+value coerce_o   = io_coerce_o;
+value coerce_ir  = io_coerce_ir;
+value coerce_or  = io_coerce_or;
+value coerce_io  = io_coerce_io;
+value coerce_ior = io_coerce_ior;
+
+(* IO routines ************************************************************************************)
+
+value size           = io_size;
+value pos            = io_pos;
+value seek           = io_seek;
+value bytes_written  = io_bytes_written;
+value eof            = io_eof;
+value free           = io_free;
+value read_char      = io_read_char;
+value read_string    = io_read_string;
+value write_char     = io_write_char;
+value write_string   = io_write_string;
+
+value skip cs off    = ignore (io_read_string cs off);
+
+(* reading from a stream *)
+
+value read_byte cs = do
+{
+  if io_eof cs then
+    -1
+  else
+    int_of_char (io_read_char cs)
+};
+
+value peek_char cs off = do
+{
+  let pos = io_pos cs in
+
+  io_seek cs (pos + off);
+
+  let chr = io_read_char cs in
+
+  io_seek cs pos;
+
+  chr
+};
+
+value rec peek_string cs off len = do
+{
+  let pos = io_pos cs in
+
+  io_seek cs (pos + off);
+
+  let str = io_read_string cs len in
+
+  io_seek cs pos;
+
+  str
+};
+
+value skip_while cs p = do
+{
+  while not (io_eof cs) && p (peek_char cs 0) do
+  {
+    skip cs 1
+  }
+};
+
+(* reading bigendian integers *)
+
+value read_be_u8 cs = read_byte cs;
+
+value read_be_u16 cs = do
+{
+  let x = read_byte cs in
+  let y = read_byte cs in
+
+  0x100 * x + y
+};
+
+value read_be_u24 cs = do
+{
+  let x = read_byte cs in
+  let y = read_byte cs in
+  let z = read_byte cs in
+
+  0x10000 * x + 0x100 * y + z
+};
+
+value read_be_u32 cs = do
+{
+  let x = read_be_u16 cs in
+  let y = read_be_u16 cs in
+
+  num_of_int 0x10000 */ num_of_int x +/ num_of_int y
+};
+
+value read_be_i8 cs = do
+{
+  let x = read_be_u8 cs in
+
+  if x > 0x7f then
+    x - 0x100
+  else
+    x
+};
+
+value read_be_i16 cs = do
+{
+  let x = read_be_u16 cs in
+
+  if x > 0x7fff then
+    x - 0x10000
+  else
+    x
+};
+
+value read_be_i24 cs = do
+{
+  let x = read_be_u24 cs in
+
+  if x > 0x7fffff then
+    x - 0x1000000
+  else
+    x
+};
+
+value read_be_i32 cs = do
+{
+  let x = read_be_u32 cs in
+
+  if x >=/ num_0x80000000 then
+    x -/ num_0x100000000
+  else
+    x
+};
+
+(* writing to a stream *)
+
+value write_byte cs x = io_write_char cs (Char.unsafe_chr (x land 0xff));
+
+value printf cs = Printf.kprintf (write_string cs);
+
+value write_be_u8 cs x = do
+{
+  write_byte cs x
+};
+
+value write_be_u16 cs x = do
+{
+  write_byte cs ((x lsr 8) land 0xff);
+  write_byte cs (x land 0xff)
+};
+
+value write_be_u24 cs x = do
+{
+  write_byte cs ((x lsr 16) land 0xff);
+  write_byte cs ((x lsr 8) land 0xff);
+  write_byte cs (x land 0xff)
+};
+
+value write_be_u32 cs n = do
+{
+  let y = mod_num n (num_of_int 0x10000)        in
+  let x = quo_num (n -/ y) (num_of_int 0x10000) in
+  let u = int_of_num x                   in
+  let v = int_of_num y                   in
+  let b = (0x10000 + u) mod 0x100        in
+  let a = (u - b) / 0x100                in
+  let d = (0x10000 + v) mod 0x100        in
+  let c = (v - d) / 0x100                in
+
+  write_byte cs a;
+  write_byte cs b;
+  write_byte cs c;
+  write_byte cs d
+};
+
+value write_be_i8 cs x = do
+{
+  if x < 0 then
+    write_byte cs (0x100 + x)
+  else
+    write_byte cs x
+};
+
+value write_be_i16 cs x = do
+{
+  if x < 0 then
+    write_be_u16 cs (0x10000 + x)
+  else
+    write_be_u16 cs x
+};
+
+value write_be_i24 cs x = do
+{
+  if x < 0 then
+    write_be_u24 cs (0x1000000 + x)
+  else
+    write_be_u24 cs x
+};
+
+value write_be_i32 cs n = do
+{
+  let y = mod_num n (num_of_int 0x10000)        in
+  let x = quo_num (n -/ y) (num_of_int 0x10000) in
+  let u = int_of_num x                   in
+  let v = int_of_num y                   in
+  let b = (0x10000 + u) mod 0x100        in
+  let a = (u - b) / 0x100                in
+  let d = (0x10000 + v) mod 0x100        in
+  let c = (v - d) / 0x100                in
+
+  if a < 0 then
+    write_byte cs (a + 0x100)
+  else
+    write_byte cs a;
+
+  write_byte cs b;
+  write_byte cs c;
+  write_byte cs d
+};
+
+value read_utf8_char cs = do
+{
+  let c = read_byte cs in
+
+  if c < 0x80 then
+    c
+  else if c < 0xc0 then
+    c                            (* should never happen *)
+  else if c < 0xe0 then do
+  {
+    let c2 = read_byte cs in
+
+    if c2 < 0 then
+      0x40 * (c - 0xc0)
+    else
+      0x40 * (c - 0xc0) + c2 - 0x80
+  }
+  else do
+  {
+    let c2 = read_byte cs in
+    let c3 = read_byte cs in
+
+    if c2 < 0 then
+      0x1000 * (c - 0xe0)
+    else if c3 < 0 then
+      0x1000 * (c - 0xe0) + 0x40 * (c2 - 0x80)
+    else
+      0x1000 * (c - 0xe0) + 0x40 * (c2 - 0x80) + c3 - 0x80
+  }
+};
+
+value write_utf8_char cs x = do
+{
+  if x < 0x80 then
+    write_byte cs x
+  else if x < 0x800 then do
+  {
+    write_byte cs (0xc0 + (x lsr 6));
+    write_byte cs (0x80 + (x land 0x3f))
+  }
+  else do
+  {
+    write_byte cs (0xe0 + (x lsr 12));
+    write_byte cs (0x80 + ((x lsr 6) land 0x3f));
+    write_byte cs (0x80 + (x land 0x3f))
+  }
+};
+
+
+(* Implementations ********************************************************************************)
+
+
+(* |power_of_two <x>| returns the greatest power of two less than or equal to <x>. *)
+
+value power_of_two x = do
+{
+  iter 1 x
+
+  where rec iter p x = do
+  {
+    if x = 0 then
+      (p lsr 1)
+    else
+      iter (p lsl 1) (x lsr 1)
+  }
+};
+
+(* in_channels *)
+
+value in_channel_read_char ic eof = do
+{
+  try
+    input_char ic
+  with
+  [ End_of_file -> do
+    {
+      !eof := True;
+      '\000'
+    }
+  ]
+};
+
+value in_channel_read_string ic eof len = do
+{
+  let buf = String.create len in
+
+  iter 0 len
+
+  where rec iter off len = do
+  {
+    let read = input ic buf off len in
+
+    if read = len then
+      buf
+    else if read = 0 then do
+    {
+      !eof := True;
+      ""
+    }
+    else
+      iter (off + read) (len - read)
+  }
+};
+
+value make_in_stream filename = do
+{
+  let ic  = open_in_bin filename in
+  let eof = ref False            in
+
+  io_make_read
+    (fun ()  -> close_in ic)
+    (fun ()  -> in_channel_read_char ic eof)
+    (fun len -> in_channel_read_string ic eof len)
+    (fun ()  -> !eof)
+};
+
+value make_rand_in_stream filename = do
+{
+  let ic  = open_in_bin filename in
+  let eof = ref False            in
+
+  io_make_read_seek
+    (fun ()  -> close_in ic)
+    (fun ()  -> in_channel_read_char ic eof)
+    (fun len -> in_channel_read_string ic eof len)
+    (fun ()  -> !eof)
+    (fun ()  -> in_channel_length ic)
+    (fun ()  -> pos_in ic)
+    (fun off -> seek_in ic off)
+};
+
+value make_out_stream filename = do
+{
+  let oc  = open_out_bin filename in
+
+  io_make_write
+    (fun ()  -> close_out oc)
+    (fun chr -> output_char   oc chr)
+    (fun str -> output_string oc str)
+    (fun ()  -> pos_out oc)
+};
+
+value make_rand_out_stream filename = do
+{
+  let oc  = open_out_bin filename in
+
+  io_make_write_seek
+    (fun ()  -> close_out oc)
+    (fun chr -> output_char   oc chr)
+    (fun str -> output_string oc str)
+    (fun ()  -> pos_out oc)
+    (fun ()  -> out_channel_length oc)
+    (fun ()  -> pos_out oc)
+    (fun off -> seek_out oc off)
+};
+
+value make_buffer_stream buffer_size = do
+{
+  let buf_size = power_of_two (min buffer_size Sys.max_string_length) in
+
+  let buffer = ref [| String.create buf_size |] in
+  let size   = ref 0 in
+  let pos    = ref 0 in
+
+  let resize_buffer len = do
+  {
+    !buffer := Array.init len
+                 (fun i ->
+                   if i < Array.length !buffer then
+                     !buffer.(i)
+                   else
+                     String.create buf_size)
+  }
+  in
+
+  (* doubles the size of the buffer array *)
+
+  let double_buffer () = do
+  {
+    resize_buffer (2 * Array.length !buffer)
+  }
+  in
+
+  (* returns the entry in the buffer array that contains the given position *)
+
+  let rec get_buffer pos = do
+  {
+    if pos < buf_size * Array.length !buffer then
+      !buffer.(pos / buf_size)
+    else do
+    {
+      double_buffer ();
+      get_buffer pos
+    }
+  }
+  in
+
+  let get_buffer_pos pos =
+    pos land (buf_size - 1)
+  in
+
+  (* returns the offset within a buffer of the given position *)
+
+  let get_char pos = (get_buffer pos).[get_buffer_pos pos] in
+
+  let set_char pos chr = do
+  {
+    (get_buffer pos).[get_buffer_pos pos] := chr
+  }
+  in
+
+  let seek new_pos = do
+  {
+    if new_pos < 0 then
+      !pos := 0
+    else if new_pos >= !size then
+      !pos := !size
+    else
+      !pos := new_pos
+  }
+  in
+  let read_char () = do
+  {
+    if !pos >= !size then
+      '\000'
+    else do
+    {
+      let c = get_char !pos in
+      !pos := !pos + 1;
+      c
+    }
+  }
+  in
+  let rec read_string len = do
+  {
+    if !pos + len > !size then
+      read_string (!size - !pos)
+    else do
+    {
+      let str = String.create len in
+
+      for i = 0 to len - 1 do
+      {
+        str.[i] := read_char ()
+      };
+
+      str
+    }
+  }
+  in
+  let write_char chr = do
+  {
+    if !pos >= !size then
+      !size := !pos + 1
+    else ();
+
+    set_char !pos chr;
+
+    !pos := !pos + 1
+  }
+  in
+  let write_string str = do
+  {
+    for i = 0 to String.length str - 1 do
+    {
+      write_char str.[i]
+    }
+  }
+  in
+
+  io_make
+    (fun ()  -> ())
+    read_char
+    read_string
+    (fun ()  -> (!pos = !size))
+    write_char
+    write_string
+    (fun ()  -> !size)
+    (fun ()  -> !size)
+    (fun ()  -> !pos)
+    seek
+};
+
+(*
+  method produce f state = do
+  {
+    iter 0 state
+
+    where rec iter i state = do
+    {
+      if (i + 1) * buffer_size >= size then do
+      {
+        f state (String.sub buffer.(i) 0 (size - i * buffer_size))
+      }
+      else do
+      {
+        iter (i+1) (f state buffer.(i))
+      }
+    }
+  };
+*)
+
+value make_string_stream str = do
+{
+  let pos = ref 0 in
+
+  let seek new_pos = do
+  {
+    if new_pos < 0 then
+      !pos := 0
+    else if new_pos >= String.length str then
+      !pos := String.length str
+    else
+      !pos := new_pos
+  }
+  in
+  let read_char () = do
+  {
+    if !pos >= String.length str then
+      '\000'
+    else do
+    {
+      let c = str.[!pos] in
+      !pos := !pos + 1;
+      c
+    }
+  }
+  in
+  let read_string len = do
+  {
+    if !pos + len > String.length str then
+      String.sub str !pos (String.length str - !pos)
+    else
+      String.sub str !pos len
+  }
+  in
+
+  io_make_read_seek
+    (fun ()  -> ())
+    read_char
+    read_string
+    (fun ()  -> (!pos = String.length str))
+    (fun ()  -> String.length str)
+    (fun ()  -> !pos)
+    seek
+};
+
+(* Conversions *)
+
+value consume is f = do
+{
+  while not (io_eof is) do
+  {
+    f (io_read_string is 0x1000)
+  }
+};
+
+value produce os f = do
+{
+  iter ()
+
+  where rec iter () = match f () with
+  [ ""  -> ()
+  | str -> do
+    {
+      io_write_string os str;
+      iter ()
+    }
+  ]
+};
+
+(* Append the contents of a channel to a stream. *)
+
+value append_channel os ic = do
+{
+  let buffer = String.create 0x1000 in
+
+  let read () = do
+  {
+    let len = input ic buffer 0 0x1000 in
+
+    String.sub buffer 0 len
+  }
+  in
+
+  produce os read
+};
+
+value append os is = do
+{
+  consume is (io_write_string os)
+};
+
+(* Write the contents of a stream to a channel. *)
+
+value to_channel is oc = do
+{
+  consume is (output_string oc)
+};
+
+value from_string str = do
+{
+  let cs = make_buffer_stream (String.length str) in
+
+  write_string cs str;
+
+  seek cs 0;
+
+  cs
+};
+
+value to_string is = do
+{
+  let buf = Buffer.create 0x1000 in
+
+  consume is (Buffer.add_string buf);
+
+  Buffer.contents buf
+};
+
+value sub_stream cs len = do
+{
+  let new_cs = make_buffer_stream len in
+
+  if len <= Sys.max_string_length then
+    write_string new_cs (read_string cs len)
+  else do
+  {
+    iter 0
+
+    where rec iter i = do
+    {
+      if i + Sys.max_string_length <= len then do
+      {
+        write_string new_cs (read_string cs Sys.max_string_length);
+
+        iter (i + Sys.max_string_length)
+      }
+      else
+        write_string new_cs (read_string cs (len - i));
+    }
+  };
+
+  seek new_cs 0;
+  new_cs
+};
+
+value to_buffer is = do
+{
+  let os = make_buffer_stream 0x1000 in
+
+  append os is;
+
+  os
+};
+
+(* compression *)
+
+value compress cs level = do
+{
+  let buffer_size = min (io_size cs) 0x10000       in
+  let new_cs      = make_buffer_stream buffer_size in
+  let pos         = pos cs                         in
+
+  seek cs 0;
+
+  let zs = Zlib.deflate_init buffer_size level in
+
+  iter 0
+
+  where rec iter i = do
+  {
+    let str = Zlib.get_output zs in
+
+    if str <> "" then do
+    {
+      write_string new_cs str;
+      iter i
+    }
+    else do
+    {
+      if not (eof cs) then do
+      {
+        if Zlib.avail_input zs = 0 then do
+        {
+          Zlib.set_input zs (read_string cs buffer_size);
+
+          iter (i+1)
+        }
+        else do
+        {
+          Zlib.deflate zs Zlib.no_flush;
+
+          iter i
+        }
+      }
+      else do
+      {
+        Zlib.deflate zs Zlib.finish;
+
+        let str = Zlib.get_output zs in
+
+        if str <> "" then do
+        {
+          write_string new_cs str;
+          iter i
+        }
+        else do
+        {
+          Zlib.deflate_end zs;
+          seek new_cs 0;
+          seek cs pos;
+          io_coerce_ir new_cs
+        }
+      }
+    }
+  }
+};
+
+value uncompress cs = do
+{
+  let buffer_size = min (io_size cs) 0x10000       in
+  let new_cs      = make_buffer_stream buffer_size in
+  let pos         = pos cs                         in
+
+  seek cs 0;
+
+  let zs = Zlib.inflate_init buffer_size in
+
+  iter 0
+
+  where rec iter i = do
+  {
+    let str = Zlib.get_output zs in
+
+    if str <> "" then do
+    {
+      write_string new_cs str;
+      iter i
+    }
+    else do
+    {
+      if not (eof cs) then do
+      {
+        if Zlib.avail_input zs = 0 then do
+        {
+          Zlib.set_input zs (read_string cs buffer_size);
+
+          iter (i+1)
+        }
+        else do
+        {
+          Zlib.inflate zs Zlib.no_flush;
+
+          iter i
+        }
+      }
+      else do
+      {
+        Zlib.inflate zs Zlib.finish;
+
+        let str = Zlib.get_output zs in
+
+        if str <> "" then do
+        {
+          write_string new_cs str;
+          iter i
+        }
+        else do
+        {
+          Zlib.inflate_end zs;
+          seek new_cs 0;
+          seek cs pos;
+          io_coerce_ir new_cs
+        }
+      }
+    }
+  }
+};
+
+(*
 (* Classes for character streams ******************************************************************)
 
 
@@ -934,3 +1744,4 @@ value uncompress cs = do
     }
   }
 };
+*)

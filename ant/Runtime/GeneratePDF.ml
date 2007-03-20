@@ -87,7 +87,7 @@ value bitmap_to_type3_glyph state fm g = do
 
   let contents = PDF.alloc_object state.pdf in
 
-  PDF.set_object state.pdf contents (PDF.Stream [] (cs :> IO.irstream));
+  PDF.set_object state.pdf contents (PDF.Stream [] (IO.coerce_ir cs));
 
   ((min_x, min_y, max_x, max_y), PDF.Reference contents 0)
 };
@@ -200,7 +200,7 @@ value new_type3_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
+  PDF.set_object state.pdf cmap (PDF.Stream [] (IO.coerce_ir cmap_data));
 
   PDF.set_object state.pdf obj
     (PDF.Dictionary
@@ -266,7 +266,7 @@ value new_type1_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
+  PDF.set_object state.pdf cmap (PDF.Stream [] (IO.coerce_ir cmap_data));
 
   if is_cff then do
   {
@@ -275,19 +275,22 @@ value new_type1_font state font_name fm encoding = do
     let font_data = IO.from_string cff                     in
 
     PDF.set_object state.pdf ff
-      (PDF.Stream [("Subtype", PDF.Symbol "Type1C")] (font_data :> IO.irstream))
+      (PDF.Stream [("Subtype", PDF.Symbol "Type1C")] (IO.coerce_ir font_data))
   }
   else do
   {
-    let font_data          = IO.make_buffer_stream 0x1000                   in
-    let (len1, len2, len3) = Type1.embedd_type1_font fm.file_name font_data in
+    let font_data          = IO.make_buffer_stream 0x1000 in
+    let (len1, len2, len3) = Type1.embedd_type1_font
+                               fm.file_name
+                               (IO.coerce_or font_data)
+                             in
 
     PDF.set_object state.pdf ff
       (PDF.Stream
         [("Length1", PDF.Int len1);
          ("Length2", PDF.Int len2);
          ("Length3", PDF.Int len3)]
-        (font_data :> IO.irstream))
+        (IO.coerce_ir font_data))
   };
 
   PDF.set_object state.pdf fd
@@ -363,16 +366,16 @@ value new_truetype_font state font_name fm encoding = do
 
   write_cmap cmap_data fm font_name encoding;
 
-  PDF.set_object state.pdf cmap (PDF.Stream [] (cmap_data :> IO.irstream));
+  PDF.set_object state.pdf cmap (PDF.Stream [] (IO.coerce_ir cmap_data));
 
   let font   = OpenType.read_font_tables fm.file_name in
   let subset = IO.make_buffer_stream 0x10000          in
 
-  OpenType.write_subset subset font encoding;
+  OpenType.write_subset (IO.coerce_o subset) font encoding;
 
   let len = IO.bytes_written subset in
 
-  PDF.set_object state.pdf ff (PDF.Stream [("Length1", PDF.Int len)] (subset :> IO.irstream));
+  PDF.set_object state.pdf ff (PDF.Stream [("Length1", PDF.Int len)] (IO.coerce_ir subset));
 
   PDF.set_object state.pdf fd
     (PDF.Dictionary
@@ -538,7 +541,7 @@ value new_bitmap_image state idx file = do
     {
       conv cs (img.LoadImage.bm_scanline y)
     };
-    cs
+    IO.coerce_ir cs
   }
   in
   let obj = PDF.alloc_object state.pdf in
@@ -564,7 +567,7 @@ value new_bitmap_image state idx file = do
         ("ColorSpace",       colsp);
         ("BitsPerComponent", PDF.Int bits)
       ]
-      (image_data img conv :> IO.irstream));
+      (image_data img conv));
 
   obj
 };
@@ -594,12 +597,12 @@ value new_pdf_image state idx file = do
                               ("Page", PDF.Int 1)
                              ])
       ]
-      (IO.from_string "" :> IO.irstream));
+      (IO.make_string_stream ""));
   PDF.set_object state.pdf fsp
     (PDF.Dictionary
       [
         ("Type", PDF.Symbol "Filespec");
-        ("F",    PDF.String (IO.from_string (Printf.sprintf "G%d" idx) :> IO.irstream));
+        ("F",    PDF.String (IO.make_string_stream (Printf.sprintf "G%d" idx)));
         ("EF",   PDF.Dictionary [("F", PDF.Reference ef 0)])
       ]);
   PDF.set_object state.pdf ef
@@ -874,7 +877,7 @@ value create_page state parent page = do
 
   write_box state num_zero page.p_height page.p_contents;
 
-  PDF.set_object state.pdf contents (PDF.Stream [] (state.os :> IO.irstream));
+  PDF.set_object state.pdf contents (PDF.Stream [] (IO.coerce_ir state.os));
 
   PDF.set_object state.pdf page_obj
     (PDF.Dictionary

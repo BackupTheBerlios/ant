@@ -243,7 +243,7 @@ value ascii_hex_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      (cs :> IO.irstream)
+      IO.coerce_ir cs
     }
     else do
     {
@@ -252,7 +252,7 @@ value ascii_hex_decode stream = do
       if c = '>' then do
       {
         IO.seek cs 0;
-        (cs :> IO.irstream)
+        IO.coerce_ir cs
       }
       else do
       {
@@ -264,7 +264,7 @@ value ascii_hex_decode stream = do
         {
           IO.write_byte cs (16 * hex_to_dec c);
           IO.seek cs 0;
-          (cs :> IO.irstream)
+          IO.coerce_ir cs
         }
         else do
         {
@@ -287,7 +287,7 @@ value ascii_85_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      (cs :> IO.irstream)
+      IO.coerce_ir cs
     }
     else do
     {
@@ -296,7 +296,7 @@ value ascii_85_decode stream = do
       if c = 126 then do
       {
         IO.seek cs 0;
-        (cs :> IO.irstream)
+        IO.coerce_ir cs
       }
       else if c = 122 then do
       {
@@ -379,7 +379,7 @@ value run_length_decode stream = do
     if IO.eof stream then do
     {
       IO.seek cs 0;
-      (cs :> IO.irstream)
+      IO.coerce_ir cs
     }
     else do
     {
@@ -889,13 +889,13 @@ and read_file pdf file_desc = do
           [ String str -> str           (* FIX: translate name *)
           | _          -> match lookup_reference pdf (dict_lookup dict "DOS") with
             [ String str -> str         (* FIX: translate name *)
-            | _          -> (IO.make_buffer_stream 4 :> IO.irstream)
+            | _          -> IO.make_string_stream ""
             ]
           ]
         ]
       ]
     }
-  | _ -> (IO.make_buffer_stream 4 :> IO.irstream)
+  | _ -> IO.make_string_stream ""
   ]
   in
 
@@ -908,17 +908,17 @@ and read_file pdf file_desc = do
 
     close_in ic;
 
-    (cs :> IO.irstream)
+    IO.coerce_ir cs
   }
   else
-    (IO.make_buffer_stream 4 :> IO.irstream)
+    IO.make_string_stream ""
 }
 and read_stream pdf dict = do
 {
   skip_white_space_and_comments pdf.file;
 
   if not (read_keyword pdf.file "stream") then
-    (IO.make_buffer_stream 4 :> IO.irstream)
+    IO.make_string_stream ""
   else do
   {
     if IO.read_char pdf.file = '\r' then do
@@ -930,12 +930,12 @@ and read_stream pdf dict = do
     else ();
 
     let len  = value_to_int (lookup_reference pdf (dict_lookup dict "Length")) in
-    let data = (IO.sub_stream pdf.file len :> IO.irstream)                     in
+    let data = (IO.coerce_ir (IO.sub_stream pdf.file len))                     in
 
     skip_eol pdf.file;
 
     if not (read_keyword pdf.file "endstream") then
-      (IO.make_buffer_stream 4 :> IO.irstream)
+      IO.make_string_stream ""
     else do
     {
       match lookup_reference pdf (dict_lookup dict "F") with
@@ -965,7 +965,7 @@ and read_value pdf = do
   skip_white_space_and_comments pdf.file;
 
   match IO.peek_char pdf.file 0 with
-  [ '(' -> String (read_string pdf.file :> IO.irstream)
+  [ '(' -> String (IO.coerce_ir (read_string pdf.file))
   | '<' -> do
     {
       if IO.peek_char pdf.file 1 = '<' then do
@@ -975,12 +975,12 @@ and read_value pdf = do
         skip_white_space_and_comments pdf.file;
 
         if IO.peek_string pdf.file 0 6 = "stream" then
-          Stream dict (read_stream pdf dict :> IO.irstream)
+          Stream dict (IO.coerce_ir (read_stream pdf dict))
         else
           Dictionary dict
       }
       else
-        String (read_string pdf.file :> IO.irstream)
+        String (IO.coerce_ir (read_string pdf.file))
     }
   | '[' -> Array (read_array pdf)
   | '/' -> Symbol (read_symbol pdf.file)
@@ -1203,7 +1203,7 @@ value read_pdf_file filename = do
       }
     }
   }
-  with [ _ -> create_pdf (IO.make_buffer_stream 0x10 :> IO.irstream) 1.0 ]
+  with [ _ -> create_pdf (IO.make_string_stream "") 1.0 ]
 };
 
 value get_dimensions filename = do

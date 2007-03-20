@@ -1,0 +1,26 @@
+
+MODULES[] =
+  Lexer
+  Parser
+  Scope
+  Compile
+  CStack
+  Evaluate
+  Path
+  Primitives
+
+LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+LocalOCamlGeneratedFiles(Unicode-install)
+LocalOCamlGeneratedFiles(Runtime-install)
+LocalOCamlGeneratedFiles(../Types.$(CMO))
+
+OCAMLFLAGS += -I ..
+
+OCamlPackageModules(VM.VMPrivate, $(MODULES))
+
+OCAMLFLAGS += -for-pack VM
+
+OCamlPackage(VMPrivate, $(MODULES))
+
+# vim:set ft=make:

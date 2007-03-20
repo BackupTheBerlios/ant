@@ -27,12 +27,15 @@ ant: $(LIBRARIES) $(OBJECTS)
 
 make-utils: $(UTILS)
 
-MAKE_TOOLS = $(MAKE) "NATIVE=$(NATIVE)" "NATIVE_CAMLP4=$(NATIVE_CAMLP4)" "MATH_LIB=$(MATH_LIB)"
-Tools/all Tools/Tools.$(CMA) $(PARSERS):
-	cd Tools; $(MAKE_TOOLS)
+MAKE_SUB = $(MAKE) "NATIVE=$(NATIVE)" "NATIVE_CAMLP4=$(NATIVE_CAMLP4)" "MATH_LIB=$(MATH_LIB)"
+Tools/all Tools/Tools.$(CMA): PreProc/all
+	cd Tools; $(MAKE_SUB)
 
-depend:
-	cd Tools; $(MAKE_TOOLS) depend
+PreProc/all $(PARSERS):
+	cd PreProc; $(MAKE_SUB)
+
+depend: PreProc/all
+	cd Tools; $(MAKE_SUB) depend
 	mkdir -p lib
 	touch lib/Images.ml lib/Images.mli lib/Unicode.ml lib/Unicode.mli lib/Runtime.ml lib/Runtime.mli \
 	      lib/Typesetting.ml lib/Typesetting.mli lib/VM.ml lib/VM.mli lib/Engine.ml lib/Engine.mli \
@@ -47,7 +50,8 @@ tags: $(SOURCES)
 #	sort tags -o tags
 
 clean: Examples/clean
-	cd Tools; $(MAKE_TOOLS) clean
+	cd Tools;   $(MAKE_SUB) clean
+	cd PreProc; $(MAKE_SUB) clean
 	rm -f Makefile.depend lib/*
 	for d in . $(DIRECTORIES); \
 	do \

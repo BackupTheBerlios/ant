@@ -146,5 +146,5 @@ value get_pos_subst    : otf_tables -> (option OTF_Pos_Subst.pos_subst_table * o
 value is_cff           : otf_tables -> bool;
 value get_cff          : otf_tables -> string;
 value read_font        : string -> otf_font;
-value write_subset     : #IO.ostream -> otf_tables -> array int -> unit;
+value write_subset     : IO.ostream -> otf_tables -> array int -> unit;
 
