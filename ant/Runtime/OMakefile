@@ -41,8 +41,8 @@ O_FILES[] = $(addsuffix .o, $(C_FILES))
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
-LocalOCamlGeneratedFiles(Unicode-install)
-LocalOCamlGeneratedFiles(Images-install)
+OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
+OCamlDependsOnPackage($(ROOT)/lib/CamlImages)
 
 OCAMLFLAGS += -I .
 
@@ -55,7 +55,7 @@ section
 
   Runtime.$(CMA): $(O_FILES)
 
-  OCamlLibrary(Runtime, Runtime)
+  OCamlLibrary(Runtime, $(ROOT)/lib/CamlImages Runtime)
 
 .PHONY: Runtime-install
 

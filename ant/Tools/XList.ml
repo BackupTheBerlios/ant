@@ -17,7 +17,7 @@ value rec drop n l = do
     l
   else match l with
   [ []      -> []
-  | [x::xs] -> drop (n-1) xs
+  | [_::xs] -> drop (n-1) xs
   ]
 };
 

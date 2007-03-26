@@ -9,10 +9,10 @@ OCAMLFLAGS += -I . -I $(CAMLIMAGES_DIR)
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 
-OCamlLibrary(CamlImages, CamlImages)
+#OCamlLibrary(CamlImages, CamlImages)
 
 .PHONY: Images-install
 
-OCamlLibraryCopy(Images-install, $(ROOT)/lib, CamlImages, CamlImages)
+OCamlPackageCopy(Images-install, $(ROOT)/lib, CamlImages)
 
 # vim:set ft=make:

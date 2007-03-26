@@ -421,7 +421,7 @@ value apply_filter filter param (stream : IO.irstream) = do
   | ([f::fs], [])      -> iter (apply f Null stream) fs []
   | ([], _)            -> stream
   ]
-  where apply filter param stream = match filter with
+  where apply filter _param stream = match filter with
   [ Symbol "ASCIIHexDecode"  -> ascii_hex_decode stream
   | Symbol "ASCII85Decode"   -> ascii_85_decode stream
   | Symbol "RunLengthDecode" -> run_length_decode stream
@@ -1451,6 +1451,7 @@ value finish_pdf_file pdf = do
       ("Root", pdf.root);
       ("Info", pdf.info)];
 
-  IO.printf pdf.file "startxref\n%d\n%%%%EOF" xref_pos
+  IO.printf pdf.file "startxref\n%d\n%%%%EOF" xref_pos;
+  IO.free pdf.file
 };
 

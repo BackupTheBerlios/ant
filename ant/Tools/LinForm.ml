@@ -38,7 +38,7 @@ value of_unknown compare x = of_scaled_unknown compare num_one x;
 value of_terms compare xs =
 {
   const   = num_zero;
-  terms   = List.filter (fun (a,x) -> a <>/ num_zero) xs;
+  terms   = List.filter (fun (a,_) -> a <>/ num_zero) xs;
   compare = compare
 };
 

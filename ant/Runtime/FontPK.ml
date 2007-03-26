@@ -341,7 +341,7 @@ value parse_pk_file fm ic = do
       in
 
       try
-        while True do
+        while not (IO.eof ic) do
         {
           read_glyph ic fm resolution glyphs
         }

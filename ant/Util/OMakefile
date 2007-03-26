@@ -3,21 +3,20 @@ UTILS[] = GenHyphTable #Kerning
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
-LocalOCamlGeneratedFiles(Unicode-install)
-LocalOCamlGeneratedFiles(Images-install)
-LocalOCamlGeneratedFiles(Runtime-install)
+OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
+OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
 
 OCAMLFLAGS += -I .
 
 section
-  OCAML_LIBS = ../Tools/Tools ../lib/CamlImages ../lib/Unicode ../lib/Runtime
+  OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/Runtime
   OCAML_OTHER_LIBS = $(CAMLIMAGES_MLLIBS)
 
   OCamlProgram(GenHyphTable, GenHyphTable)
 
 section
-  OCAML_LIBS = ../Tools/Tools ../lib/CamlImages ../lib/Unicode ../lib/Runtime
+  OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/Runtime
 
-  OCamlProgram(Kerning, Kerning ../Engine/Job)
+  OCamlProgram(Kerning, Kerning $(ROOT)/Engine/Job)
 
 # vim:set ft=make:

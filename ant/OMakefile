@@ -11,7 +11,7 @@ HYPHEN_PATTERNS[] = british us #deutsch-traditional deutsch-new français
 
 # Compilation options:
 
-#NATIVE_ENABLED = true  # compile to native code
+#NATIVE_ENABLED = false # compile to native code
 #BYTE_ENABLED   = true  # compile to byte code
 NATIVE_CAMLP4 = true   # compile a native version of the preprocessor
 
@@ -35,7 +35,7 @@ SELFAUTO_FLAGS  = -ccopt $""-DSELFAUTOLOC='"$(SELFAUTOLOC)"' "" \
 FREETYPE_FLAGS  = $(mapprefix -ccopt, $(shell freetype-config --cflags))
 X11_LFLAGS      = -cclib -L/usr/X11/lib
 
-if NATIVE_ENABLED
+if $(NATIVE_ENABLED)
   CMO = cmx
   CMA = cmxa
   export
@@ -44,7 +44,7 @@ else
   CMA = cma
   export
 
-if NATIVE_CAMLP4
+if $(NATIVE_CAMLP4)
   PP_FLAGS     = -pp "$(ROOT)/PreProc/camlp4opt"
   MLPP_TARGETS = $(ROOT)/PreProc/camlp4opt
   export
@@ -60,7 +60,7 @@ OCAML_LIB_DIR          = $(shell $(OCAMLC) -where)
 OCAMLCFLAGS                 = -g
 OCAML_BYTE_LINK_FLAGS       = -custom
 OCAMLFLAGS_WITHOUT_CAMLP    = -w Aes -warn-error P -rectypes -I $(ROOT)/Tools -I $(ROOT)/lib
-OCAMLDEPFLAGS_WITHOUT_CAMLP = $(OCAMLDEPFLAGS)
+OCAMLDEPFLAGS_WITHOUT_CAMLP = $(OCAMLDEPFLAGS) -I $(ROOT)/Tools -I $(ROOT)/lib
 OCAMLFLAGS                  = $(OCAMLFLAGS_WITHOUT_CAMLP)    $(PP_FLAGS)
 OCAMLDEPFLAGS               = $(OCAMLDEPFLAGS_WITHOUT_CAMLP) $(PP_FLAGS)
 
@@ -102,18 +102,21 @@ clean: PreProc-clean Tools-clean Examples-clean
   foreach(d, . $(DIRECTORIES) VM/Private)
     rm -f $(d)/*.{o,a,cm[aiox],cmxa} $(d)/Makefile.depend
 
+DeleteBinaries(files) =
+  foreach(f, $(files))
+    rm -f $(f) $(f).opt $(f).run
+
 distclean: clean Examples-distclean
   rm -rf CVS */CVS */*/CVS
   rm -f *.omc */*.omc */*/*.omc
-  rm -f */.viminfo
-  rm -f ant Main/ant Main/ant.opt Unicode/GenUnicodeTable Unicode/GenUnicodeTable.opt
-  rm -f Util/GenHyphTable Util/GenHyphTable.opt VM/Ali VM/Ali.opt Engine/HyphenTable.ml
+  rm -f ant Engine/HyphenTable.ml */.viminfo
+  DeleteBinaries(Main/ant Unicode/GenUnicodeTable Util/GenHyphTable VM/Ali)
 
 DATE = $(shell date +"%Y%m%d")
 
-ARCHIVE_FILES = Config.mk Makefile OMakefile OMakeroot Ant.om README ant.1 data/hyphen \
+ARCHIVE_FILES = OMakefile OMakeroot Ant.om README ant.1 data/hyphen \
                 $(filter-out Examples, $(DIRECTORIES)) lib PreProc \
-                $(glob Examples/*.ant) $(glob Examples/*.sty) Examples/{Makefile.inc,OMakefile}
+                $(glob Examples/*.ant) $(glob Examples/*.sty) Examples/OMakefile
 
 archive: distclean
   (cd ..; tar -cvf ant-$(DATE).tar $(addprefix ant/, $(ARCHIVE_FILES)))

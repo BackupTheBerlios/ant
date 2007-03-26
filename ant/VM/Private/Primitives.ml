@@ -1128,7 +1128,7 @@ value number_to_string sign len2 nf x = do
     pos_num_to_string len2 nf x
 };
 
-value rec output_format_string fmt n res args = do
+value rec output_format_string fmt res args = do
 {
   let rec add_string res str = match str with
   [ []      -> res
@@ -1274,7 +1274,7 @@ value prim_format_string res fmt_string = do
       {
         let (f, n) = parse_format_string !fmt in
 
-        !res := PrimitiveN n (output_format_string f n)
+        !res := PrimitiveN n (output_format_string f)
       })
 };
 
@@ -1507,6 +1507,48 @@ value prim_generate_symbol res _ = do
   !res := Symbol (alloc_symbol ())
 };
 
+(* serialisation *)
+
+value prim_serialise res file val = do
+{
+  let str = ref [] in
+
+  cont3
+    (fun () -> evaluate_char_list "serialise" str file)
+    (fun () -> Evaluate.evaluate_unknown val)
+    (fun () -> try do
+      {
+        let os = IO.make_out_stream (UString.bytes_to_string !str) in
+        Serialise.serialise_unknown os val;
+        IO.free os;
+       !res := Bool True
+      }
+      with [ _ -> !res := Bool False ])
+};
+
+value prim_unserialise res file = do
+{
+  let str = ref [] in
+
+  cont2
+    (fun () -> evaluate_char_list "unserialise" str file)
+    (fun () -> try do
+      {
+        let is = IO.make_rand_in_stream (UString.bytes_to_string !str) in
+        !res := Serialise.unserialise_unknown is;
+        IO.free is
+      }
+      with
+      [ Sys_error _ -> do
+        {
+          Logging.log_warn ("",0,0) ("Cannot open file " ^ (UString.bytes_to_string !str) ^ "!");
+          !res := Unbound
+        }
+      ])
+};
+
+(* initialisation *)
+
 value bind_primitive scope name v = do
 {
   Scope.add_global scope (string_to_symbol (UString.uc_string_of_ascii name)) v
@@ -1664,6 +1706,11 @@ value initial_scope () = do
 
   add1 "to_symbol"       prim_to_symbol;
   add1 "generate_symbol" prim_generate_symbol;
+
+  (* serialisation *)
+
+  add2 "serialise"       prim_serialise;
+  add1 "unserialise"     prim_unserialise;
 
   (* dimensions *)
 

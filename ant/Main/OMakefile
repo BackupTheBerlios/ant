@@ -1,16 +1,16 @@
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
-LocalOCamlGeneratedFiles(Unicode-install)
-LocalOCamlGeneratedFiles(Runtime-install)
-LocalOCamlGeneratedFiles(VM-install)
-LocalOCamlGeneratedFiles(Typesetting-install)
-LocalOCamlGeneratedFiles(Engine-install)
-LocalOCamlGeneratedFiles(Markup-install)
+OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
+OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
+OCamlDependsOnPackage($(ROOT)/lib/VM)
+OCamlDependsOnPackage($(ROOT)/lib/Typesetting)
+OCamlDependsOnPackage($(ROOT)/lib/Engine)
+OCamlDependsOnPackage($(ROOT)/lib/Markup)
 
 OCAMLFLAGS += -I .
 
-OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/CamlImages $(ROOT)/lib/Runtime
+OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/Runtime
 
 OCamlProgram(ant, $(ROOT)/lib/VM $(ROOT)/lib/Typesetting $(ROOT)/lib/Engine $(ROOT)/lib/Markup Main)
 

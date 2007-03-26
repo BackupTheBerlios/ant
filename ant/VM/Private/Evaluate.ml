@@ -1067,7 +1067,7 @@ and evaluate_application x f args = match f with
           (fun () -> evaluate_term a env t)
           (fun () -> evaluate_application x f args)
       }
-    | _ -> runtime_error "non-integral index"
+    | _ -> runtime_error ("using type " ^ type_name !a ^ " as index!")
     ]
   | _ -> assert False
   ]
@@ -1110,7 +1110,7 @@ and evaluate_application x f args = match f with
           (fun () -> evaluate_term a env t)
           (fun () -> evaluate_application x f args)
       }
-    | _ -> runtime_error "non-integral index"
+    | _ -> runtime_error ("using type " ^ type_name !a ^ " as index!")
     ]
   | _ -> assert False
   ]

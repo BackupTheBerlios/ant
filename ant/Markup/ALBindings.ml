@@ -26,6 +26,7 @@ value add_primitives scope = do
       ("ps_arg_skip",             Primitive2 ps_arg_skip);
       ("ps_arg_dim",              Primitive2 ps_arg_dim);
       ("ps_arg_key_val",          Primitive2 ps_arg_key_val);
+      ("ps_arg_dict",             PrimitiveN 3 ps_arg_dict);
       ("ps_opt_expanded",         PrimitiveN 3 ps_opt_expanded);
       ("ps_opt_key_val",          Primitive2 ps_opt_key_val);
       ("ps_opt_int",              PrimitiveN 3 ps_opt_int);
@@ -87,6 +88,8 @@ value add_primitives scope = do
       ("ps_write_references",     Primitive2 ps_write_references);
 
       ("ps_dvi_special",          Primitive2 ps_dvi_special);
+      ("ps_warning",              Primitive2 ps_warning);
+      ("ps_error",                Primitive2 ps_error);
 
       ("ps_execute_next_char",    Primitive2 ps_execute_next_char);
       ("ps_execute_stream",       Primitive2 ps_execute_stream);

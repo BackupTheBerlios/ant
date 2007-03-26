@@ -20,11 +20,11 @@ MODULES[] =
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
-LocalOCamlGeneratedFiles(Unicode-install)
-LocalOCamlGeneratedFiles(Runtime-install)
-LocalOCamlGeneratedFiles(VM-install)
-LocalOCamlGeneratedFiles(Typesetting-install)
-LocalOCamlGeneratedFiles(Engine-install)
+OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
+OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
+OCamlDependsOnPackage($(ROOT)/lib/VM)
+OCamlDependsOnPackage($(ROOT)/lib/Typesetting)
+OCamlDependsOnPackage($(ROOT)/lib/Engine)
 
 OCAMLFLAGS += -I .
 

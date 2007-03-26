@@ -12,10 +12,10 @@ HYPHEN_FILES = $(addprefix $(ROOT)/data/hyphen/, $(addsuffix .hyphen, $(HYPHEN_P
 
 LocalOCamlGeneratedFiles($(MLPP_TARGETS))
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
-LocalOCamlGeneratedFiles($(ROOT)/lib/Unicode.$(CMA) $(ROOT)/lib/Unicode.cmi $(ROOT)/lib/Unicode.a)
-LocalOCamlGeneratedFiles($(ROOT)/lib/Runtime.$(CMA) $(ROOT)/lib/Runtime.cmi $(ROOT)/lib/Runtime.a)
-LocalOCamlGeneratedFiles($(ROOT)/lib/VM.$(CMO) $(ROOT)/lib/VM.cmi $(ROOT)/lib/VM.o)
-LocalOCamlGeneratedFiles($(ROOT)/lib/Typesetting.$(CMO) $(ROOT)/lib/Typesetting.cmi $(ROOT)/lib/Typesetting.o)
+OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
+OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
+OCamlDependsOnPackage($(ROOT)/lib/VM)
+OCamlDependsOnPackage($(ROOT)/lib/Typesetting)
 LocalOCamlGeneratedFiles(HyphenTable.ml)
 
 OCAMLFLAGS += -I .

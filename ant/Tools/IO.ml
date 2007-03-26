@@ -369,7 +369,7 @@ value make_rand_in_stream filename = do
 
 value make_out_stream filename = do
 {
-  let oc  = open_out_bin filename in
+  let oc = open_out_bin filename in
 
   io_make_write
     (fun ()  -> close_out oc)
@@ -380,7 +380,7 @@ value make_out_stream filename = do
 
 value make_rand_out_stream filename = do
 {
-  let oc  = open_out_bin filename in
+  let oc = open_out_bin filename in
 
   io_make_write_seek
     (fun ()  -> close_out oc)
@@ -519,25 +519,6 @@ value make_buffer_stream buffer_size = do
     seek
 };
 
-(*
-  method produce f state = do
-  {
-    iter 0 state
-
-    where rec iter i state = do
-    {
-      if (i + 1) * buffer_size >= size then do
-      {
-        f state (String.sub buffer.(i) 0 (size - i * buffer_size))
-      }
-      else do
-      {
-        iter (i+1) (f state buffer.(i))
-      }
-    }
-  };
-*)
-
 value make_string_stream str = do
 {
   let pos = ref 0 in
@@ -585,7 +566,7 @@ value make_string_stream str = do
 
 (* Conversions *)
 
-value consume is f = do
+value consume_stream is f = do
 {
   while not (io_eof is) do
   {
@@ -593,7 +574,7 @@ value consume is f = do
   }
 };
 
-value produce os f = do
+value produce_stream os f = do
 {
   iter ()
 
@@ -621,19 +602,19 @@ value append_channel os ic = do
   }
   in
 
-  produce os read
+  produce_stream os read
 };
 
 value append os is = do
 {
-  consume is (io_write_string os)
+  consume_stream is (io_write_string os)
 };
 
 (* Write the contents of a stream to a channel. *)
 
 value to_channel is oc = do
 {
-  consume is (output_string oc)
+  consume_stream is (output_string oc)
 };
 
 value from_string str = do
@@ -651,7 +632,7 @@ value to_string is = do
 {
   let buf = Buffer.create 0x1000 in
 
-  consume is (Buffer.add_string buf);
+  consume_stream is (Buffer.add_string buf);
 
   Buffer.contents buf
 };

@@ -1,7 +1,6 @@
 
 open XNum;
 open Types;
-open VMPrivate;
 open Unicode.Types;
 open Unicode.SymbolTable;
 
