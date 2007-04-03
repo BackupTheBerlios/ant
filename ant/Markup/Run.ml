@@ -29,33 +29,33 @@ value call_init_hooks () = do
 
 (* routines to start ant *)
 
-value initialise () = do
+value initialise job = do
 {
+  Mode.init_source_specials job;
   Fonts.initialise_font_table ();
   call_init_hooks ();
 };
 
 value parse_document ps = do
 {
-(*  CharCmds.initialise ps; *)
   Primitives.initialise ps;
   call_parse_state_hooks ps;
 
   ParseState.run_parser ps `Preamble
 };
 
-value parse_file name = do
+value parse_file job name = do
 {
-  let ps = ParseState.create () in
+  let ps = ParseState.create job in
 
   UCStream.include_file ps.ParseState.input_stream name;
 
   (parse_document ps, ps)
 };
 
-value parse_string str = do
+value parse_string job str = do
 {
-  let ps = ParseState.create () in
+  let ps = ParseState.create job in
 
   UCStream.insert_string ps.ParseState.input_stream str;
 

@@ -8,13 +8,14 @@
 
 In order to compile ant you need:
 
- o OCaml version 3.09.1,
+ o OCaml version 3.10,
+ o OMake version 0.9.8.1,
  o kpathsea version 3.2,
  o FreeType version 2,
  o CamlImages version 2.2,
  o mlgmp version 0.13 (optional).
 
-(1) You might want to edit the file “Config.mk” to set some paths. In
+(1) You might want to edit the file “OMakefile” to set some paths. In
 particular, the variables KPATHSEA_LDFLAGS and KPATHSEA_CFLAGS probably
 need adjustment.
 
@@ -28,34 +29,31 @@ need adjustment.
           This is the slowest option.
 
 You can specify the number library by setting the NUM_LIB variable in
-the file “Config.mk”. Alternatively you can pass the corresponding
-option directly to make, like:
+the file “OMakefile”. Alternatively you can pass the corresponding
+option directly to omake, like:
 
-  $ make NUM_LIB=Gmp
+  $ omake NUM_LIB=Gmp
 
 (3) You can specify which version of the compiler to use by setting the
 following variables:
 
- o NATIVE: If empty ant is compiled to bytecode. Otherwise, native code
-   is produced (default).
- o NATIVE_CAMLP4: If nonempty a native version of the preprocessor
+ o NATIVE_ENABLED: If set to “true” (default) ant is compiled to native code.
+ o BYTE_ENABLED: If set to “true” ant is compiled to byte code.
+ o NATIVE_CAMLP4: If set to “true” (default) a native version of the preprocessor
    camlp4 is created. This speeds up the compilation process.
- o OPT: Determines whether to use the bytecode version of the compilers
-   (OPT="") or the native version (OPT=".opt").
 
 (4) Finally, to compile ant type
 
-  $ make depend
-  $ make
+  $ omake
 
 You might get errors about a stack overflow. In this case you can increase
 your stack size either by
 
-  $ ulimit -s 16384              (if you use the native compilers, OPT=".opt")
+  $ ulimit -s 16384              (if you use the native compilers)
 
 or by
 
-  $ make OCAMLRUNPARAM="l=16M"   (if you use the bytecode version, OPT="").
+  $ make OCAMLRUNPARAM="l=16M"   (if you use the bytecode version).
 
 (5) Further documentation can be found in the file “manual.pdf”. The
 directory “Examples” contains some example ant sources including the

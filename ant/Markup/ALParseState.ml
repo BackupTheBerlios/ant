@@ -16,6 +16,8 @@ module UString     = Unicode.UString;
 module SymbolTable = Unicode.SymbolTable;
 module SymbolMap   = SymbolTable.SymbolMap;
 
+value tracing_al_commands = ref False;
+
 (*
   Opaque type for parse-states: A parse-command is a function of type |parse_state -> unit|.
 *)
@@ -32,13 +34,12 @@ value unwrap_ps = Machine.evaluate_opaque "parse-command" ps_unwrapper;
 
 value decode_ps = decode_opaque "parse-command" ps_unwrapper;
 
-value execute_ps_command_unkown name f ps = do
+value execute_ps_command_unknown name f ps = do
 {
   try
-    let result = Machine.decode_function name f [ref (wrap_ps (fun _ -> ()))] in
-    let cmd    = decode_ps name result in
-
-    cmd ps
+    ignore
+      (decode_ps name
+        (Machine.decode_function name f [ref (wrap_ps ps)]))
   with
   [ VM.Types.Syntax_error loc msg -> log_warn loc (UString.to_string (Array.to_list msg))
   | VM.Types.Runtime_error msg    -> log_warn (location ps) (UString.to_string (Array.to_list msg))
@@ -48,23 +49,35 @@ value execute_ps_command_unkown name f ps = do
 value execute_ps_command name stream ps = do
 {
   try
-    let cmd = decode_ps name
-                (ref (Machine.evaluate_monad_expr ps.al_scope stream (wrap_ps (fun _ -> ()))))
-              in
-    cmd ps
+    ignore
+      (decode_ps name
+        (ref (Machine.evaluate_monad_expr ps.al_scope stream (wrap_ps ps))))
   with
   [ VM.Types.Syntax_error loc msg -> log_warn loc (UString.to_string (Array.to_list msg))
   | VM.Types.Runtime_error msg    -> log_warn (location ps) (UString.to_string (Array.to_list msg))
   ]
 };
 
+value dummy_parse_state = ParseState.create Job.empty;
+
 value ps_cmd name res parse_command f = do
 {
-  let cmd = ref (fun _ -> ()) in
+  let ps = ref dummy_parse_state in
 
   Machine.continue2
-    (fun () -> unwrap_ps name cmd parse_command)
-    (fun () -> !res := wrap_ps (fun ps -> do { !cmd ps; f ps }))
+    (fun () -> unwrap_ps name ps parse_command)
+    (fun () -> do
+      {
+        if !tracing_al_commands then do
+        {
+          log_string "\n#AL: ";
+          log_string name
+        }
+        else ();
+
+        f !ps;
+        !res := !parse_command
+      })
 };
 
 (* primitives *)
@@ -404,7 +417,7 @@ value ps_add_node res node parse_command = do
 
 value decode_command name execute expand = do
 {
-  let exe ps = execute_ps_command_unkown name execute ps in
+  let exe ps = execute_ps_command_unknown name execute ps in
   let exp ps tok = try do
     {
       let result  = ref Types.Unbound in
@@ -413,12 +426,10 @@ value decode_command name execute expand = do
                       expand
                       [result;
                        ref ((Machine.uc_list_to_char_list tok));
-                       ref (wrap_ps (fun _ -> ()))]
+                       ref (wrap_ps ps)]
       in
 
-      let cmd = decode_ps name command in
-
-      cmd ps;
+      decode_ps name command;
 
       Machine.decode_string name result
     }
@@ -441,7 +452,7 @@ value decode_command name execute expand = do
 
 value decode_unexpandable_command name execute = do
 {
-  { execute = execute_ps_command_unkown name execute;
+  { execute = execute_ps_command_unknown name execute;
     expand  = Macro.noexpand }
 };
 
@@ -583,26 +594,21 @@ value encode_command name command = do
 {
   let execute res parse_command = do
     {
-      let cmd = decode_ps name parse_command in
+      command.execute (decode_ps name parse_command);
 
-      !res := wrap_ps (fun ps -> do { cmd ps; command.execute ps })
+      !res := !parse_command
     }
   in
   let expand res args = match args with
   [ [result; tok; parse_command] -> do
     {
-      let cmd = decode_ps name parse_command in
+      let ps = decode_ps name parse_command in
 
-      !res :=
-        wrap_ps
-          (fun ps -> do
-            {
-              cmd ps;
+      let t = Machine.decode_string name tok in
 
-              let t = Machine.decode_string name tok in
+      Machine.set_unknown result (Machine.uc_list_to_char_list (command.expand ps t));
 
-              Machine.set_unknown result (Machine.uc_list_to_char_list (command.expand ps t))
-            })
+      !res := !parse_command;
     }
   | _ -> assert False
   ]
@@ -1013,7 +1019,7 @@ value ps_new_area res args = match args with
         }
         else do
         {
-          log_warn (location ps) "unkown area type ";
+          log_warn (location ps) "unknown area type ";
           log_uc_string (SymbolTable.symbol_to_string at);
           log_string "!\n"
         }
@@ -1284,6 +1290,8 @@ value ps_set_math_code res args = match args with
 | _ -> assert False
 ];
 
+(* boxes *)
+
 (* graphics *)
 
 value decode_coord name z = do
@@ -1417,6 +1425,45 @@ value ps_set_miter_limit res limit parse_command = do
 
         add_node ps
           (Node.GfxCommand (location ps) (Graphic.SetMiterLimit l))
+      })
+};
+
+(* page commands *)
+
+value ps_page_command res cmd parse_command = do
+{
+  ps_cmd "ps_page_command" res parse_command
+    (fun ps -> do
+      {
+        let f pi (x,y) = do
+        {
+          Machine.evaluate cmd;
+
+          execute_ps_command_unknown "ps_page_command"
+            (ref (Types.Application !cmd
+                  [ref (encode_page_info pi);
+                   ref (Types.Tuple [|ref (Types.Number x);
+                                      ref (Types.Number y)|])]))
+            ps
+        }
+        in
+
+        add_node ps
+          (Node.CommandBox (location ps) (`PageCmd (Box.CallPageFunction f)))
+      })
+};
+
+value ps_dvi_special res special parse_command = do
+{
+  ps_cmd "ps_dvi_special" res parse_command
+    (fun ps -> do
+      {
+        let s = Machine.decode_string "ps_dvi_special" special in
+
+        add_node ps
+          (Node.CommandBox
+            (location ps)
+            (`Special (`DVI_Special (UString.to_string s))))
       })
 };
 
@@ -1570,20 +1617,6 @@ value ps_write_references res file parse_command = do
 };
 
 (* misc *)
-
-value ps_dvi_special res special parse_command = do
-{
-  ps_cmd "ps_dvi_special" res parse_command
-    (fun ps -> do
-      {
-        let s = Machine.decode_string "ps_dvi_special" special in
-
-        add_node ps
-          (Node.CommandBox
-            (location ps)
-            (`Special (`DVI_Special (UString.to_string s))))
-      })
-};
 
 value ps_warning res msg parse_command = do
 {

@@ -25,6 +25,7 @@ type mode =
 
 type parse_state =
 {
+  job               : Job.job;
   input_stream      : UCStream.istream;
   parse_stack       : Stack.t (mode * ListBuilder.builder Node.node);
   default_char_cmd  : mutable command;
@@ -62,8 +63,9 @@ value mode_to_string mode = match mode with
 
 (* |create ()| creates an empty parse state. *)
 
-value create () =
+value create job =
 {
+  job               = job;
   input_stream      = UCStream.create ();
   parse_stack       = Stack.create ();
   default_char_cmd  = { execute = (fun _ -> ()); expand = (fun _ _ -> []) };
@@ -88,6 +90,7 @@ value create () =
 
 value duplicate ps =
 {
+  job               = ps.job;
   input_stream      = UCStream.create ();
   parse_stack       = Stack.create ();
   default_char_cmd  = ps.default_char_cmd;

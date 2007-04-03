@@ -1873,6 +1873,8 @@ Example\?:
 Most of the functions below return environment commands, i.e., functions of type
 \textit{location $\rightarrow$ environment $\rightarrow$ environment.}
 
+This is page \currentpage.
+
 Font parameters\?:
 \begin{code}
   \cs{em} \nterm{env}
@@ -2281,5 +2283,7 @@ The virtual machine consists of the following modules\?:
   the main module for a primitive standalone AL-interpreter.
 \end{description}
 \end{document}
+
+\StoreReferences{manual.gdb}
 
 % vim:set ft=tex fenc=utf8:

@@ -88,7 +88,7 @@ value lookup_area page_layout area_name = do
   {
     if i >= Array.length page_layout.pl_areas then do
     {
-      log_warn ("", 0, 0) "unkown area: ";
+      log_warn ("", 0, 0) "unknown area: ";
       log_uc_string area_name;
       0
     }

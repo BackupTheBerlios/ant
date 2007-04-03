@@ -1,3 +1,3 @@
 
-value add_primitives : VM.Machine.scope -> unit;
+value add_primitives : Engine.Job.job -> VM.Machine.scope -> unit;
 

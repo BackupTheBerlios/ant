@@ -54,7 +54,7 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
     let len       = List.length xs in
     let (s,n,v,c) = List.fold_right compile xs state in
 
-    (s + len - 1, n, v, [PCTuple len :: c])
+    (max (s + len - 1) stack_depth, n, v, [PCTuple len :: c])
   }
 | Parser.PList xs -> do
   {
@@ -62,7 +62,7 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
       (fun x s1 -> do
         {
           let (s,n,v,c) = compile x s1 in
-          (max s (stack_depth + 1), n, v, [PCConsList :: c])
+          (max (s + 1) stack_depth, n, v, [PCConsList :: c])
         })
       xs
       (stack_depth, num_vars, var_names, [PCNil :: checks])
@@ -73,7 +73,7 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
       (fun x s1 -> do
         {
           let (s,n,v,c) = compile x s1 in
-          (max s (stack_depth + 1), n, v, [PCConsList :: c])
+          (max (s + 1) stack_depth, n, v, [PCConsList :: c])
         })
       xs
       (compile tail state)

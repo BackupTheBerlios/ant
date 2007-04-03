@@ -1,0 +1,88 @@
+% implementation of references
+
+\beginALdeclarations
+
+ps_declare_persistent_global sym :=
+  local table;
+  do
+    ps_get_global table PersistentGlobals;
+    ps_set_global PersistentGlobals [sym : table];
+  end;
+
+ps_store_persistent_globals file_name ps :=
+  local table;
+  do
+    ps_get_global table PersistentGlobals;
+
+    iter table []
+    where
+      iter [] globals ps :=
+        if serialise file_name globals then
+          ps
+        else
+          ps_warning ("Couldn't store globals to file `" + file_name + "'.\n") ps
+        end;
+      iter [s:ss] globals ps :=
+        local g;
+        do
+          ps_get_global g s;
+          iter ss [(s,g) : globals];
+        end
+        ps;
+    end;
+  end
+  ps;
+
+ps_restore_persistent_globals file_name ps :=
+  iter (unserialise file_name) ps
+  where
+    iter [(s,g) : pairs] ps := iter pairs (ps_set_global s g ps);
+    iter _               ps := ps;
+  end;
+
+\endALdeclarations
+
+\definecommand\StoreReferences[m]{%
+  \ALcommand{ps_store_persistent_globals (ps_job_name + ".gdb")}}
+
+% restore globals
+\ALcommand{
+  do
+    ps_set_global PersistentGlobals [];
+    ps_restore_persistent_globals (ps_job_name + ".gdb");
+  end
+}
+
+% |\currentpage| returns the current page number as arabic number.
+
+\definecommand\currentpage{%
+  \ALcommand{
+    local begin
+      sym  := generate_symbol 0;
+      page := _
+    end
+    do
+      ps_declare_persistent_global sym;
+      ps_set_global sym 0;
+      ps_page_command { pi _ := ps_set_global sym (pi PageNo) };
+      ps_get_global page sym;
+      ps_insert_string (format_string "%d" page);
+    end
+  }}
+\definecommand\saveposition[m]{%
+  \ALcommand{
+    local begin
+      sym  := generate_symbol 0;
+      page := _
+    end
+    do
+      ps_page_command
+        { pi _ := ps_set_global sym (pi Page) };
+      ps_get_global page sym;
+      ps_define_command "#1"
+        (ps_insert_string (format_string "%d" page))
+        { res str := res = format_string "%d" page + str };
+    end
+  }}
+
+% vim:set ft=tex:

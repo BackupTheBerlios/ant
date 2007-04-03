@@ -137,7 +137,7 @@ value check_keys dict key_dict loc = do
     (fun k _ ->
       if not (DynUCTrie.mem_string k key_dict) then do
       {
-        log_warn loc "unkown key `";
+        log_warn loc "unknown key `";
         log_uc_string k;
         log_string "'!"
       }
@@ -601,7 +601,7 @@ value parse_float_area_dict loc dict = do
       | "bottom" -> FloatVertical.Bottom
       | _        -> do
         {
-          log_warn loc "unkown alignment `";
+          log_warn loc "unknown alignment `";
           log_uc_list str;
           log_string "'!";
           FloatVertical.Top
@@ -1063,7 +1063,7 @@ value parbox ps = do
 
   open_node_list ps `Galley;
 
-  ParseState.execute_argument ps;
+  execute_argument ps;
 
   Mode.leave_par_mode ps;
 
@@ -1496,7 +1496,7 @@ value index_position ps = do
     add_node ps (Node.IndexPosition (location ps) VertIndex)
   else do
   {
-    log_error (location ps) "unkown index position `";
+    log_error (location ps) "unknown index position `";
     log_uc_string pos;
     log_string "'!"
   }
@@ -1673,7 +1673,7 @@ value new_area ps = do
   else if area_type = str_direct then do
   {
     let code       = Parser.read_argument ps.input_stream in
-    let current_ps = ParseState.duplicate ps              in
+    let current_ps = duplicate ps                         in
     let stream     = UCStream.of_list code                in
 
     let f pi _ = do
@@ -1709,7 +1709,7 @@ value new_area ps = do
   }
   else do
   {
-    log_warn (location ps) "unkown area type ";
+    log_warn (location ps) "unknown area type ";
     log_uc_string area_type;
     log_string "!\n"
   }
@@ -1989,7 +1989,7 @@ value put_math_char ps = do
   | "superscript" -> SuperScript
   | x             -> do
     {
-      log_warn (location ps) ("unkown math code `" ^ x ^ "'!");
+      log_warn (location ps) ("unknown math code `" ^ x ^ "'!");
       NoMath
     }
   ]
@@ -2169,7 +2169,7 @@ value declare_font ps = do
     (fun k _ ->
       if k <> str_hyphen && k <> str_skew && k <> str_scale then do
       {
-        log_warn (location ps) "unkown key `";
+        log_warn (location ps) "unknown key `";
         log_uc_string k;
         log_string "'!"
       }
@@ -2859,7 +2859,7 @@ value initialise ps = do
     { ParseState.execute = cc_put_char;
       ParseState.expand  = Macro.noexpand };
 
-  ALBindings.add_primitives ps.ParseState.al_scope;
+  ALBindings.add_primitives ps.ParseState.job ps.ParseState.al_scope;
 
   (* commands *)
 
@@ -2903,7 +2903,7 @@ value initialise ps = do
   def_unexpandable_cmd "\\end"                 end_environment;
   def_unexpandable_cmd "\\include"             include_file;
   def_unexpandable_cmd "\\endinput"            end_input;
-  def_macro            "\\jobname"             !Engine.Job.jobname;
+  def_macro            "\\jobname"             ps.job.Job.jobname;
   def_unexpandable_cmd "\\declarefont"         declare_font;
   def_unexpandable_cmd "\\beginALdeclarations" al_declarations;
   def_expandable_cmd   "\\ALmacro"             al_macro expand_al_macro;
@@ -2962,19 +2962,19 @@ value initialise ps = do
 
   ParseState.new_counter ps
     (UString.uc_string_of_ascii "year")
-    (Engine.Job.time.Unix.tm_year + 1900)
+    (ps.job.Job.time.Unix.tm_year + 1900)
     None;
   ParseState.new_counter ps
     (UString.uc_string_of_ascii "month")
-    (Engine.Job.time.Unix.tm_mon  + 1)
+    (ps.job.Job.time.Unix.tm_mon  + 1)
     None;
   ParseState.new_counter ps
     (UString.uc_string_of_ascii "day")
-    Engine.Job.time.Unix.tm_mday
+    ps.job.Job.time.Unix.tm_mday
     None;
   ParseState.new_counter ps
     (UString.uc_string_of_ascii "day-of-week")
-    Engine.Job.time.Unix.tm_wday
+    ps.job.Job.time.Unix.tm_wday
     None;
 
 

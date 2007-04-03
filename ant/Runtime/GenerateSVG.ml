@@ -318,8 +318,8 @@ value new_truetype_font state font_name fm encoding = do
         ("Widths",         PDF.Array  (Array.to_list width_array));
         ("Encoding",       font_encoding fm encoding);
 (*        ("CIDSystemInfo",  PDF.Dictionary
-                             [ ("Registry",   PDF.String (IO.from_string "unkown"));
-                               ("Ordering",   PDF.String (IO.from_string "unkown"));
+                             [ ("Registry",   PDF.String (IO.from_string "unknown"));
+                               ("Ordering",   PDF.String (IO.from_string "unknown"));
                                ("Supplement", PDF.Int 0) ]);*)
         ("FontDescriptor", PDF.Reference fd 0)
       ]);

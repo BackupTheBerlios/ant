@@ -1,17 +1,21 @@
 
 type output_format = [ DVI | XDVI | PDF | PS | SVG ];
 
-value time             : Unix.tm;
-value argv             : array string;
-value output_format    : ref output_format;
-value source_specials  : ref bool;
-value jobname          : ref string;
-value input_file       : ref string;
-value output_file      : ref string;
-value src_special_file : ref string;
-value log_file         : ref string;
+type job =
+{
+  time               : Unix.tm;
+  argv               : array string;
+  output_format      : output_format;
+  source_specials    : bool;
+  jobname            : string;
+  input_file         : string;
+  output_file        : string;
+  src_special_file   : string;
+  log_file           : string;
+  src_special_stream : IO.ostream
+};
 
-value src_special_stream : ref IO.ostream;
+value empty  : job;
 
-value start_job : string -> unit;
+value create : string -> output_format -> bool -> job;
 

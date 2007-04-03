@@ -6,8 +6,18 @@ open Typesetting;
 open Engine;
 open ParseState;
 
-value pdf_spec_num = ref 0;
-value pdf_page     = ref (-1);
+value pdf_spec_num        = ref 0;
+value pdf_page            = ref (-1);
+value pdf_src_spec_stream = ref (IO.coerce_o (IO.make_buffer_stream 10));
+value src_spec_enabled    = ref False;
+
+value init_source_specials job = do
+{
+  !pdf_spec_num        := 0;
+  !pdf_page            := -1;
+  !src_spec_enabled    := job.Job.source_specials;
+  !pdf_src_spec_stream := job.Job.src_special_stream;
+};
 
 value insert_source_special ps = do
 {
@@ -24,12 +34,12 @@ value insert_source_special ps = do
 
       if pi.Box.pi_page_no <> !pdf_page then do
       {
-        IO.printf !Job.src_special_stream "s %d\n" pi.Box.pi_page_no;
+        IO.printf !pdf_src_spec_stream "s %d\n" pi.Box.pi_page_no;
         !pdf_page := pi.Box.pi_page_no
       }
       else ();
 
-      IO.printf !Job.src_special_stream "(%s\nl %d %d\np %d %d %d\n)\n" file !pdf_spec_num line !pdf_spec_num x_pos y_pos;
+      IO.printf !pdf_src_spec_stream "(%s\nl %d %d\np %d %d %d\n)\n" file !pdf_spec_num line !pdf_spec_num x_pos y_pos;
 
       !pdf_spec_num := !pdf_spec_num + 1
     }
@@ -47,7 +57,7 @@ value begin_paragraph ps = do
 {
   open_node_list ps `Paragraph;
 
-  if !Job.source_specials then
+  if !src_spec_enabled then
     insert_source_special ps
   else ()
 };

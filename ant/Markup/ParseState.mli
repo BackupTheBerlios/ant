@@ -23,6 +23,7 @@ type mode =
 
 type parse_state =
 {
+  job               : Job.job;
   input_stream      : UCStream.istream;
   parse_stack       : Stack.t (mode * ListBuilder.builder Node.node);
   default_char_cmd  : mutable command;
@@ -47,7 +48,7 @@ and command =
 
 value mode_to_string  : mode -> string;
 
-value create          : unit -> parse_state;
+value create          : Job.job -> parse_state;
 value duplicate       : parse_state -> parse_state;
 value set_stream      : parse_state -> UCStream.istream -> unit;
 value location        : parse_state -> UCStream.location;

@@ -23,6 +23,6 @@ OCamlProgram(camlp4opt, $(CAMLP4_MODULES))
 .PHONY: PreProc-clean
 
 PreProc-clean:
-  rm -f camlp4opt camlp4opt.opt *.cm[aixo] *.cmxa *.[ao]
+  rm -f camlp4opt camlp4opt.opt camlp4opt.run *.cm[aixo] *.cmxa *.[ao]
 
 # vim:set ft=make:

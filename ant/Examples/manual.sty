@@ -1,6 +1,7 @@
 % style file for the manual
 
 \include{defines.ant}
+\include{references.ant}
 
 % expansion
 
@@ -43,10 +44,10 @@
 
 % |\currentpage| returns the current page number as arabic number.
 
-\definecommand\currentpage{%
-  \NewUniqueId
-  \measureposition{\GetUniqueId}%
-  \SelectFirstOfThree{\lookupreference{\GetUniqueId}}}
+%\definecommand\currentpage{%
+%  \NewUniqueId
+%  \measureposition{\GetUniqueId}%
+%  \SelectFirstOfThree{\lookupreference{\GetUniqueId}}}
 
 \definecommand\saveposition[m]{%
   \NewUniqueId

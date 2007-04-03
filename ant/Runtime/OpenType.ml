@@ -614,7 +614,7 @@ value read_class_table table table_off = do
         }
       }
     }
-  | _ -> raise (Failure "unkown class table format")
+  | _ -> raise (Failure "unknown class table format")
   ]
 };
 
@@ -1691,7 +1691,7 @@ value read_tables is = do
   else if version <> Int32.of_int 0x10000 &&
           version <> Int32.of_int 0x20000 &&
           version <> otto_tag then
-    raise (Failure "unkown font type")
+    raise (Failure "unknown font type")
   else do
   {
     let num_tables = IO.read_be_u16 is in

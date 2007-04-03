@@ -7,11 +7,11 @@ open Dim;
 open Markup;
 open ParseState;
 
-value warn_unkown loc sequence = do
+value warn_unknown loc sequence = do
 {
   log_warn loc "command \"";
   log_uc_list sequence;
-  log_string " unkown!"
+  log_string " unknown!"
 };
 
 value add_zero_skip ps = do
@@ -44,7 +44,7 @@ value double_consonant ps char = do
   if c = char then
     add_discretionary ps None [c; c; 45] [] [c]
   else
-    warn_unkown (location ps) [char; c]
+    warn_unknown (location ps) [char; c]
 };
 
 (*
@@ -142,11 +142,11 @@ value german_execute ps = do
   | 126 -> add_node ps (`HBox (loc, [(`Letter (loc, 45))])) (* ""~ *)
   |  99 -> match UCStream.next_char ps.input_stream with    (* ""ck *)
            [ 107 -> add_discretionary ps None [107; 45] [] [99]
-           | _   -> warn_unkown loc [99; UCStream.next_char ps.input_stream]
+           | _   -> warn_unknown loc [99; UCStream.next_char ps.input_stream]
            ]
   |  67 -> match UCStream.next_char ps.input_stream with    (* ""CK *)
            [ 75 -> add_discretionary ps None [75; 45] [] [67]
-           | _  -> warn_unkown loc [99; UCStream.next_char ps.input_stream]
+           | _  -> warn_unknown loc [99; UCStream.next_char ps.input_stream]
            ]
   | 102  -> double_consonant ps 102       (* ""ff *)
   |  70  -> double_consonant ps  70       (* ""FF *)
@@ -162,7 +162,7 @@ value german_execute ps = do
   |  82  -> double_consonant ps  82       (* ""RR *)
   | 116  -> double_consonant ps 116       (* ""tt *)
   |  84  -> double_consonant ps  84       (* ""TT *)
-  | c    -> warn_unkown loc [c]
+  | c    -> warn_unknown loc [c]
   ];
 };
 
@@ -208,7 +208,7 @@ value german_expand tok stream = do
   |  82 -> [ 82]       (* ""RR *)
   | 116 -> [116]       (* ""tt *)
   |  84 -> [ 84]       (* ""TT *)
-  | c   -> do { warn_unkown (UCStream.location stream) [c]; [c] }
+  | c   -> do { warn_unknown (UCStream.location stream) [c]; [c] }
   ];
 };
 

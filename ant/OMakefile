@@ -13,7 +13,7 @@ HYPHEN_PATTERNS[] = british us #deutsch-traditional deutsch-new français
 
 #NATIVE_ENABLED = false # compile to native code
 #BYTE_ENABLED   = true  # compile to byte code
-NATIVE_CAMLP4 = true   # compile a native version of the preprocessor
+NATIVE_CAMLP4  = true   # compile a native version of the preprocessor
 
 # Mathematics library:
 MATH_LIB = Float       # use floats
@@ -95,7 +95,7 @@ DIRECTORIES[]    = Tools Images Unicode Runtime VM Util Typesetting Engine Marku
 
 .DEFAULT: all
 
-all: ant VM/Ali
+all: Images-install Unicode-install Runtime-install VM-install Typesetting-install Engine-install Markup-install ant VM/Ali
 
 clean: PreProc-clean Tools-clean Examples-clean
   rm -f lib/*

@@ -13,6 +13,7 @@ value print_help () = do
   print_string "--format=<fmt>    where <fmt> is \"dvi\", \"xdvi\", \"ps\", \"pdf\", or \"svg\"\n";
   print_string "--src-specials    enables the generation of source specials\n";
   print_string "--debug=<flags>   where <flags> may contain the following letters:\n";
+  print_string "                    a   al commands\n";
   print_string "                    e   engine\n";
   print_string "                    i   input\n";
   print_string "                    l   line breaks\n";
@@ -22,7 +23,7 @@ value print_help () = do
   print_string "--help            print this message and exists\n"
 };
 
-value rec process_options file args = match args with
+value rec process_options ((fmt, src_spec, file) as opt) args = match args with
 [ [] -> match file with
   [ None -> do
     {
@@ -30,14 +31,14 @@ value rec process_options file args = match args with
       print_help ();
       None
     }
-  | Some _ -> file
+  | Some f -> Some (fmt, src_spec, f)
   ]
 | [arg::args] -> do
   {
     let len = String.length arg in
 
     if len = 0 then
-      process_options file args
+      process_options opt args
     else if arg.[0] = '-' && len > 1 then do
     {
       let v = if arg.[1] = '-' then
@@ -61,32 +62,12 @@ value rec process_options file args = match args with
           None
         }
         else match String.lowercase (String.sub v 7 (len - 7)) with
-        [ "dvi" -> do
-          {
-            !Job.output_format := Job.DVI;
-            process_options file args
-          }
-        | "xdvi" -> do
-          {
-            !Job.output_format := Job.XDVI;
-            process_options file args
-          }
-        | "pdf" -> do
-          {
-            !Job.output_format := Job.PDF;
-            process_options file args
-          }
-        | "ps" -> do
-          {
-            !Job.output_format := Job.PS;
-            process_options file args
-          }
-        | "svg" -> do
-          {
-            !Job.output_format := Job.SVG;
-            process_options file args
-          }
-        | _     -> do
+        [ "dvi"  -> process_options (Job.DVI, src_spec, file) args
+        | "xdvi" -> process_options (Job.XDVI, src_spec, file) args
+        | "pdf"  -> process_options (Job.PDF, src_spec, file) args
+        | "ps"   -> process_options (Job.PS, src_spec, file) args
+        | "svg"  -> process_options (Job.SVG, src_spec, file) args
+        | _      -> do
           {
             print_string ("File format `" ^ v ^ "' not supported!\n\n");
             print_help ();
@@ -99,7 +80,7 @@ value rec process_options file args = match args with
         if len = 5 then do
         {
           !ParseState.tracing_macros := True;              (* default: --debug=m *)
-          process_options file args
+          process_options opt args
         }
         else if v.[5] <> '=' then do
         {
@@ -112,7 +93,8 @@ value rec process_options file args = match args with
           for i = 6 to len - 1 do
           {
             match v.[i] with
-            [ 'e' -> !Engine.Evaluate.tracing_engine             := True
+            [ 'a' -> !Markup.ALParseState.tracing_al_commands    := True
+            | 'e' -> !Engine.Evaluate.tracing_engine             := True
             | 'i' -> !ParseState.tracing_input                   := True
             | 'l' -> !Typesetting.ParLayout.tracing_line_breaks  := True
             | 'm' -> !ParseState.tracing_macros                  := True
@@ -122,13 +104,12 @@ value rec process_options file args = match args with
             | _   -> ()
             ]
           };
-          process_options file args
+          process_options opt args
         }
       }
       else if len >= 12 && String.sub v 0 12 = "src-specials" then do
       {
-        !Job.source_specials := True;
-        process_options file args
+        process_options (fmt, True, file) args
       }
       else do
       {
@@ -138,7 +119,7 @@ value rec process_options file args = match args with
       }
     }
     else match file with
-    [ None   -> process_options (Some arg) args
+    [ None   -> process_options (fmt, src_spec, Some arg) args
     | Some _ -> do
                 {
                   print_string "More than one input file given!\n\n";
@@ -153,9 +134,9 @@ value main () = do
 {
   Unicode.UString.set_string_format `UTF8;
 
-  match process_options None (List.tl (Array.to_list Sys.argv)) with
-  [ None      -> ()
-  | Some file -> do
+  match process_options (Job.PDF, False, None) (List.tl (Array.to_list Sys.argv)) with
+  [ None                       -> ()
+  | Some (fmt, src_spec, file) -> do
     {
       (* Check whether the file exists. *)
       try
@@ -171,10 +152,11 @@ value main () = do
         }
       ];
 
-      Job.start_job file;
-      Run.initialise ();
+      let job = Job.create file fmt src_spec in
 
-      let (ast, ps) = Run.parse_file !Job.input_file in
+      Run.initialise job;
+
+      let (ast, ps) = Run.parse_file job job.Job.input_file in
 
       let pages     = Engine.Evaluate.evaluate ast in
 
@@ -184,9 +166,9 @@ value main () = do
       }
       else ();
 
-      ParseState.write_references ps (!Job.jobname ^ ".refdb");
+      ParseState.write_references ps (job.Job.jobname ^ ".refdb");
 
-      Engine.Output.output_pages !Job.output_format pages
+      Engine.Output.output_pages job pages
     }
   ]
 };

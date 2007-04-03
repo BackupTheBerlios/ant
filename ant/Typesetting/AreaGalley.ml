@@ -58,7 +58,7 @@ value rec process_marks marks page_state = match marks with
         with
         [ Not_found -> do
           {
-            log_string "\nWarning: unkown page layout `";
+            log_string "\nWarning: unknown page layout `";
             log_uc_string layout;
             log_string "'";
 
@@ -465,7 +465,7 @@ value contents_from_galley params page area _floats page_state = do
   match DynUCTrie.lookup_string params.galley page_state.ps_galleys with
   [ None -> do
     {
-      log_error ("", 0, 0) "unkown galley `";
+      log_error ("", 0, 0) "unknown galley `";
       log_uc_string params.galley;
       log_string "'!";
       None

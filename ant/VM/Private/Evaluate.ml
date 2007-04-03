@@ -85,7 +85,7 @@ value env_push_terms env terms = do
   new_env
 };
 
-(* |evaluate_unkown <x>| performs one evaluation step for the given unknown. *)
+(* |evaluate_unknown <x>| performs one evaluation step for the given unknown. *)
 
 value rec evaluate_unknown x = match !x with
 [ UnevalT env term -> evaluate_term x env term
@@ -782,7 +782,7 @@ and evaluate_list name res x = match !x with
 
 and evaluate_lin_form x lin = do
 {
-  (* We check for unbound, constraint, and other unkowns. *)
+  (* We check for unbound, constraint, and other unknowns. *)
 
   !x := Unbound;
 
@@ -1127,7 +1127,7 @@ and evaluate_application x f args = match f with
   ]
 | Unbound
 | Constraint _ -> runtime_error "application of unknown function"
-| _            -> runtime_error "application of non-function"
+| _            -> runtime_error ("application of non-function (" ^ type_name f ^ ")")
 ]
 
 and execute env stmt = match stmt with

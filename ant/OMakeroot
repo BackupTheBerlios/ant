@@ -7,21 +7,13 @@ open Ant
 DefineCommandVars()
 
 OCamlPackageModules(package, modules) =
-  section
-    # compile the modules with "-for-pack"
-    OCAMLFLAGS += -for-pack $(package)
+  # compile the modules with "-for-pack"
+  OCAMLFLAGS += -for-pack $(package)
 
-    foreach(m, $(modules))
-      if $(target-exists $(m).ml)
-        if $(NATIVE_ENABLED)
-          $(m).cmx $(m).o: $(m).ml
-        else
-          $(m).cmo: $(m).ml
-
-      if $(target-exists $(m).mli)
-        $(m).cmi: $(m).mli
-      elseif $(target-exists $(m).ml)
-        $(m).cmi: $(m).ml
+  foreach(m, $(modules))
+    $(m).cmx $(m).o:
+    $(m).cmo:
+    $(m).cmi:
 
 OCamlPackageCopy(tag, dir, package) =
   private.dest = $(dir)/$(basename $(package))

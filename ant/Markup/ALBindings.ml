@@ -7,7 +7,7 @@ open ALEnvironment;
 open ALNodes;
 open ALParseState;
 
-value add_primitives scope = do
+value add_primitives job scope = do
 {
   Array.iter
     (fun (n,p) -> bind_primitive scope n p)
@@ -75,6 +75,8 @@ value add_primitives scope = do
       ("ps_set_line_join",        Primitive2 ps_set_line_join);
       ("ps_set_miter_limit",      Primitive2 ps_set_miter_limit);
 
+      ("ps_page_command",         Primitive2 ps_page_command);
+
       ("ps_new_counter",          PrimitiveN 4 ps_new_counter);
       ("ps_get_counter",          PrimitiveN 3 ps_get_counter);
       ("ps_set_counter",          PrimitiveN 3 ps_set_counter);
@@ -95,6 +97,8 @@ value add_primitives scope = do
       ("ps_execute_stream",       Primitive2 ps_execute_stream);
       ("ps_execute_argument",     Primitive1 ps_execute_argument);
       ("ps_run_parser",           PrimitiveN 3 ps_run_parser);
+
+      ("ps_job_name",             (ascii_to_char_list job.Engine.Job.jobname));
 
       ("new_page_layout",         PrimitiveN 3 prim_new_page_layout);
       ("select_page_layout",      Primitive1 prim_select_page_layout);
@@ -157,6 +161,5 @@ value add_primitives scope = do
   bind_post_op scope "em" (Primitive2 env_quad);
   bind_post_op scope "ex" (Primitive2 env_x_height);
   bind_post_op scope "mu" (Primitive2 env_math_unit);
-
 };
 

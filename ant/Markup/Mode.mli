@@ -1,6 +1,8 @@
 
 open ParseState;
 
+value init_source_specials : Engine.Job.job -> unit;
+
 value begin_paragraph : parse_state -> unit;
 value end_paragraph   : parse_state -> unit;
 value begin_math      : parse_state -> unit;

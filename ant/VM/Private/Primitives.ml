@@ -1059,7 +1059,7 @@ value parse_format_string fmt = do
   iter [] 0 fmt
 
   where rec iter res n fmt = match fmt with
-  [ []         -> (res, n)
+  [ []         -> (List.rev res, n)
   | [37 :: xs] -> do            (* % *)
     {
       let (t, ys) = parse_token xs in
@@ -1536,7 +1536,7 @@ value prim_unserialise res file = do
       {
         let is = IO.make_rand_in_stream (UString.bytes_to_string !str) in
         !res := Serialise.unserialise_unknown is;
-        IO.free is
+        IO.free is;
       }
       with
       [ Sys_error _ -> do

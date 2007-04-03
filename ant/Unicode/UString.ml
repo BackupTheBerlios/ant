@@ -107,7 +107,7 @@ value set_string_format fmt = match fmt with
     !to_u_conv   := fun s -> s;
     !from_u_conv := fun s -> s
   }
-| _ -> raise (Invalid_argument "unkown format")
+| _ -> raise (Invalid_argument "unknown format")
 ];
 
 value string_to_bytes str = do

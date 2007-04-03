@@ -1,3 +1,3 @@
 
-value output_pages  : Job.output_format -> list Runtime.FontMetric.page -> unit;
+value output_pages  : Job.job -> list Runtime.FontMetric.page -> unit;
 
