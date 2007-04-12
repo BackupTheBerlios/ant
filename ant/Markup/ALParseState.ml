@@ -95,7 +95,7 @@ value ps_get_global res args = match args with
           try
             Machine.set_unknown var (SymbolTable.SymbolMap.find s ps.global_variables)
           with
-          [ Not_found -> () ]
+          [ Not_found -> () ];
         })
   }
 | _ -> assert False
@@ -1685,4 +1685,13 @@ value ps_run_parser res args = match args with
   }
 | _ -> assert False
 ];
+
+value call_at_exit ps = do
+{
+  try
+    let f = VM.Machine.lookup_symbol ps.al_scope (Array.of_list (UString.string_to_bytes "ps_at_exit")) in
+    execute_ps_command_unknown "ps_at_exit" (ref f) ps
+  with
+  [ Not_found -> () ]
+};
 

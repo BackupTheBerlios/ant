@@ -2284,6 +2284,4 @@ The virtual machine consists of the following modules\?:
 \end{description}
 \end{document}
 
-\StoreReferences{manual.gdb}
-
 % vim:set ft=tex fenc=utf8:

@@ -160,6 +160,8 @@ value main () = do
 
       let pages     = Engine.Evaluate.evaluate ast in
 
+      ALParseState.call_at_exit ps;
+
       if ParseState.compare_references ps then do
       {
         log_string "\nSome references have changed.\nYou might need to rerun ant to get a correct output.\n"

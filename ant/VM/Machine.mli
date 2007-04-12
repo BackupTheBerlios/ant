@@ -13,6 +13,7 @@ value bind_bin_op_n          : scope -> string -> int -> partial_value -> unit;
 value bind_bin_op_r          : scope -> string -> int -> partial_value -> unit;
 value bind_pre_op            : scope -> string -> partial_value -> unit;
 value bind_post_op           : scope -> string -> partial_value -> unit;
+value lookup_symbol          : scope -> uc_string -> partial_value;
 
 value string_to_symbol       : uc_string -> Unicode.SymbolTable.symbol;
 value symbol_to_string       : Unicode.SymbolTable.symbol -> uc_string;

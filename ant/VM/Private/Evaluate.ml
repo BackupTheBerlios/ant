@@ -143,11 +143,12 @@ and evaluate_term x env term = do
   | TConsList y z              -> !x := List (unevaluated env y) (unevaluated env z)
   | TSimpleFunction arity term -> !x := SimpleFunction arity env term
   | TPatternFunction a s n p   -> !x := PatternFunction a env s n p
-  | TDo terms                  -> do
+  | TDo stmts                  -> !x := Chain env stmts
+(*  do
     {
       let chain = Array.init
                     (Array.length terms)
-                    (fun i -> unevaluated env terms.(i))
+                    (fun i -> unevaluated env stmts.(i))
       in
 
       !x := Chain chain;
@@ -156,7 +157,7 @@ and evaluate_term x env term = do
       {
         cont (fun () -> evaluate_unknown chain.(i))
       }
-    }
+    }*)
   | TDictionary dict           -> do
     {
       !x := Dictionary
@@ -195,7 +196,8 @@ and evaluate_term x env term = do
     }
   | TSequence stmts term -> do
     {
-      let len = Array.length stmts in
+      let len     = Array.length stmts                          in
+      let results = Array.init (len + 1) (fun _ -> ref Unbound) in
 
       !x := UnevalT env term;
 
@@ -203,7 +205,7 @@ and evaluate_term x env term = do
 
       for i = 1 to len do
       {
-        cont (fun () -> execute env stmts.(len - i))
+        cont (fun () -> execute env stmts.(len - i) results.(i - 1) results.(i))
       }
     }
   | TMatch term stack_depth num_vars patterns -> do
@@ -265,7 +267,10 @@ and evaluate_term x env term = do
     }
   | TTrigger stmt -> do
     {
-      cont (fun () -> execute env stmt)
+      let x = ref Unbound in
+      let y = ref Unbound in
+
+      cont (fun () -> execute env stmt x y)
     }
   ]
 }
@@ -967,11 +972,11 @@ and evaluate_application x f args = match f with
         (fun () -> evaluate_application x !result rest)
     }
   }
-| Chain funs -> do
+| Chain env stmts -> do
   {
-    let eval_chain funs arg = do
+    let eval_chain env stmts arg = do
     {
-      let len     = Array.length funs                           in
+      let len     = Array.length stmts                          in
       let results = Array.init (len + 1) (fun _ -> ref Unbound) in
 
       results.(len) := arg;
@@ -982,19 +987,19 @@ and evaluate_application x f args = match f with
       {
         cont2
           (fun () -> evaluate_unknown results.(i))
-          (fun () -> evaluate_application results.(i - 1) !(funs.(len - i)) [results.(i)])
+          (fun () -> execute env stmts.(len - i) results.(i - 1) results.(i))
       }
     }
     in
 
     match args with
-    [ [a]      -> eval_chain funs a
+    [ [a]      -> eval_chain env stmts a
     | [a :: b] -> do
       {
         let c = ref Unbound in
 
         cont2
-          (fun () -> eval_chain funs a)
+          (fun () -> eval_chain env stmts a)
           (fun () -> evaluate_application x !c b)
       }
     | _ -> assert False
@@ -1130,13 +1135,15 @@ and evaluate_application x f args = match f with
 | _            -> runtime_error ("application of non-function (" ^ type_name f ^ ")")
 ]
 
-and execute env stmt = match stmt with
+and execute env stmt res arg = match stmt with
 [ SEquation t1 t2 -> do
   {
     let u1 = unevaluated env t1 in
     let u2 = unevaluated env t2 in
 
-    forced_unify u1 u2
+    forced_unify u1 u2;
+
+    !res := !arg
   }
 | SIfThen p s0 -> do
   {
@@ -1145,11 +1152,11 @@ and execute env stmt = match stmt with
     cont2
       (fun () -> evaluate_unknown y)
       (fun () -> match !y with
-                 [ Bool False   -> ()
-                 | Bool True    -> execute env s0
+                 [ Bool False   -> !res := !arg
+                 | Bool True    -> execute env s0 res arg
                  | Unbound
                  | Constraint _ -> runtime_error "if: condition is undefined"
-                 | _            -> runtime_error "if: condition is not boolean"
+                 | _            -> runtime_error ("if: condition is not boolean (" ^ type_name !y ^ ")")
                  ])
   }
 | SIfThenElse p s0 s1 -> do
@@ -1159,17 +1166,19 @@ and execute env stmt = match stmt with
     cont2
       (fun () -> evaluate_unknown y)
       (fun () -> match !y with
-                 [ Bool True    -> execute env s0
-                 | Bool False   -> execute env s1
+                 [ Bool True    -> execute env s0 res arg
+                 | Bool False   -> execute env s1 res arg
                  | Unbound
                  | Constraint _ -> runtime_error "if: condition is undefined"
                  | _            -> runtime_error "if: condition is not boolean"
                  ])
   }
-| SRelation _ -> ()  (* FIX *)
+| SRelation _ -> !res := !arg  (* FIX *)
 | SForce xs -> do
   {
     let n = Array.length xs in
+
+    !res := !arg;
 
     for i = 1 to n do
     {
@@ -1177,6 +1186,14 @@ and execute env stmt = match stmt with
         (fun () -> let x = unevaluated env xs.(n - i) in
                    evaluate_unknown x)
     }
+  }
+| SFunction t -> do
+  {
+    let f = unevaluated env t in
+
+    cont2
+      (fun () -> evaluate_unknown f)
+      (fun () -> evaluate_application res !f [arg])
   }
 ]
 

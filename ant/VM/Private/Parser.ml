@@ -46,7 +46,7 @@ type term =
 | TFun of list (list pattern * option term * term)
 | TLocal of list decl and term
 | TSequence of list stmt and term
-| TDo of list term
+| TDo of list stmt
 | TIfThenElse of term and term and term
 | TMatch of term and list (pattern * option term * term)
 ]
@@ -59,6 +59,7 @@ and stmt =
 | SIfThen of term and stmt
 | SIfThenElse of term and stmt and stmt
 | SForce of array term
+| SFunction of term
 ];
 
 type stmt_or_expr =
@@ -435,16 +436,30 @@ and parse_expr_pri pri first_token lexer = match first_token with
 
 and parse_do_expr lexer = do
 {
+  let convert x = match x with
+  [ Statement  s -> s
+  | Expression e -> SFunction e
+  ]
+  in
+
   TDo (iter (read_token lexer))
 
-  where rec iter tok = match parse_expr tok lexer with
+  where rec iter tok = match parse_stmt_or_expr tok lexer with
+  [ (e, SEMICOLON) -> match read_token lexer with
+                      [ END -> [convert e]
+                      | tok -> [convert e :: iter tok]
+                      ]
+  | (e, END)       -> [convert e]
+  | _              -> syntax_error lexer "end or ; expected"
+  ]
+(*  where rec iter tok = match parse_expr tok lexer with
   [ (e, SEMICOLON) -> match read_token lexer with
                       [ END -> [e]
                       | tok -> [e :: iter tok]
                       ]
   | (e, END)       -> [e]
   | _              -> syntax_error lexer "end or ; expected"
-  ]
+  ]*)
 }
 
 and parse_if_expr lexer = match parse_expr (read_token lexer) lexer with

@@ -281,7 +281,7 @@ value rec compile_expr scope expr = match expr with
   }
 | Parser.TDo exprs -> do
   {
-    TDo (Array.of_list (List.map (compile_expr scope) exprs))
+    TDo (Array.of_list (List.map (compile_statement scope) exprs))
   }
 | Parser.TIfThenElse p e0 e1 -> TIfThenElse
                                   (compile_expr scope p)
@@ -654,6 +654,7 @@ and compile_statement scope stmt = match stmt with
                                             (compile_statement scope s0)
                                             (compile_statement scope s1)
 | Parser.SForce xs           -> SForce      (Array.map (compile_expr scope) xs)
+| Parser.SFunction t         -> SFunction   (compile_expr scope t)
 ];
 
 value rec compile_global_declarations scope decls = do

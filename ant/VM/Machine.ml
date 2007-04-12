@@ -149,3 +149,10 @@ value decode_num name x = do
   !result
 };
 
+value lookup_symbol scope sym = do
+{
+  let x = Scope.lookup_global scope (string_to_symbol sym) in
+  evaluate x;
+  !x
+};
+

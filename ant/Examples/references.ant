@@ -1,12 +1,40 @@
 % implementation of references
 
+% A function to generate unique anonymous reference ids.
+
+\beginALdeclarations
+
+ps_gen_unique_ref id :=
+  local ref_cnt;
+  do
+    ps_get_global ref_cnt UniqueRefCount;
+    ps_set_global UniqueRefCount (ref_cnt + 1);
+    id = to_symbol (format_string "unique reference %d" ref_cnt);
+  end;
+
+\endALdeclarations
+
+\ALcommand{
+  ps_set_global UniqueRefCount 0
+}
+
+% Making global variables persistent across runs of ant.
+
 \beginALdeclarations
 
 ps_declare_persistent_global sym :=
   local table;
   do
     ps_get_global table PersistentGlobals;
-    ps_set_global PersistentGlobals [sym : table];
+    ps_set_global PersistentGlobals (insert sym table)
+    where
+      insert sym []     := [sym];
+      insert sym [s:ss] := if s == sym then
+                             [s:ss]
+                           else
+                             [s : insert sym ss]
+                           end
+    end
   end;
 
 ps_store_persistent_globals file_name ps :=
@@ -33,19 +61,23 @@ ps_store_persistent_globals file_name ps :=
   end
   ps;
 
-ps_restore_persistent_globals file_name ps :=
-  iter (unserialise file_name) ps
+ps_restore_persistent_globals file_name :=
+  local globals := unserialise file_name;
+  do
+    iter globals;
+  end
   where
     iter [(s,g) : pairs] ps := iter pairs (ps_set_global s g ps);
-    iter _               ps := ps;
+    iter []              ps := ps;
   end;
+
+ps_at_exit ps :=
+  ps_store_persistent_globals (ps_job_name + ".gdb") ps;
 
 \endALdeclarations
 
-\definecommand\StoreReferences[m]{%
-  \ALcommand{ps_store_persistent_globals (ps_job_name + ".gdb")}}
+% Restore the global variables.
 
-% restore globals
 \ALcommand{
   do
     ps_set_global PersistentGlobals [];
@@ -53,32 +85,37 @@ ps_restore_persistent_globals file_name ps :=
   end
 }
 
+% page numbers
+
+\beginALdeclarations
+
+ps_get_current_page page :=
+  local sym;
+  do
+    ps_gen_unique_ref sym;
+    ps_declare_persistent_global sym;
+;;    ps_set_global sym 0;
+    ps_page_command { pi _ := ps_set_global sym (pi PageNo) };
+    ps_get_global page sym;
+  end;
+
+\endALdeclarations
+
 % |\currentpage| returns the current page number as arabic number.
 
 \definecommand\currentpage{%
   \ALcommand{
-    local begin
-      sym  := generate_symbol 0;
-      page := _
-    end
+    local page;
     do
-      ps_declare_persistent_global sym;
-      ps_set_global sym 0;
-      ps_page_command { pi _ := ps_set_global sym (pi PageNo) };
-      ps_get_global page sym;
+      ps_get_current_page page;
       ps_insert_string (format_string "%d" page);
     end
   }}
 \definecommand\saveposition[m]{%
   \ALcommand{
-    local begin
-      sym  := generate_symbol 0;
-      page := _
-    end
+    local page;
     do
-      ps_page_command
-        { pi _ := ps_set_global sym (pi Page) };
-      ps_get_global page sym;
+      ps_get_current_page page;
       ps_define_command "#1"
         (ps_insert_string (format_string "%d" page))
         { res str := res = format_string "%d" page + str };

@@ -46,7 +46,7 @@ type term =
 | TFun of list (list pattern * option term * term)
 | TLocal of list decl and term
 | TSequence of list stmt and term
-| TDo of list term
+| TDo of list stmt
 | TIfThenElse of term and term and term
 | TMatch of term and list (pattern * option term * term)
 ]
@@ -59,6 +59,7 @@ and stmt =
 | SIfThen of term and stmt
 | SIfThenElse of term and stmt and stmt
 | SForce of array term
+| SFunction of term
 ];
 
 value parse_program    : lexer -> list decl;
