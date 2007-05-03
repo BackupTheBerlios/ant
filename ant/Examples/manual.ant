@@ -1606,6 +1606,20 @@ can be used to convert between tuples and lists.
 \cs{dir}~\nterm{angle} returns the unit vector in the given direction and \cs{angle}~\nterm{$(x,y)$}
 returns the angle (in degrees) of the given vector.
 
+\paragraph{Dictionaries}
+A dictionary is a finite mapping from symbols to arbitrary values. For instance,
+\begin{display}\small\blue
+  \cs{local} \cs{d} \cs{:=} {\blue\texttt\textlbrace} \cs{Foo} \cs{:=} \cs{1} \cs{|} \cs{Bar} := 2 {\blue\texttt\textrbrace}\cs{;}
+
+  \cs{d} \cs{Foo}
+\end{display}
+yields~$1$. In order to add a new entry to a dictionary or to modify an existing one there exists the command
+\begin{display}
+  \cs{add_to_dict} \nterm{symbol} \nterm{value} \nterm{dictionary}
+\end{display}
+It returns the new dictionary.
+
+
 \paragraph{Characters}
 To test the category of a character the following functions can be used\?:
 \begin{displaytable}

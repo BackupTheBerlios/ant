@@ -1394,6 +1394,33 @@ value rec prim_rotate res a vec = match !a with
 | _ -> runtime_error "rotate: invalid argument"
 ];
 
+value rec prim_add_to_dict res args = match args with
+[ [sym; val; dict] -> match !sym with
+  [ Symbol s -> match !dict with
+    [ Dictionary d -> !res := Dictionary (SymbolMap.add s val d)
+    | UnevalT _ _ -> do
+      {
+        cont2
+          (fun () -> Evaluate.evaluate_unknown dict)
+          (fun () -> prim_add_to_dict res args)
+      }
+    | Unbound
+    | Constraint _ -> runtime_error "add_to_dict: argument undefined"
+    | _            -> runtime_error ("add_to_dict: invalid argument (got " ^ type_name !dict ^ " instead of dictionary)")
+    ]
+  | UnevalT _ _ -> do
+    {
+      cont2
+        (fun () -> Evaluate.evaluate_unknown sym)
+        (fun () -> prim_add_to_dict res args)
+    }
+  | Unbound
+  | Constraint _ -> runtime_error "add_to_dict: argument undefined"
+  | _            -> runtime_error ("add_to_dict: invalid argument (got " ^ type_name !dict ^ " instead of symbol)")
+  ]
+| _ -> assert False
+];
+
 (* characters *)
 
 value rec unary_char_prim f name res x = match !x with
@@ -1675,7 +1702,7 @@ value initial_scope () = do
   add1 "arccosh"  prim_arccosh;
   add1 "arctanh"  prim_arctanh;
 
-  (* lists and tuples *)
+  (* lists, tuples, and dictionaries *)
 
   add1 "length"        prim_length;
   add1 "to_string"     prim_to_string;
@@ -1685,6 +1712,7 @@ value initial_scope () = do
   add1 "dir"           prim_dir;
   add1 "angle"         prim_angle;
   add2 "rotate"        prim_rotate;
+  add  "add_to_dict"   (PrimitiveN 3 prim_add_to_dict);
 
   (* characters *)
 
