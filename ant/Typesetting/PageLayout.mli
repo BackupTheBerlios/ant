@@ -45,7 +45,7 @@ and page_state =                                    (* state while filling areas
 
 (* |page_run_state| contains the information needed about previous pages *)
 
-type page_run_state = 'a;
+type page_run_state;
 
 value tracing_page_layout : ref bool;
 

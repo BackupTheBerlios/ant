@@ -5,9 +5,9 @@ module type OrderedType = Map.OrderedType;
 
 module type S =
 sig
-  type elt = 'e;
+  type elt;
 
-  type t 'a = 'b;
+  type t 'a;
 
   value empty                 : t 'a;
   value is_empty              : t 'a -> bool;

@@ -1,7 +1,7 @@
 
 open Types;
 
-type charmap 'a = 'b;
+type charmap 'a;
 
 value create : 'a -> charmap 'a;
 value build  : array (array 'a) -> charmap 'a;

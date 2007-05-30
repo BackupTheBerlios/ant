@@ -9,7 +9,7 @@ type bound    = (var * num); (* (v, n) represents  v + n *)
 
 type equation = LinForm.lin_form var;
 
-type system = 'a;
+type system;
 
 value create         : unit -> system;
 value clone          : system -> system;

@@ -1,8 +1,8 @@
 
 open XNum;
 
-type face       = 'a;
-type glyph_slot = 'a;
+type face;
+type glyph_slot;
 
 external ft_init_freetype         : unit -> unit                                = "Wrapper_FT_Init_FreeType";
 external ft_new_face              : string -> face                              = "Wrapper_FT_New_Face";

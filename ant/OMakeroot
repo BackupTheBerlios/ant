@@ -30,14 +30,20 @@ OCamlPackageCopy(tag, dir, package) =
 OCamlDependsOnLibrary(library) =
   if $(NATIVE_ENABLED)
     LocalOCamlGeneratedFiles($(library).cmxa $(library).cmi $(library).a)
+    export
   else
     LocalOCamlGeneratedFiles($(library).cma $(library).cmi)
+    export
+  export
 
 OCamlDependsOnPackage(package) =
   if $(NATIVE_ENABLED)
     LocalOCamlGeneratedFiles($(package).cmx $(package).cmi $(package).o)
+    export
   else
     LocalOCamlGeneratedFiles($(package).cmo $(package).cmi)
+    export
+  export
 
 # BUG FIX:
 

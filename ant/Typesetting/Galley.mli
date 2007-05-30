@@ -30,7 +30,7 @@ type graphics_params =
   gp_alpha     : num
 };
 
-type galley = 'a;
+type galley;
 
 value leading_fixed    : box -> box -> line_params -> dim;
 value leading_register : box -> box -> line_params -> dim;

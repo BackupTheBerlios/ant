@@ -50,7 +50,7 @@ type token_class =
 | POSTFIX
 ];
 
-type lexer = 'a;
+type lexer;
 
 value initial_symbol_table : unit -> Hashtbl.t uc_string token_class;
 value make_lexer           : Hashtbl.t uc_string token_class -> UCStream.istream -> lexer;

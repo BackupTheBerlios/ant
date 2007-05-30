@@ -1,7 +1,7 @@
 
 open XNum;
 
-type map 'a = 'b;
+type map 'a;
 
 type interval = (num * num);
 

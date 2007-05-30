@@ -71,7 +71,7 @@ type substitution 'font 'box 'cmd =
 
 type subst_trie 'a = (('a -> bool) * ('a -> uc_char -> 'a) * ('a -> option adjustment));
 
-type adj_trie_state = 'a;
+type adj_trie_state;
 
 value first_real_item_list : list (glyph_item 'font 'box 'cmd) -> option (glyph_item 'font 'box 'cmd);
 value first_real_item      : array (glyph_item 'font 'box 'cmd) -> int -> int -> option (glyph_item 'font 'box 'cmd);

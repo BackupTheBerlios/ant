@@ -1,7 +1,7 @@
 
 (* stub to replace Num by Gmp *)
 
-type num = 'a;
+type num;
 
 value num_zero      : num;
 value num_one       : num;

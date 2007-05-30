@@ -3,7 +3,7 @@ open Unicode.Types;
 
 type location = (string * int * int);
 
-type istream = 'a;
+type istream;
 
 value create        : unit -> istream;
 value of_list       : uc_list -> istream;

@@ -26,7 +26,7 @@ type font =
   f_size     : num
 };
 
-type font_table = 'a;
+type font_table;
 
 value get_font     : font_table -> uc_string -> uc_string -> uc_string -> num -> option font;
 value declare_font : font_table -> uc_string -> uc_string -> uc_string ->

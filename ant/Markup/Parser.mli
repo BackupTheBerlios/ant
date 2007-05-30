@@ -22,7 +22,7 @@ value read_key_val_list : UCStream.istream -> DynUCTrie.t (option uc_list);
 value is_command_sequence : uc_list -> bool;
 value is_token            : uc_list -> bool;
 
-type expr 'a = 'b;
+type expr 'a;
 
 value make_expression      : 'a -> expr 'a;
 value evaluate_expression  : expr 'a -> (num -> 'a) -> ('a -> 'b) ->

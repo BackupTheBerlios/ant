@@ -3,7 +3,7 @@ open Unicode.Types;
 open Unicode.SymbolTable;
 open Types;
 
-type scope = 'a;
+type scope;
 
 value create        : unit -> scope;
 value copy          : scope -> scope;

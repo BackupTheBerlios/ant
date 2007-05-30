@@ -3,7 +3,7 @@ open Unicode.Types;
 
 (* pointed tables *)
 
-type table 'a = 'b;
+type table 'a;
 
 value create  : uc_string -> 'a -> table 'a;
 value sync    : table 'a -> table 'a;

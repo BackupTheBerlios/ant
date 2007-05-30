@@ -1,7 +1,7 @@
 
 exception Type_error;
 
-type opaque 'a = 'b;
+type opaque 'a;
 
 value declare_type : string -> ('b -> 'a -> 'a) -> ('b -> 'b -> bool) -> ('b -> 'b -> bool) ->
                      (('b -> opaque 'a) * (opaque 'a -> 'b));

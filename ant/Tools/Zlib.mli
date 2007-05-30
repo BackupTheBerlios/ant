@@ -1,5 +1,5 @@
 
-type zstream = 'a;
+type zstream;
 
 external set_input    : zstream -> string -> unit      = "zlib_set_input";
 external get_output   : zstream -> string              = "zlib_get_output";

@@ -7,7 +7,7 @@ open Dim;
 open Typesetting;
 open Box;
 
-type environment = 'a;
+type environment;
 
 type env_cmd = UCStream.location -> environment -> environment;
 

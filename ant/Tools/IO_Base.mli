@@ -1,5 +1,5 @@
 
-type io +'a = 'b;
+type io +'a;
 
 type io_r   = [= `IO_Read];
 type io_w   = [= `IO_Write];

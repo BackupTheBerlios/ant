@@ -15,7 +15,7 @@ type pdf_value =
 ]
 and pdf_dictionary = list (string * pdf_value);
 
-type pdf_file 'a = 'b;
+type pdf_file 'a;
 
 value create_pdf       : 'a -> float -> pdf_file 'a;
 value alloc_object     : pdf_file 'a -> int;

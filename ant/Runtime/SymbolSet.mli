@@ -4,7 +4,7 @@ open SymbolTable;
 
 type elt = symbol;
 
-type t = 'a;
+type t;
 
 value empty     : t;
 value is_empty  : t -> bool;
@@ -23,7 +23,7 @@ value choose    : t -> elt;
 
 module SymbolTrie :
 sig
-  type trie 'a = 'b;
+  type trie 'a;
 
   value empty    : trie 'a;
   value is_empty : trie 'a -> bool;

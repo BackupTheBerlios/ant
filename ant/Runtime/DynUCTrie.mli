@@ -1,7 +1,7 @@
 
 open Unicode.Types;
 
-type t 'a = 'b;
+type t 'a;
 
 value empty                 : t 'a;
 value is_empty              : t 'a -> bool;

@@ -3,7 +3,7 @@ open XNum;
 
 type spline = (num * num * num * num * num * num * num * num);
 
-type path_spec = 'a;
+type path_spec;
 
 value angle_of_vec : num -> num -> float;
 

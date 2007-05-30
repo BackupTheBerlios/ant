@@ -2,7 +2,7 @@
 (* A |builder 'a| can be used to create a |list 'a| by successively appending
    elements to the end of the list. *)
 
-type builder 'a = 'b;
+type builder 'a;
 
 (* |make ()| creates a new list builder. O(1) *)
 
