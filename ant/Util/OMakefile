@@ -1,8 +1,8 @@
 
 UTILS[] = GenHyphTable #Kerning
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
-LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS) $(ROOT)/Tools/Tools.$(CMA)
+
 OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
 OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
 

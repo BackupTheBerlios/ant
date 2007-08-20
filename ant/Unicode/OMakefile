@@ -11,8 +11,7 @@ O_FILES[] = $(addsuffix .o, $(C_FILES))
 
 DATAFILE = data/UnicodeData.txt
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
-LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS) $(ROOT)/Tools/Tools.$(CMA)
 
 OCAMLFLAGS += -I .
 

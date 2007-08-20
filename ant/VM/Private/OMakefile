@@ -10,11 +10,13 @@ MODULES[] =
   Path
   Primitives
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
-LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS) $(ROOT)/Tools/Tools.$(CMA) ../Types.$(CMO)
+
+%.cmi:       ../Types.$(CMO)
+%.cmo %.cmx: ../Types.$(CMO)
+
 OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
 OCamlDependsOnLibrary($(ROOT)/lib/Runtime)
-LocalOCamlGeneratedFiles(../Types.$(CMO))
 
 OCAMLFLAGS += -I ..
 

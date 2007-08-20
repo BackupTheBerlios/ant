@@ -39,7 +39,8 @@ C_FILES[] =
   freetype-stubs
 O_FILES[] = $(addsuffix .o, $(C_FILES))
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS)
+
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
 OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
 OCamlDependsOnPackage($(ROOT)/lib/CamlImages)

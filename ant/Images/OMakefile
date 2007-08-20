@@ -7,7 +7,7 @@
 
 OCAMLFLAGS += -I . -I $(CAMLIMAGES_DIR)
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS)
 
 #OCamlLibrary(CamlImages, CamlImages)
 

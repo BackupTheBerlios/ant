@@ -10,7 +10,8 @@ MODULES[] =
 
 HYPHEN_FILES = $(addprefix $(ROOT)/data/hyphen/, $(addsuffix .hyphen, $(HYPHEN_PATTERNS)))
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS)
+
 LocalOCamlGeneratedFiles($(ROOT)/Tools/Tools.$(CMA))
 OCamlDependsOnLibrary($(ROOT)/lib/Unicode)
 OCamlDependsOnLibrary($(ROOT)/lib/Runtime)

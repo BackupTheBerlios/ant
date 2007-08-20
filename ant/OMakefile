@@ -16,9 +16,9 @@ HYPHEN_PATTERNS[] = british us #deutsch-traditional deutsch-new français
 NATIVE_CAMLP4  = true   # compile a native version of the preprocessor
 
 # Mathematics library:
-MATH_LIB = Float       # use floats
-#MATH_LIB = Gmp         # use the gmp library
-#MATH_LIB = Num         # use the num library
+MATH_LIB = Float#        use floats
+#MATH_LIB = Gmp#          use the gmp library
+#MATH_LIB = Num#          use the num library
 
 # Paths to various parts of the TeX tree:
 HYPHENDIR      = $(shell kpsewhich '--expand-path=$$TEXMF/tex/generic/hyphen')

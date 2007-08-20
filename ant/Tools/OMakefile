@@ -1,7 +1,7 @@
 
 GMP_LIB = $(OCAML_LIB_DIR)/gmp
 
-LocalOCamlGeneratedFiles($(MLPP_TARGETS))
+.SCANNER: scan-ocaml-%: $(MLPP_TARGETS)
 
 MODULES[] =
   IO_Base
@@ -21,7 +21,9 @@ MODULES[] =
   ShortestPath
 C_FILES = zlib-stubs
 
-LocalOCamlGeneratedFiles(XNum.ml)
+.SCANNER: scan-ocaml-%: XNum.ml
+%.cmi:       XNum.ml
+%.cmx %.cmo: XNum.ml
 
 XNum.ml: :value: $(MATH_LIB)
   echo "include Num$(MATH_LIB);" >$@
