@@ -82,7 +82,7 @@ value add l0 l1 = do
       | Gt -> [(d, y) :: add_summands xs yy]
       | Eq -> do
         {
-          let e = c +/ d in
+          let e = c +/ d;
 
           if e =/ num_zero then
             add_summands xx yy
@@ -130,7 +130,7 @@ value lin_comb a l0 b l1 = do
         | Gt -> [(b */ d, y) :: add_summands xs yy]
         | Eq -> do
           {
-            let e = a */ c +/ b */ d in
+            let e = a */ c +/ b */ d;
 
             if e =/ num_zero then
               add_summands xx yy

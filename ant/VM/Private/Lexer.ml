@@ -112,7 +112,7 @@ value char_class c = do
 
 value rec read_id istream = do
 {
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     []
@@ -125,7 +125,7 @@ value rec read_id istream = do
 }
 and read_id_alpha istream = do
 {
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     []
@@ -145,7 +145,7 @@ and read_id_alpha istream = do
 }
 and read_id_sym istream = do
 {
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     []
@@ -165,7 +165,7 @@ and read_id_sym istream = do
 }
 and read_id_num istream = do
 {
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     []
@@ -186,7 +186,7 @@ and read_id_num istream = do
 
 value read_symbol istream = do
 {
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     []
@@ -202,9 +202,9 @@ value read_symbol istream = do
 
 value rec read_number istream first_char = do
 {
-  let (int, base) = read_natural istream first_char in
+  let (int, base) = read_natural istream first_char;
 
-  let c = UCStream.next_char istream in
+  let c = UCStream.next_char istream;
 
   if c < 0 then
     int
@@ -219,7 +219,7 @@ value rec read_number istream first_char = do
   {
     UCStream.pop istream;
 
-    let (denom, _) = read_natural istream (UCStream.pop istream) in
+    let (denom, _) = read_natural istream (UCStream.pop istream);
 
     int // denom
   }
@@ -228,14 +228,14 @@ value rec read_number istream first_char = do
 }
 and read_natural istream first_char = do
 {
-  let base = select_base istream first_char in
-  let b    = num_of_int base                in
+  let base = select_base istream first_char;
+  let b    = num_of_int base;
 
   iter (num_of_int (first_char - 48))
 
   where rec iter x = do
   {
-    let d = read_digit base istream in
+    let d = read_digit base istream;
 
     if d < 0 then
       (x, base)
@@ -245,13 +245,13 @@ and read_natural istream first_char = do
 }
 and read_fraction base x istream = do
 {
-  let r = num_one // num_of_int base in
+  let r = num_one // num_of_int base;
 
   iter x r
 
   where rec iter x y = do
   {
-    let d = read_digit base istream in
+    let d = read_digit base istream;
 
     if d < 0 then
       x
@@ -272,7 +272,7 @@ and select_base istream first_char = do
 }
 and read_digit base istream = do
 {
-  let c = UCStream.next_char istream   in
+  let c = UCStream.next_char istream;
 
   if c < 48 then
     -1
@@ -320,7 +320,7 @@ and read_digit base istream = do
 
 value read_character istream = do
 {
-  let c = UCStream.pop istream in
+  let c = UCStream.pop istream;
 
   if c <> 92 then  (* \ *)
     c
@@ -335,10 +335,10 @@ value read_character istream = do
     | 116 ->  9 (* t *)
     | 117 -> do (* u *)
       {
-        let d1 = read_digit 16 istream in
-        let d2 = read_digit 16 istream in
-        let d3 = read_digit 16 istream in
-        let d4 = read_digit 16 istream in
+        let d1 = read_digit 16 istream;
+        let d2 = read_digit 16 istream;
+        let d3 = read_digit 16 istream;
+        let d4 = read_digit 16 istream;
 
         if d1 >= 0 && d2 >= 0 && d3 >= 0 && d4 >= 0 then
           0x1000 * d1 + 0x100 * d2 + 0x10 * d3 + d4
@@ -347,8 +347,8 @@ value read_character istream = do
       }
     | 120 -> do (* x *)
       {
-        let d1 = read_digit 16 istream in
-        let d2 = read_digit 16 istream in
+        let d1 = read_digit 16 istream;
+        let d2 = read_digit 16 istream;
 
         if d1 >= 0 && d2 >= 0 then
           0x10 * d1 + d2
@@ -359,11 +359,11 @@ value read_character istream = do
       {
         if c >= 48 && c <= 57 then do
         {
-          let d2 = UCStream.get_char istream 0 in
+          let d2 = UCStream.get_char istream 0;
 
           if d2 >= 48 && d2 <= 57 then do
           {
-            let d3 = UCStream.get_char istream 1 in
+            let d3 = UCStream.get_char istream 1;
 
             if d3 >= 48 && d3 <= 57 then do
             {
@@ -388,7 +388,7 @@ value read_character istream = do
 
 value read_char_constant lexer = do
 {
-  let c = read_character lexer.input in
+  let c = read_character lexer.input;
 
   if UCStream.pop lexer.input <> 39 then    (* '\'' *)
     syntax_error lexer "' expected"
@@ -398,7 +398,7 @@ value read_char_constant lexer = do
 
 value read_string_constant lexer = do
 {
-  let str = ListBuilder.make () in
+  let str = ListBuilder.make ();
 
   iter ()
 
@@ -419,29 +419,26 @@ value read_string_constant lexer = do
 
 value keywords = do
 {
-  let t = Hashtbl.create 97 in
+  let t = Hashtbl.create 97;
 
   let add_token str token = do
   {
-    let ustr = UString.uc_string_of_ascii str in
+    let ustr = UString.uc_string_of_ascii str;
 
     Hashtbl.add t ustr token
-  }
-  in
+  };
   let add_bin_op str pri ass = do
   {
-    let ustr = UString.uc_string_of_ascii str in
+    let ustr = UString.uc_string_of_ascii str;
 
     Hashtbl.add t ustr (BINOP (string_to_symbol ustr) pri ass)
-  }
-  in
+  };
   let add_pre_op str = do
   {
-    let ustr = UString.uc_string_of_ascii str in
+    let ustr = UString.uc_string_of_ascii str;
 
     Hashtbl.add t ustr (PREOP (string_to_symbol ustr))
-  }
-  in
+  };
 
   add_token "do"     DO;
   add_token "if"     IF;
@@ -499,7 +496,7 @@ value initial_symbol_table () = Hashtbl.copy keywords;
 
 value rec skip_line_comment istream = do
 {
-  let c = UCStream.pop istream in
+  let c = UCStream.pop istream;
 
   if c < 0 || c = 10 || c = 13 then
     ()
@@ -546,7 +543,7 @@ value rec read_token lexer = match lexer.tokens with
   }
 | [] -> do
   {
-    let c = UCStream.pop lexer.input in
+    let c = UCStream.pop lexer.input;
 
     if c < 0 then
       EOF
@@ -554,7 +551,7 @@ value rec read_token lexer = match lexer.tokens with
     [ Whitespace -> read_token lexer
     | LetterLC   -> do
       {
-        let lid = Array.of_list [c :: read_id_alpha lexer.input] in
+        let lid = Array.of_list [c :: read_id_alpha lexer.input];
 
         try
           Hashtbl.find lexer.keywords lid
@@ -564,7 +561,7 @@ value rec read_token lexer = match lexer.tokens with
     | LetterUC   -> UID (string_to_symbol (Array.of_list [c :: read_id_alpha lexer.input]))
     | Symbol     -> do
       {
-        let sym = Array.of_list [c :: read_symbol lexer.input] in
+        let sym = Array.of_list [c :: read_symbol lexer.input];
 
         try
           Hashtbl.find lexer.keywords sym
@@ -608,21 +605,21 @@ value restore_token lexer tok = do
 
 value add_bin_op lexer pri assoc sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add lexer.keywords str (BINOP sym pri assoc)
 };
 
 value add_pre_op lexer sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add lexer.keywords str (PREOP sym)
 };
 
 value add_post_op lexer sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add lexer.keywords str (POSTOP sym)
 };

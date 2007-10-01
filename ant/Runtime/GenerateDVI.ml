@@ -63,7 +63,7 @@ value write_rat os r = do
 
 value write_special os string = do
 {
-  let len = String.length string in
+  let len = String.length string;
 
   if len < 0x100 then do
   {
@@ -162,7 +162,7 @@ value rec write_font_defs state font_defs = match font_defs with
 
 value write_postamble state = do
 {
-  let pos = IO.bytes_written state.os in
+  let pos = IO.bytes_written state.os;
 
   IO.write_be_u8  state.os 248;
   IO.write_be_u32 state.os (num_of_int (pos - List.hd state.data.page_lengths));
@@ -250,7 +250,7 @@ value rec write_pages state pages = do
     {
       if not (List.mem_assq font loaded_fonts) then do
       {
-        let idx = List.length loaded_fonts in
+        let idx = List.length loaded_fonts;
 
         load_font state font idx;
 
@@ -258,7 +258,7 @@ value rec write_pages state pages = do
       }
       else do
       {
-        let idx = List.assq font loaded_fonts in
+        let idx = List.assq font loaded_fonts;
 
         if idx < 64 then do
         {
@@ -280,16 +280,14 @@ value rec write_pages state pages = do
           IO.write_be_u32 state.os (num_of_int idx)
         }
       }
-    }
-    in
+    };
 
     let glyph_width glyph font = do
     {
       (FontMetric.get_glyph_metric font (Simple glyph)).gm_width
-    }
-    in
+    };
 
-    let delta_h = rat_to_fixed (glyph_width char font) in
+    let delta_h = rat_to_fixed (glyph_width char font);
 
     if state.data.current_font != font then do
     {
@@ -297,8 +295,7 @@ value rec write_pages state pages = do
                                state.data.loaded_fonts
                              else
                                [(font, List.length state.data.loaded_fonts)
-                                 :: state.data.loaded_fonts]
-                             in
+                                 :: state.data.loaded_fonts];
 
       choose_font font state.data.loaded_fonts;
 
@@ -362,15 +359,14 @@ value rec write_pages state pages = do
     match fmt with
     [ LoadImage.PostScript -> do
       {
-        let w = pt_to_bp width  in
-        let h = pt_to_bp height in
+        let w = pt_to_bp width;
+        let h = pt_to_bp height;
 
         let (x0, y0, x1, y1) = match LoadImage.get_bounding_box file_name with
         [ Some (x0, y0, x1, y1) -> (float_of_int x0, float_of_int y0,
                                     float_of_int x1, float_of_int y1)
         | None                  -> (0.0, 0.0, w, h)
-        ]
-        in
+        ];
 
         move_right state (float_to_fixed (~-. x0));
         move_down  state (float_to_fixed y0);
@@ -396,8 +392,8 @@ value rec write_pages state pages = do
   {
     let write_box bh bv box state = do
     {
-      let delta_h = rat_to_fixed (bh +/ box_h) -/ state.data.pos_h in
-      let delta_v = rat_to_fixed (bv +/ box_v) -/ state.data.pos_v in
+      let delta_h = rat_to_fixed (bh +/ box_h) -/ state.data.pos_h;
+      let delta_v = rat_to_fixed (bv +/ box_v) -/ state.data.pos_v;
 
       if delta_h <>/ num_zero then
         move_right state delta_h
@@ -410,7 +406,7 @@ value rec write_pages state pages = do
       state.data := { (state.data) with pos_h = state.data.pos_h +/ delta_h;
                                         pos_v = state.data.pos_v +/ delta_v };
 
-      let old_stack_depth = state.data.stack_depth in
+      let old_stack_depth = state.data.stack_depth;
 
       write_boxes box (box_h +/ bh) (box_v +/ bv) state;
 
@@ -422,11 +418,10 @@ value rec write_pages state pages = do
 
           stack_depth = max old_stack_depth state.data.stack_depth
         }
-    }
-    in
+    };
     let write_path path_cmd path state = do
     {
-      let str = IO.make_buffer_stream 1024 in
+      let str = IO.make_buffer_stream 1024;
 
       let rec draw_path cur_x cur_y path = match path with
       [ [] -> match path_cmd with
@@ -447,8 +442,7 @@ value rec write_pages state pages = do
 
           draw_path dx dy ps
         }
-      ]
-      in
+      ];
 
       match path with
       [ [] -> ()
@@ -463,75 +457,64 @@ value rec write_pages state pages = do
           write_special state.os (IO.to_string str)
         }
       ]
-    }
-    in
+    };
     let reset_colour state = do
     {
       write_special state.os "color pop"
-    }
-    in
+    };
     let set_colour colour_changed col state = do
     {
       if colour_changed then
         reset_colour state
       else ();
 
-      let str n = string_of_float (float_of_num n) in
+      let str n = string_of_float (float_of_num n);
 
       let color_spec = match col with
       [ Graphic.Grey x       -> "gray " ^ str x
       | Graphic.RGB r g b    -> "rgb " ^ str r ^ " " ^ str g ^ " " ^ str b
       | Graphic.CMYK c m y k -> "cmyk " ^ str c ^ " " ^ str m ^ " " ^ str y ^ " " ^ str k
-      ]
-      in
+      ];
 
       write_special state.os ("color push " ^ color_spec)
-    }
-    in
+    };
     let set_alpha _col _state = do
     {
       log_string "Warning: The DVI driver does not support transparency!"
-    }
-    in
+    };
     let set_line_width w state = do
     {
       write_special state.os ("\" " ^ string_of_float (pt_to_bp w) ^ " setlinewidth")
-    }
-    in
+    };
     let set_line_cap c state = do
     {
       let cap = match c with
       [ Graphic.Butt   -> "0"
       | Graphic.Circle -> "1"
       | Graphic.Square -> "2"
-      ]
-      in
+      ];
 
       write_special state.os ("\" " ^ cap ^ " setlinecap")
-    }
-    in
+    };
     let set_line_join j state = do
     {
       let join = match j with
       [ Graphic.Miter -> "0"
       | Graphic.Round -> "1"
       | Graphic.Bevel -> "2"
-      ]
-      in
+      ];
 
       write_special state.os ("\" " ^ join ^ " setlinejoin")
-    }
-    in
+    };
     let set_miter_limit l state = do
     {
       write_special state.os ("\" " ^ string_of_float (float_of_num l) ^ " setmiterlimit")
-    }
-    in
+    };
 
     IO.write_be_u8 state.os 141;
 
-    let old_pos_h = state.data.pos_h in
-    let old_pos_v = state.data.pos_v in
+    let old_pos_h = state.data.pos_h;
+    let old_pos_v = state.data.pos_v;
 
     clear_stack state;
 
@@ -568,10 +551,9 @@ value rec write_pages state pages = do
                     pos_v = old_pos_v;
                     stack_depth = state.data.stack_depth + 1
                   }
-  }
-  in
+  };
 
-  let start_pos = IO.bytes_written state.os in
+  let start_pos = IO.bytes_written state.os;
 
   match pages with
   [ []      -> ()
@@ -607,8 +589,7 @@ value rec write_pages state pages = do
                    loaded_fonts = state.data.font_defs;
                    stack_depth  = 0
                  }
-        }
-      in
+        };
 
       write_boxes
         (Group [Graphic.PutBox (minus_num inch) inch p.p_contents])  (* translate the origin *)
@@ -647,8 +628,7 @@ value write_file format name comment pages = do
         max_height   = num_zero;
         max_stack    = 0
       }
-  }
-  in
+  };
 
   write_preamble  state comment;
   write_pages     state pages;

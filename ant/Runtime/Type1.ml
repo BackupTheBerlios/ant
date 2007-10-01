@@ -15,7 +15,7 @@ value make_decoder stream =
 
 value decode_byte decoder byte = do
 {
-  let x = (byte lxor (decoder.d_remainder lsr 8)) land 0xff in
+  let x = (byte lxor (decoder.d_remainder lsr 8)) land 0xff;
 
   decoder.d_remainder := ((byte + decoder.d_remainder) * 52845 + 22719) land 0xffff;
 
@@ -39,16 +39,15 @@ value rec decode_hex decoder = do
       c - 55
     else
       0
-  }
-  in
+  };
 
-  let c = IO.read_byte decoder.d_stream in
+  let c = IO.read_byte decoder.d_stream;
 
   if c = 10 || c = 13 then
     decode_hex decoder
   else do
   {
-    let d = IO.read_byte decoder.d_stream in
+    let d = IO.read_byte decoder.d_stream;
 
     decode_byte decoder ((hex_to_int c lsl 4) lor hex_to_int d)
   }
@@ -70,7 +69,7 @@ value make_encoder stream =
 
 value encode_byte encoder byte = do
 {
-  let x = (byte lxor (encoder.e_remainder lsr 8)) land 0xff in
+  let x = (byte lxor (encoder.e_remainder lsr 8)) land 0xff;
 
   encoder.e_remainder := ((x + encoder.e_remainder) * 52845 + 22719) land 0xffff;
 
@@ -105,7 +104,7 @@ value copy_to_marker marker is os = do
       IO.write_byte os (IO.read_byte is)
     else do
     {
-      let c = IO.read_char is in
+      let c = IO.read_char is;
 
       IO.write_char os c;
 
@@ -119,7 +118,7 @@ value copy_to_marker marker is os = do
 
 value copy_to_marker_bin marker is os is_bin = do
 {
-  let dec = make_decoder is in
+  let dec = make_decoder is;
 
   if is_bin then do
   {
@@ -133,7 +132,7 @@ value copy_to_marker_bin marker is os is_bin = do
         IO.write_byte os (IO.read_byte is)
       else do
       {
-        let c = IO.read_byte is in
+        let c = IO.read_byte is;
 
         IO.write_byte os c;
 
@@ -146,7 +145,7 @@ value copy_to_marker_bin marker is os is_bin = do
   }
   else do
   {
-    let enc = make_encoder os in
+    let enc = make_encoder os;
 
     iter 0
 
@@ -158,7 +157,7 @@ value copy_to_marker_bin marker is os is_bin = do
         encode_bin enc (decode_hex dec)
       else do
       {
-        let c = decode_hex dec in
+        let c = decode_hex dec;
 
         encode_bin enc c;
 
@@ -187,25 +186,25 @@ value rec copy_part_3 is os = do
 
 value embedd_type1_font font os = do
 {
-  let is = IO.make_rand_in_stream font in
+  let is = IO.make_rand_in_stream font;
 
-  let is_bin = skip_block_header is in
+  let is_bin = skip_block_header is;
 
   copy_part_1 is os;
 
-  let off1 = IO.pos os in
+  let off1 = IO.pos os;
 
   skip_block_header is;
 
   copy_part_2 (IO.coerce_i is) (IO.coerce_o os) is_bin;
 
-  let off2 = IO.pos os in
+  let off2 = IO.pos os;
 
   skip_block_header is;
 
   copy_part_3 is os;
 
-  let off3 = IO.pos os in
+  let off3 = IO.pos os;
 
   (off1, off2 - off1, off3 - off2)
 };

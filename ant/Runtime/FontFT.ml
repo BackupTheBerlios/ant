@@ -10,7 +10,7 @@ open OpenType;
 
 value ft_kerning face scale c1 c2 = do
 {
-  let (x,y) = ft_get_kerning face c1 c2 ft_kerning_unscaled in
+  let (x,y) = ft_get_kerning face c1 c2 ft_kerning_unscaled;
 
   if x <> 0 then
     Kern (scale */ num_of_int x)
@@ -20,16 +20,16 @@ value ft_kerning face scale c1 c2 = do
 
 value make_glyph_metric params scale glyph_idx glyph = do
 {
-  let (width, height, h_off, v_off, adv) = glyph_metrics glyph in
+  let (width, height, h_off, v_off, adv) = glyph_metrics glyph;
 
-  let left_bound  = max 0 (~-h_off)             in
-  let right_bound = max 0 (h_off + width - adv) in
+  let left_bound  = max 0 (~-h_off);
+  let right_bound = max 0 (h_off + width - adv);
 
-  let l = scale */ num_of_int left_bound  in
-  let r = scale */ num_of_int right_bound in
+  let l = scale */ num_of_int left_bound;
+  let r = scale */ num_of_int right_bound;
 
   let user_kern_info = try
-    let ki = List.assoc glyph_idx params.flp_extra_kern in
+    let ki = List.assoc glyph_idx params.flp_extra_kern;
     {
       ki_after_space    = params.flp_size */ ki.ki_after_space;
       ki_before_space   = params.flp_size */ ki.ki_before_space;
@@ -38,7 +38,7 @@ value make_glyph_metric params scale glyph_idx glyph = do
       ki_after_foreign  = params.flp_size */ ki.ki_after_foreign;
       ki_before_foreign = params.flp_size */ ki.ki_before_foreign
     }
-  with [ Not_found -> zero_kern_info ] in
+  with [ Not_found -> zero_kern_info ];
 
   (* If these values are zero we do not need to allocate a new structure. *)
   let kern_info = if left_bound <> 0 || right_bound <> 0 then
@@ -49,8 +49,7 @@ value make_glyph_metric params scale glyph_idx glyph = do
       ki_before_foreign = r +/ user_kern_info.ki_before_foreign
     }
   else
-    user_kern_info
-  in
+    user_kern_info;
 
   {
     gm_width      = scale */ num_of_int adv +/ num_two */ params.flp_size */ params.flp_letter_spacing;
@@ -65,10 +64,9 @@ value make_glyph_metric params scale glyph_idx glyph = do
 value get_glyph_metric params scale face = do
 {
   let (em, _asc, _desc, _height, _ul_pos, _ul_thick) =
-    face_metrics face
-  in
-  let num_glyphs = face_num_glyphs face                     in
-  let gm         = Array.make num_glyphs empty_glyph_metric in
+    face_metrics face;
+  let num_glyphs = face_num_glyphs face;
+  let gm         = Array.make num_glyphs empty_glyph_metric;
 
   for i = 1 to num_glyphs - 1 do
   {
@@ -82,13 +80,13 @@ value get_glyph_metric params scale face = do
 
 value get_glyph_bitmap face fm code = do
 {
-  let gm = fm.glyph_metric.(code - fm.first_glyph) in
+  let gm = fm.glyph_metric.(code - fm.first_glyph);
 
   ft_set_char_size face fm.at_size !default_bitmap_resolution;
   ft_load_glyph face code ft_load_monochrome;
 
-  let (x, y, b) = glyph_to_bitmap (face_glyph face) in
-  let dpp       = num_of_ints 100 7227 */ num_of_int !default_bitmap_resolution in
+  let (x, y, b) = glyph_to_bitmap (face_glyph face);
+  let dpp       = num_of_ints 100 7227 */ num_of_int !default_bitmap_resolution;
 
   let g = GlyphBitmap.make
             code
@@ -98,8 +96,7 @@ value get_glyph_bitmap face fm code = do
             (float_of_num dpp)
             (float_of_num dpp)
             (x, y - b.Bitmap.bm_height + 1)
-            (x + b.Bitmap.bm_width - 1, y)
-  in
+            (x + b.Bitmap.bm_width - 1, y);
 
   { (g) with GlyphBitmap.g_bitmap = b }
 };
@@ -124,8 +121,7 @@ value builtin_decoding face glyph = do
       else
         iter (ft_get_next_char face (c,g))
     }
-  }
-  in
+  };
 
   Array.of_list (decode glyph)
 
@@ -224,7 +220,7 @@ value ligature_to_adj n lig = do
 
 value pos_rule_to_adj scale glyphs rule = do
 {
-  let lookups = Array.make (Array.length glyphs) [||] in
+  let lookups = Array.make (Array.length glyphs) [||];
 
   Array.iter
     (fun l -> do
@@ -234,11 +230,11 @@ value pos_rule_to_adj scale glyphs rule = do
       })
     rule;
 
-  let adjs = ListBuilder.make () in
+  let adjs = ListBuilder.make ();
 
   for i = 0 to Array.length glyphs - 1 do
   {
-    let cmds = lookups.(i) in
+    let cmds = lookups.(i);
 
     iter_cmds 0
 
@@ -255,7 +251,7 @@ value pos_rule_to_adj scale glyphs rule = do
         {
           try do
           {
-            let p = IntMap.find glyphs.(i) pos in
+            let p = IntMap.find glyphs.(i) pos;
 
             ListBuilder.add_list adjs
               [pos_to_pre_kern scale p;
@@ -276,7 +272,7 @@ value pos_rule_to_adj scale glyphs rule = do
 
 value subst_rule_to_adj glyphs rule = do
 {
-  let lookups = Array.make (Array.length glyphs) [||] in
+  let lookups = Array.make (Array.length glyphs) [||];
 
   Array.iter
     (fun l -> do
@@ -286,11 +282,11 @@ value subst_rule_to_adj glyphs rule = do
       })
     rule;
 
-  let adjs = ListBuilder.make () in
+  let adjs = ListBuilder.make ();
 
   for i = 0 to Array.length glyphs - 1 do
   {
-    let cmds = lookups.(i) in
+    let cmds = lookups.(i);
 
     iter_cmds 0
 
@@ -307,7 +303,7 @@ value subst_rule_to_adj glyphs rule = do
         {
           try do
           {
-            let g2 = IntMap.find glyphs.(i) subst in
+            let g2 = IntMap.find glyphs.(i) subst;
 
             ListBuilder.add_list adjs
               [ConstGlyph (Simple g2);
@@ -451,10 +447,9 @@ value make_adjustment_table ps_table scale user_adjustments = do
           let r = match ls.OTF_Pos_Subst.ls_required with
             [ None   -> [||]
             | Some f -> f.OTF_Pos_Subst.f_lookups
-            ]
-          in
-          let t = Array.map (fun f -> f.OTF_Pos_Subst.f_tag)     ls.OTF_Pos_Subst.ls_features in
-          let l = Array.map (fun f -> f.OTF_Pos_Subst.f_lookups) ls.OTF_Pos_Subst.ls_features in
+            ];
+          let t = Array.map (fun f -> f.OTF_Pos_Subst.f_tag)     ls.OTF_Pos_Subst.ls_features;
+          let l = Array.map (fun f -> f.OTF_Pos_Subst.f_lookups) ls.OTF_Pos_Subst.ls_features;
 
           {
             ls_required    = r;
@@ -463,8 +458,7 @@ value make_adjustment_table ps_table scale user_adjustments = do
           }
         })
       s
-  }
-  in
+  };
 
   {
     at_scripts           = Tag.TagMap.map conv_script ps_table.OTF_Pos_Subst.t_scripts;
@@ -477,7 +471,7 @@ value make_simple_adjustment_table face scale user_adjustments = do
 {
   let kerns_to_adjustments face scale = do
   {
-    let last = face_num_glyphs face in
+    let last = face_num_glyphs face;
 
     iter 1 1 DynUCTrie.empty
 
@@ -489,7 +483,7 @@ value make_simple_adjustment_table face scale user_adjustments = do
         iter (g1 + 1) 1 adj
       else do
       {
-        let (k,_) = ft_get_kerning face g1 g2 ft_kerning_unscaled in
+        let (k,_) = ft_get_kerning face g1 g2 ft_kerning_unscaled;
 
         let new_adj =
           if k <> 0 then
@@ -499,17 +493,15 @@ value make_simple_adjustment_table face scale user_adjustments = do
                1)
               adj
           else
-            adj
-        in
+            adj;
 
         iter g1 (g2 + 1) new_adj
       }
     }
-  }
-  in
+  };
 
-  let n   = List.length user_adjustments  in
-  let adj = Array.make (n+1) NoAdjustment in
+  let n   = List.length user_adjustments;
+  let adj = Array.make (n+1) NoAdjustment;
 
   List.fold_left
     (fun i a -> do { adj.(i) := a; (i+1) })
@@ -532,8 +524,7 @@ value get_adjustments adj_table script lang_sys features = do
     Array.iter
       (fun i -> used.(i) := True)
       adjs
-  }
-  in
+  };
   let mark_lang_sys_adjs used lang_sys features = do
   {
     mark_feature_adjs used lang_sys.ls_required;
@@ -544,21 +535,20 @@ value get_adjustments adj_table script lang_sys features = do
         mark_feature_adjs used lang_sys.ls_adjustments.(i)
       else ()
     }
-  }
-  in
+  };
 
-  let num_adjs = Array.length adj_table.at_adjustment_tables in
-  let marks    = Array.make num_adjs False                   in
+  let num_adjs = Array.length adj_table.at_adjustment_tables;
+  let marks    = Array.make num_adjs False;
 
   let ls = try do
   {
-    let s = Tag.TagMap.find script adj_table.at_scripts in
+    let s = Tag.TagMap.find script adj_table.at_scripts;
 
     try
       Tag.TagMap.find lang_sys s
     with [ Not_found -> Tag.TagMap.find Tag.dflt_tag s ]
   }
-  with [ Not_found -> { ls_required = [||]; ls_tags = [||]; ls_adjustments = [||] } ] in
+  with [ Not_found -> { ls_required = [||]; ls_tags = [||]; ls_adjustments = [||] } ];
 
   mark_lang_sys_adjs marks ls features;
 
@@ -572,8 +562,7 @@ value get_adjustments adj_table script lang_sys features = do
             (i-1, lu)
         })
       adj_table.at_adjustment_tables
-      (num_adjs - 1, [])
-  in
+      (num_adjs - 1, []);
 
   match adj_table.at_user_adjustments with
   [ [||] -> active
@@ -583,7 +572,7 @@ value get_adjustments adj_table script lang_sys features = do
 
 value make_matcher memo_table scale get_border_glyph adj_table script features = do
 {
-  let s = UString.uc_string_to_ascii script in
+  let s = UString.uc_string_to_ascii script;
 
   let (s_tag, l_tag) =
     if Array.length script = 9 && s.[4] = '.' then
@@ -592,8 +581,7 @@ value make_matcher memo_table scale get_border_glyph adj_table script features =
     else if Array.length script = 4 then
       (Tag.make_tag s, Tag.dflt_tag)
     else
-      (Tag.latn_tag, Tag.dflt_tag)
-  in
+      (Tag.latn_tag, Tag.dflt_tag);
 
   let trie =
     try
@@ -607,36 +595,33 @@ value make_matcher memo_table scale get_border_glyph adj_table script features =
                            (Tag.make_tag_uc (SymbolTable.symbol_to_string f))
                            set)
                        Tag.TagSet.empty
-                       features
-                     in
-        let adj = get_adjustments adj_table s_tag l_tag f_tags in
+                       features;
+        let adj = get_adjustments adj_table s_tag l_tag f_tags;
 
-        let max_depth = max2_adjustment_depth adj in
+        let max_depth = max2_adjustment_depth adj;
 
-        let is_empty (n, _)        = (n > max_depth)      in
-        let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
+        let is_empty (n, _)        = (n > max_depth);
+        let prefix (n, glyphs) g   = (n+1, [g :: glyphs]);
         let root_value (_, glyphs) =
-          lookup2_adjustments adj (List.rev glyphs)
-        in
+          lookup2_adjustments adj (List.rev glyphs);
 
-        let trie = (is_empty, prefix, root_value) in
+        let trie = (is_empty, prefix, root_value);
 
         !memo_table := add_composer !memo_table s_tag l_tag features trie;
 
         trie
       }
-    ]
-  in
+    ];
 
   match_substitution_trie get_border_glyph trie (0, [])
 };
 
 value make_simple_matcher face scale get_border_glyph extra_adjustments = do
 {
-  let max_depth = max2_adjustment_depth extra_adjustments in
+  let max_depth = max2_adjustment_depth extra_adjustments;
 
-  let is_empty (n, _)        = (n > max_depth)      in
-  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
+  let is_empty (n, _)        = (n > max_depth);
+  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]);
   let root_value (n, glyphs) = do
   {
     match lookup2_adjustments extra_adjustments (List.rev glyphs) with
@@ -653,8 +638,7 @@ value make_simple_matcher face scale get_border_glyph extra_adjustments = do
         ]
       }
     ]
-  }
-  in
+  };
 
   match_substitution_trie get_border_glyph (is_empty, prefix, root_value) (0, [])
 };
@@ -675,7 +659,7 @@ end;
 
 value read_ft file name params = do
 {
-  let face = ft_new_face file in
+  let face = ft_new_face file;
 
   if ft_is_postscript face then do
   {
@@ -691,62 +675,55 @@ value read_ft file name params = do
   else ();
 
   let (em, asc, desc, _height, _ul_pos, _ul_thick) =
-    face_metrics face
-  in
+    face_metrics face;
 
-  let size         = params.flp_size                    in
-  let scale        = size // num_of_int em              in
-  let design_size  = scale */ num_of_int (asc - desc)   in
-  let glyph_metric = get_glyph_metric params scale face in
-  let space_glyph  = ft_get_char_index face 32          in
-  let x_glyph      = ft_get_char_index face 102         in
-  let m_glyph      = ft_get_char_index face 77          in
+  let size         = params.flp_size;
+  let scale        = size // num_of_int em;
+  let design_size  = scale */ num_of_int (asc - desc);
+  let glyph_metric = get_glyph_metric params scale face;
+  let space_glyph  = ft_get_char_index face 32;
+  let x_glyph      = ft_get_char_index face 102;
+  let m_glyph      = ft_get_char_index face 77;
   let space        = if space_glyph > 0 then                               (* width of " "  *)
                        glyph_metric.(space_glyph - 1).gm_width
                      else
-                       size // num_of_int 3
-                     in
+                       size // num_of_int 3;
   let x_height     = if x_glyph > 0 then                                   (* height of "x" *)
                        glyph_metric.(x_glyph - 1).gm_width
                      else
-                       size // num_of_int 2
-                     in
+                       size // num_of_int 2;
   let quad         = if m_glyph > 0 then                                   (* width of "M"  *)
                        glyph_metric.(m_glyph - 1).gm_width
                      else
-                       size
-                     in
+                       size;
   let hyphen_glyph = match params.flp_hyphen_glyph with
                      [ Undef -> builtin_encoding face 45
                      | h     -> h
-                     ]
-                     in
+                     ];
 
   let (enc,dec) = match params.flp_encoding with
   [ [| |] -> (builtin_encoding face,
               builtin_decoding face)
   | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
               Encodings.array_decoding m)
-  ]
-  in
+  ];
 
-  let last_glyph = face_num_glyphs face - 1 in
+  let last_glyph = face_num_glyphs face - 1;
 
   let get_border_glyph b = match b with
   [ Margin  -> Simple (last_glyph + 1)
   | Space   -> Simple (last_glyph + 2)
   | Foreign -> Simple (last_glyph + 3)
-  ]
-  in
+  ];
 
-  let s_table = ref Composer.empty_table in
-  let p_table = ref Composer.empty_table in
+  let s_table = ref Composer.empty_table;
+  let p_table = ref Composer.empty_table;
 
   let (font_type, adj_table) = do
   {
     let (tables, pos, subst) = try do
       {
-        let tables = read_font_tables file in
+        let tables = read_font_tables file;
 
         match get_pos_subst tables with
         [ (Some p, Some s) -> (tables, p, s)
@@ -759,8 +736,7 @@ value read_ft file name params = do
       with
       [ _ -> (Tag.TagMap.empty,
               OTF_Pos_Subst.empty_pos_subst,
-              OTF_Pos_Subst.empty_pos_subst) ]
-    in
+              OTF_Pos_Subst.empty_pos_subst) ];
 
     let font_type =
       if ft_is_sfnt face then
@@ -771,35 +747,30 @@ value read_ft file name params = do
       else if ft_is_postscript face then
         PostScript
       else
-        Other
-    in
+        Other;
 
     let user_pos =
       add_border_kern
         (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
         params.flp_size
         params.flp_extra_kern
-        params.flp_extra_pos
-    in
+        params.flp_extra_pos;
     let pos_adj =
       if Array.length pos.OTF_Pos_Subst.t_lookups = 0 then
         Composer.make_simple_adjustment_table face scale user_pos
       else
-        Composer.make_adjustment_table pos scale user_pos
-    in
-    let subst_adj = Composer.make_adjustment_table subst scale params.flp_extra_subst in
+        Composer.make_adjustment_table pos scale user_pos;
+    let subst_adj = Composer.make_adjustment_table subst scale params.flp_extra_subst;
 
     (font_type, (pos_adj, subst_adj))
-  }
-  in
+  };
 
   let composer fm s f =
     Composer.get_composer
       face scale
       get_border_glyph
       adj_table p_table s_table
-      fm s f
-  in
+      fm s f;
 
   {
     name                = name;

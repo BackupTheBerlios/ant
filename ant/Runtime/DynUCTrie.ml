@@ -50,7 +50,7 @@ value lookup_string str trie = do
     else do
     {
       try
-        let next = DynamicCharMap.find str.(i) trie.children in
+        let next = DynamicCharMap.find str.(i) trie.children;
 
         iter (i+1) next
       with
@@ -64,7 +64,7 @@ value rec lookup_list str trie = match str with
 | [c::cs] -> do
   {
     try
-      let next = DynamicCharMap.find c trie.children in
+      let next = DynamicCharMap.find c trie.children;
 
       lookup_list cs next
     with
@@ -83,7 +83,7 @@ value generic_lookup_prefix fold str trie = do
     (fold
       (fun (last, t) c -> do
         {
-          let next = prefix t c in
+          let next = prefix t c;
 
           match next.data with
           [ Some _ -> (next, next)
@@ -115,7 +115,7 @@ value lookup_prefix_string str trie = do
     else do
     {
       try
-        let next = DynamicCharMap.find str.(i) trie.children in
+        let next = DynamicCharMap.find str.(i) trie.children;
 
         match next.data with
         [ Some _ -> iter (i+1) next next.data
@@ -139,7 +139,7 @@ value lookup_prefix_list str trie = do
   | [c::cs] -> do
     {
       try
-        let next = DynamicCharMap.find c trie.children in
+        let next = DynamicCharMap.find c trie.children;
 
         match next.data with
         [ Some _ -> iter next cs next.data
@@ -158,7 +158,7 @@ value lookup_prefix_list str trie = do
 
 value lookup_prefix_stream is trie = do
 {
-  let stream = UCStream.duplicate is in
+  let stream = UCStream.duplicate is;
 
   let rec iter trie len pos data = do
   {
@@ -170,7 +170,7 @@ value lookup_prefix_stream is trie = do
     else
       try do
       {
-        let next = DynamicCharMap.find (UCStream.pop stream) trie.children in
+        let next = DynamicCharMap.find (UCStream.pop stream) trie.children;
 
         match next.data with
         [ Some _ -> iter next (pos + 1) (pos + 1) next.data
@@ -179,10 +179,9 @@ value lookup_prefix_stream is trie = do
       }
       with
       [ Not_found -> (data, len) ]
-  }
-  in
+  };
 
-  let (data, len) = iter trie 0 0 None  in
+  let (data, len) = iter trie 0 0 None;
 
   UCStream.remove is len;
   data
@@ -221,8 +220,7 @@ value add_string str data trie = do
       let next = try
                    DynamicCharMap.find str.(i) trie.children
                  with
-                 [ Not_found -> empty ]
-      in
+                 [ Not_found -> empty ];
 
       {
         (trie)
@@ -246,7 +244,7 @@ value remove_string str trie = do
     else do
     {
       try
-        let next = DynamicCharMap.find str.(i) trie.children in
+        let next = DynamicCharMap.find str.(i) trie.children;
 
         {
           (trie)
@@ -268,8 +266,7 @@ value rec add_list str data trie = match str with
     let next = try
                  DynamicCharMap.find c trie.children
                with
-               [ Not_found -> empty ]
-    in
+               [ Not_found -> empty ];
 
     {
       (trie)
@@ -286,7 +283,7 @@ value rec remove_list str trie = match str with
 | [c::cs] -> do
   {
     try
-      let next = DynamicCharMap.find c trie.children in
+      let next = DynamicCharMap.find c trie.children;
 
       {
         (trie)
@@ -363,7 +360,7 @@ value fold f trie e = do
 
   where rec iter str trie e = do
   {
-    let x = DynamicCharMap.fold (fun c t y -> iter [c :: str] t y) trie.children e in
+    let x = DynamicCharMap.fold (fun c t y -> iter [c :: str] t y) trie.children e;
 
     match trie.data with
     [ Some y -> f (XList.rev_to_array str) y x
@@ -381,8 +378,7 @@ value rec depth trie = do
     let d = DynamicCharMap.fold
               (fun _ t d -> max d (depth t))
               trie.children
-              0
-    in
+              0;
 
     d + 1
   }

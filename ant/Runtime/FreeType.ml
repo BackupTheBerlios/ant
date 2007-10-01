@@ -50,7 +50,7 @@ value ft_get_glyph face index = do
 
 value glyph_to_bitmap glyph = do
 {
-  let (left, top, rows, width, pitch, buffer) = ft_glyph_to_bitmap glyph in
+  let (left, top, rows, width, pitch, buffer) = ft_glyph_to_bitmap glyph;
 
   (left,
    top,

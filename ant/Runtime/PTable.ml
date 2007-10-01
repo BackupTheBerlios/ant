@@ -46,7 +46,7 @@ value table t = do
 
 value get table key = do
 {
-  let t = sync table in
+  let t = sync table;
 
   DynUCTrie.find_string key t.table
 };
@@ -55,7 +55,7 @@ value get table key = do
 
 value select table key = do
 {
-  let t = sync table in
+  let t = sync table;
 
   {
     (t)
@@ -71,7 +71,7 @@ value select table key = do
 
 value add table key element = do
 {
-  let t = sync table in
+  let t = sync table;
 
   {
     key     = key;
@@ -104,7 +104,7 @@ value update table t =
 
 value map table f = do
 {
-  let t = sync table in
+  let t = sync table;
 
   update t (DynUCTrie.map f t.table)
 };
@@ -113,7 +113,7 @@ value map table f = do
 
 value mapi table f = do
 {
-  let t = sync table in
+  let t = sync table;
 
   update t (DynUCTrie.mapi f t.table)
 };

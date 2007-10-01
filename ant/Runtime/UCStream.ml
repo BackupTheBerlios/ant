@@ -155,8 +155,7 @@ value exchange is1 is2 = do
     {
       current = is1.current;
       stack   = is1.stack
-    }
-  in
+    };
   assign is1 is2;
   assign is2 temp
 };
@@ -315,7 +314,7 @@ value insert_stream is stream = do
 {
   if stream.current.loc.filename = "" then do
   {
-    let loc = fix_location is.current.loc in
+    let loc = fix_location is.current.loc;
 
     is.stack   := List.map (fun s -> { (s) with loc = loc }) stream.stack
                 @ [is.current :: is.stack];
@@ -330,11 +329,11 @@ value insert_stream is stream = do
 
 value include_file is name = do
 {
-  let buf = ListBuilder.make () in
+  let buf = ListBuilder.make ();
 
   try do
   {
-    let s = IO.make_in_stream name in
+    let s = IO.make_in_stream name;
 
     is.stack   := [is.current :: is.stack];
     is.current := {
@@ -351,7 +350,7 @@ value include_file is name = do
       ListBuilder.get buf
     else do
     {
-      let c = UString.read_uc_char s in
+      let c = UString.read_uc_char s;
 
       if c >= 0 then
         ListBuilder.add buf c
@@ -364,7 +363,7 @@ value include_file is name = do
 
 value of_file name = do
 {
-  let stream = create () in
+  let stream = create ();
 
   include_file stream name;
 

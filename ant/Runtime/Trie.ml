@@ -32,7 +32,7 @@ value set_data_index trie pos x = trie.t_tree.(3*pos+2) := x;
 
 value get_data trie pos = do
 {
-  let index = get_data_index trie pos in
+  let index = get_data_index trie pos;
 
   if index < 0 then
     None
@@ -42,7 +42,7 @@ value get_data trie pos = do
 
 value set_data trie pos x = do
 {
-  let index = get_data_index trie pos in
+  let index = get_data_index trie pos;
 
   if index < 0 then do
   {
@@ -65,7 +65,7 @@ value lookup trie pos str = do
 
   where rec iter pos i = do
   {
-    let chr = str.(i) in
+    let chr = str.(i);
 
     if get_char trie (pos + chr) <> chr then
       None
@@ -104,7 +104,7 @@ value lookup_prefix trie pos str start = do
 
   where rec iter pos result i = do
   {
-    let chr = str.(i) in
+    let chr = str.(i);
 
     if get_char trie (pos + chr) <> chr then
       result
@@ -113,8 +113,7 @@ value lookup_prefix trie pos str start = do
       let new_result = match get_data trie (pos + chr) with
       [ None -> result
       | x    -> x
-      ]
-      in
+      ];
 
       if i + 1 >= Array.length str then
         new_result
@@ -137,8 +136,7 @@ where rec iter pos result chr str = do
     let new_result = match get_data trie (pos + chr) with
     [ None -> result
     | x    -> x
-    ]
-    in
+    ];
 
     match str with
     [ []      -> new_result
@@ -183,8 +181,7 @@ value add_child trie pos char index = do
       tn_char   = char;
       tn_offset = index;
       tn_data   = None
-    }
-  in
+    };
 
   trie.(pos) := iter trie.(pos)
 
@@ -226,11 +223,10 @@ value build data = do
   let rec calc_size size list = match list with
   [ []                -> size
   | [(str,_) :: tail] -> calc_size (size + Array.length str) tail
-  ]
-  in
+  ];
 
-  let size = calc_size 1 data in
-  let trie = make size        in
+  let size = calc_size 1 data;
+  let trie = make size;
 
   fill_trie 1 data
 
@@ -273,8 +269,8 @@ value build data = do
 
 value compress trie = do
 {
-  let len = Array.length trie  in
-  let ht  = Hashtbl.create len in
+  let len = Array.length trie;
+  let ht  = Hashtbl.create len;
 
   (* merge duplicates *)
 
@@ -287,7 +283,7 @@ value compress trie = do
     | [c::cs] -> do
       {
         try
-          let x = Hashtbl.find ht trie.(c.tn_offset) in
+          let x = Hashtbl.find ht trie.(c.tn_offset);
 
           [{ (c) with tn_offset = x } :: iter cs]
         with
@@ -306,13 +302,13 @@ end;
 
 value build max_code data = do
 {
-  let simple_trie = SimpleTrie.build data             in
-  let len = (max_code + 1) * Array.length simple_trie in
+  let simple_trie = SimpleTrie.build data;
+  let len = (max_code + 1) * Array.length simple_trie;
 
   SimpleTrie.compress simple_trie;
 
-  let trie = make len             in
-  let used = Array.make len False in
+  let trie = make len;
+  let used = Array.make len False;
 
   let alloc_node children = do
   {
@@ -333,10 +329,9 @@ value build max_code data = do
             find (pos + 1) children
         }
       ]
-    }
-    in
+    };
 
-    let pos = find 0 children in
+    let pos = find 0 children;
 
     used.(pos) := True;
 
@@ -345,11 +340,10 @@ value build max_code data = do
       children;
 
     pos
-  }
-  in
+  };
 
   (* mapping of indices: simple_trie to trie *)
-  let alloc_table = Array.make (Array.length simple_trie) (-1) in
+  let alloc_table = Array.make (Array.length simple_trie) (-1);
 
   let rec alloc pos = do
   {
@@ -361,21 +355,20 @@ value build max_code data = do
     }
     else
       ()
-  }
-  in
+  };
 
   alloc 0;
 
   (* mapping: data to index *)
-  let ht = Hashtbl.create 2000 in
+  let ht = Hashtbl.create 2000;
 
   fill_trie 0
 
   where rec fill_trie pos = do
   {
-    let trie_pos = alloc_table.(pos) in
+    let trie_pos = alloc_table.(pos);
 
-    let children = simple_trie.(pos) in
+    let children = simple_trie.(pos);
 
     simple_trie.(pos) := [];   (* prevent writing this entry multiple times *)
 
@@ -395,7 +388,7 @@ value build max_code data = do
             try
               (* check whether |x| is already somewhere in the data array *)
 
-              let i = Hashtbl.find ht x in
+              let i = Hashtbl.find ht x;
 
               set_data_index trie (trie_pos + c.SimpleTrie.tn_char) i
             with

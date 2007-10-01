@@ -9,7 +9,7 @@ type builder 'a = list 'a;
 
 value make () = do
 {
-  let rec b = [b] in
+  let rec b = [b];
 
   Obj.magic b
 };
@@ -77,7 +77,7 @@ value clear b = do
 
 value add b x = do
 {
-  let n = [x] in
+  let n = [x];
 
   append_to_tail b n;
   set_tail b n
@@ -121,7 +121,7 @@ value append b1 b2 = match list b2 with
 
 value get b = do
 {
-  let l = list b in
+  let l = list b;
 
   clear b;
 

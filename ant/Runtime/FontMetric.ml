@@ -172,13 +172,13 @@ value accent_attach_point font gm = do
 
 value accent_position acc_font acc_gm chr_font chr_gm = do
 {
-  let (acc_x, acc_y) = accent_base_point   acc_font acc_gm in
-  let (chr_x, chr_y) = accent_attach_point chr_font chr_gm in
+  let (acc_x, acc_y) = accent_base_point   acc_font acc_gm;
+  let (chr_x, chr_y) = accent_attach_point chr_font chr_gm;
 
-(*  let pos_y  = chr_gm.gm_height -/ acc_font.parameter.x_height in
+(*  let pos_y  = chr_gm.gm_height -/ acc_font.parameter.x_height;
   let pos_x  = (chr_gm.gm_width -/ acc_gm.gm_width) // num_of_int 2
                +/ (chr_font.parameter.slant */ chr_gm.gm_height
-               -/ acc_font.parameter.slant */ acc_font.parameter.x_height) in*)
+               -/ acc_font.parameter.slant */ acc_font.parameter.x_height);*)
 
   (chr_x -/ acc_x, chr_y -/ acc_y)
 };
@@ -191,9 +191,9 @@ value rec get_glyph_metric font glyph = match glyph with
 | Sequence gs        -> construct_sequence font gs
 | Extendable t m b _ -> do
   {
-    let tgm = get_glyph_metric font t in
-    let mgm = get_glyph_metric font m in
-    let bgm = get_glyph_metric font b in
+    let tgm = get_glyph_metric font t;
+    let mgm = get_glyph_metric font m;
+    let bgm = get_glyph_metric font b;
 
     {
       gm_width      = max_num tgm.gm_width (max_num mgm.gm_width bgm.gm_width);
@@ -213,10 +213,10 @@ value rec get_glyph_metric font glyph = match glyph with
 
 and construct_accent acc_font acc chr_font chr = do
 {
-  let acc_gm = get_glyph_metric acc_font acc in
-  let chr_gm = get_glyph_metric chr_font chr in
+  let acc_gm = get_glyph_metric acc_font acc;
+  let chr_gm = get_glyph_metric chr_font chr;
 
-  let (_, pos_y) = accent_position acc_font acc_gm chr_font chr_gm in
+  let (_, pos_y) = accent_position acc_font acc_gm chr_font chr_gm;
   {
     (chr_gm)
 
@@ -232,14 +232,14 @@ and construct_sequence font glyphs = match glyphs with
 | [g]           -> get_glyph_metric font (Simple g)
 | [first :: gs] -> do
   {
-    let m1 = get_glyph_metric font (Simple first) in
+    let m1 = get_glyph_metric font (Simple first);
 
     iter m1.gm_width m1.gm_height m1.gm_depth gs
 
     where rec iter width height depth glyphs = match glyphs with
     [ [last] -> do
       {
-        let m2 = get_glyph_metric font (Simple last)  in
+        let m2 = get_glyph_metric font (Simple last);
         {
           gm_width  = width +/ m2.gm_width;
           gm_height = max_num height m2.gm_height;
@@ -251,7 +251,7 @@ and construct_sequence font glyphs = match glyphs with
       }
     | [g::gs] -> do
       {
-        let m = get_glyph_metric font (Simple g) in
+        let m = get_glyph_metric font (Simple g);
 
         iter
           (width +/ m.gm_width)
@@ -268,7 +268,7 @@ and construct_sequence font glyphs = match glyphs with
 
 value accent_base_point_x_height font gm = do
 {
-  let pos_x = (gm.gm_width // num_of_int 2) +/ font.parameter.slant */ font.parameter.x_height in
+  let pos_x = (gm.gm_width // num_of_int 2) +/ font.parameter.slant */ font.parameter.x_height;
 
   (pos_x, font.parameter.x_height)
 };
@@ -277,7 +277,7 @@ value accent_base_point_x_height font gm = do
 
 value accent_attach_point_top font gm = do
 {
-  let pos_x = (gm.gm_width // num_of_int 2) +/ font.parameter.slant */ gm.gm_height in
+  let pos_x = (gm.gm_width // num_of_int 2) +/ font.parameter.slant */ gm.gm_height;
 
   (pos_x, gm.gm_height)
 };
@@ -357,8 +357,7 @@ value add_border_kern margin_glyph space_glyph foreign_glyph size border_kern ad
         [|g1; g2|]
         (simple_pair_kerning_cmd (size */ kern), 1)
         trie
-  }
-  in
+  };
 
   iter border_kern DynUCTrie.empty
 
@@ -408,10 +407,10 @@ value rec draw_glyph font glyph = match glyph with
   }
 | Accent a g -> do
   {
-    let a_gm = get_glyph_metric font (Simple a) in
-    let g_gm = get_glyph_metric font (Simple g) in
+    let a_gm = get_glyph_metric font (Simple a);
+    let g_gm = get_glyph_metric font (Simple g);
 
-    let (pos_x, pos_y) = accent_position font a_gm font g_gm in
+    let (pos_x, pos_y) = accent_position font a_gm font g_gm;
 
     Group
       [Graphic.PutBox num_zero num_zero (draw_glyph font (Simple g));
@@ -419,7 +418,7 @@ value rec draw_glyph font glyph = match glyph with
   }
 | Sequence gs -> do
   {
-    let cmds = ListBuilder.make () in
+    let cmds = ListBuilder.make ();
 
     iter num_zero gs
 
@@ -427,7 +426,7 @@ value rec draw_glyph font glyph = match glyph with
     [ []      -> Group (ListBuilder.get cmds)
     | [g::gs] -> do
       {
-        let m = get_glyph_metric font (Simple g) in
+        let m = get_glyph_metric font (Simple g);
 
         ListBuilder.add cmds (Graphic.PutBox x num_zero (draw_glyph font (Simple g)));
 
@@ -437,9 +436,9 @@ value rec draw_glyph font glyph = match glyph with
   }
 | Extendable t m b _ -> do
   {
-    let tgm = get_glyph_metric font t in
-    let mgm = get_glyph_metric font m in
-    let bgm = get_glyph_metric font b in
+    let tgm = get_glyph_metric font t;
+    let mgm = get_glyph_metric font m;
+    let bgm = get_glyph_metric font b;
 
     Group
       [Graphic.PutBox num_zero (tgm.gm_depth +/ mgm.gm_height) (draw_glyph font t);

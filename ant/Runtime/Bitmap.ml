@@ -20,21 +20,21 @@ value get_bit x        = (1 lsl (7 - (x land 7)));
 
 value unsafe_point bm x y = do
 {
-  let i = get_index bm x y in
+  let i = get_index bm x y;
 
   Char.code bm.bm_data.[i] land get_bit x <> 0
 };
 
 value unsafe_set_point bm x y = do
 {
-  let i = get_index bm x y in
+  let i = get_index bm x y;
 
   bm.bm_data.[i] := Char.unsafe_chr (Char.code bm.bm_data.[i] lor get_bit x)
 };
 
 value unsafe_unset_point bm x y = do
 {
-  let i = get_index bm x y in
+  let i = get_index bm x y;
 
   bm.bm_data.[i] := Char.unsafe_chr (Char.code bm.bm_data.[i] land (lnot (get_bit x)))
 };

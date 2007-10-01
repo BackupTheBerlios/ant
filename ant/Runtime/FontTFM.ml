@@ -53,21 +53,20 @@ value kern lk = match lk with
 
 value next_lig_kern lk_array pos = do
 {
-  let lk = lk_array.(pos) in
-  let s  = skip lk in
-  let n  = next lk in
+  let lk = lk_array.(pos);
+  let s  = skip lk;
+  let n  = next lk;
 
   let next_pos = if s < 128 then
     pos + s + 1
   else
-    -1
-  in
+    -1;
 
   if s <= 128 then do
   {
     if is_lig lk then do
     {
-      let op = operand lk in
+      let op = operand lk;
 
       (next_pos, n,
        GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1))
@@ -86,14 +85,14 @@ value next_lig_kern lk_array pos = do
 
 value rec get_lig_kern lk_array pos next_char = do
 {
-  let lk = lk_array.(pos) in
-  let s  = skip lk in
-  let n  = next lk in
+  let lk = lk_array.(pos);
+  let s  = skip lk;
+  let n  = next lk;
 
   if (n = next_char) && (s <= 128) then
     if is_lig lk then do
     {
-      let op = operand lk in
+      let op = operand lk;
 
       GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1)
     }
@@ -107,17 +106,17 @@ value rec get_lig_kern lk_array pos next_char = do
 
 value rec list_lig_kerns lk_array pos = do
 {
-  let lk = lk_array.(pos) in
-  let s  = skip lk in
-  let n  = next lk in
+  let lk = lk_array.(pos);
+  let s  = skip lk;
+  let n  = next lk;
 
   if s > 128 then
     []
   else if is_lig lk then do
   {
-    let op = operand lk in
+    let op = operand lk;
 
-    let l = (n, GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1)) in
+    let l = (n, GlyphMetric.Ligature (remainder lk) (op lsr 2) ((op lsr 1) land 1 = 1) (op land 1 = 1));
 
     if s < 128 then
       [l :: list_lig_kerns lk_array (pos + s + 1)]
@@ -126,7 +125,7 @@ value rec list_lig_kerns lk_array pos = do
   }
   else do
   {
-    let k = (n, GlyphMetric.Kern (kern lk)) in
+    let k = (n, GlyphMetric.Kern (kern lk));
 
     if s < 128 then
       [k :: list_lig_kerns lk_array (pos + s + 1)]
@@ -146,10 +145,10 @@ value read_fix ic = IO.read_be_i32 ic // num_0x100000;
 
 value read_4 ic = do
 {
-  let x1 = IO.read_be_u8 ic in
-  let x2 = IO.read_be_u8 ic in
-  let x3 = IO.read_be_u8 ic in
-  let x4 = IO.read_be_u8 ic in
+  let x1 = IO.read_be_u8 ic;
+  let x2 = IO.read_be_u8 ic;
+  let x3 = IO.read_be_u8 ic;
+  let x4 = IO.read_be_u8 ic;
 
   (x1, x2, x3, x4)
 };
@@ -160,7 +159,7 @@ value read_array ic read_fun len = do
     [| |]
   else do
   {
-    let a = Array.make len (read_fun ic) in
+    let a = Array.make len (read_fun ic);
 
     for i = 1 to len - 1 do
     {
@@ -191,7 +190,7 @@ value get_adjustment_tables lig_kern_table glyphs first_glyph last_glyph = do
     else match glyphs.(g - first_glyph).gm_extra with
     [ GXI_LigKern lk -> do
       {
-        let lks = LigKern.list_lig_kerns lig_kern_table lk in
+        let lks = LigKern.list_lig_kerns lig_kern_table lk;
 
         add_lig_kern lks pos subst
 
@@ -254,13 +253,13 @@ value make_lig_kern kern (x1,x2,x3,x4) = do
 
 value make_glyph_metric glyph_idx params size width height depth italic lig exten (w,x1,x2,r) = do
 {
-  let h  = x1 lsr 4    in
-  let d  = x1 land 0xf in
-  let i  = x2 lsr 2    in
-  let t  = x2 land 0x3 in
+  let h  = x1 lsr 4;
+  let d  = x1 land 0xf;
+  let i  = x2 lsr 2;
+  let t  = x2 land 0x3;
 
   let user_kern_info = try
-    let ki = List.assoc glyph_idx params.flp_extra_kern in
+    let ki = List.assoc glyph_idx params.flp_extra_kern;
     {
       ki_after_space    = size */ ki.ki_after_space;
       ki_before_space   = size */ ki.ki_before_space;
@@ -269,7 +268,7 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
       ki_after_foreign  = size */ ki.ki_after_foreign;
       ki_before_foreign = size */ ki.ki_before_foreign
     }
-  with [ Not_found -> zero_kern_info ] in
+  with [ Not_found -> zero_kern_info ];
 
   (* If italic.(i) = 0 then we do not need to allocate a new structure. *)
   let kern_info = if italic.(i) <>/ num_zero then
@@ -279,8 +278,7 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
       ki_before_foreign = italic.(i) +/ user_kern_info.ki_before_foreign
     }
   else
-    user_kern_info
-  in
+    user_kern_info;
 
   let extra = match t with
   [ 0 -> GXI_Normal
@@ -293,8 +291,7 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
   | 2 -> GXI_List r
   | _ -> let (t,m,b,r) = exten.(r) in
          GXI_Extendable t m b r
-  ]
-  in
+  ];
 
   {
     gm_width      = width.(w) +/ num_two */ size */ params.flp_letter_spacing;
@@ -308,8 +305,8 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
 
 value tfm_composer pos subst fm _ _ = do
 {
-  let (p_trie, p_state) = make_adjustment_trie pos   in
-  let (s_trie, s_state) = make_adjustment_trie subst in
+  let (p_trie, p_state) = make_adjustment_trie pos;
+  let (s_trie, s_state) = make_adjustment_trie subst;
 
   two_phase_composer fm (match_substitution_trie (get_border_glyph fm) s_trie s_state)
                         (match_substitution_trie (get_border_glyph fm) p_trie p_state)
@@ -317,76 +314,71 @@ value tfm_composer pos subst fm _ _ = do
 
 value read_tfm file name params = do
 {
-  let ic = IO.make_in_stream file in
+  let ic = IO.make_in_stream file;
 
-  let _file_length  = IO.read_be_u16 ic in
-  let header_length = IO.read_be_u16 ic in
-  let first_glyph   = IO.read_be_u16 ic in
-  let last_glyph    = IO.read_be_u16 ic in
+  let _file_length  = IO.read_be_u16 ic;
+  let header_length = IO.read_be_u16 ic;
+  let first_glyph   = IO.read_be_u16 ic;
+  let last_glyph    = IO.read_be_u16 ic;
 
-  let glyph_metric_table_len = last_glyph - first_glyph + 1 in
+  let glyph_metric_table_len = last_glyph - first_glyph + 1;
 
-  let width_table_len  = IO.read_be_u16 ic in
-  let height_table_len = IO.read_be_u16 ic in
-  let depth_table_len  = IO.read_be_u16 ic in
-  let italic_table_len = IO.read_be_u16 ic in
-  let lig_table_len    = IO.read_be_u16 ic in
-  let kern_table_len   = IO.read_be_u16 ic in
-  let ext_table_len    = IO.read_be_u16 ic in
-  let param_table_len  = IO.read_be_u16 ic in
+  let width_table_len  = IO.read_be_u16 ic;
+  let height_table_len = IO.read_be_u16 ic;
+  let depth_table_len  = IO.read_be_u16 ic;
+  let italic_table_len = IO.read_be_u16 ic;
+  let lig_table_len    = IO.read_be_u16 ic;
+  let kern_table_len   = IO.read_be_u16 ic;
+  let ext_table_len    = IO.read_be_u16 ic;
+  let param_table_len  = IO.read_be_u16 ic;
 
-  let check_sum   = IO.read_be_u32 ic in
-  let design_size = read_fix ic       in
+  let check_sum   = IO.read_be_u32 ic;
+  let design_size = read_fix ic;
 
   let size = if params.flp_size >=/ num_zero then
                params.flp_size
              else
-               design_size
-             in
+               design_size;
 
   IO.skip ic (4 * header_length - 8);
 
-  let glyph_metric = read_array ic read_4   glyph_metric_table_len in
-  let width     = Array.map (fun x -> x */ size) (read_array ic read_fix width_table_len)  in
-  let height    = Array.map (fun x -> x */ size) (read_array ic read_fix height_table_len) in
-  let depth     = Array.map (fun x -> x */ size) (read_array ic read_fix depth_table_len)  in
-  let italic    = Array.map (fun x -> x */ size) (read_array ic read_fix italic_table_len) in
-  let lig       = read_array ic read_4   lig_table_len       in
-  let kern      = Array.map (fun x -> x */ size) (read_array ic read_fix kern_table_len)   in
-  let ext       = read_array ic read_4   ext_table_len       in
-  let param     = read_array ic read_fix param_table_len     in
+  let glyph_metric = read_array ic read_4   glyph_metric_table_len;
+  let width     = Array.map (fun x -> x */ size) (read_array ic read_fix width_table_len);
+  let height    = Array.map (fun x -> x */ size) (read_array ic read_fix height_table_len);
+  let depth     = Array.map (fun x -> x */ size) (read_array ic read_fix depth_table_len);
+  let italic    = Array.map (fun x -> x */ size) (read_array ic read_fix italic_table_len);
+  let lig       = read_array ic read_4   lig_table_len;
+  let kern      = Array.map (fun x -> x */ size) (read_array ic read_fix kern_table_len);
+  let ext       = read_array ic read_4   ext_table_len;
+  let param     = read_array ic read_fix param_table_len;
 
-  let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig in
+  let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig;
   let gm_table  = Array.mapi
                     (fun i gm -> make_glyph_metric (i + first_glyph)
                                    params size width height depth italic
                                    lig_cmds ext gm)
-                    glyph_metric
-                  in
+                    glyph_metric;
 
-  let (p,s)       = get_adjustment_tables lig_cmds gm_table first_glyph last_glyph in
+  let (p,s)       = get_adjustment_tables lig_cmds gm_table first_glyph last_glyph;
   let pos_table   = add_border_kern
                       (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
                       size
                       params.flp_extra_kern
-                      (params.flp_extra_pos @ p)
-                    in
-  let subst_table = params.flp_extra_subst @ s in
+                      (params.flp_extra_pos @ p);
+  let subst_table = params.flp_extra_subst @ s;
 
   let hyphen_glyph = match params.flp_hyphen_glyph with
   [ Undef -> Simple 45
   | h     -> h
-  ]
-  in
+  ];
 
   let (enc,dec) = match params.flp_encoding with
   [ [| |] -> (Encodings.raw_encoding,    Encodings.raw_decoding)
   | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
               Encodings.array_decoding m)
-  ]
-  in
+  ];
 
-  let composer x y = tfm_composer pos_table subst_table x y in
+  let composer x y = tfm_composer pos_table subst_table x y;
 
   {
     name                = name;

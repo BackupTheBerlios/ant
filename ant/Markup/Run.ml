@@ -46,7 +46,7 @@ value parse_document ps = do
 
 value parse_file job name = do
 {
-  let ps = ParseState.create job in
+  let ps = ParseState.create job;
 
   UCStream.include_file ps.ParseState.input_stream name;
 
@@ -55,7 +55,7 @@ value parse_file job name = do
 
 value parse_string job str = do
 {
-  let ps = ParseState.create job in
+  let ps = ParseState.create job;
 
   UCStream.insert_string ps.ParseState.input_stream str;
 

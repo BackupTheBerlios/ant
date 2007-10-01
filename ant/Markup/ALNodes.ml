@@ -20,8 +20,6 @@ value encode_box_cmd cmd = Types.Unbound; (* FIX *)
 
 value decode_box_cmd name cmd = do
 {
-  Machine.evaluate cmd;
-
   `GfxCmd (Graphic.SetColour (Graphic.Grey num_zero)) (* FIX *)
 };
 
@@ -31,8 +29,6 @@ value encode_area_contents c = Types.Unbound; (* FIX *)
 
 value decode_area_contents name c = do
 {
-  Machine.evaluate c;
-
   `Galley ([||],
            Evaluate.const_pt num_zero, Evaluate.const_pt num_zero,
            Evaluate.const_pt num_zero, Evaluate.const_pt num_zero)
@@ -44,8 +40,6 @@ value encode_glue_function c = Types.Unbound; (* FIX *)
 
 value decode_glue_function name f = do
 {
-  Machine.evaluate f;
-
   (fun _ b -> b)
 };
 
@@ -58,7 +52,7 @@ value encode_image_format f = match f with
 
 value decode_image_format name f = do
 {
-  let s = decode_symbol name f in
+  let s = decode_symbol name f;
 
   if s = sym_Bitmap then
     LoadImage.Bitmap
@@ -303,271 +297,259 @@ value decode_tuple8 name xs = match xs with
 | _ -> Types.runtime_error (name ^ ": invalid node")
 ];
 
-value rec decode_node name node = do
-{
-  Machine.evaluate node;
-
-  match !node with
-  [ Types.Nil      -> Node.Nodes []
-  | Types.List _ _ -> Node.Nodes (decode_node_list name node)
-  | Types.Tuple xs -> do
-    {
-      if Array.length xs = 0 then
-        Types.runtime_error (name ^ ": invalid node")
-      else do
+value rec decode_node name node = match !node with
+[ Types.Nil      -> Node.Nodes []
+| Types.List _ _ -> Node.Nodes (decode_node_list name node)
+| Types.Tuple xs -> do
+  {
+    if Array.length xs = 0 then
+      Types.runtime_error (name ^ ": invalid node")
+    else match !(xs.(0)) with
+    [ Types.Symbol s -> do
       {
-        Array.iter Machine.evaluate xs;
+        if s = sym_Command then
+          let (loc, c) = decode_tuple1 name xs in
+          Node.Command loc (decode_env_cmd name c)
+        else if s = sym_CommandBox then
+          let (loc, c) = decode_tuple1 name xs in
+          Node.CommandBox loc (decode_box_cmd name c)
+        else if s = sym_NewGalley then
+          let (loc, n, m) = decode_tuple2 name xs in
+          Node.NewGalley loc
+            (decode_uc_string name n)
+            (decode_skip_arg name m)
+        else if s = sym_NewLayout then
+          let (loc, n, w, h) = decode_tuple3 name xs in
+          Node.NewLayout loc
+            (decode_uc_string name n)
+            (decode_skip_arg name w)
+            (decode_skip_arg name h)
+        else if s = sym_NewArea then
+          let (loc, n, x, y, w, h, t, b, c) = decode_tuple8 name xs in
+          Node.NewArea loc
+            (decode_uc_string name n)
+            (decode_skip_arg name x)
+            (decode_skip_arg name y)
+            (decode_skip_arg name w)
+            (decode_skip_arg name h)
+            (decode_skip_arg name t)
+            (decode_skip_arg name b)
+            (decode_area_contents name c)
+        else if s = sym_ShipOut then
+          let (loc, e, o, n) = decode_tuple3 name xs in
+          Node.ShipOut loc
+            (decode_uc_string name e)
+            (decode_uc_string name o)
+            (decode_int name n)
+        else if s = sym_AddToGalley then
+          let (loc, g, ns) = decode_tuple2 name xs in
+          Node.AddToGalley loc
+            (decode_uc_string name g)
+            (decode_node_list name ns)
+        else if s = sym_PutGalleyInVBox then
+          let (loc, a, n) = decode_tuple2 name xs in
+          Node.PutGalleyInVBox loc
+            (decode_bool name a)
+            (decode_uc_string name n)
+        else if s = sym_ModifyGalleyGlue then
+          let (loc, f) = decode_tuple1 name xs in
+          Node.ModifyGalleyGlue loc
+            (decode_glue_function name f)
+        else if s = sym_Paragraph then
+          let (loc, b) = decode_tuple1 name xs in
+          Node.Paragraph loc
+            (decode_node_list name b)
+        else if s = sym_BeginGroup then
+          let loc = decode_tuple0 name xs in
+          Node.BeginGroup loc
+        else if s = sym_EndGroup then
+          let loc = decode_tuple0 name xs in
+          Node.EndGroup loc
+        else if s = sym_Glyph then
+          let (loc, g) = decode_tuple1 name xs in
+          Node.Glyph loc (decode_int name g)
+        else if s = sym_Letter then
+          let (loc, c) = decode_tuple1 name xs in
+          Node.Letter loc (decode_char name c)
+        else if s = sym_Space then
+          let loc = decode_tuple0 name xs in
+          Node.Space loc
+        else if s = sym_Glue then
+          let (loc, w, h, i, d) = decode_tuple4 name xs in
+          Node.Glue loc
+            (decode_dim_arg name w)
+            (decode_dim_arg name h)
+            (decode_bool name i)
+            (decode_bool name d)
+        else if s = sym_Break then do
+        {
+          let (loc, p, h, pre, post, no) = decode_tuple5 name xs;
 
-        match !(xs.(0)) with
-        [ Types.Symbol s -> do
-          {
-            if s = sym_Command then
-              let (loc, c) = decode_tuple1 name xs in
-              Node.Command loc (decode_env_cmd name c)
-            else if s = sym_CommandBox then
-              let (loc, c) = decode_tuple1 name xs in
-              Node.CommandBox loc (decode_box_cmd name c)
-            else if s = sym_NewGalley then
-              let (loc, n, m) = decode_tuple2 name xs in
-              Node.NewGalley loc
-                (decode_uc_string name n)
-                (decode_skip_arg name m)
-            else if s = sym_NewLayout then
-              let (loc, n, w, h) = decode_tuple3 name xs in
-              Node.NewLayout loc
-                (decode_uc_string name n)
-                (decode_skip_arg name w)
-                (decode_skip_arg name h)
-            else if s = sym_NewArea then
-              let (loc, n, x, y, w, h, t, b, c) = decode_tuple8 name xs in
-              Node.NewArea loc
-                (decode_uc_string name n)
-                (decode_skip_arg name x)
-                (decode_skip_arg name y)
-                (decode_skip_arg name w)
-                (decode_skip_arg name h)
-                (decode_skip_arg name t)
-                (decode_skip_arg name b)
-                (decode_area_contents name c)
-            else if s = sym_ShipOut then
-              let (loc, e, o, n) = decode_tuple3 name xs in
-              Node.ShipOut loc
-                (decode_uc_string name e)
-                (decode_uc_string name o)
-                (decode_int name n)
-            else if s = sym_AddToGalley then
-              let (loc, g, ns) = decode_tuple2 name xs in
-              Node.AddToGalley loc
-                (decode_uc_string name g)
-                (decode_node_list name ns)
-            else if s = sym_PutGalleyInVBox then
-              let (loc, a, n) = decode_tuple2 name xs in
-              Node.PutGalleyInVBox loc
-                (decode_bool name a)
-                (decode_uc_string name n)
-            else if s = sym_ModifyGalleyGlue then
-              let (loc, f) = decode_tuple1 name xs in
-              Node.ModifyGalleyGlue loc
-                (decode_glue_function name f)
-            else if s = sym_Paragraph then
-              let (loc, b) = decode_tuple1 name xs in
-              Node.Paragraph loc
-                (decode_node_list name b)
-            else if s = sym_BeginGroup then
-              let loc = decode_tuple0 name xs in
-              Node.BeginGroup loc
-            else if s = sym_EndGroup then
-              let loc = decode_tuple0 name xs in
-              Node.EndGroup loc
-            else if s = sym_Glyph then
-              let (loc, g) = decode_tuple1 name xs in
-              Node.Glyph loc (decode_int name g)
-            else if s = sym_Letter then
-              let (loc, c) = decode_tuple1 name xs in
-              Node.Letter loc (decode_char name c)
-            else if s = sym_Space then
-              let loc = decode_tuple0 name xs in
-              Node.Space loc
-            else if s = sym_Glue then
-              let (loc, w, h, i, d) = decode_tuple4 name xs in
-              Node.Glue loc
-                (decode_dim_arg name w)
-                (decode_dim_arg name h)
-                (decode_bool name i)
-                (decode_bool name d)
-            else if s = sym_Break then do
-            {
-              let (loc, p, h, pre, post, no) = decode_tuple5 name xs in
+          Node.Break loc
+            (decode_option name Machine.decode_num p)
+            (decode_bool name h)
+            (decode_node_list name pre)
+            (decode_node_list name post)
+            (decode_node_list name no)
+        }
+        else if s = sym_Rule then
+          let (loc, w, h, d) = decode_tuple3 name xs in
+          Node.Rule loc
+            (decode_dim_arg name w)
+            (decode_dim_arg name h)
+            (decode_dim_arg name d)
+        else if s = sym_Image then
+          let (loc, f, fmt, w, h) = decode_tuple4 name xs in
+          Node.Image loc
+            (UString.to_string (Machine.decode_string name f))
+            (decode_image_format name fmt)
+            (decode_skip_arg name w)
+            (decode_skip_arg name h)
+        else if s = sym_Accent then
+          let (loc, c, n) = decode_tuple2 name xs in
+          Node.Accent loc
+            (decode_char name c)
+            (decode_node_list name n)
+        else if s = sym_HBox then
+          let (loc, d, n) = decode_tuple2 name xs in
+          Node.HBox loc
+            (decode_hbox_dir name d)
+            (decode_node_list name n)
+        else if s = sym_HBoxTo then
+          let (loc, d, w, n) = decode_tuple3 name xs in
+          Node.HBoxTo loc
+            (decode_hbox_dir name d)
+            (decode_skip_arg name w)
+            (decode_node_list name n)
+        else if s = sym_HBoxSpread then
+          let (loc, d, a, n) = decode_tuple3 name xs in
+          Node.HBoxSpread loc
+            (decode_hbox_dir name d)
+            (decode_skip_arg name a)
+            (decode_node_list name n)
+        else if s = sym_VBox then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.VBox loc
+            (decode_node_list name n)
+        else if s = sym_VBoxTo then
+          let (loc, h, n) = decode_tuple2 name xs in
+          Node.VBoxTo loc
+            (decode_skip_arg name h)
+            (decode_node_list name n)
+        else if s = sym_VBoxSpread then
+          let (loc, a, n) = decode_tuple2 name xs in
+          Node.VBoxSpread loc
+            (decode_skip_arg name a)
+            (decode_node_list name n)
+        else if s = sym_Phantom then
+          let (loc, w, h, n) = decode_tuple3 name xs in
+          Node.Phantom loc
+            (decode_bool name w)
+            (decode_bool name h)
+            (decode_node_list name n)
+        else if s = sym_HLeaders then
+          let (loc, w, n) = decode_tuple2 name xs in
+          Node.HLeaders loc
+            (decode_dim_arg name w)
+            (decode_node_list name n)
+        else if s = sym_VInsert then
+          let (loc, a, n) = decode_tuple2 name xs in
+          Node.VInsert loc
+            (decode_bool name a)
+            (decode_node_list name n)
+        else if s = sym_Table then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.Table loc
+            (decode_node_list name n)
+        else if s = sym_TableEntry then
+          let (loc, l, r, t, bl, b, c) = decode_tuple6 name xs in
+          Node.TableEntry loc
+            (decode_int name l)
+            (decode_int name r)
+            (decode_int name t)
+            (decode_int name bl)
+            (decode_int name b)
+            (decode_node_list name c)
+        else if s = sym_Math then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.Math loc
+            (decode_node_list name n)
+        else if s = sym_MathCode then
+          let (loc, c, b) = decode_tuple2 name xs in
+          Node.MathCode loc
+            (decode_math_code name c)
+            (decode_node_list name b)
+        else if s = sym_MathChar then do
+        {
+          let (loc, char) = decode_tuple1 name xs;
 
-              Node.Break loc
-                (decode_option name Machine.decode_num p)
-                (decode_bool name h)
-                (decode_node_list name pre)
-                (decode_node_list name post)
-                (decode_node_list name no)
-            }
-            else if s = sym_Rule then
-              let (loc, w, h, d) = decode_tuple3 name xs in
-              Node.Rule loc
-                (decode_dim_arg name w)
-                (decode_dim_arg name h)
-                (decode_dim_arg name d)
-            else if s = sym_Image then
-              let (loc, f, fmt, w, h) = decode_tuple4 name xs in
-              Node.Image loc
-                (UString.to_string (Machine.decode_string name f))
-                (decode_image_format name fmt)
-                (decode_skip_arg name w)
-                (decode_skip_arg name h)
-            else if s = sym_Accent then
-              let (loc, c, n) = decode_tuple2 name xs in
-              Node.Accent loc
-                (decode_char name c)
-                (decode_node_list name n)
-            else if s = sym_HBox then
-              let (loc, d, n) = decode_tuple2 name xs in
-              Node.HBox loc
-                (decode_hbox_dir name d)
-                (decode_node_list name n)
-            else if s = sym_HBoxTo then
-              let (loc, d, w, n) = decode_tuple3 name xs in
-              Node.HBoxTo loc
-                (decode_hbox_dir name d)
-                (decode_skip_arg name w)
-                (decode_node_list name n)
-            else if s = sym_HBoxSpread then
-              let (loc, d, a, n) = decode_tuple3 name xs in
-              Node.HBoxSpread loc
-                (decode_hbox_dir name d)
-                (decode_skip_arg name a)
-                (decode_node_list name n)
-            else if s = sym_VBox then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.VBox loc
-                (decode_node_list name n)
-            else if s = sym_VBoxTo then
-              let (loc, h, n) = decode_tuple2 name xs in
-              Node.VBoxTo loc
-                (decode_skip_arg name h)
-                (decode_node_list name n)
-            else if s = sym_VBoxSpread then
-              let (loc, a, n) = decode_tuple2 name xs in
-              Node.VBoxSpread loc
-                (decode_skip_arg name a)
-                (decode_node_list name n)
-            else if s = sym_Phantom then
-              let (loc, w, h, n) = decode_tuple3 name xs in
-              Node.Phantom loc
-                (decode_bool name w)
-                (decode_bool name h)
-                (decode_node_list name n)
-            else if s = sym_HLeaders then
-              let (loc, w, n) = decode_tuple2 name xs in
-              Node.HLeaders loc
-                (decode_dim_arg name w)
-                (decode_node_list name n)
-            else if s = sym_VInsert then
-              let (loc, a, n) = decode_tuple2 name xs in
-              Node.VInsert loc
-                (decode_bool name a)
-                (decode_node_list name n)
-            else if s = sym_Table then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.Table loc
-                (decode_node_list name n)
-            else if s = sym_TableEntry then
-              let (loc, l, r, t, bl, b, c) = decode_tuple6 name xs in
-              Node.TableEntry loc
-                (decode_int name l)
-                (decode_int name r)
-                (decode_int name t)
-                (decode_int name bl)
-                (decode_int name b)
-                (decode_node_list name c)
-            else if s = sym_Math then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.Math loc
-                (decode_node_list name n)
-            else if s = sym_MathCode then
-              let (loc, c, b) = decode_tuple2 name xs in
-              Node.MathCode loc
-                (decode_math_code name c)
-                (decode_node_list name b)
-            else if s = sym_MathChar then do
-            {
-              let (loc, char) = decode_tuple1 name xs in
-
-              Machine.evaluate char;
-
-              match !char with
-              [ Types.Tuple [|c; f1; c1; f2; c2|] ->
-                  Node.MathChar loc
-                    (decode_math_code name c,
-                    (decode_int name f1, decode_int name f2),
-                    (decode_int name c1, decode_int name c2))
-              | _ -> Types.runtime_error (name ^ ": invalid argument")
-              ]
-            }
-            else if s = sym_SubScript then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.SubScript loc
-                (decode_node_list name n)
-            else if s = sym_SuperScript then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.SuperScript loc
-                (decode_node_list name n)
-            else if s = sym_Fraction then
-              let (loc, n, d, l, r, t) = decode_tuple5 name xs in
-              Node.Fraction loc
-                (decode_node_list name n)
-                (decode_node_list name d)
-                (decode_node name l)
-                (decode_node name r)
-                (decode_skip_arg name t)
-            else if s = sym_Underline then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.Underline loc
-                (decode_node_list name n)
-            else if s = sym_Overline then
-              let (loc, n) = decode_tuple1 name xs in
-              Node.Overline loc
-                (decode_node_list name n)
-            else if s = sym_MathAccent then
-              let (loc, f, c, n) = decode_tuple3 name xs in
-              Node.MathAccent loc
-                (decode_int name f)
-                (decode_char name c)
-                (decode_node_list name n)
-            else if s = sym_Root then
-              let (loc, f1, c1, f2, c2, n) = decode_tuple5 name xs in
-              Node.Root loc
-                (decode_int  name f1)
-                (decode_char name c1)
-                (decode_int  name f2)
-                (decode_char name c2)
-                (decode_node_list name n)
-            else if s = sym_LeftRight then
-              let (loc, ns) = decode_tuple1 name xs in
-              Node.LeftRight loc
-                (decode_node_list_list name ns)
-            else if s = sym_MathStyle then
-              let (loc, s) = decode_tuple1 name xs in
-              Node.MathStyle loc
-                (decode_math_style name s)
-            else if s = sym_IndexPosition then
-              let (loc, p) = decode_tuple1 name xs in
-              Node.IndexPosition loc
-                (decode_index_position name p)
-            else
-              Types.runtime_error (name ^ ": invalid node")
-          }
-        | _ -> Types.runtime_error (name ^ ": invalid node")
-        ]
+          match !char with
+          [ Types.Tuple [|c; f1; c1; f2; c2|] ->
+              Node.MathChar loc
+                (decode_math_code name c,
+                (decode_int name f1, decode_int name f2),
+                (decode_int name c1, decode_int name c2))
+          | _ -> Types.runtime_error (name ^ ": invalid argument")
+          ]
+        }
+        else if s = sym_SubScript then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.SubScript loc
+            (decode_node_list name n)
+        else if s = sym_SuperScript then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.SuperScript loc
+            (decode_node_list name n)
+        else if s = sym_Fraction then
+          let (loc, n, d, l, r, t) = decode_tuple5 name xs in
+          Node.Fraction loc
+            (decode_node_list name n)
+            (decode_node_list name d)
+            (decode_node name l)
+            (decode_node name r)
+            (decode_skip_arg name t)
+        else if s = sym_Underline then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.Underline loc
+            (decode_node_list name n)
+        else if s = sym_Overline then
+          let (loc, n) = decode_tuple1 name xs in
+          Node.Overline loc
+            (decode_node_list name n)
+        else if s = sym_MathAccent then
+          let (loc, f, c, n) = decode_tuple3 name xs in
+          Node.MathAccent loc
+            (decode_int name f)
+            (decode_char name c)
+            (decode_node_list name n)
+        else if s = sym_Root then
+          let (loc, f1, c1, f2, c2, n) = decode_tuple5 name xs in
+          Node.Root loc
+            (decode_int  name f1)
+            (decode_char name c1)
+            (decode_int  name f2)
+            (decode_char name c2)
+            (decode_node_list name n)
+        else if s = sym_LeftRight then
+          let (loc, ns) = decode_tuple1 name xs in
+          Node.LeftRight loc
+            (decode_node_list_list name ns)
+        else if s = sym_MathStyle then
+          let (loc, s) = decode_tuple1 name xs in
+          Node.MathStyle loc
+            (decode_math_style name s)
+        else if s = sym_IndexPosition then
+          let (loc, p) = decode_tuple1 name xs in
+          Node.IndexPosition loc
+            (decode_index_position name p)
+        else
+          Types.runtime_error (name ^ ": invalid node")
       }
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid node")
-  ]
-}
+    | _ -> Types.runtime_error (name ^ ": invalid node")
+    ]
+  }
+| _ -> Types.runtime_error (name ^ ": invalid node")
+]
 and decode_node_list name nodes = do
 {
   List.map (decode_node name) (Machine.decode_list name nodes)

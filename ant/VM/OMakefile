@@ -28,6 +28,8 @@ OCamlPackageCopy(VM-install, $(ROOT)/lib, VM)
 
 OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/Runtime
 
-OCamlProgram(Ali, Ali $(MODULES))
+OCamlDependsOnPackage($(ROOT)/lib/VM)
+
+OCamlProgram(Ali, $(ROOT)/lib/VM Ali)
 
 # vim:set ft=make:

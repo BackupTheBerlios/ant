@@ -16,8 +16,8 @@ type arg_specifier =
 
 value substitute args body = do
 {
-  let arg_arr = Array.of_list args  in
-  let result  = ListBuilder.make () in
+  let arg_arr = Array.of_list args;
+  let result  = ListBuilder.make ();
 
   iter body
 
@@ -58,13 +58,13 @@ value substitute args body = do
 
 value rec expand ps = do
 {
-  let c = UCStream.next_char ps.input_stream in
+  let c = UCStream.next_char ps.input_stream;
 
   match CharCode.cat_code c with
   [ CharCode.EOF    -> []
   | CharCode.Escape -> do
     {
-      let token = Parser.read_token ps.input_stream in
+      let token = Parser.read_token ps.input_stream;
 
       match lookup_command ps token with
       [ Some cmd -> cmd.expand ps token
@@ -84,11 +84,11 @@ value rec expand ps = do
 
 value expand_string ps str = do
 {
-  let str_stream = UCStream.of_list str in
+  let str_stream = UCStream.of_list str;
 
   UCStream.exchange ps.input_stream str_stream;
 
-  let result = expand ps in
+  let result = expand ps;
 
   UCStream.exchange ps.input_stream str_stream;
 
@@ -188,7 +188,7 @@ value execute_macro args body ps = do
 
 value expand_macro args body ps _tok = do
 {
-  let str = substitute (parse_args ps ps.input_stream args) body in
+  let str = substitute (parse_args ps ps.input_stream args) body;
 
   UCStream.insert_list ps.input_stream str;
 
@@ -240,7 +240,7 @@ value begin_env ps name = do
 
 value end_env ps name = do
 {
-  let (cur_name, _) = top_env ps in
+  let (cur_name, _) = top_env ps;
 
   if name <> cur_name then do
   {
@@ -277,9 +277,9 @@ value execute_begin_environment name args body ps = do
 
   Parser.skip_blanks ps.input_stream;
 
-  let params = parse_args ps ps.input_stream args in
+  let params = parse_args ps ps.input_stream args;
 
-  let stream = UCStream.of_list (substitute params body) in
+  let stream = UCStream.of_list (substitute params body);
 
   ParseState.execute_stream ps stream;
 
@@ -292,9 +292,9 @@ value expand_begin_environment name args body ps _tok = do
 
   Parser.skip_blanks ps.input_stream;
 
-  let params = parse_args ps ps.input_stream args in
+  let params = parse_args ps ps.input_stream args;
 
-  let s = UCStream.of_list (substitute params body) in
+  let s = UCStream.of_list (substitute params body);
 
   ParseState.execute_stream ps s; (* FIX !!! *)
 
@@ -305,20 +305,20 @@ value expand_begin_environment name args body ps _tok = do
 
 value execute_end_environment body ps = do
 {
-  let (_, args) = pop_env ps in
+  let (_, args) = pop_env ps;
 
   (* As above we remove spaces after the |\end{...}| command. *)
 
   Parser.skip_blanks ps.input_stream;
 
-  let stream = UCStream.of_list (substitute args body) in
+  let stream = UCStream.of_list (substitute args body);
 
   ParseState.execute_stream ps stream
 };
 
 value expand_end_environment body ps _tok = do
 {
-  let (_, args) = pop_env ps in
+  let (_, args) = pop_env ps;
 
   (* As above we remove spaces after the |\end{...}| command. *)
 

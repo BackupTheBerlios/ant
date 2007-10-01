@@ -40,8 +40,7 @@ value create name fmt src_spec = do
       String.sub name 0 (String.rindex name '.')
     with
     [ Not_found -> name ]
-  }
-  in
+  };
 
   KPathSea.init Sys.argv.(0) !FontMetric.default_bitmap_resolution !FontMetric.default_mf_mode;
   FreeType.ft_init_freetype ();
@@ -68,7 +67,7 @@ value create name fmt src_spec = do
                            IO.coerce_o (IO.make_buffer_stream 10)
                          else do
                          {
-                           let os = IO.make_out_stream (basename ^ ".pdfsync") in
+                           let os = IO.make_out_stream (basename ^ ".pdfsync");
                            IO.write_string os basename;
                            IO.write_string os "\nversion 0\n";
                            os

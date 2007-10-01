@@ -55,7 +55,7 @@ value rec convert_to_glyph font composer item = match item with
 ]
 and convert_to_glyphs font composer items = do
 {
-  let new_items = Array.make (List.length items) (`Glyph (Undef, (font,composer))) in
+  let new_items = Array.make (List.length items) (`Glyph (Undef, (font,composer)));
 
   iter 0 items
 
@@ -98,7 +98,7 @@ value rec convert_to_glyphs_and_add_breaks hyphen_params font composer items = d
   let rec collect_characters n chars items = match items with
   [ [] -> do
     {
-      let word = Array.make (n+2) (-1) in
+      let word = Array.make (n+2) (-1);
 
       List.fold_left
         (fun i c -> do
@@ -113,19 +113,17 @@ value rec convert_to_glyphs_and_add_breaks hyphen_params font composer items = d
     }
   | [`Char c :: is] -> collect_characters (n+1) [c :: chars] is
   | [_       :: is] -> collect_characters n     chars        is
-  ]
-  in
+  ];
 
-  let hg     = get_hyphen_glyph font         in
-  let word   = collect_characters 0 [] items in
+  let hg     = get_hyphen_glyph font;
+  let word   = collect_characters 0 [] items;
   let breaks = Hyphenation.hyphenate
                  hyphen_params.hyphen_table
                  hyphen_params.left_hyphen_min
                  hyphen_params.right_hyphen_min
-                 word
-               in
+                 word;
 
-  let new_items = ListBuilder.make () in
+  let new_items = ListBuilder.make ();
 
   iter 2 items
 
@@ -134,7 +132,7 @@ value rec convert_to_glyphs_and_add_breaks hyphen_params font composer items = d
   | [i::is] -> match i with
     [ `Char c -> do
       {
-        let glyph = `Glyph (get_glyph font c, (font,composer)) in
+        let glyph = `Glyph (get_glyph font c, (font,composer));
 
         ListBuilder.add new_items glyph;
 
@@ -238,7 +236,7 @@ value rec find_word_array builder keep_breaks composer from_pos to_pos items = d
     from_pos
   else do
   {
-    let i = items.(from_pos) in
+    let i = items.(from_pos);
 
     match i with
     [ `Glyph (g,(f,c)) -> do
@@ -276,8 +274,8 @@ value rec find_word_array builder keep_breaks composer from_pos to_pos items = d
 
 value rec add_lig_kern keep_breaks items = do
 {
-  let word   = ListBuilder.make () in
-  let result = ListBuilder.make () in
+  let word   = ListBuilder.make ();
+  let result = ListBuilder.make ();
 
   iter items
 
@@ -288,7 +286,7 @@ value rec add_lig_kern keep_breaks items = do
       {
         ListBuilder.add word (`Glyph (g,f));
 
-        let (rest, _) = find_word_list word keep_breaks composer is in
+        let (rest, _) = find_word_list word keep_breaks composer is;
 
         ListBuilder.add_list result (composer (ListBuilder.get word));
 
@@ -305,7 +303,7 @@ value rec add_lig_kern keep_breaks items = do
 
 value add_lig_kern_iterative_list keep_breaks prefix items = do
 {
-  let word = ListBuilder.make () in
+  let word = ListBuilder.make ();
 
   iter prefix 0 items
 
@@ -316,7 +314,7 @@ value add_lig_kern_iterative_list keep_breaks prefix items = do
         {
           ListBuilder.add word (`Glyph (g,f));
 
-          let (rest,n) = find_word_list word keep_breaks composer is in
+          let (rest,n) = find_word_list word keep_breaks composer is;
 
           match rest with
           [ [] -> (prefix, len, items)
@@ -332,7 +330,7 @@ value add_lig_kern_iterative_list keep_breaks prefix items = do
 
 value add_lig_kern_iterative_array keep_breaks prefix from_pos to_pos items = do
 {
-  let word = ListBuilder.make () in
+  let word = ListBuilder.make ();
 
   iter prefix from_pos
 
@@ -342,14 +340,14 @@ value add_lig_kern_iterative_array keep_breaks prefix from_pos to_pos items = do
       (prefix, current_pos)
     else do
     {
-      let i = items.(current_pos) in
+      let i = items.(current_pos);
 
       match i with
       [ `Glyph (g, (f, composer)) -> do
         {
           ListBuilder.add word (`Glyph (g,f));
 
-          let pos = find_word_array word keep_breaks composer (current_pos+1) to_pos items in
+          let pos = find_word_array word keep_breaks composer (current_pos+1) to_pos items;
 
           if pos > to_pos then
             (prefix, current_pos)
@@ -379,8 +377,7 @@ value add_lig_kern_finish prefix from_pos to_pos items = do
       list
     else
       get_word [strip_composer items.(to_pos) :: list] (to_pos-1)
-  }
-  in
+  };
   if from_pos > to_pos then
     prefix
   else match items.(from_pos) with

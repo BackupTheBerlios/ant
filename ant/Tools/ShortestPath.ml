@@ -47,8 +47,8 @@ value find_shortest_path
         num_vertices =
 do
 {
-  let solutions = Array.make num_vertices []                  in
-  let aux_data  = Array.make num_vertices (Some initial_data) in
+  let solutions = Array.make num_vertices [];
+  let aux_data  = Array.make num_vertices (Some initial_data);
 
   solutions.(0) := [initial_solution];
 
@@ -90,7 +90,7 @@ do
   (* Consider the edge from <previous> to <current>. *)
   and process_active_vertex aux previous current = do
   {
-    let (new_sol, new_aux) = update_solution graph solutions.(previous) aux previous current solutions.(current) in
+    let (new_sol, new_aux) = update_solution graph solutions.(previous) aux previous current solutions.(current);
 
     solutions.(current) := new_sol;
     aux_data.(previous) := new_aux;
@@ -100,8 +100,7 @@ do
       fill_next_vertex current
     else
       iter_active (previous - 1) current
-  }
-  in
+  };
 
   fill_array 1
 };

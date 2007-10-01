@@ -54,10 +54,9 @@ value add_font font_table font_def = do
                  font_list
                else
                  [f :: add_entry fs]
-  ]
-  in
+  ];
 
-  let font_list = get_font_list font_table font_def.fd_family in
+  let font_list = get_font_list font_table font_def.fd_family;
 
   DynUCTrie.add_string
       font_def.fd_family
@@ -73,10 +72,9 @@ value load_font fd size = do
       (fd.fd_data)
       with
       flp_size = fd.fd_data.flp_size */ size
-    }
-  in
+    };
 
-  let font = LoadFont.load_font (UString.to_string (Array.to_list fd.fd_name)) params in
+  let font = LoadFont.load_font (UString.to_string (Array.to_list fd.fd_name)) params;
 
 (*
   let fm = match fd.fd_encoding with
@@ -108,8 +106,7 @@ value load_font fd size = do
       log_string ".\n";
       font
     }
-  ]
-  in
+  ];
 *)
 
   fd.fd_loaded_sizes := add fd.fd_loaded_sizes
@@ -151,8 +148,7 @@ value get_font font_table family series shape size = do
           choose_font fs
       }
     }
-  ]
-  in
+  ];
 
   let load fd size = do
   {
@@ -167,8 +163,7 @@ value get_font font_table family series shape size = do
         None
       }
     ]
-  }
-  in
+  };
 
   match choose_font (get_font_list font_table family) with
   [ None    -> None
@@ -218,8 +213,7 @@ value initialise_font_table () = do
            DynUCTrie.empty
            [||] [||] [||] [||]
            (num_zero, num_of_int 10000)
-           empty_load_params)
-  in
+           empty_load_params);
 
 (*
   let decl name family series shape size_min size_max skew_char = do
@@ -239,8 +233,7 @@ value initialise_font_table () = do
           flp_size       = num_one;
           flp_skew_glyph = skew_char
         }
-  }
-  in
+  };
   *)
 
   (* FIX: Remove these hardwired values, "empty" is enough. *)
@@ -304,8 +297,7 @@ value make_virtual_font name size glyphs italic lig_kern params = do
              pi_page_no   = -1;
              pi_old_marks = [];
              pi_new_marks = []
-           }
-  in
+           };
   let vg = Array.init
              (Array.length glyphs)
              (fun i ->
@@ -315,8 +307,7 @@ value make_virtual_font name size glyphs italic lig_kern params = do
                  FontVirtual.vg_depth  = glyphs.(i).b_depth.d_base;
                  FontVirtual.vg_italic = italic.(i);
                  FontVirtual.vg_glyph  = Box.draw_box pi num_zero num_zero glyphs.(i)
-               })
-  in
+               });
 
   FontVirtual.make_virtual_font name size vg lig_kern params
 };

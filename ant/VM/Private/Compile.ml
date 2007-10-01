@@ -16,43 +16,28 @@ value make_tuple_pat elements = match elements with
 | _   -> Parser.PTuple elements
 ];
 
-value compile_pattern pat = do
+value compile_pattern off pat = do
 {
-  let (stack_depth, num_vars, var_names, checks) = compile pat (0, 0, [], []) in
+  let (stack_depth, num_vars, var_names, checks) = compile pat (0, 0, [], []);
 
   (stack_depth, num_vars, List.rev var_names, checks)
 }
 where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = match pat with
-[ Parser.PAnything   -> (stack_depth,
-                         num_vars,
-                         var_names,
-                         [PCAnything :: checks])
-| Parser.PId sym     -> (stack_depth,
-                         num_vars + 1,
-                         [sym :: var_names],
-                         [PCVariable num_vars :: checks])
+[ Parser.PAnything   -> (stack_depth, num_vars,     var_names,          [PCAnything                  :: checks])
+| Parser.PId sym     -> (stack_depth, num_vars + 1, [sym :: var_names], [PCVariable (off + num_vars) :: checks])
+| Parser.PNumber x   -> (stack_depth, num_vars,     var_names,          [PCNumber x                  :: checks])
+| Parser.PChar x     -> (stack_depth, num_vars,     var_names,          [PCChar x                    :: checks])
+| Parser.PSymbol sym -> (stack_depth, num_vars,     var_names,          [PCSymbol sym                :: checks])
 | Parser.PAssign x p -> do
   {
-    let (s,n,v,c) = compile p state in
+    let (s,n,v,c) = compile p state;
 
-    (s, n + 1, [x :: v], [PCAssign n :: c])
+    (s, n + 1, [x :: v], [PCAssign (off + n) :: c])
   }
-| Parser.PNumber x   -> (stack_depth,
-                         num_vars,
-                         var_names,
-                         [PCNumber x :: checks])
-| Parser.PChar x     -> (stack_depth,
-                         num_vars,
-                         var_names,
-                         [PCChar x :: checks])
-| Parser.PSymbol sym -> (stack_depth,
-                         num_vars,
-                         var_names,
-                         [PCSymbol sym :: checks])
 | Parser.PTuple xs   -> do
   {
-    let len       = List.length xs in
-    let (s,n,v,c) = List.fold_right compile xs state in
+    let len       = List.length xs;
+    let (s,n,v,c) = List.fold_right compile xs state;
 
     (max (s + len - 1) stack_depth, n, v, [PCTuple len :: c])
   }
@@ -61,7 +46,7 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
     List.fold_right
       (fun x s1 -> do
         {
-          let (s,n,v,c) = compile x s1 in
+          let (s,n,v,c) = compile x s1;
           (max (s + 1) stack_depth, n, v, [PCConsList :: c])
         })
       xs
@@ -72,7 +57,7 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
     List.fold_right
       (fun x s1 -> do
         {
-          let (s,n,v,c) = compile x s1 in
+          let (s,n,v,c) = compile x s1;
           (max (s + 1) stack_depth, n, v, [PCConsList :: c])
         })
       xs
@@ -80,66 +65,64 @@ where rec compile pat ((stack_depth, num_vars, var_names, checks) as state) = ma
   }
 ];
 
-value rec compile_lazy_pattern scope pat = match pat with
-[ Parser.PAnything       -> ([], TConstant Unbound)
-| Parser.PId sym         -> ([sym], Scope.lookup scope sym)
-| Parser.PNumber n       -> ([], TConstant (Number n))
-| Parser.PChar c         -> ([], TConstant (Char c))
-| Parser.PSymbol sym     -> ([], TConstant (Symbol sym))
-| Parser.PAssign sym pat -> do
-  {
-    let (s, p) = compile_lazy_pattern scope pat in
+(* Creates a SymbolMap with all declared functions in |decls|. *)
 
-    ([sym :: s], TUnify (Scope.lookup scope sym) p)
-  }
-| Parser.PTuple pats -> do
-  {
-    let (s, ps) =
-      List.fold_right
-        (fun p (ss, ps) -> do
-          {
-            let (s2, p2) = compile_lazy_pattern scope p in
+value get_declared_variables decls = do
+{
+  iter SymbolMap.empty decls
 
-            (s2 @ ss, [p2 :: ps])
-          })
-          pats
-          ([], [])
-    in
+  where rec iter names decls = match decls with
+  [ []                                      -> names
+  | [(Parser.DFun name pat _ _ as d) :: ds] -> do
+    {
+      let defs =
+        try
+          SymbolMap.find name names
+        with
+        [ Not_found -> [] ];
 
-    (s, TConsTuple (Array.of_list ps))
-  }
-| Parser.PList pats -> do
-  {
-    List.fold_right
-      (fun p (ss, ps) -> do
+      match defs with
+      [ [Parser.DFun _ p _ _ :: _] -> do
         {
-          let (s2, p2) = compile_lazy_pattern scope p in
+          (* check arity *)
 
-          (s2 @ ss, TConsList p2 ps)
-        })
-        pats
-        ([], TConstant Nil)
-  }
-| Parser.PListTail pats tail -> do
-  {
-    List.fold_right
-      (fun p (ss, ps) -> do
-        {
-          let (s2, p2) = compile_lazy_pattern scope p in
+          if List.length p <> List.length pat then
+            raise (Syntax_error
+                     ("", 0, 0)
+                     (UString.append (UString.uc_string_of_ascii "arity mismatch in declaration of ")
+                                     (symbol_to_string name)))
+          else ()
+        }
+      | _ -> ()
+      ];
 
-          (s2 @ ss, TConsList p2 ps)
-        })
-        pats
-        (compile_lazy_pattern scope tail)
-  }
-];
+      iter (SymbolMap.add name [d :: defs] names) ds
+    }
+  | [Parser.DPattern p _ :: ds] -> do
+    {
+      iter (iter_pattern names p) ds
+
+      where rec iter_pattern names p = match p with
+      [ Parser.PId name       -> SymbolMap.add name [] names
+      | Parser.PAnything
+      | Parser.PNumber _
+      | Parser.PChar _
+      | Parser.PSymbol _      -> names
+      | Parser.PTuple ps      -> List.fold_left iter_pattern names ps
+      | Parser.PList ps       -> List.fold_left iter_pattern names ps
+      | Parser.PListTail ps p -> List.fold_left iter_pattern (iter_pattern names p) ps
+      | Parser.PAssign name p -> SymbolMap.add name [] (iter_pattern names p)
+      ]
+    }
+  ]
+};
 
 value rec compile_expr scope expr = match expr with
-[ Parser.TUnbound -> TConstant Unbound
+[ Parser.TUnbound -> [BConst Unbound]
 | Parser.TId x    -> do
   {
     try
-      Scope.lookup scope x
+      [Scope.lookup scope x]
     with
     [ Not_found -> raise (Syntax_error
                             ("", 0, 0)
@@ -147,48 +130,54 @@ value rec compile_expr scope expr = match expr with
                                             (symbol_to_string x)))
     ]
   }
-| Parser.TNumber x -> TConstant (Number x)
-| Parser.TChar x   -> TConstant (Char x)
-| Parser.TSymbol x -> do
+| Parser.TNumber x  -> [BConst (Number x)]
+| Parser.TChar x    -> [BConst (Char x)]
+| Parser.TFun cases -> compile_function scope cases
+| Parser.TSymbol x  -> do
   {
     if x = true_sym then
-      TConstant (Bool True)
+      [BConst (Bool True)]
     else if x = false_sym then
-      TConstant (Bool False)
+      [BConst (Bool False)]
     else
-      TConstant (Symbol x)
+      [BConst (Symbol x)]
   }
-| Parser.TApp f args -> TApplication
-                          (compile_expr scope f)
-                          (List.map (compile_expr scope) args)
+| Parser.TApp f args -> do
+  {
+    [BApply (List.length args)
+     :: compile_expr scope f
+      @ List.fold_right
+          (fun arg code -> compile_expr scope arg @ code)
+          args
+          []
+    ]
+  }
 | Parser.TTuple xs -> do
   {
     let rec compile_elements is_const n els xs = match xs with
     [ []      -> (is_const, n, els)
     | [y::ys] -> do
       {
-        let e = compile_expr scope y in
+        let e = compile_expr scope y;
         let c = is_const
                 && match e with
-                   [ TConstant _ -> True
-                   | _           -> False
-                   ]
-        in
+                   [ [BConst _] -> True
+                   | _          -> False
+                   ];
 
         compile_elements c (n+1) [e :: els] ys
       }
-    ]
-    in
+    ];
 
-    let (is_const, n, elements) = compile_elements True 0 [] xs in
+    let (is_const, n, elements) = compile_elements True 0 [] xs;
 
     if is_const then do
     {
-      let values = Array.make n (ref Unbound) in
+      let values = Array.make n (ref Unbound);
 
       List.fold_left
         (fun i t -> match t with
-          [ TConstant v -> do
+          [ [BConst v] -> do
             {
               values.(i) := ref v;
               i-1
@@ -198,38 +187,25 @@ value rec compile_expr scope expr = match expr with
         (n-1)
         elements;
 
-      TConstant (Tuple values)
+      [BConst (Tuple values)]
     }
-    else do
-    {
-      let terms = Array.make n (TConstant Unbound) in
-
-      List.fold_left
-        (fun i t -> do
-          {
-            terms.(i) := t;
-            i-1
-          })
-        (n-1)
-        elements;
-
-      TConsTuple terms
-    }
+    else
+      [BTuple n :: List.fold_left (fun es e -> e @ es) [] elements]
   }
 | Parser.TList xs -> do
   {
     iter xs
 
     where rec iter xs = match xs with
-    [ []      -> TConstant Nil
+    [ []      -> [BConst Nil]
     | [y::ys] -> do
       {
-        let t    = compile_expr scope y in
-        let tail = iter ys              in
+        let t    = compile_expr scope y;
+        let tail = iter ys;
 
         match (t,tail) with
-        [ (TConstant a, TConstant b) -> TConstant (List (ref a) (ref b))
-        | _                          -> TConsList t tail
+        [ ([BConst a], [BConst b]) -> [BConst (List (ref a) (ref b))]
+        | _                        -> [BPair :: t @ tail]
         ]
       }
     ]
@@ -242,534 +218,344 @@ value rec compile_expr scope expr = match expr with
     [ []      -> compile_expr scope tail
     | [y::ys] -> do
       {
-        let t    = compile_expr scope y in
-        let rest = iter ys              in
+        let t    = compile_expr scope y;
+        let rest = iter ys;
 
         match (t,rest) with
-        [ (TConstant a, TConstant b) -> TConstant (List (ref a) (ref b))
-        | _                          -> TConsList t rest
+        [ ([BConst a], [BConst b]) -> [BConst (List (ref a) (ref b))]
+        | _                        -> [BPair :: t @ rest]
         ]
       }
-    ]
-  }
-| Parser.TFun cases -> do
-  {
-    iter (TConstant (Dictionary SymbolMap.empty)) cases
-
-    where rec iter result cases = match cases with
-    [ []                          -> result
-    | [(pats, guard, term) :: cs] ->
-        iter (merge_function_cases
-               result
-               (compile_function scope pats guard term))
-             cs
     ]
   }
 | Parser.TLocal decls expr -> do
   {
-    let (new_scope, init) = compile_local_declarations scope decls in
+    let (new_scope, init_code) = compile_local_declarations scope decls;
 
-    TLocalScope
-      init
-      (compile_expr new_scope expr)
+    [BEndLocal :: compile_expr new_scope expr @ init_code]
   }
 | Parser.TSequence stmts expr -> do
   {
-    TSequence
-      (Array.of_list (List.map (compile_statement scope) stmts))
-      (compile_expr scope expr)
+      compile_expr scope expr
+    @ List.fold_left
+        (fun code s -> compile_statement scope s @ code)
+        []
+        stmts
   }
 | Parser.TDo exprs -> do
   {
-    TDo (Array.of_list (List.map (compile_statement scope) exprs))
+    [BFunction 1
+      (XList.rev_to_array
+        [ BReturn ::
+          List.fold_left
+            (fun code s -> compile_monad scope s @ code)
+            []
+            exprs])]
   }
-| Parser.TIfThenElse p e0 e1 -> TIfThenElse
-                                  (compile_expr scope p)
-                                  (compile_expr scope e0)
-                                  (compile_expr scope e1)
-| Parser.TMatch expr pats    -> do
+| Parser.TIfThenElse p e0 e1 -> do
   {
-    let (stack_depth, num_vars, patterns) =
-      List.fold_left
-        (fun (stack, num_vars, patterns) (p,g,e) -> do
-          {
-            let (s,n,v,c)      = compile_pattern p        in
-            let (new_scope, _) = Scope.push scope v       in
-            let t              = compile_expr new_scope e in
+    let then_code = compile_expr scope e0;
+    let else_code = compile_expr scope e1;
 
-            let guard = match g with
-            [ None      -> None
-            | Some expr -> Some (compile_expr new_scope expr)
-            ]
-            in
-
-            (max stack s, max num_vars n, [(c,guard,t) :: patterns])
-          })
-        (0, 0, [])
-        pats
-    in
-
-    TMatch
-      (compile_expr scope expr)
-      stack_depth
-      num_vars
-      (List.rev patterns)
+      else_code
+    @ [BJump (List.length else_code + 1)
+       :: then_code]
+    @ [BCondJump (List.length then_code + 2)
+       :: compile_expr scope p]
+  }
+| Parser.TMatch expr pats -> do
+  {
+      compile_matching scope (List.map (fun (p,g,e) -> ([p],g,e)) pats)
+    @ compile_expr scope expr
   }
 ]
-
-and compile_function scope pats guard term = do
+and compile_matching scope cases = do
 {
-  let simple_pat p = match p with
-  [ Parser.PAnything
-  | Parser.PId _     -> True
-  | _                -> False
-  ]
-  in
+  let num_pats = List.length cases;
 
-  let rec finite_pat p = match p with
-  [ Parser.PSymbol s -> Some s
-  | _                -> None
-  ]
-  in
-(*
-  let rec finite_pat p = match p with
-  [ Parser.PNumber n -> Some (Number n)
-  | Parser.PChar c   -> Some (Char c)
-  | Parser.PSymbol s -> Some (Symbol s)
-  | Parser.PTuple ps -> do
+  let (_, size, cases_code) =
+    List.fold_left
+      (fun (i, size, cases) (pats,g,e) -> do
+        {
+          let (stack_depth, num_vars, vars, compiled_pats) =
+            List.fold_left
+              (fun (depth, num_vars, vars, pats) pat -> do
+                {
+                  let (sd, n, v, p) = compile_pattern num_vars pat;
+
+                  (max depth sd,
+                   num_vars + n,
+                   [v :: vars],
+                   [p :: pats])
+                 })
+              (0, 0, [], [])
+              pats;
+(* FIX: ensure that the variables are all distinct *)
+          let (new_scope, _) = Scope.push scope (List.fold_left (fun a b -> b @ a) [] vars);
+
+          let expr_code  = compile_expr new_scope e;
+          let expr_size  = List.length expr_code;
+
+          let guard_code = match g with
+            [ None   -> []
+            | Some e -> [BCondJump (expr_size + 3)
+                         :: compile_expr new_scope e]
+            ];
+          let guard_size = List.length guard_code;
+
+          let off = if i < num_pats then
+                       guard_size + expr_size + 4
+                     else
+                       0;
+          let cpat = XList.rev_to_array compiled_pats;
+          let pop  = if Array.length cpat = 1 then
+                       BPop
+                     else
+                       BPopN (Array.length cpat);
+          let match_cmd = if Array.length cpat = 1 then
+                            BMatch1 cpat.(0) stack_depth num_vars off
+                          else
+                            BMatchN cpat     stack_depth num_vars off;
+          let code = expr_code @ [pop :: guard_code] @ [match_cmd];
+
+          (i + 1,
+           size + expr_size + guard_size + 4,
+           [code :: cases])
+        })
+      (1, 0, [])
+      cases;
+
+  let (_, code) =
+    List.fold_right
+      (fun case (size, code) -> do
+        {
+          let new_size = size - List.length case - 2;
+
+          if new_size > 0 then
+            (new_size, [BEndLocal; BJump new_size :: case @ code])
+          else
+            (new_size, [BEndLocal :: case @ code])
+        })
+      cases_code
+      (size, []);
+
+  code
+}
+and compile_function scope cases = do
+{
+  let arity = match cases with
+  [ [(ps, _, _) :: _] -> List.length ps
+  | _                 -> 0
+  ];
+
+  let rec make_dictionary dict cases = match cases with
+  [ []                                    -> Some dict
+  | [([Parser.PSymbol s], None, e) :: cs] ->
+      make_dictionary
+        (SymbolMap.add s (compile_expr scope e) dict)
+        cs
+  | _ -> None
+  ];
+
+  match make_dictionary SymbolMap.empty cases with
+  [ Some d -> do
     {
-      match
-        List.fold_right
-          (fun p l -> match l with
-           [ None   -> None
-           | Some x -> match finite_pat p with
-             [ None   -> None
-             | Some y -> Some [ref y :: x]
-             ]
-           ])
-          ps
-          (Some [])
-      with
-      [ None   -> None
-      | Some l -> Some (Tuple (Array.of_list l))
-      ]
+      let (code, syms) =
+        SymbolMap.fold
+          (fun s c (code, syms) -> (c @ code, [s :: syms]))
+          d
+          ([], []);
+      [ BDictionary (Array.of_list syms) :: code ]
     }
-  | Parser.PList ps -> do
-    {
-      List.fold_right
-        (fun p l -> match l with
-         [ None   -> None
-         | Some x -> match finite_pat p with
-           [ None   -> None
-           | Some y -> Some (List (ref y) (ref x))
-           ]
-         ])
-        ps
-        (Some Nil)
-    }
-  | Parser.PListTail ps p -> match finite_pat p with
-    [ None   -> None
-    | Some z -> do
-      {
-        List.fold_right
-          (fun p l -> match l with
-           [ None   -> None
-           | Some x -> match finite_pat p with
-             [ None   -> None
-             | Some y -> Some (List (ref y) (ref x))
-             ]
-           ])
-          ps
-          (Some z)
-      }
-    ]
-  | Parser.PAnything
-  | Parser.PId _
-  | Parser.PAssign _ _ -> None
-  ]
-  in
-*)
-
-  let to_dictionary pats = match pats with
-  [ [p] -> if guard = None then
-             finite_pat p
-           else
-             None
-  | _   -> None
-  ]
-  in
-
-  match to_dictionary pats with
-  [ Some s -> TDictionary [(s, compile_expr scope term)]
-  | None   -> do
-    {
-      if List.for_all simple_pat pats && guard = None then do
-      {
-        let (n, vars) = iter 0 pats
-
-        where rec iter n pats = match pats with
-        [ []      -> (n, [])
-        | [p::ps] -> match p with
-          [ Parser.PAnything -> let (k, v) = iter (n+1) ps in
-                                (k, [(-1) :: v])
-          | Parser.PId sym   -> let (k, v) = iter (n+1) ps in
-                                (k, [sym :: v])
-          | _                -> assert False
-          ]
-        ]
-        in
-
-        let (new_scope, _) = if n > 0 then
-                               Scope.push scope vars
-                             else
-                               (scope, 0)
-                             in
-
-        TSimpleFunction n (compile_expr new_scope term)
-      }
-      else do
-      {
-        let (stack_depth, num_vars, var_names, checks) = compile_pattern (make_tuple_pat pats) in
-
-        let n = List.length pats in
-
-        let (new_scope, _) = if n > 0 then
-                               Scope.push scope var_names
-                             else
-                               (scope, 0)
-                             in
-        let g = match guard with
-        [ None      -> None
-        | Some expr -> Some (compile_expr new_scope expr)
-        ]
-        in
-
-        TPatternFunction
-          n
-          stack_depth
-          num_vars
-          [(checks, g, compile_expr new_scope term)]
-      }
-    }
+  | None   -> [ BFunction arity
+                 (XList.rev_to_array
+                   [BReturn :: compile_matching scope cases]) ]
   ]
 }
-and merge_function_cases term new_case = match term with
-[ TConstant _         -> new_case
-| TSimpleFunction _ _ -> term
-| TDictionary dict -> match new_case with
-  [ TDictionary d -> TDictionary (d @ dict)
-  | TSimpleFunction arity term -> do
-    {
-      if arity = 1 then
-        TPatternFunction
-          arity
-          0
-          1
-          [([PCVariable 0], None, term)
-           :: List.map (fun (s,t) -> ([PCSymbol s], None, t)) dict]
-      else
-        raise (Syntax_error ("", 0, 0) (UString.uc_string_of_ascii "mismatching arity"))
-    }
-  | TPatternFunction arity stack_depth num_vars pats -> do
-    {
-      if arity = 1 then
-        TPatternFunction
-          arity
-          stack_depth
-          num_vars
-          (pats @ List.map (fun (s,t) -> ([PCSymbol s], None, t)) dict)
-      else
-        raise (Syntax_error ("", 0, 0) (UString.uc_string_of_ascii "mismatching arity"))
-    }
-  | _ -> assert False
-  ]
-| TPatternFunction arity stack_depth num_vars pats -> match new_case with
-  [ TPatternFunction a s n p -> do
-    {
-      if a = arity then
-        TPatternFunction
-          arity
-          (max s stack_depth)
-          (max n num_vars)
-          (p @ pats)
-      else
-        raise (Syntax_error ("", 0, 0) (UString.uc_string_of_ascii "mismatching arity"))
-    }
-  | TSimpleFunction a body -> do
-    {
-      if a = arity then do
-      {
-        TPatternFunction
-          arity
-          (max (a-1) stack_depth)
-          (max a num_vars)
-          [(if a > 1 then [PCTuple a :: vars 0] else vars 0,
-            None,
-            body)
-           :: pats]
-
-        where rec vars n = do
-        {
-          if n >= arity then
-            []
-          else
-            [PCVariable n :: vars (n+1)]
-        }
-      }
-      else
-        raise (Syntax_error ("", 0, 0) (UString.uc_string_of_ascii "mismatching arity"))
-    }
-  | TDictionary dict -> do
-    {
-      if arity = 1 then
-        TPatternFunction
-          arity
-          stack_depth
-          num_vars
-          (List.fold_right
-            (fun (s,t) pats ->
-              [([PCSymbol s], None, t) :: pats])
-            dict
-            pats)
-      else
-        raise (Syntax_error ("", 0, 0) (UString.uc_string_of_ascii "mismatching arity"))
-    }
-  | _ -> assert False
-  ]
-| _ -> assert False
-]
 and compile_local_declarations scope decls = do
 {
-  let table = Hashtbl.create 32 in
+  (* extract a list of names *)
 
-  let add name term = do
-  {
-    try
-      Hashtbl.replace
-        table
-        name
-        (merge_function_cases
-          (Hashtbl.find table name)
-          term)
-    with
-    [ Not_found          -> Hashtbl.add table name term
-    | Syntax_error loc _ ->
-       raise (Syntax_error
-               loc
-               (UString.append (UString.uc_string_of_ascii "mismatching arity in definition of ")
-                               (symbol_to_string name)))
-    ]
-  }
-  in
+  let names = get_declared_variables decls;
+  let vars  = SymbolMap.fold
+                (fun n _ vars -> [n :: vars])
+                names [];
+  let (new_scope, num_vars) = Scope.push scope vars;
 
-  (* add new symbols to the scope *)
+  (* define the new symbols: first the functions, then the patterns *)
 
-  let rec add_names names decls = match decls with
-  [ []                             -> Scope.push scope names
-  | [Parser.DFun name _ _ _ :: ds] -> add_names [name :: names] ds
-  | [Parser.DPattern p _ :: ds]    -> do
-    {
-      add_names (iter names p) ds
+  let fun_defs =
+    SymbolMap.fold
+      (fun name defs code -> match defs with
+       [ [] -> code   (* a pattern, not a function *)
+       | _  -> do
+         {
+           let cases =
+             List.fold_left
+               (fun cases d -> match d with
+                [ Parser.DFun _ pats guard term -> [(pats, guard, term) :: cases]
+                | _                             -> assert False
+                ])
+               []
+               defs;
+           let (i1,i2) = Scope.lookup_local new_scope name;
 
-      where rec iter names p = match p with
-      [ Parser.PId name       -> [name :: names]
-      | Parser.PAnything
-      | Parser.PNumber _
-      | Parser.PChar _
-      | Parser.PSymbol _      -> names
-      | Parser.PTuple ps      -> List.fold_left iter names ps
-      | Parser.PList ps       -> List.fold_left iter names ps
-      | Parser.PListTail ps p -> List.fold_left iter (iter names p) ps
-      | Parser.PAssign name p -> [name :: iter names p]
+           match cases with
+           [ [([], None, term)] -> [BSet i1 i2 :: compile_expr (Scope.shift scope 1) term @ code] (* a variable declaration *)
+           | _                  -> [BSet i1 i2 :: compile_function new_scope cases @ code]        (* a real function        *)
+           ]
+         }
+       ])
+      names
+      [ BLocal num_vars ];
+
+  iter fun_defs decls
+
+  where rec iter code decls = match decls with
+  [ []                               -> (new_scope, code)
+  | [Parser.DFun _ _ _ _ :: ds]      -> iter code ds
+  | [Parser.DPattern pat term :: ds] -> match pat with
+      [ Parser.PId id -> do
+        {
+          (* Optimise the most common case. *)
+          let (i1,i2) = Scope.lookup_local new_scope id;
+          iter [ BSet i1 i2 :: compile_expr new_scope term @ code] ds
+        }
+      | _ -> do
+        {
+          let (sd, nv, v, c)   = compile_pattern 0 pat;
+          let (local_scope, _) = Scope.push new_scope v;
+
+          let pat_code =
+            List.fold_left
+              (fun code var -> do
+                {
+                  let (a1,a2) = Scope.lookup_local new_scope   var;
+                  let (b1,b2) = Scope.lookup_local local_scope var;
+                  [BSet (a1 + 1) a2; BVariable b1 b2 :: code]
+                })
+                [ BPop; BMatch1 c sd nv 0 ]
+                v;
+
+          iter [BEndLocal :: pat_code @ compile_expr (Scope.shift scope 1) term @ code] ds
+        }
       ]
-    }
-  ]
-  in
-
-  let (new_scope, num_vars) = add_names [] decls in
-
-  (* define the new symbols *)
-
-  iter [] decls
-
-  where rec iter equations decls = match decls with
-  [ [] -> do
-    {
-      let init = Array.make num_vars (TConstant Unbound) in
-
-      Hashtbl.iter
-        (fun name term -> match term with
-          [ TPatternFunction a s n pats -> do
-            {
-              let (_, var) = Scope.lookup_local new_scope name in
-
-              init.(var) := TPatternFunction a s n (List.rev pats)
-            }
-          | TSimpleFunction a t -> do
-            {
-              let (_, var) = Scope.lookup_local new_scope name in
-
-              if a > 0 then
-                init.(var) := term
-              else
-                init.(var) := t
-            }
-          | TDictionary _
-          | TTrigger _ -> do
-            {
-              let (_, var) = Scope.lookup_local new_scope name in
-
-              init.(var) := term
-            }
-          | _ -> assert False
-          ]
-        )
-        table;
-
-      (new_scope, init)
-    }
-  | [Parser.DFun name pats guard term :: ds] -> do
-    {
-      add name (compile_function new_scope pats guard term);
-
-      iter equations ds
-    }
-  | [Parser.DPattern pat term :: ds] -> do
-    {
-      let (syms, pat) = compile_lazy_pattern new_scope pat          in
-      let eq          = SEquation pat (compile_expr new_scope term) in
-
-      List.iter (fun s -> add s (TTrigger eq)) syms;
-
-      iter [eq :: equations] ds
-    }
   ]
 }
 and compile_statement scope stmt = match stmt with
-[ Parser.SEquation x y       -> SEquation   (compile_expr scope x)
-                                            (compile_expr scope y)
-| Parser.SIfThen p s         -> SIfThen     (compile_expr scope p)
-                                            (compile_statement scope s)
-| Parser.SIfThenElse p s0 s1 -> SIfThenElse (compile_expr scope p)
-                                            (compile_statement scope s0)
-                                            (compile_statement scope s1)
-| Parser.SForce xs           -> SForce      (Array.map (compile_expr scope) xs)
-| Parser.SFunction t         -> SFunction   (compile_expr scope t)
+[ Parser.SEquation x y -> [BUnify :: compile_expr scope x @ compile_expr scope y]
+| Parser.SFunction t   -> [BPop   :: compile_expr scope t]
+| Parser.SIfThen p s   -> do
+  {
+    let then_code = compile_statement scope s;
+
+      then_code
+    @ [BCondJump (List.length then_code)
+       :: compile_expr scope p]
+  }
+| Parser.SIfThenElse p s0 s1 -> do
+  {
+    let then_code = compile_statement scope s0;
+    let else_code = compile_statement scope s1;
+
+      else_code
+    @ [BJump (List.length else_code)
+       :: then_code]
+    @ [BCondJump (List.length then_code + 1)
+       :: compile_expr scope p]
+  }
+]
+and compile_monad scope stmt = match stmt with
+[ Parser.SEquation x y -> [BUnify :: compile_expr scope x @ compile_expr scope y]
+| Parser.SFunction t   -> [BApply 1 :: compile_expr scope t]
+| Parser.SIfThen p s   -> do
+  {
+    let then_code = compile_monad scope s;
+
+      then_code
+    @ [BCondJump (List.length then_code + 1)
+       :: compile_expr scope p]
+  }
+| Parser.SIfThenElse p s0 s1 -> do
+  {
+    let then_code = compile_monad scope s0;
+    let else_code = compile_monad scope s1;
+
+      else_code
+    @ [BJump (List.length else_code + 1)
+       :: then_code]
+    @ [BCondJump (List.length then_code + 2)
+       :: compile_expr scope p]
+  }
 ];
 
 value rec compile_global_declarations scope decls = do
 {
-  let table = Hashtbl.create 32 in
+  let names = get_declared_variables decls;
 
-  let add name term = do
-  {
-    try
-      Hashtbl.replace
-        table
-        name
-        (merge_function_cases
-          (Hashtbl.find table name)
-          term)
-    with
-    [ Not_found          -> Hashtbl.add table name term
-    | Syntax_error loc _ ->
-       raise (Syntax_error
-               loc
-               (UString.append (UString.uc_string_of_ascii "mismatching arity in definition of ")
-                               (symbol_to_string name)))
-    ]
-  }
-  in
+  (* add the names to the global scope *)
 
-  (* add new global symbols to the scope *)
-
-  let rec add_names decls = match decls with
-  [ []                             -> ()
-  | [Parser.DFun name _ _ _ :: ds] -> do
-    {
-      Scope.add_global scope name Unbound;
-      add_names ds
-    }
-  | [Parser.DPattern p _ :: ds] -> assert False (* FIX *)
-  ]
-  in
-
-  add_names decls;
+  SymbolMap.iter
+    (fun n _ ->
+      Scope.add_global scope n Unbound)
+    names;
 
   (* define the new symbols *)
 
-  iter decls
+  let fun_defs =
+    SymbolMap.fold
+      (fun name defs code -> match defs with
+       [ [] -> code   (* a pattern, not a function *)
+       | _  -> do
+         {
+           let cases =
+             List.fold_left
+               (fun cases d -> match d with
+                [ Parser.DFun _ pats guard term -> [(pats, guard, term) :: cases]
+                | _                             -> assert False
+                ])
+               []
+               defs;
+           let var = Scope.lookup_global scope name;
 
-  where rec iter decls = match decls with
-  [ [] -> do
-    {
-      Hashtbl.iter
-        (fun name term -> match term with
-          [ TPatternFunction a s n pats -> do
-            {
-              let var = Scope.lookup_global scope name in
+           [BUnify; BGlobal var :: compile_function scope cases @ code]
+         }
+       ])
+      names
+      [];
 
-              !var := PatternFunction a [] s n (List.rev pats)
-            }
-          | TSimpleFunction a t -> do
-            {
-              let var = Scope.lookup_global scope name in
+  iter fun_defs decls
 
-              if a > 0 then
-                !var := SimpleFunction a [] t
-              else
-                !var := UnevalT [] t
-            }
-          | TDictionary dict -> do
-            {
-              let d =
-                List.fold_left
-                  (fun m (s,v) ->
-                    SymbolMap.add s (ref (UnevalT [] v)) m)
-                  SymbolMap.empty
-                  dict
-              in
-              let var = Scope.lookup_global scope name in
-
-              !var := Dictionary d
-            }
-          | _ -> assert False
-          ])
-        table
-    }
-  | [Parser.DFun name pats guard term :: ds] -> do
-    {
-      add name (compile_function scope pats guard term);
-
-      iter ds
-    }
+  where rec iter code decls = match decls with
+  [ []                               -> XList.rev_to_array code
+  | [Parser.DFun _ _ _ _ :: ds]      -> iter code ds
   | [Parser.DPattern pat term :: ds] -> do
     {
-      (* FIX *)
-      assert False
+      let (sd, nv, v, c)   = compile_pattern 0 pat;
+      let (local_scope, _) = Scope.push scope v;
+
+      let pat_code =
+        List.fold_left
+          (fun code var -> do
+            {
+              let v       = Scope.lookup_global scope      var;
+              let (b1,b2) = Scope.lookup_local local_scope var;
+              [BUnify; BGlobal v; BVariable b1 b2 :: code]
+            })
+            [ BMatch1 c sd nv 0 ]
+            v;
+
+      iter (pat_code @ compile_expr scope term @ code) ds
     }
   ]
 };
-
-
-(*
-value compile decls = do
-{
-  let scope = Scope.create () in
-
-  compile_global_declarations scope decls;
-
-  scope
-};
-*)
 
 value compile_declarations scope stream = do
 {
   let lexer = Lexer.make_lexer
                 (Scope.symbol_table scope)
-                stream
-              in
-  let decls = Parser.parse_program lexer in
+                stream;
+  let decls = Parser.parse_program lexer;
 
   compile_global_declarations scope decls
 };
@@ -778,10 +564,9 @@ value compile_expression scope stream = do
 {
   let lexer = Lexer.make_lexer
                 (Scope.symbol_table scope)
-                stream
-              in
-  let expr  = Parser.parse_expression lexer in
+                stream;
+  let expr  = Parser.parse_expression lexer;
 
-  compile_expr scope expr
+  Array.of_list (List.rev (compile_expr scope expr))
 };
 

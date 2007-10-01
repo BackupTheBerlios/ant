@@ -48,7 +48,7 @@ value vf_composer fm _ _ = do
 
 value make_virtual_font name size glyphs lig_kern params = do
 {
-  let gm_table = make_metrics glyphs in
+  let gm_table = make_metrics glyphs;
 
   {
     name                = name;

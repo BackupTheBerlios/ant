@@ -24,23 +24,21 @@ value layout params page area floats page_state = match floats with
 [ [] -> PageLayout.simple_page_update page page_state
 | _  -> do
   {
-    let width  = area.Page.as_width in
+    let width  = area.Page.as_width;
     let galley = Galley.new_galley width
                    params.line_params       params.par_params
                    params.line_break_params params.hyphen_params
-                   params.space_params      params.math_params
-                 in
-    let galley = Galley.add_glue galley params.separator in
+                   params.space_params      params.math_params;
+    let galley = Galley.add_glue galley params.separator;
     let galley =
       List.fold_left
         (fun g p ->
            Galley.add_paragraph g ("", 0, 0) p)
         galley
-        floats
-    in
-    let boxes = Galley.lines galley in
+        floats;
+    let boxes = Galley.lines galley;
 
-    let (top, height, bottom) = VBox.calc_vert_dimensions boxes in
+    let (top, height, bottom) = VBox.calc_vert_dimensions boxes;
 
     (* FIX: process page-commands in <boxes> *)
     (* FIX: consider top-sep and bottom-sep  *)
@@ -49,9 +47,9 @@ value layout params page area floats page_state = match floats with
     [ None        -> None
     | Some (y, r) -> do
       {
-        let x        = area.Page.as_pos_x                       in
-        let box      = VBox.to_top (VBox.layout_scaled r boxes) in
-        let new_page = Page.put_box_on_page page x y box        in
+        let x        = area.Page.as_pos_x;
+        let box      = VBox.to_top (VBox.layout_scaled r boxes);
+        let new_page = Page.put_box_on_page page x y box;
 
         if !PageLayout.tracing_page_layout then do
         {

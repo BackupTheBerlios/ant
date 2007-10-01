@@ -49,16 +49,16 @@ value new_counter loc table name val super = do
   }
   else ();
 
-  let new_ctr = make val in
+  let new_ctr = make val;
 
-  let new_table = DynUCTrie.add_string name new_ctr table in
+  let new_table = DynUCTrie.add_string name new_ctr table;
 
   match super with
   [ None     -> ()
   | Some ctr -> do
     {
       try
-        let c = DynUCTrie.find_string ctr new_table in
+        let c = DynUCTrie.find_string ctr new_table;
 
         add_reset c new_ctr
       with
@@ -78,7 +78,7 @@ value new_counter loc table name val super = do
 value get_counter loc table name = do
 {
   try
-    let c = DynUCTrie.find_string name table in
+    let c = DynUCTrie.find_string name table;
 
     c.number
   with
@@ -96,7 +96,7 @@ value set_counter loc table name val = do
 {
   try do
   {
-    let c = DynUCTrie.find_string name table in
+    let c = DynUCTrie.find_string name table;
 
     set c val;
 

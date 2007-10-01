@@ -125,7 +125,7 @@ value string_to_bytes str = do
 
 value bytes_to_string list = do
 {
-  let str = String.create (List.length list) in
+  let str = String.create (List.length list);
 
   iter 0 list
 
@@ -144,7 +144,7 @@ value to_ascii = bytes_to_string;
 
 value uc_string_of_ascii str = do
 {
-  let len = String.length str in
+  let len = String.length str;
 
   Array.init len
     (fun i -> int_of_char str.[i])
@@ -152,8 +152,8 @@ value uc_string_of_ascii str = do
 
 value uc_string_to_ascii arr = do
 {
-  let len = Array.length arr  in
-  let str = String.create len in
+  let len = Array.length arr;
+  let str = String.create len;
 
   for i = 0 to len - 1 do
   {
@@ -175,8 +175,8 @@ value to_string list = do
 
 value append s1 s2 = do
 {
-  let len1 = Array.length s1 in
-  let len2 = Array.length s2 in
+  let len1 = Array.length s1;
+  let len2 = Array.length s2;
 
   Array.init
     (len1 + len2)

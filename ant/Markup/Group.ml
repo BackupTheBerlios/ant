@@ -13,7 +13,7 @@ value begin_group ps = do
 value end_group ps = do
 {
   add_node ps (Node.EndGroup (location ps))
-(*  let nodes = close_node_list ps (current_mode ps) in
+(*  let nodes = close_node_list ps (current_mode ps);
 
   add_node ps (`Group nodes)
 *)

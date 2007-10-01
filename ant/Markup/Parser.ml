@@ -109,7 +109,7 @@ value read_token_tail stream = do
 {
   let rec read_command_sequence () = do
   {
-    let c = UCStream.next_char stream in
+    let c = UCStream.next_char stream;
 
     if cat_code c = Letter then do
     {
@@ -123,10 +123,9 @@ value read_token_tail stream = do
 
       []
     }
-  }
-  in
+  };
 
-  let char = UCStream.pop stream in
+  let char = UCStream.pop stream;
 
   if cat_code char = Letter then
     [escape_char; char :: read_command_sequence ()]
@@ -138,7 +137,7 @@ value read_token_tail stream = do
 
 value read_token stream = do
 {
-  let char = UCStream.pop stream in
+  let char = UCStream.pop stream;
 
   match cat_code char with
   [ EOF    -> []
@@ -153,22 +152,21 @@ value peek_token stream = do
 {
   let rec read_command_sequence i () = do
   {
-    let c = UCStream.get_char stream i in
+    let c = UCStream.get_char stream i;
 
     if cat_code c = Letter then
       [c :: read_command_sequence (i+1) ()]
     else
       []
-  }
-  in
+  };
 
-  let char = UCStream.next_char stream in
+  let char = UCStream.next_char stream;
 
   if char = (-1) then
     []
   else if cat_code char = Escape then do
   {
-    let c2 = UCStream.get_char stream 1 in
+    let c2 = UCStream.get_char stream 1;
 
     if cat_code c2 = Letter then
       [char; c2 :: read_command_sequence 2 ()]
@@ -190,7 +188,7 @@ value read_group prefix stream = do
 
   where rec iter nest prefix = do
   {
-    let c = UCStream.pop stream in
+    let c = UCStream.pop stream;
 
     match cat_code c with
     [ BeginGroup -> iter (nest + 1) [c :: prefix]
@@ -226,7 +224,7 @@ value read_optional stream default = do
 {
   let rec read_group nest = do
   {
-    let c = UCStream.pop stream in
+    let c = UCStream.pop stream;
 
     match cat_code c with
     [ BeginOptional -> [c :: read_group (nest + 1)]
@@ -236,8 +234,7 @@ value read_optional stream default = do
                          [c :: read_group (nest - 1)]
     | _             -> [c :: read_group nest]
     ]
-  }
-  in
+  };
 
   skip_blanks stream;
 
@@ -300,17 +297,15 @@ value rec read_list stream = do
       [ Space | Newline -> strip_blanks cs
       | _               -> str
       ]
-    ]
-    in
+    ];
 
     match UCStream.pop stream with
     [ (-1) | 44 | 59 -> List.rev (strip_blanks result)
     | c              -> get_next [c :: result]
     ]
-  }
-  in
+  };
 
-  let l = ListBuilder.make () in
+  let l = ListBuilder.make ();
 
   iter ()
 
@@ -340,7 +335,7 @@ value read_keyword stream = do
 
   where rec iter () = do
   {
-    let c = UCStream.next_char stream in
+    let c = UCStream.next_char stream;
 
     match cat_code c with
     [ Letter | Other -> match c with
@@ -363,19 +358,18 @@ value rec read_key_val_list stream = do
 {
   let rec read_value () = do
   {
-    let val    = ListBuilder.make () in
-    let blanks = ListBuilder.make () in
+    let val    = ListBuilder.make ();
+    let blanks = ListBuilder.make ();
 
     let add_char c = do
     {
       ListBuilder.append val blanks;
       ListBuilder.add    val c
-    }
-    in
+    };
 
     let rec read_nested nest = do
     {
-      let c = UCStream.pop stream in
+      let c = UCStream.pop stream;
 
       match c with
       [ (-1)    -> ListBuilder.get val
@@ -413,8 +407,7 @@ value rec read_key_val_list stream = do
           read_nested nest
         }
       ]
-    }
-    in
+    };
 
     skip_blanks stream;
 
@@ -422,15 +415,15 @@ value rec read_key_val_list stream = do
     {
       UCStream.pop stream;
 
-      let first_part = read_group [] stream in
+      let first_part = read_group [] stream;
 
-      let rest = ListBuilder.make () in
+      let rest = ListBuilder.make ();
 
       read_blanks ()
 
       where rec read_blanks () = do
       {
-        let c = UCStream.pop stream in
+        let c = UCStream.pop stream;
 
         match cat_code c with
         [ Space | Newline -> do
@@ -442,7 +435,7 @@ value rec read_key_val_list stream = do
           [ (-1) | 44 | 59 | 125 -> List.rev first_part   (* , ; } *)
           | _ -> do
             {
-              let tail = read_nested 0 in
+              let tail = read_nested 0;
 
               ListBuilder.add_list rest tail;
 
@@ -456,8 +449,7 @@ value rec read_key_val_list stream = do
     }
     else
       read_nested 0
-  }
-  in
+  };
 
   iter DynUCTrie.empty
 
@@ -474,7 +466,7 @@ value rec read_key_val_list stream = do
     | EOF -> dict
     | _   -> do
       {
-        let key = read_keyword stream in
+        let key = read_keyword stream;
 
         skip_blanks stream;
 
@@ -482,7 +474,7 @@ value rec read_key_val_list stream = do
         {
           UCStream.pop stream;
 
-          let val = read_value () in
+          let val = read_value ();
 
           iter (DynUCTrie.add_list key (Some val) dict)
         }
@@ -511,7 +503,7 @@ value rec read_key_val_list stream = do
 
 value read_digit stream base = do
 {
-  let c = UCStream.next_char stream in
+  let c = UCStream.next_char stream;
 
   if c >= 48 && c <= 57 then do
   {
@@ -552,13 +544,12 @@ value read_unsigned_int stream = do
                | _        -> 10
                ]
              else
-               10
-             in
+               10;
   iter 0
 
   where rec iter n = do
   {
-    let d = read_digit stream base in
+    let d = read_digit stream base;
 
     if d > -1 then
       iter (base * n + d)
@@ -573,7 +564,7 @@ value read_int stream = do
   {
     UCStream.remove stream 1;
 
-    let (n, b) = read_unsigned_int stream in
+    let (n, b) = read_unsigned_int stream;
 
     (~-n, b)
   }
@@ -590,18 +581,17 @@ value rec read_number stream = do
   }
   else do
   {
-    let (n, base) = read_int stream in
+    let (n, base) = read_int stream;
 
     let rec read_fraction x r = do
     {
-      let d = read_digit stream base in
+      let d = read_digit stream base;
 
       if d >= 0 then
         read_fraction (x +/ r */ num_of_int d) (r // num_of_int base)
       else
         x
-    }
-    in
+    };
 
     match UCStream.next_char stream with
     [ 44 | 46 -> do
@@ -638,9 +628,9 @@ value conv_dimen x c1 c2 = match (c1, c2) with
 
 value read_skip_or_number stream = do
 {
-  let x  = read_number stream in
-  let c1 = UCStream.get_char stream 0 in
-  let c2 = UCStream.get_char stream 1 in
+  let x  = read_number stream;
+  let c1 = UCStream.get_char stream 0;
+  let c2 = UCStream.get_char stream 1;
 
   match conv_dimen x c1 c2 with
   [ None   -> `Number x
@@ -669,9 +659,9 @@ value read_skip stream = do
 
 value read_skip_with_order stream = do
 {
-  let x  = read_number stream in
-  let c1 = UCStream.get_char stream 0 in
-  let c2 = UCStream.get_char stream 1 in
+  let x  = read_number stream;
+  let c1 = UCStream.get_char stream 0;
+  let c2 = UCStream.get_char stream 1;
 
   if c1 = 102 && c2 = 105 then do   (* fi... *)
   {
@@ -728,15 +718,14 @@ value read_dim_or_number stream = do
       else
         (fun _ -> num_zero, 0)
     }
-  }
-  in
+  };
 
   match read_skip_or_number stream with
   [ `Number x  -> `Number x
   | `Skip base -> do
     {
-      let (st_f, st_o) = read_plus_minus [112; 108; 117; 115]      in
-      let (sh_f, sh_o) = read_plus_minus [109; 105; 110; 117; 115] in
+      let (st_f, st_o) = read_plus_minus [112; 108; 117; 115];
+      let (sh_f, sh_o) = read_plus_minus [109; 105; 110; 117; 115];
 
       `Dim (fun e ->
             {
@@ -852,23 +841,22 @@ value rec read_expression read_atom conv stream = do
     [ 43 -> do
             {
               UCStream.remove stream 1;
-              let expr = read_summand read_atom conv stream in
+              let expr = read_summand read_atom conv stream;
               read_summands [(True, expr) :: result]
             }
     | 45 -> do
             {
               UCStream.remove stream 1;
-              let expr = read_summand read_atom conv stream in
+              let expr = read_summand read_atom conv stream;
               read_summands [(False, expr) :: result]
             }
     | _  -> result
     ]
-  }
-  in
+  };
 
-  let loc   = UCStream.location stream           in
-  let first = read_summand read_atom conv stream in
-  let rest  = read_summands []                   in
+  let loc   = UCStream.location stream;
+  let first = read_summand read_atom conv stream;
+  let rest  = read_summands [];
 
   iter first rest
 
@@ -891,23 +879,22 @@ and read_summand read_atom conv stream = do
     [ 42 -> do
             {
               UCStream.remove stream 1;
-              let expr = read_simple_expr read_atom conv stream in
+              let expr = read_simple_expr read_atom conv stream;
               read_factors [(True, expr) :: result]
             }
     | 47 -> do
             {
               UCStream.remove stream 1;
-              let expr = read_simple_expr read_atom conv stream in
+              let expr = read_simple_expr read_atom conv stream;
               read_factors [(False, expr) :: result]
             }
     | _  -> result
     ]
-  }
-  in
+  };
 
-  let loc   = UCStream.location stream               in
-  let first = read_simple_expr read_atom conv stream in
-  let rest  = read_factors []                        in
+  let loc   = UCStream.location stream;
+  let first = read_simple_expr read_atom conv stream;
+  let rest  = read_factors [];
 
   iter first rest
 
@@ -926,7 +913,7 @@ and read_simple_expr read_atom conv stream = do
   {
     UCStream.remove stream 1;  (* skip opening parenthesis *)
 
-    let expr = read_expression read_atom conv stream in
+    let expr = read_expression read_atom conv stream;
 
     skip_blanks stream;
 
@@ -939,8 +926,7 @@ and read_simple_expr read_atom conv stream = do
     };
 
     expr
-  }
-  in
+  };
 
   skip_blanks stream;
 
@@ -951,9 +937,9 @@ and read_simple_expr read_atom conv stream = do
 (* FIX: does not work since we cannot depend on the Macro module.
   | 92   -> do
     {
-      let cmd = read_token stream in
+      let cmd = read_token stream;
 
-      let s = UCStream.of_string (Macro.expand cmd) in
+      let s = UCStream.of_string (Macro.expand cmd);
 
       read_expression read_atom conv s
     }
@@ -1067,8 +1053,7 @@ value read_range stream = do
   let n1 = if UCStream.next_char stream = 45 then  (* - *)
              num_zero
            else
-             read_simple_num_expression stream
-           in
+             read_simple_num_expression stream;
 
   skip_spaces stream;
 
@@ -1081,8 +1066,7 @@ value read_range stream = do
     let n2 = if UCStream.next_char stream = (-1) then
                num_zero
              else
-               read_simple_num_expression stream
-             in
+               read_simple_num_expression stream;
 
     skip_spaces stream;
 
@@ -1099,7 +1083,7 @@ value read_range stream = do
 
 value str_to_stream str = do
 {
-  let stream = UCStream.of_list str in
+  let stream = UCStream.of_list str;
 
   skip_spaces stream;
 

@@ -21,7 +21,7 @@ value add_zero_skip ps = do
 
 value add_discretionary ps penalty pre post no = do
 {
-  let loc = location ps in
+  let loc = location ps;
 
   add_node
     ps
@@ -39,7 +39,7 @@ value add_break ps = do
 
 value double_consonant ps char = do
 {
-  let c = UCStream.next_char ps.input_stream in
+  let c = UCStream.next_char ps.input_stream;
 
   if c = char then
     add_discretionary ps None [c; c; 45] [] [c]
@@ -94,7 +94,7 @@ value double_consonant ps char = do
 
 value german_execute ps = do
 {
-  let loc = location ps in
+  let loc = location ps;
 
   match UCStream.pop ps.input_stream with
   [  97 -> add_node ps (`Letter (loc, 228))    (* ""a *)

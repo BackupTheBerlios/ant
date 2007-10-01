@@ -15,7 +15,7 @@ value skip_comment stream = do
 
 value rec skip_blanks stream = do
 {
-  let c = UCStream.next_char stream in
+  let c = UCStream.next_char stream;
 
   if 0 <= c && c <= 32 then do
   {
@@ -36,7 +36,7 @@ value read_next_word stream = do
 
   where rec iter () = do
   {
-    let c = UCStream.pop stream in
+    let c = UCStream.pop stream;
 
     if c <= 32 || c = 37 then
       []
@@ -53,16 +53,15 @@ value parse_file stream = do
   | "exceptions:" -> `Exceptions
   | "language:"   -> `Language
   | _             -> `None
-  ]
-  in
+  ];
 
-  let classes    = ListBuilder.make () in
-  let patterns   = ListBuilder.make () in
-  let exceptions = ListBuilder.make () in
+  let classes    = ListBuilder.make ();
+  let patterns   = ListBuilder.make ();
+  let exceptions = ListBuilder.make ();
 
   let rec read_classes language = do
   {
-    let w = read_next_word stream in
+    let w = read_next_word stream;
 
     if w = [] then
       (language,
@@ -84,7 +83,7 @@ value parse_file stream = do
   }
   and read_patterns language = do
   {
-    let w = read_next_word stream in
+    let w = read_next_word stream;
 
     if w = [] then
       (language,
@@ -106,7 +105,7 @@ value parse_file stream = do
   }
   and read_exceptions language = do
   {
-    let w = read_next_word stream in
+    let w = read_next_word stream;
 
     if w = [] then
       (language,
@@ -128,7 +127,7 @@ value parse_file stream = do
   }
   and read_language language = do
   {
-    let w = read_next_word stream in
+    let w = read_next_word stream;
 
     if w = [] then
       (language,
@@ -143,8 +142,7 @@ value parse_file stream = do
       | `Language   -> read_language   language
       | `None       -> read_language   w
       ]
-  }
-  in
+  };
 
   find_section ()
 
@@ -164,7 +162,7 @@ value empty_map = Charmap.create 0;
 
 value make_charmap classes = do
 {
-  let map = Charmap.copy empty_map in
+  let map = Charmap.copy empty_map;
 
   iter 1 classes
 
@@ -222,8 +220,7 @@ value build_trie max_code entries = do
       List.rev_map (fun (str, ns) -> (Array.of_list [i :: str], Array.of_list ns)) p
     @ List.rev_map (fun (str, ns) -> (Array.of_list [i :: str], Array.of_list ns)) e
     @ merge (i + 1) es
-  ]
-  in
+  ];
 
   Trie.build max_code (merge 0 entries)
 };
@@ -232,21 +229,20 @@ value build_table data = do
 {
   let parse_entry (l, c, p, e) = do
   {
-    let cmap = make_charmap c in
+    let cmap = make_charmap c;
 
     (List.length c,
      Array.of_list l,
      cmap,
      List.rev_map (parse_pattern cmap)   p,
      List.rev_map (parse_exception cmap) e)
-  }
-  in
+  };
 
-  let entries  = List.rev_map parse_entry data in
+  let entries  = List.rev_map parse_entry data;
 
-  let max_code = List.fold_left (fun x (y,_,_,_,_) -> max x y) 0 entries in
+  let max_code = List.fold_left (fun x (y,_,_,_,_) -> max x y) 0 entries;
 
-  let trie = build_trie max_code entries in
+  let trie = build_trie max_code entries;
 
   (trie, iter 0 entries)
 
@@ -290,7 +286,7 @@ value print_list p l = do
 
 value print_array p newline a = do
 {
-  let len = Array.length a in
+  let len = Array.length a;
 
   print_string "[|";
 
@@ -338,8 +334,7 @@ value dump_charmap cmap = do
       else
         iter (i+1)
     }
-  }
-  in
+  };
 
   print_string "Unicode.Charmap.build [|";
 
@@ -349,7 +344,7 @@ value dump_charmap cmap = do
       print_string "empty_map"
     else do
     {
-      let a = Array.init 256 (fun i -> Charmap.lookup cmap (256 * n + i)) in
+      let a = Array.init 256 (fun i -> Charmap.lookup cmap (256 * n + i));
 
       print_array print_int False a
     };
@@ -407,9 +402,9 @@ value main () = do
       []
     else do
     {
-      let stream = UCStream.of_file Sys.argv.(i) in
+      let stream = UCStream.of_file Sys.argv.(i);
 
-      let x = parse_file stream in
+      let x = parse_file stream;
 
       [x :: iter (i+1)]
     }

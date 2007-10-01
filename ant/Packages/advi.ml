@@ -29,9 +29,8 @@ value advi_begin_recording ps = do
   let play = if Parser.read_bool ps.input_stream then
                " play"
              else
-               ""
-             in
-  let tag  = Macro.expand_string ps (Parser.read_argument ps.input_stream) in
+               "";
+  let tag  = Macro.expand_string ps (Parser.read_argument ps.input_stream);
 
   advi_special ps ("proc=" ^ (UString.to_string tag) ^ " record=start" ^ play)
 };
@@ -47,7 +46,7 @@ value advi_end_recording ps = do
 
 value advi_play ps = do
 {
-  let tag = Macro.expand_string ps (Parser.read_argument ps.input_stream) in
+  let tag = Macro.expand_string ps (Parser.read_argument ps.input_stream);
 
   advi_special ps ("proc=" ^ (UString.to_string tag) ^ " play")
 };
@@ -56,11 +55,11 @@ value advi_play ps = do
 
 value advi_embed ps = do
 {
-  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let mode   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let width  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let height = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let cmd    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let mode   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let width  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let height = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let cmd    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("embed name=\"" ^ name ^ "\" mode=" ^ mode ^
                    " width=" ^ width ^ " height=" ^ height ^ " command=\"" ^ cmd ^ "\"")
@@ -70,8 +69,8 @@ value advi_embed ps = do
 
 value advi_kill_embed ps = do
 {
-  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let signal = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let signal = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("kill name=\"" ^ name ^ "\" signal=\"" ^ signal ^ "\"")
 };
@@ -80,11 +79,11 @@ value advi_kill_embed ps = do
 
 value advi_set_bg ps = do
 {
-  let colour = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let image  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let alpha  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let blend  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let fit    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let colour = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let image  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let alpha  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let blend  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let fit    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("setbg " ^ colour ^ " " ^ image ^ " " ^ alpha ^ " " ^ blend ^ " " ^ fit)
 };
@@ -106,7 +105,7 @@ value advi_reset_eps_transparent ps = do
 
 value advi_set_alpha ps = do
 {
-  let alpha = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let alpha = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("alpha push " ^ alpha)
 };
@@ -118,7 +117,7 @@ value advi_reset_alpha ps = do
 
 value advi_set_blend ps = do
 {
-  let blend = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let blend = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("blend push " ^ blend)
 };
@@ -130,14 +129,14 @@ value advi_reset_blend ps = do
 
 value advi_transition ps = do
 {
-  let mode    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let from    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let steps   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let start_x = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let start_y = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let stop_x  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let stop_y  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let genpath = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let mode    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let from    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let steps   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let start_x = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let start_y = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let stop_x  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let stop_y  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let genpath = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("trans " ^ mode ^ " " ^ from ^ " " ^ steps ^ " " ^
                    start_x ^ " " ^ start_y ^ " " ^ stop_x ^ " " ^ stop_y ^ " " ^ genpath)
@@ -145,23 +144,23 @@ value advi_transition ps = do
 
 value advi_trans_box_save ps = do
 {
-  let width  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let height = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let depth  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let width  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let height = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let depth  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("transbox save width=" ^ width ^ " height=" ^ height ^ " depth=" ^ depth)
 };
 
 value advi_trans_box_go ps = do
 {
-  let mode    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let from    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let steps   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let start_x = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let start_y = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let stop_x  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let stop_y  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let genpath = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let mode    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let from    = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let steps   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let start_x = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let start_y = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let stop_x  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let stop_y  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let genpath = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("transbox go " ^ mode ^ " " ^ from ^ " " ^ steps ^ " " ^
                    start_x ^ " " ^ start_y ^ " " ^ stop_x ^ " " ^ stop_y ^ " " ^ genpath)
@@ -174,8 +173,8 @@ value advi_move_to ps = do
 
 value advi_begin_anchor ps = do
 {
-  let mode = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let tag  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let mode = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let tag  = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   if mode = "over" then
     advi_special ps ("html:<a advi=\"" ^ tag ^ "\">")
@@ -192,17 +191,17 @@ value advi_end_anchor ps = do
 
 value advi_edit ps = do
 {
-  let comm   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let line   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let file   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let unit   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let x      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let y      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let w      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let h      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let move   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
-  let resize = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream)) in
+  let comm   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let name   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let line   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let file   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let unit   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let x      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let y      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let w      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let h      = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let move   = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
+  let resize = UString.to_string (Macro.expand_string ps (Parser.read_argument ps.input_stream));
 
   advi_special ps ("edit comm=\"" ^ comm ^ "\" name=\"" ^ name ^ "\" line=" ^ line ^
                    " file=" ^ file ^ " unit=" ^ unit ^
@@ -215,8 +214,7 @@ value init_commands ps = do
   let def_cmd name cmd = do
   {
     define_command ps (UString.of_ascii name) { execute = cmd; expand = Macro.noexpand }
-  }
-  in
+  };
 
   def_cmd "\\adviwait"                advi_wait;
   def_cmd "\\advibeginrecording"      advi_begin_recording;

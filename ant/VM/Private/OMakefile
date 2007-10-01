@@ -4,7 +4,6 @@ MODULES[] =
   Parser
   Scope
   Compile
-  CStack
   Evaluate
   Serialise
   Path

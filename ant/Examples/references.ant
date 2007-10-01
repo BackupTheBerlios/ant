@@ -68,7 +68,7 @@ ps_restore_persistent_globals file_name :=
   end
   where
     iter [(s,g) : pairs] ps := iter pairs (ps_set_global s g ps);
-    iter []              ps := ps;
+    iter _               ps := ps;
   end;
 
 ps_at_exit ps :=

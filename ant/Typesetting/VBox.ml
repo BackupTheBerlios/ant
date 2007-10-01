@@ -19,7 +19,7 @@ value calc_vert_dimensions boxes = match boxes with
 [ []      -> (dim_zero, xdim_zero, dim_zero)
 | [b::bs] -> do
   {
-    let top = b.b_height in
+    let top = b.b_height;
 
     iter xdim_zero b.b_depth bs
 
@@ -32,14 +32,14 @@ value calc_vert_dimensions boxes = match boxes with
 
 value calc_height boxes = do
 {
-  let (top, height, bottom) = calc_vert_dimensions boxes in
+  let (top, height, bottom) = calc_vert_dimensions boxes;
 
   (xdim_to_dim (xdim_add_dim height top), bottom)
 };
 
 value make boxes = do
 {
-  let (h, d) = calc_height boxes in
+  let (h, d) = calc_height boxes;
 
   iter dim_zero xdim_zero [] (List.rev boxes)
 
@@ -49,7 +49,7 @@ value make boxes = do
     [ CommandBox (`GfxCmd c) -> iter width height [c :: result] bs
     | _                      -> do
       {
-        let v_pos = xdim_add_dim height b.b_depth in
+        let v_pos = xdim_add_dim height b.b_depth;
         iter (dim_max width b.b_width)
              (xdim_add_dim (xdim_add_dim height b.b_height) b.b_depth)
              [Graphic.PutBox
@@ -73,9 +73,9 @@ value layout_scaled (factor, order) boxes = do
                   (num_of_int (-1), 0)
                 else
                   (factor, order)
-    and bad   = dim_scale_badness (factor, order) in
-    let boxes = List.rev boxes in
-    let depth = (scale_box_vert (List.hd boxes) ratio).b_depth in
+    and bad   = dim_scale_badness (factor, order);
+    let boxes = List.rev boxes;
+    let depth = (scale_box_vert (List.hd boxes) ratio).b_depth;
 
     if bad >/ !max_v_badness then do
     {
@@ -102,8 +102,8 @@ value layout_scaled (factor, order) boxes = do
       [ CommandBox (`GfxCmd c) -> iter width height [c :: result] bs
       | _                      -> do
         {
-          let box   = scale_box_vert b ratio        in
-          let v_pos = xdim_add_dim height b.b_depth in
+          let box   = scale_box_vert b ratio;
+          let v_pos = xdim_add_dim height b.b_depth;
           iter (dim_max width box.b_width)
                (xdim_add_dim (xdim_add_dim height box.b_height) box.b_depth)
                [Graphic.PutBox dim_zero (fixed_dim v_pos.xd_base) box :: result]
@@ -120,8 +120,7 @@ value to_top box = do
   [ []                          -> num_zero
   | [Graphic.PutBox _ y _ :: _] -> minus_num y.d_base
   | [_ :: cs]                   -> get_baseline cs
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox cmds -> shift_compound_vert box (get_baseline cmds)
@@ -131,26 +130,26 @@ value to_top box = do
 
 value make_to height boxes = do
 {
-  let (h, _) = calc_height boxes         in
-  let ratio  = adjustment_ratio h height in
+  let (h, _) = calc_height boxes;
+  let ratio  = adjustment_ratio h height;
 
   layout_scaled ratio boxes
 };
 
 value make_scaled factor boxes = do
 {
-  let (h, _) = calc_height boxes         in
-  let height = factor */ h.d_base        in
-  let ratio  = adjustment_ratio h height in
+  let (h, _) = calc_height boxes;
+  let height = factor */ h.d_base;
+  let ratio  = adjustment_ratio h height;
 
   layout_scaled ratio boxes
 };
 
 value make_spread amount boxes = do
 {
-  let (h, _) = calc_height boxes         in
-  let height = amount +/ h.d_base        in
-  let ratio  = adjustment_ratio h height in
+  let (h, _) = calc_height boxes;
+  let height = amount +/ h.d_base;
+  let ratio  = adjustment_ratio h height;
 
   layout_scaled ratio boxes
 };
@@ -159,26 +158,26 @@ value make_top boxes = to_top (make boxes);
 
 value make_top_to height boxes = do
 {
-  let (h, _) = calc_height boxes         in
-  let ratio  = adjustment_ratio h height in
+  let (h, _) = calc_height boxes;
+  let ratio  = adjustment_ratio h height;
 
   to_top (layout_scaled ratio boxes)
 };
 
 value make_top_scaled factor boxes = do
 {
-  let (h, d) = calc_height boxes                     in
-  let height = factor */ (h.d_base +/ d.d_base)      in
-  let ratio  = adjustment_ratio (dim_add h d) height in
+  let (h, d) = calc_height boxes;
+  let height = factor */ (h.d_base +/ d.d_base);
+  let ratio  = adjustment_ratio (dim_add h d) height;
 
   to_top (layout_scaled ratio boxes)
 };
 
 value make_top_spread amount boxes = do
 {
-  let (h, _) = calc_height boxes         in
-  let height = amount +/ h.d_base        in
-  let ratio  = adjustment_ratio h height in
+  let (h, _) = calc_height boxes;
+  let height = amount +/ h.d_base;
+  let ratio  = adjustment_ratio h height;
 
   to_top (layout_scaled ratio boxes)
 };

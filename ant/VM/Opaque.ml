@@ -41,8 +41,7 @@ value declare_type name apply cmp unify = do
       apply   = (fun x y -> apply (unwrap x) y);
       compare = (fun x y -> cmp   (unwrap x) (unwrap y));
       unify   = (fun x y -> unify (unwrap x) (unwrap y))
-    }
-  in
+    };
 
   (wrap, unwrap)
 };

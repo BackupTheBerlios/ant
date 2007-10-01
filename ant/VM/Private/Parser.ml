@@ -58,7 +58,7 @@ and stmt =
 [ SEquation of term and term
 | SIfThen of term and stmt
 | SIfThenElse of term and stmt and stmt
-| SForce of array term
+(*| SForce of array term*)
 | SFunction of term
 ];
 
@@ -83,7 +83,7 @@ and parse_decl_list lexer = match read_token lexer with
 | tok -> match parse_decl tok lexer with
   [ (d, SEMICOLON) -> do
     {
-      let (ds, tok) = parse_decl_list lexer in
+      let (ds, tok) = parse_decl_list lexer;
 
       (d @ ds, tok)
     }
@@ -143,7 +143,7 @@ and parse_decl first_token lexer = match first_token with
     let bin_op_in_front = match first_token with
     [ PARENOPEN -> do
       {
-        let t1 = read_token lexer in
+        let t1 = read_token lexer;
 
         match t1 with
         [ BINOP x _ _ -> match read_token lexer with
@@ -159,27 +159,26 @@ and parse_decl first_token lexer = match first_token with
         ]
       }
     | _ -> None
-    ]
-    in
+    ];
 
     match bin_op_in_front with
     [ Some x -> parse_arg_list lexer x first_token
     | None   -> do
       {
-        let (p0, t0) = parse_pattern first_token lexer in
+        let (p0, t0) = parse_pattern first_token lexer;
 
         match t0 with
         [ BINOP x _ _ -> match parse_pattern (read_token lexer) lexer with
           [ (p1, COLON_EQUAL) -> do
             {
-              let (e, tok) = parse_stmt_list_expr lexer in
+              let (e, tok) = parse_stmt_list_expr lexer;
 
               ([DFun x [p0; p1] None e], tok)
             }
           | (p1, AMPERSAND) -> match parse_expr (read_token lexer) lexer with
             [ (g, COLON_EQUAL) -> do
               {
-                let (e, tok) = parse_stmt_list_expr lexer in
+                let (e, tok) = parse_stmt_list_expr lexer;
 
                 ([DFun x [p0; p1] (Some g) e], tok)
               }
@@ -189,7 +188,7 @@ and parse_decl first_token lexer = match first_token with
           ]
         | COLON_EQUAL -> do
           {
-            let (e, tok) = parse_stmt_list_expr lexer in
+            let (e, tok) = parse_stmt_list_expr lexer;
             ([DPattern p0 e], tok)
           }
         | _ -> syntax_error lexer "binary operator or := expected after pattern"
@@ -203,24 +202,24 @@ and parse_decl first_token lexer = match first_token with
 
 and parse_arg_list lexer id first_token = do
 {
-  let tok = read_token lexer in
+  let tok = read_token lexer;
 
   match tok with
   [ BINOP x _ _ -> do
     {
-      let p1 = parse_simple_pattern (read_token lexer) lexer in
+      let p1 = parse_simple_pattern (read_token lexer) lexer;
 
       match read_token lexer with
       [ COLON_EQUAL -> do
         {
-          let (e, tok) = parse_stmt_list_expr lexer in
+          let (e, tok) = parse_stmt_list_expr lexer;
 
           ([DFun x [PId id; p1] None e], tok)
         }
       | AMPERSAND -> match parse_expr (read_token lexer) lexer with
         [ (g, COLON_EQUAL) -> do
           {
-            let (e, tok) = parse_stmt_list_expr lexer in
+            let (e, tok) = parse_stmt_list_expr lexer;
 
             ([DFun x [PId id; p1] (Some g) e], tok)
           }
@@ -231,14 +230,14 @@ and parse_arg_list lexer id first_token = do
     }
   | COLON_EQUAL -> do
     {
-      let (e, tok) = parse_stmt_list_expr lexer in
+      let (e, tok) = parse_stmt_list_expr lexer;
 
-      ([DFun id [] None e], tok)
+      ([DPattern (PId id) e], tok)
     }
   | AMPERSAND -> match parse_expr (read_token lexer) lexer with
     [ (g, COLON_EQUAL) -> do
       {
-        let (e, tok) = parse_stmt_list_expr lexer in
+        let (e, tok) = parse_stmt_list_expr lexer;
 
         ([DFun id [] (Some g) e], tok)
       }
@@ -251,7 +250,7 @@ and parse_arg_list lexer id first_token = do
       match parse_pattern first_token lexer with
       [ (p, COLON_EQUAL) -> do
         {
-          let (e, tok) = parse_stmt_list_expr lexer in
+          let (e, tok) = parse_stmt_list_expr lexer;
           ([DPattern p e], tok)
         }
       | _ -> syntax_error lexer ":= expected"
@@ -262,13 +261,13 @@ and parse_arg_list lexer id first_token = do
   | _ -> match parse_pattern_list tok lexer with
     [ (ps, COLON_EQUAL) -> do
       {
-        let (e, tok) = parse_stmt_list_expr lexer in
+        let (e, tok) = parse_stmt_list_expr lexer;
         ([DFun id ps None e], tok)
       }
     | (ps, AMPERSAND) -> match parse_expr (read_token lexer) lexer with
       [ (g, COLON_EQUAL) -> do
         {
-          let (e, tok) = parse_stmt_list_expr lexer in
+          let (e, tok) = parse_stmt_list_expr lexer;
 
           ([DFun id ps (Some g) e], tok)
         }
@@ -318,7 +317,7 @@ and parse_stmt_list_expr lexer = do
     {
       if tok = COMMA then do
       {
-        let (ss, e, tok) = iter (read_token lexer) in
+        let (ss, e, tok) = iter (read_token lexer);
         ([s::ss], e, tok)
       }
       else
@@ -336,16 +335,10 @@ and parse_stmt_list_expr lexer = do
 
 and parse_stmt first_token lexer = match first_token with
 [ IF    -> parse_if_stmt lexer
-| FORCE -> do
-  {
-    let (terms, tok) = parse_simple_expr_list (read_token lexer) lexer in
-
-    (SForce (Array.of_list terms), tok)
-  }
 | _  -> match parse_expr first_token lexer with
   [ (e0, EQUAL) -> do
     {
-      let (e1, tok) = parse_expr (read_token lexer) lexer in
+      let (e1, tok) = parse_expr (read_token lexer) lexer;
       (SEquation e0 e1, tok)
     }
   | _ -> syntax_error lexer "= expected" (* FIX: relations *)
@@ -360,7 +353,7 @@ and parse_if_stmt lexer = match parse_expr (read_token lexer) lexer with
     ]
   | (s0, ELSEIF) -> do
     {
-      let (s1, tok) = parse_if_stmt lexer in
+      let (s1, tok) = parse_if_stmt lexer;
 
       (SIfThenElse p s0 s1, tok)
     }
@@ -392,7 +385,7 @@ and parse_expr_pri pri first_token lexer = match first_token with
   [ BEGIN -> match parse_decl_list lexer with
     [ (decls, END) -> do
       {
-        let (e, tok) = parse_expr_pri pri (read_token lexer) lexer in
+        let (e, tok) = parse_expr_pri pri (read_token lexer) lexer;
 
         (TLocal decls e, tok)
       }
@@ -401,7 +394,7 @@ and parse_expr_pri pri first_token lexer = match first_token with
   | tok -> match parse_decl tok lexer with
     [ (decl, SEMICOLON) -> do
       {
-        let (e, t) = parse_expr_pri pri (read_token lexer) lexer in
+        let (e, t) = parse_expr_pri pri (read_token lexer) lexer;
 
         (TLocal decl e, t)
       }
@@ -420,15 +413,13 @@ and parse_expr_pri pri first_token lexer = match first_token with
         [ [c]     -> c
         | [c::cs] -> TApp c cs
         | []      -> assert False
-        ]
-        in
+        ];
 
         (TApp multiply_symbol [TNumber n; x], tok)
       }
     | ([e :: es], tok) -> (TApp e es, tok)
     | (_, _)           -> assert False
-    ]
-    in
+    ];
 
     parse_sub_expr term pri tok lexer
   }
@@ -439,8 +430,7 @@ and parse_do_expr lexer = do
   let convert x = match x with
   [ Statement  s -> s
   | Expression e -> SFunction e
-  ]
-  in
+  ];
 
   TDo (iter (read_token lexer))
 
@@ -482,21 +472,16 @@ and parse_stmt_or_expr first_token lexer = match first_token with
 [ IF -> match parse_if_stmt_or_expr lexer with
   [ (Expression expr, tok) -> do
     {
-      let (e, t) = parse_sub_expr expr 0 tok lexer in
+      let (e, t) = parse_sub_expr expr 0 tok lexer;
 
       (Expression e, t)
     }
   | stmt -> stmt
   ]
-| FORCE -> do
-  {
-    let (s, t) = parse_stmt FORCE lexer in
-    (Statement s, t)
-  }
 | _     -> match parse_expr first_token lexer with
   [ (e0, EQUAL) -> do
     {
-      let (e1, tok) = parse_expr (read_token lexer) lexer in
+      let (e1, tok) = parse_expr (read_token lexer) lexer;
       (Statement (SEquation e0 e1), tok)
     }
   | (e, tok) -> (Expression e, tok)
@@ -515,18 +500,19 @@ and parse_if_stmt_or_expr lexer = match parse_expr (read_token lexer) lexer with
     ]
   | (Statement s0, ELSEIF) -> do
     {
-      let (s1, tok) = parse_if_stmt lexer in
+      let (s1, tok) = parse_if_stmt lexer;
 
       (Statement (SIfThenElse p s0 s1), tok)
     }
   | (Expression e0, ELSEIF) -> do
     {
-      let e1 = parse_if_expr lexer in
+      let e1 = parse_if_expr lexer;
 
       (Expression (TIfThenElse p e0 e1), read_token lexer)
     }
-  | (Statement s0, END) -> (Statement (SIfThen p s0), read_token lexer)
-  | _                   -> syntax_error lexer "else or end expected"
+  | (Expression e0, END) -> (Statement (SIfThen p (SFunction e0)), read_token lexer)
+  | (Statement s0,  END) -> (Statement (SIfThen p s0),             read_token lexer)
+  | _                    -> syntax_error lexer "else or end expected"
   ]
 | _ -> syntax_error lexer "then expected"
 ]
@@ -550,19 +536,19 @@ and parse_sub_expr term pri first_token lexer = match first_token with
     | tok -> match a with
       [ Left -> do
         {
-          let (e,t) = parse_expr_pri (p+1) tok lexer in
+          let (e,t) = parse_expr_pri (p+1) tok lexer;
 
           parse_sub_expr (TApp (TId x) [term; e]) pri t lexer
         }
       | Right -> do
         {
-          let (e,t) = parse_expr_pri p tok lexer in
+          let (e,t) = parse_expr_pri p tok lexer;
 
           parse_sub_expr (TApp (TId x) [term; e]) pri t lexer
         }
       | NonA -> do
         {
-          let (e,t) = parse_expr_pri (p+1) tok lexer in
+          let (e,t) = parse_expr_pri (p+1) tok lexer;
 
           if p > pri then
             parse_sub_expr (TApp (TId x) [term; e]) pri t lexer
@@ -585,7 +571,7 @@ and parse_sub_expr term pri first_token lexer = match first_token with
 
 and parse_simple_expr_with_post_op first_tok lexer = do
 {
-  let (e,tok) = parse_simple_expr first_tok lexer in
+  let (e,tok) = parse_simple_expr first_tok lexer;
   iter e tok
 
   where rec iter e tok = match tok with
@@ -628,7 +614,7 @@ and parse_simple_expr first_tok lexer = match first_tok with
   [ PARENCLOSE -> (TId x, PARENCLOSE)
   | tok        -> do
     {
-      let (e,t) = parse_simple_expr_with_post_op tok lexer in
+      let (e,t) = parse_simple_expr_with_post_op tok lexer;
 
       (TApp (TId x) [e], t)
     }
@@ -641,7 +627,7 @@ and parse_simple_expr first_tok lexer = match first_tok with
       | tok        -> match parse_expr_pri p tok lexer with
         [ (e, PARENCLOSE) -> do
           {
-            let v = alloc_symbol () in
+            let v = alloc_symbol ();
 
             (TFun [([PId v], None, TApp (TId x) [TId v; e])],
              read_token lexer)
@@ -708,12 +694,12 @@ and parse_expr_comma_list first_token lexer = match first_token with
 | BRACECLOSE   -> ([], first_token)
 | _            -> do
   {
-    let (e, tok) = parse_expr first_token lexer in
+    let (e, tok) = parse_expr first_token lexer;
 
     match tok with
     [ COMMA -> do
       {
-        let (es, t) = parse_expr_comma_list (read_token lexer) lexer in
+        let (es, t) = parse_expr_comma_list (read_token lexer) lexer;
         ([e :: es], t)
       }
     | _ -> ([e], tok)
@@ -732,7 +718,7 @@ and divide_symbol = string_to_symbol [|47|]   (* / *)
 
 and parse_simple_expr_list first_token lexer = do
 {
-  let (e, tok) = parse_simple_expr_with_post_op first_token lexer in
+  let (e, tok) = parse_simple_expr_with_post_op first_token lexer;
 
   match tok with
   [ UID _
@@ -741,11 +727,12 @@ and parse_simple_expr_list first_token lexer = do
   | CHARACTER _
   | STRING _
   | PREOP _
+  | DO
   | PARENOPEN
   | BRACKETOPEN
   | BRACEOPEN -> do
     {
-      let (es, t) = parse_simple_expr_list tok lexer in
+      let (es, t) = parse_simple_expr_list tok lexer;
 
       ([e :: es], t)
     }
@@ -762,7 +749,7 @@ and parse_simple_expr_list first_token lexer = do
             }
             else do
             {
-              let (es, t) = parse_simple_expr_list tok lexer in
+              let (es, t) = parse_simple_expr_list tok lexer;
 
               ([TNumber (m // n) :: es], t)
             }
@@ -775,7 +762,7 @@ and parse_simple_expr_list first_token lexer = do
           }
         | _ -> do
           {
-            let (es, t) = parse_simple_expr_list tok lexer in
+            let (es, t) = parse_simple_expr_list tok lexer;
 
             ([TNumber (m // n) :: es], t)
           }
@@ -801,12 +788,12 @@ and parse_simple_expr_list first_token lexer = do
 
 and parse_pattern first_token lexer = do
 {
-  let p = parse_simple_pattern first_token lexer in
+  let p = parse_simple_pattern first_token lexer;
 
   match read_token lexer with
   [ EQUAL -> do
     {
-      let p2 = parse_simple_pattern (read_token lexer) lexer in
+      let p2 = parse_simple_pattern (read_token lexer) lexer;
 
       match (p,p2) with
       [ (PId x, _) -> (PAssign x p2, read_token lexer)
@@ -860,7 +847,7 @@ and parse_simple_pattern first_token lexer = match first_token with
 
 and parse_pattern_comma_list lexer = do
 {
-  let first_token = read_token lexer in
+  let first_token = read_token lexer;
 
   match first_token with
   [ PARENCLOSE
@@ -868,12 +855,12 @@ and parse_pattern_comma_list lexer = do
   | BRACECLOSE   -> ([], first_token)
   | _            -> do
     {
-      let (e, tok) = parse_pattern first_token lexer in
+      let (e, tok) = parse_pattern first_token lexer;
 
       match tok with
       [ COMMA -> do
         {
-          let (es, t) = parse_pattern_comma_list lexer in
+          let (es, t) = parse_pattern_comma_list lexer;
           ([e :: es], t)
         }
       | _ -> ([e], tok)
@@ -888,7 +875,7 @@ and parse_pattern_comma_list lexer = do
 
 and parse_pattern_list first_token lexer = do
 {
-  let (e, tok) = parse_pattern first_token lexer in
+  let (e, tok) = parse_pattern first_token lexer;
 
   match tok with
   [ UNDERSCORE
@@ -900,7 +887,7 @@ and parse_pattern_list first_token lexer = do
   | BRACKETOPEN
   | BRACEOPEN -> do
     {
-      let (es, t) = parse_pattern_list tok lexer in
+      let (es, t) = parse_pattern_list tok lexer;
 
       ([e :: es], t)
     }
@@ -915,7 +902,7 @@ and parse_pattern_list first_token lexer = do
 and parse_match_body lexer = match parse_match_clause (read_token lexer) lexer with
 [ (p, g, e, BAR) -> do
   {
-    let (cs,tok) = parse_match_body lexer in
+    let (cs,tok) = parse_match_body lexer;
 
     ([(p, g, e) :: cs], tok)
   }
@@ -931,13 +918,13 @@ and parse_match_clause first_token lexer = do
   match parse_pattern first_token lexer with
   [ (p, COLON_EQUAL) -> do
     {
-      let (e, tok) = parse_stmt_list_expr lexer in
+      let (e, tok) = parse_stmt_list_expr lexer;
       (p, None, e, tok)
     }
   | (p, AMPERSAND) -> match parse_expr (read_token lexer) lexer with
     [ (g, COLON_EQUAL) -> do
       {
-        let (e, tok) = parse_stmt_list_expr lexer in
+        let (e, tok) = parse_stmt_list_expr lexer;
         (p, Some g, e, tok)
       }
     | _ -> syntax_error lexer ":= expected"
@@ -955,7 +942,7 @@ and parse_function_body lexer = match read_token lexer with
 | tok        -> match parse_function_clause tok lexer with
   [ (p, g, e, BAR) -> do
     {
-      let (cs,tok) = parse_function_body lexer in
+      let (cs,tok) = parse_function_body lexer;
 
       ([(p, g, e) :: cs], tok)
     }
@@ -972,13 +959,13 @@ and parse_function_clause first_token lexer = do
   match parse_pattern_list first_token lexer with
   [ (p, COLON_EQUAL) -> do
     {
-      let (e, tok) = parse_stmt_list_expr lexer in
+      let (e, tok) = parse_stmt_list_expr lexer;
       (p, None, e, tok)
     }
   | (p, AMPERSAND) -> match parse_expr (read_token lexer) lexer with
     [ (g, COLON_EQUAL) -> do
       {
-        let (e, tok) = parse_stmt_list_expr lexer in
+        let (e, tok) = parse_stmt_list_expr lexer;
         (p, Some g, e, tok)
       }
     | _ -> syntax_error lexer ":= expected"
@@ -993,12 +980,12 @@ and parse_function_clause first_token lexer = do
 
 and parse_id_list lexer = do
 {
-  let tok = read_token lexer in
+  let tok = read_token lexer;
 
   match tok with
   [ LID x -> do
     {
-      let (ids, t) = parse_id_list lexer in
+      let (ids, t) = parse_id_list lexer;
 
       ([x :: ids], t)
     }

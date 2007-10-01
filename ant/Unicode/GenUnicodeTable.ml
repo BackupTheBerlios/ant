@@ -3,7 +3,7 @@ open XNum;
 
 value split line = do
 {
-  let tokens = ListBuilder.make () in
+  let tokens = ListBuilder.make ();
 
   iter 0 0
 
@@ -33,7 +33,7 @@ value parse_num str = do
     (-1, -1)
   else
     try
-      let i = String.index str '/' in
+      let i = String.index str '/';
 
       (int_of_string (String.sub str 0 i),
        int_of_string (String.sub str (i+1) (String.length str - i - 1)))
@@ -47,24 +47,23 @@ value read_table () = do
     try
       read_line ()
     with
-    [ End_of_file -> "" ]
-  in
-  let int_of_hex str = Scanf.sscanf str "%x" (fun x -> x) in
+    [ End_of_file -> "" ];
+  let int_of_hex str = Scanf.sscanf str "%x" (fun x -> x);
 
-  let data = ListBuilder.make () in
+  let data = ListBuilder.make ();
 
   iter ()
 
   where rec iter () = do
   {
-    let line = read () in
+    let line = read ();
 
     if line = "" then
       ListBuilder.get data
     else match split line with
     [ [code; name; cat; comb; bidi; decomp; num1; num2; num3; mirrored; _; comment; uc; lc; tc] -> do
       {
-        let (n3, n4) = parse_num num3 in
+        let (n3, n4) = parse_num num3;
 
         ListBuilder.add data
           (int_of_hex code,
@@ -125,8 +124,7 @@ value print_tables name ctype print_val is_default default table = do
       let (defs, rest) =
         XList.span
           (fun (code, _, _, _, _, _, _, _, _, _) -> code < (n+1) * 0x100)
-          table
-      in
+          table;
 
       if List.for_all is_default defs then
         iter (n + 1) (main_table ^ " " ^ name ^ "_xxxx,") rest
@@ -184,7 +182,7 @@ value print_tables name ctype print_val is_default default table = do
 
 value compile_tables () = do
 {
-  let table = read_table () in
+  let table = read_table ();
 
   print_string "static const char name_reserved[] = \"<reserved>\";\n";
   print_tables

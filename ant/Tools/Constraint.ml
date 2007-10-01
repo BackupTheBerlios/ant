@@ -58,8 +58,7 @@ value add_variable system min_x min_y max_x max_y = do
     lower_bounds = [];
     upper_bounds = [];
     equations    = []
-  }
-  in
+  };
   let y =
   {
     min          = min_y;
@@ -67,8 +66,7 @@ value add_variable system min_x min_y max_x max_y = do
     lower_bounds = [];
     upper_bounds = [];
     equations    = []
-  }
-  in
+  };
 
   if system.num_vars < Array.length system.x_coords then do
   {
@@ -109,8 +107,7 @@ value update sys = do
       )
       (lf.LinForm.const, lf.LinForm.const)
       lf.LinForm.terms
-  }
-  in
+  };
   let update_coord get_coord coord = do
   {
     let new_min =
@@ -118,25 +115,22 @@ value update sys = do
         (fun min (var, const) ->
             max_num min ((get_coord var).min +/ const))
         coord.min
-        coord.lower_bounds
-    in
+        coord.lower_bounds;
     let new_max =
       List.fold_left
         (fun max (var, const) ->
             min_num max ((get_coord var).max +/ const))
         coord.max
-        coord.upper_bounds
-    in
+        coord.upper_bounds;
     let (new_min2, new_max2) =
       List.fold_left
         (fun (min, max) eq -> do
           {
-            let (l, u) = eval_lin_form get_coord eq in
+            let (l, u) = eval_lin_form get_coord eq;
             (max_num min l, min_num max u)
           })
         (new_min, new_max)
-        coord.equations
-    in
+        coord.equations;
 
     if new_min2 >/ new_max2 then
       raise Inconsistent
@@ -144,12 +138,11 @@ value update sys = do
       Some { (coord) with min = new_min2; max = new_max2 }
     else
       None
-  }
-  in
-  let get_x_coord v = sys.x_coords.(v) in
-  let get_y_coord v = sys.y_coords.(v) in
+  };
+  let get_x_coord v = sys.x_coords.(v);
+  let get_y_coord v = sys.y_coords.(v);
 
-  let changed = ref True in
+  let changed = ref True;
 
   while !changed do
   {
@@ -176,7 +169,7 @@ value update sys = do
 
 value set_x_coord_without_update system var x = do
 {
-  let old_x = system.x_coords.(var) in
+  let old_x = system.x_coords.(var);
 
   if x </ old_x.min || x >/ old_x.max then
     raise Inconsistent
@@ -188,7 +181,7 @@ value set_x_coord_without_update system var x = do
 
 value set_y_coord_without_update system var y = do
 {
-  let old_y = system.y_coords.(var) in
+  let old_y = system.y_coords.(var);
 
   if y </ old_y.min || y >/ old_y.max then
     raise Inconsistent
@@ -234,10 +227,9 @@ value add_equation system add_eq eq = do
       [ []           -> update system
       | [(a,v) :: _] -> do
         {
-          let new_eq1 = LinForm.remove_first_term eq1 in
+          let new_eq1 = LinForm.remove_first_term eq1;
           let lf      = LinForm.scale (num_minus_one // a)
-                                      (LinForm.add new_eq1 eq2)
-                        in
+                                      (LinForm.add new_eq1 eq2);
 
           add_eq system v lf;
 
@@ -258,8 +250,7 @@ value add_x_equation system eq = do
 
         with equations = [eq :: system.x_coords.(var).equations]
       }
-   }
-   in
+   };
 
    add_equation system add_x_eq eq
 };
@@ -274,8 +265,7 @@ value add_y_equation system eq = do
 
         with equations = [eq :: system.y_coords.(var).equations]
       }
-   }
-   in
+   };
 
    add_equation system add_y_eq eq
 };
@@ -290,7 +280,7 @@ value add_bound c1 c2 v1 v2 off = do
 
 value add_x_bound system v1 v2 off = do
 {
-  let (c1,c2) = add_bound system.x_coords.(v1) system.x_coords.(v2) v1 v2 off in
+  let (c1,c2) = add_bound system.x_coords.(v1) system.x_coords.(v2) v1 v2 off;
 
   system.x_coords.(v1) := c1;
   system.x_coords.(v2) := c2;
@@ -300,7 +290,7 @@ value add_x_bound system v1 v2 off = do
 
 value add_y_bound system v1 v2 off = do
 {
-  let (c1,c2) = add_bound system.y_coords.(v1) system.y_coords.(v2) v1 v2 off in
+  let (c1,c2) = add_bound system.y_coords.(v1) system.y_coords.(v2) v1 v2 off;
 
   system.y_coords.(v1) := c1;
   system.y_coords.(v2) := c2;

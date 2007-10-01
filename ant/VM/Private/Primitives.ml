@@ -9,10 +9,6 @@ module UString = Unicode.UString;  (* we cannot open Unicode because of the name
 module UChar   = Unicode.UChar;
 module Format  = Unicode.Format;
 
-value cont  = CStack.cont;
-value cont2 = CStack.cont2;
-value cont3 = CStack.cont3;
-
 value rec uc_list_to_char_list str = match str with
 [ []      -> Nil
 | [c::cs] -> List (ref (Char c)) (ref (uc_list_to_char_list cs))
@@ -36,29 +32,12 @@ value ascii_to_char_list str = do
   uc_string_to_char_list (UString.uc_string_of_ascii str)
 };
 
-value rec evaluate_char_list name res x = match !x with
-[ Nil      -> !res := []
-| List a b -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown a)
-      (fun () -> match !a with
-       [ Char c -> do
-         {
-           let r = ref [] in
-           cont2
-             (fun () -> evaluate_char_list name r b)
-             (fun () -> !res := [c :: !r])
-         }
-       | _ -> runtime_error (name ^ ": invalid argument")
-       ])
-  }
-| UnevalT _ _  -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> evaluate_char_list name res x)
-  }
+value rec evaluate_char_list name x = match !x with
+[ Nil      -> []
+| List a b -> match !a with
+              [ Char c -> [c :: evaluate_char_list name b]
+              | _      -> runtime_error (name ^ ": invalid argument")
+              ]
 | Unbound
 | Constraint _ -> runtime_error (name ^ ": argument undefined")
 | _            -> runtime_error (name ^ ": invalid argument")
@@ -66,242 +45,153 @@ value rec evaluate_char_list name res x = match !x with
 
 (* control *)
 
-value prim_error _ msg = do
+value prim_error msg = do
 {
-  let str = ref [] in
+  let str = evaluate_char_list "error" msg;
 
-  cont2
-    (fun () -> evaluate_char_list "error" str msg)
-    (fun () -> raise (Runtime_error (Array.of_list !str)))
+  raise (Runtime_error (Array.of_list str))
 };
 
 
 (* logic *)
 
-value rec prim_or res x y = match (!x, !y) with
-[ (Bool a, Bool b)         -> !res := Bool (a || b)
-| (UnevalT _ _, Bool True) -> !res := Bool True
-| (Bool True, UnevalT _ _) -> !res := Bool True
-| (UnevalT _ _, _)         -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_or res x y)
-  }
-| (_, UnevalT _ _)         -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_or res x y)
-  }
-| _ -> runtime_error "||: invalid argument"
+value rec prim_or x y = match (!x, !y) with
+[ (Bool a, Bool b) -> Bool (a || b)
+| _                -> runtime_error "||: invalid argument"
 ];
 
-value rec prim_and res x y = match (!x, !y) with
-[ (Bool a, Bool b)          -> !res := Bool (a && b)
-| (UnevalT _ _, Bool False) -> !res := Bool False
-| (Bool False, UnevalT _ _) -> !res := Bool False
-| (UnevalT _ _, _)          -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_and res x y)
-  }
-| (_, UnevalT _ _)          -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_and res x y)
-  }
-| _ -> runtime_error "&&: invalid argument"
+value rec prim_and x y = match (!x, !y) with
+[ (Bool a, Bool b) -> Bool (a && b)
+| _                -> runtime_error "&&: invalid argument"
 ];
 
-value rec prim_not res x = match !x with
-[ Bool a      -> !res := Bool (not a)
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_not res x)
-  }
-| _           -> runtime_error "not: invalid argument"
+value rec prim_not x = match !x with
+[ Bool a -> Bool (not a)
+| _      -> runtime_error "not: invalid argument"
 ];
 
 (* comparisons *)
 
-value rec cmp res x y = match (!x, !y) with
-[ (UnevalT _ _, _)             -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> cmp res x y)
-  }
-| (_, UnevalT _ _)             -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> cmp res x y)
-  }
-| (Unbound, _)                 -> runtime_error "argument unbound during comparison"
+value rec cmp x y = match (!x, !y) with
+[ (Unbound, _)                 -> runtime_error "argument unbound during comparison"
 | (_, Unbound)                 -> runtime_error "argument unbound during comparison"
-| (Constraint a, Constraint b) -> !res := (a == b)
-| (Bool a,       Bool b)       -> !res := (a = b)
-| (Char a,       Char b)       -> !res := (a = b)
-| (Symbol a,     Symbol b)     -> !res := (a = b)
-| (Nil,          Nil)          -> !res := True
-| (List a1 a2,   List b1 b2)   -> do
-  {
-    let r = ref False in
-
-    cont2
-      (fun () -> cmp r a1 b1)
-      (fun () -> if !r then
-                    cmp res a2 b2
-                 else
-                    !res := False)
-  }
-| (Number a,     Number b)     -> !res := (a =/ b)
+| (Constraint a, Constraint b) -> (a == b)
+| (Bool a,       Bool b)       -> (a = b)
+| (Char a,       Char b)       -> (a = b)
+| (Symbol a,     Symbol b)     -> (a = b)
+| (Nil,          Nil)          -> True
+| (List a1 a2,   List b1 b2)   -> cmp a1 b1 && cmp a2 b2
+| (Number a,     Number b)     -> (a =/ b)
 | (Number a,     LinForm lin)  -> do
     {
-      cont2
-        (fun () -> Evaluate.evaluate_lin_form y lin)
-        (fun () -> match !y with
-        [ Number b -> !res := (b =/ a)
-        | _        -> !res := False
-        ])
+      Evaluate.evaluate_lin_form y lin;
+
+      match !y with
+      [ Number b -> (b =/ a)
+      | _        -> False
+      ]
     }
 | (LinForm lin, Number a) -> do
     {
-      cont2
-        (fun () -> Evaluate.evaluate_lin_form x lin)
-        (fun () -> match !x with
-        [ Number b -> !res := (b =/ a)
-        | _        -> !res := False
-        ])
+      Evaluate.evaluate_lin_form x lin;
+
+      match !x with
+      [ Number b -> (b =/ a)
+      | _        -> False
+      ]
     }
 | (LinForm a, LinForm b) -> do
     {
-      cont3
-        (fun () -> Evaluate.evaluate_lin_form x a)
-        (fun () -> Evaluate.evaluate_lin_form y b)
-        (fun () -> do
-          {
-            let l = LinForm.lin_comb num_one a (minus_num num_one) b in
-            let z = ref (LinForm l)                                  in
+      Evaluate.evaluate_lin_form x a;
+      Evaluate.evaluate_lin_form y b;
 
-            cont2
-              (fun () -> Evaluate.evaluate_lin_form z l)
-              (fun () -> match !z with
-              [ Number c -> !res := (c =/ num_zero)
-              | _        -> !res := False
-              ])
-          })
+      let l = LinForm.lin_comb num_one a (minus_num num_one) b;
+      let z = ref (LinForm l);
+
+      Evaluate.evaluate_lin_form z l;
+
+      match !z with
+      [ Number c -> (c =/ num_zero)
+      | _        -> False
+      ]
     }
 | (Tuple a, Tuple b) -> do
     {
-      let len = Array.length a in
+      let len = Array.length a;
       if Array.length b <> len then
-        !res := False
+        False
       else
         iter 0
 
       where rec iter i = do
       {
         if i >= len then
-          !res := True
-        else do
-        {
-          let r = ref False in
-          cont2
-            (fun () -> cmp r a.(i) b.(i))
-            (fun () -> if !r then
-                         iter (i+1)
-                       else
-                         !res := False)
-        }
+          True
+        else if cmp a.(i) b.(i) then
+          iter (i+1)
+        else
+          False
       }
     }
 | (Dictionary a, Dictionary b) -> do
     {
-      let l0 = map_to_list a in
-      let l1 = map_to_list b in
+      let l0 = map_to_list a;
+      let l1 = map_to_list b;
 
       iter l0 l1
 
       where rec iter l0 l1 = match (l0, l1) with
-      [ ([], []) -> !res := True
-      | ([], _)  -> !res := False
-      | (_, [])  -> !res := False
+      [ ([], []) -> True
+      | ([], _)  -> False
+      | (_, [])  -> False
       | ([(k0, v0) :: kv0],
          [(k1, v1) :: kv1]) -> do
          {
            if k0 <> k1 then
-             !res := False
-           else do
-           {
-             let r = ref False in
-             cont2
-               (fun () -> cmp r v0 v1)
-               (fun () -> if !r then
-                            iter kv0 kv1
-                          else
-                            !res := False)
-           }
+             False
+           else if cmp v0 v1 then
+             iter kv0 kv1
+           else
+             False
          }
       ]
     }
-| (Primitive1 a,     Primitive1 b)     -> !res := (a == b)
-| (Primitive2 a,     Primitive2 b)     -> !res := (a == b)
-| (PrimitiveN a1 a2, PrimitiveN b1 b2) -> !res := (a1 = b1 && a2 == b2)
-| (SimpleFunction a1 a2 a3,
-   SimpleFunction b1 b2 b3)            -> !res := (a1 = b1 && a2 = b2 && a3 = b3)
-| (PatternFunction a1 a2 a3 a4 a5,
-   PatternFunction b1 b2 b3 b4 b5)     -> !res := (a1 = b1 && a2 = b2 && a3 = b3 && a4 = b4 && a5 = b5)
-| (Relation a1 a2,   Relation b1 b2)   -> !res := (a1 = b1 && a2 = b2)
-| _                                    -> !res := False
+| (Primitive1 a,      Primitive1 b)      -> (a == b)
+| (Primitive2 a,      Primitive2 b)      -> (a == b)
+| (PrimitiveN a1 a2,  PrimitiveN b1 b2)  -> (a1 = b1 && a2 == b2)
+| (Function a1 a2 a3, Function b1 b2 b3) -> (a1 == b1 && a2 = b2 && a3 == b3)
+| (Relation a1 a2,    Relation b1 b2)    -> (a1 = b1 && a2 = b2)
+| _                                      -> False
 ];
 
-value prim_eq  res x y = do
+value prim_eq x y = do
 {
-  let r = ref False in
-  cont2
-    (fun () -> cmp r x y)
-    (fun () -> !res := Bool !r)
+  Bool (cmp x y)
 };
 
-value prim_neq res x y = do
+value prim_neq x y = do
 {
-  let r = ref False in
-  cont2
-    (fun () -> cmp r x y)
-    (fun () -> !res := Bool (not !r))
+  Bool (not (cmp x y))
 };
 
-value rec prim_gt res x y = match (!x, !y) with
-[ (Number m, Number n) -> !res := Bool (m >/ n)
-| (Char a,   Char b)   -> !res := Bool (a > b)
-| (Nil, Nil)           -> !res := Bool False
-| (Nil, List _ _)      -> !res := Bool False
-| (List _ _, Nil)      -> !res := Bool True
+value rec prim_gt x y = match (!x, !y) with
+[ (Number m, Number n) -> Bool (m >/ n)
+| (Char a,   Char b)   -> Bool (a > b)
+| (Nil, Nil)           -> Bool False
+| (Nil, List _ _)      -> Bool False
+| (List _ _, Nil)      -> Bool True
 | (List a b, List c d) -> do
   {
-    let z = ref Unbound in
-
-    cont2
-      (fun () -> prim_gt z a c)
-      (fun () -> match !z with
-      [ Bool True  -> !res := Bool True
-      | _          -> do
-        {
-          let r = ref False in
-          cont2
-            (fun () -> cmp r a b)
-            (fun () -> if !r then
-                         prim_gt res b d
-                       else
-                         !res := Bool False)
-        }
-      ]);
+    match prim_gt a c with
+    [ Bool True  -> Bool True
+    | _          -> do
+      {
+        if cmp a b then
+          prim_gt b d
+        else
+          Bool False
+      }
+    ]
   }
 | (Tuple xs, Tuple ys) -> do
   {
@@ -313,87 +203,60 @@ value rec prim_gt res x y = match (!x, !y) with
     where rec iter i = do
     {
       if i >= Array.length xs then
-        !res := Bool False
+        Bool False
       else do
       {
-        let z = ref Unbound in
-
-        cont2
-          (fun () -> prim_gt z xs.(i) ys.(i))
-          (fun () -> match !z with
-          [ Bool True -> !res := Bool True
-          | _         -> do
-            {
-              let r = ref False in
-              cont2
-                (fun () -> cmp r xs.(i) ys.(i))
-                (fun () -> if !r then
-                             iter (i+1)
-                           else
-                             !res := Bool False)
-            }
-          ])
+        match prim_gt xs.(i) ys.(i) with
+        [ Bool True -> Bool True
+        | _         -> do
+          {
+            if cmp xs.(i) ys.(i) then
+              iter (i+1)
+            else
+              Bool False
+          }
+        ]
       }
     }
   }
-| (UnevalT _ _, _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_gt res x y)
-  }
-| (_, UnevalT _ _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_gt res x y)
-  }
 | (LinForm l, _)   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> prim_gt res x y
-      | _        -> runtime_error (">: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> prim_gt x y
+    | _        -> runtime_error (">: invalid argument")
+    ]
   }
 | (_, LinForm l) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form y l)
-      (fun () -> match !y with
-      [ Number _ -> prim_gt res x y
-      | _        -> runtime_error (">: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form y l;
+    match !y with
+    [ Number _ -> prim_gt x y
+    | _        -> runtime_error (">: invalid argument")
+    ]
   }
 | _ -> runtime_error ">: invalid argument"
 ];
 
-value rec prim_lt res x y = match (!x, !y) with
-[ (Number m, Number n) -> !res := Bool (m </ n)
-| (Char a,   Char b)   -> !res := Bool (a < b)
-| (Nil, Nil)           -> !res := Bool False
-| (Nil, List _ _)      -> !res := Bool True
-| (List _ _, Nil)      -> !res := Bool False
+value rec prim_lt x y = match (!x, !y) with
+[ (Number m, Number n) -> Bool (m </ n)
+| (Char a,   Char b)   -> Bool (a < b)
+| (Nil, Nil)           -> Bool False
+| (Nil, List _ _)      -> Bool True
+| (List _ _, Nil)      -> Bool False
 | (List a b, List c d) -> do
   {
-    let z = ref Unbound in
-
-    cont2
-      (fun () -> prim_lt z a c)
-      (fun () -> match !z with
-      [ Bool True  -> !res := Bool True
-      | _          -> do
-        {
-          let r = ref False in
-          cont2
-            (fun () -> cmp r a b)
-            (fun () -> if !r then
-                         prim_lt res b d
-                       else
-                         !res := Bool False)
-        }
-      ])
+    match prim_lt a c with
+    [ Bool True  -> Bool True
+    | _          -> do
+      {
+        if cmp a b then
+          prim_lt b d
+        else
+          Bool False
+      }
+    ]
   }
 | (Tuple xs, Tuple ys) -> do
   {
@@ -405,87 +268,61 @@ value rec prim_lt res x y = match (!x, !y) with
     where rec iter i = do
     {
       if i >= Array.length xs then
-        !res := Bool False
+        Bool False
       else do
       {
-        let z = ref Unbound in
-
-        cont2
-          (fun () -> prim_lt z xs.(i) ys.(i))
-          (fun () -> match !z with
-          [ Bool True -> !res := Bool True
-          | _         -> do
-            {
-              let r = ref False in
-              cont2
-                (fun () -> cmp r xs.(i) ys.(i))
-                (fun () -> if !r then
-                             iter (i+1)
-                           else
-                             !res := Bool False)
-            }
-          ])
+        match prim_lt xs.(i) ys.(i) with
+        [ Bool True -> Bool True
+        | _         -> do
+          {
+            if cmp xs.(i) ys.(i) then
+              iter (i+1)
+            else
+              Bool False
+          }
+        ]
       }
     }
   }
-| (UnevalT _ _, _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_lt res x y)
-  }
-| (_, UnevalT _ _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_lt res x y)
-  }
 | (LinForm l, _)   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> prim_lt res x y
-      | _        -> runtime_error ("<: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> prim_lt x y
+    | _        -> runtime_error ("<: invalid argument")
+    ]
   }
 | (_, LinForm l) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form y l)
-      (fun () -> match !y with
-      [ Number _ -> prim_lt res x y
-      | _        -> runtime_error ("<: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form y l;
+
+    match !y with
+    [ Number _ -> prim_lt x y
+    | _        -> runtime_error ("<: invalid argument")
+    ]
   }
 | _ -> runtime_error "<: invalid argument"
 ];
 
-value rec prim_ge res x y = match (!x, !y) with
-[ (Number m, Number n) -> !res := Bool (m >=/ n)
-| (Char a,   Char b)   -> !res := Bool (a >= b)
-| (Nil, Nil)           -> !res := Bool True
-| (Nil, List _ _)      -> !res := Bool False
-| (List _ _, Nil)      -> !res := Bool True
+value rec prim_ge x y = match (!x, !y) with
+[ (Number m, Number n) -> Bool (m >=/ n)
+| (Char a,   Char b)   -> Bool (a >= b)
+| (Nil, Nil)           -> Bool True
+| (Nil, List _ _)      -> Bool False
+| (List _ _, Nil)      -> Bool True
 | (List a b, List c d) -> do
   {
-    let z = ref Unbound in
-
-    cont2
-      (fun () -> prim_gt z a c)
-      (fun () -> match !z with
-      [ Bool True  -> !res := Bool True
-      | _          -> do
-        {
-          let r = ref False in
-          cont2
-            (fun () -> cmp r a b)
-            (fun () -> if !r then
-                         prim_ge res b d
-                       else
-                         !res := Bool False)
-        }
-      ])
+    match prim_gt a c with
+    [ Bool True  -> Bool True
+    | _          -> do
+      {
+        if cmp a b then
+          prim_ge b d
+        else
+          Bool False
+      }
+    ]
   }
 | (Tuple xs, Tuple ys) -> do
   {
@@ -497,87 +334,61 @@ value rec prim_ge res x y = match (!x, !y) with
     where rec iter i = do
     {
       if i >= Array.length xs then
-        !res := Bool False
+        Bool True
       else do
       {
-        let z = ref Unbound in
-
-        cont2
-          (fun () -> prim_gt z xs.(i) ys.(i))
-          (fun () -> match !z with
-          [ Bool True -> !res := Bool True
-          | _         -> do
-            {
-              let r = ref False in
-              cont2
-                (fun () -> cmp r xs.(i) ys.(i))
-                (fun () -> if !r then
-                             iter (i+1)
-                           else
-                             !res := Bool False)
-            }
-          ])
+        match prim_gt xs.(i) ys.(i) with
+        [ Bool True -> Bool True
+        | _         -> do
+          {
+            if cmp xs.(i) ys.(i) then
+              iter (i+1)
+            else
+              Bool False
+          }
+        ]
       }
     }
   }
-| (UnevalT _ _, _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_ge res x y)
-  }
-| (_, UnevalT _ _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_ge res x y)
-  }
 | (LinForm l, _)   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> prim_ge res x y
-      | _        -> runtime_error (">=: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> prim_ge x y
+    | _        -> runtime_error (">=: invalid argument")
+    ]
   }
 | (_, LinForm l) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form y l)
-      (fun () -> match !y with
-      [ Number _ -> prim_ge res x y
-      | _        -> runtime_error (">=: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form y l;
+
+    match !y with
+    [ Number _ -> prim_ge x y
+    | _        -> runtime_error (">=: invalid argument")
+    ]
   }
 | _ -> runtime_error ">=: invalid argument"
 ];
 
-value rec prim_le res x y = match (!x, !y) with
-[ (Number m, Number n) -> !res := Bool (m <=/ n)
-| (Char a,   Char b)   -> !res := Bool (a <= b)
-| (Nil, Nil)           -> !res := Bool True
-| (Nil, List _ _)      -> !res := Bool True
-| (List _ _, Nil)      -> !res := Bool False
+value rec prim_le x y = match (!x, !y) with
+[ (Number m, Number n) -> Bool (m <=/ n)
+| (Char a,   Char b)   -> Bool (a <= b)
+| (Nil, Nil)           -> Bool True
+| (Nil, List _ _)      -> Bool True
+| (List _ _, Nil)      -> Bool False
 | (List a b, List c d) -> do
   {
-    let z = ref Unbound in
-
-    cont2
-      (fun () -> prim_lt z a c)
-      (fun () -> match !z with
-      [ Bool True  -> !res := Bool True
-      | _          -> do
-        {
-          let r = ref False in
-          cont2
-            (fun () -> cmp r a b)
-            (fun () -> if !r then
-                         prim_le res b d
-                       else
-                         !res := Bool False)
-        }
-      ])
+    match prim_lt a c with
+    [ Bool True  -> Bool True
+    | _          -> do
+      {
+        if cmp a b then
+          prim_le b d
+        else
+          Bool False
+      }
+    ]
   }
 | (Tuple xs, Tuple ys) -> do
   {
@@ -589,157 +400,112 @@ value rec prim_le res x y = match (!x, !y) with
     where rec iter i = do
     {
       if i >= Array.length xs then
-        !res := Bool False
+        Bool True
       else do
       {
-        let z = ref Unbound in
-
-        cont2
-          (fun () -> prim_lt z xs.(i) ys.(i))
-          (fun () -> match !z with
-          [ Bool True -> !res := Bool True
-          | _         -> do
-            {
-              let r = ref False in
-              cont2
-                (fun () -> cmp r xs.(i) ys.(i))
-                (fun () -> if !r then
-                             iter (i+1)
-                           else
-                             !res := Bool False)
-            }
-          ])
+        match prim_lt xs.(i) ys.(i) with
+        [ Bool True -> Bool True
+        | _         -> do
+          {
+            if cmp xs.(i) ys.(i) then
+              iter (i+1)
+            else
+              Bool False
+          }
+        ]
       }
     }
   }
-| (UnevalT _ _, _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_le res x y)
-  }
-| (_, UnevalT _ _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> prim_le res x y)
-  }
 | (LinForm l, _)   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> prim_le res x y
-      | _        -> runtime_error ("<=: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> prim_le x y
+    | _        -> runtime_error ("<=: invalid argument")
+    ]
   }
 | (_, LinForm l) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form y l)
-      (fun () -> match !y with
-      [ Number _ -> prim_le res x y
-      | _        -> runtime_error ("<=: invalid argument")
-      ])
+    Evaluate.evaluate_lin_form y l;
+
+    match !y with
+    [ Number _ -> prim_le x y
+    | _        -> runtime_error ("<=: invalid argument")
+    ]
   }
 | _ -> runtime_error "<=: invalid argument"
 ];
 
-value prim_min res x y = do
+value prim_min x y = do
 {
-  let c = ref Unbound in
-
-  cont2
-    (fun () -> prim_le c x y)
-    (fun () -> match !c with
-    [ Bool True -> !res := !x
-    | _         -> !res := !y
-    ])
+  match prim_le x y with
+  [ Bool True -> !x
+  | _         -> !y
+  ]
 };
 
-value prim_max res x y = do
+value prim_max x y = do
 {
-  let c = ref Unbound in
-
-  cont2
-    (fun () -> prim_ge c x y)
-    (fun () -> match !c with
-    [ Bool True -> !res := !x
-    | _         -> !res := !y
-    ])
+  match prim_ge x y with
+  [ Bool True -> !x
+  | _         -> !y
+  ]
 };
 
 (* general arithmetic *)
 
-value rec unary_number_prim f name res x = match !x with
+value rec unary_number_prim f name x = match !x with
 [ Number n    -> do
   {
     try
-      !res := Number (f n)
+      Number (f n)
     with
     [ _ -> runtime_error (name ^ ": invalid argument") ]
   }
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> unary_number_prim f name res x)
-  }
 | LinForm l   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number n -> do
-        {
-          try
-            !res := Number (f n)
-          with
-          [ _ -> runtime_error (name ^ ": invalid argument") ]
-        }
-      | _ -> runtime_error (name ^ ": invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number n -> do
+      {
+        try
+          Number (f n)
+        with
+        [ _ -> runtime_error (name ^ ": invalid argument") ]
+      }
+    | _ -> runtime_error (name ^ ": invalid argument")
+    ]
   }
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
 
-value rec binary_number_prim f name res x y = match (!x, !y) with
+value rec binary_number_prim f name x y = match (!x, !y) with
 [ (Number m, Number n) -> do
   {
     try
-      !res := Number (f m n)
+      Number (f m n)
     with
     [ _ -> runtime_error (name ^ ": invalid argument") ]
   }
-| (UnevalT _ _, _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> binary_number_prim f name res x y)
-  }
-| (_, UnevalT _ _) -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown y)
-      (fun () -> binary_number_prim f name res x y)
-  }
 | (LinForm l, _) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> binary_number_prim f name res x y
-      | _        -> runtime_error (name ^ ": invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> binary_number_prim f name x y
+    | _        -> runtime_error (name ^ ": invalid argument")
+    ]
   }
 | (_, LinForm l) -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form y l)
-      (fun () -> match !y with
-      [ Number _ -> binary_number_prim f name res x y
-      | _        -> runtime_error (name ^ ": invalid argument")
-      ])
+    Evaluate.evaluate_lin_form y l;
+
+    match !y with
+    [ Number _ -> binary_number_prim f name x y
+    | _        -> runtime_error (name ^ ": invalid argument")
+    ]
   }
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
@@ -753,27 +519,17 @@ value prim_pow  = binary_number_prim
                                   num_of_float (float_of_num x ** float_of_num y))
                     "^";
 
-value rec prim_negate res x = match !x with
-[ Number n    -> !res := Number (minus_num n)
-| LinForm l   -> !res := LinForm (LinForm.scale num_minus_one l)
-| Unbound     -> !res := LinForm (LinForm.of_scaled_unknown compare_unknowns num_minus_one x)
-| Tuple xs    -> do
+value rec prim_negate x = match !x with
+[ Number n  -> Number (minus_num n)
+| LinForm l -> LinForm (LinForm.scale num_minus_one l)
+| Unbound   -> LinForm (LinForm.of_scaled_unknown compare_unknowns num_minus_one x)
+| Tuple xs  -> do
   {
-    let len = Array.length xs              in
-    let zs = Array.init len create_unbound in
+    let len = Array.length xs;
 
-    !res := Tuple zs;
-
-    for i = 1 to len do
-    {
-      cont (fun () -> prim_negate zs.(len - i) xs.(len - i))
-    }
-  }
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_negate res x)
+    Tuple
+      (Array.init len
+        (fun i -> ref (prim_negate xs.(i))))
   }
 | _ -> runtime_error "~: invalid argument"
 ];
@@ -836,122 +592,92 @@ value prim_arcsinh = unary_number_prim (float_wrapper arcsinh) "arcsinh";
 value prim_arccosh = unary_number_prim (float_wrapper arccosh) "arccosh";
 value prim_arctanh = unary_number_prim (float_wrapper arctanh) "arctanh";
 
-value rec prim_abs res x = match !x with
-[ Number n    -> !res := Number (abs_num n)
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_abs res x)
-  }
+value rec prim_abs x = match !x with
+[ Number n    -> Number (abs_num n)
 | LinForm l   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number n -> !res := Number (abs_num n)
-      | _        -> runtime_error "abs: invalid argument"
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number n -> Number (abs_num n)
+    | _        -> runtime_error "abs: invalid argument"
+    ]
   }
 | Tuple xs -> do
   {
-    let len = Array.length xs               in
-    let ss  = Array.init len create_unbound in
+    let len = Array.length xs;
+    let ss  = Array.init len create_unbound;
 
-    cont (fun () -> do
-      {
-        !res := Number
-                  (float_wrapper sqrt
-                    (Array.fold_left
-                       (fun sum s -> match !s with
-                         [ Number c -> sum +/ c
-                         | _        -> runtime_error "abs: invalid argument"
-                         ])
-                       num_zero
-                       ss))
-      });
     for i = 1 to len do
     {
-      cont (fun () -> Evaluate.mul_unknowns ss.(len - i) xs.(len - i) xs.(len - i))
-    }
+      Evaluate.mul_unknowns ss.(len - i) xs.(len - i) xs.(len - i)
+    };
+
+    Number
+      (float_wrapper sqrt
+        (Array.fold_left
+           (fun sum s -> match !s with
+             [ Number c -> sum +/ c
+             | _        -> runtime_error "abs: invalid argument"
+             ])
+           num_zero
+           ss))
   }
 | _ -> runtime_error "abs: invalid argument"
 ];
 
 (* lists *)
 
-value prim_length res x = do
+value prim_length x = do
 {
-  let len = ref 0 in
-
-  cont2
-    (fun () -> count_len len x)
-    (fun () -> !res := Number (num_of_int !len))
+  Number (num_of_int (count_len 0 x))
 
   where rec count_len len x = match !x with
-  [ Nil          -> !len := 0
-  | List _ a     -> do
-    {
-      let l = ref 0 in
-      cont2
-        (fun () -> count_len l a)
-        (fun () -> !len := !l + 1)
-    }
-  | Tuple xs     -> !len := Array.length xs
-  | Dictionary d -> !len := SymbolMap.fold (fun _ _ n -> n + 1) d 0
-  | UnevalT _ _  -> do
-    {
-      cont2
-        (fun () -> Evaluate.evaluate_unknown x)
-        (fun () -> count_len len x)
-    }
+  [ Nil          -> len
+  | List _ a     -> count_len (len + 1) a
+  | Tuple xs     -> Array.length xs
+  | Dictionary d -> SymbolMap.fold (fun _ _ n -> n + 1) d 0
   | Unbound
   | Constraint _ -> runtime_error "length: argument undefined"
-  | _            -> !len := 1
+  | _            -> 1
   ]
 };
 
 (* FIX: tuples and lists *)
 
-value rec prim_to_string res x = match !x with
+value rec prim_to_string x = match !x with
 [ Number n -> do
   {
     if n </ num_zero then
-      !res := List (ref (Char 126)) (ref (ascii_to_char_list (string_of_num (minus_num n))))
+      List (ref (Char 126)) (ref (ascii_to_char_list (string_of_num (minus_num n))))
     else do
     {
-      let str = string_of_num n in
+      let str = string_of_num n;
 
       (* If |n| is an integer we remove the suffix "/1". *)
 
       if str.[String.length str - 2] = '/' &&
          str.[String.length str - 1] = '1' then
-        !res := ascii_to_char_list (String.sub str 0 (String.length str - 2))
+        ascii_to_char_list (String.sub str 0 (String.length str - 2))
       else
-        !res := ascii_to_char_list str
+        ascii_to_char_list str
     }
   }
 | Bool b    -> if b then
-                 !res := ascii_to_char_list "True"
+                 ascii_to_char_list "True"
                else
-                 !res := ascii_to_char_list "False"
-| Char _    -> !res := List x (ref Nil)
-| Symbol s  -> !res := uc_string_to_char_list (symbol_to_string s)
-| Nil       -> !res := ascii_to_char_list "[]"
+                 ascii_to_char_list "False"
+| Char _    -> List x (ref Nil)
+| Symbol s  -> uc_string_to_char_list (symbol_to_string s)
+| Nil       -> ascii_to_char_list "[]"
 | LinForm l -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Number _ -> prim_to_string res x
-      | _        -> runtime_error "to_string: argument undefined"
-      ])
-  }
-| UnevalT _ _  -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_to_string res x)
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Number _ -> prim_to_string x
+    | _        -> runtime_error "to_string: argument undefined"
+    ]
   }
 | Unbound
 | Constraint _ -> runtime_error "to_string: argument undefined"
@@ -1039,7 +765,7 @@ value parse_token fmt = do
   ]
   and parse_list_spec fmt = do
   {
-    let (spec, f) = parse_align fmt in
+    let (spec, f) = parse_align fmt;
 
     iter [] f
 
@@ -1048,8 +774,7 @@ value parse_token fmt = do
     | [93 :: cs] -> (FS_List spec (List.rev sep), cs) (* ] *)
     | [c :: cs]  -> iter [c :: sep] cs
     ]
-  }
-  in
+  };
 
   parse_align fmt
 };
@@ -1062,7 +787,7 @@ value parse_format_string fmt = do
   [ []         -> (List.rev res, n)
   | [37 :: xs] -> do            (* % *)
     {
-      let (t, ys) = parse_token xs in
+      let (t, ys) = parse_token xs;
 
       match t with
       [ FS_Literal _ -> iter [t :: res] n     ys
@@ -1092,14 +817,13 @@ value number_to_string sign len2 nf x = do
   | NF_ROMAN       -> Format.num_to_ROMAN      x
   | NF_Alpha       -> Format.num_to_alphabetic x
   | NF_ALPHA       -> Format.num_to_ALPHABETIC x
-  ]
-  in
+  ];
 
   let pos_num_to_string len2 nf x = do
   {
-    let y  = floor_num x in
-    let z  = x -/ y      in
-    let s1 = to_str nf y in
+    let y  = floor_num x;
+    let z  = x -/ y;
+    let s1 = to_str nf y;
 
     if len2 <= 0 then do
     {
@@ -1113,12 +837,11 @@ value number_to_string sign len2 nf x = do
   }
   where add_fractional len x = do
   {
-    let s = to_str nf (floor_num (x */ power_num num_ten (num_of_int len))) in
-    let l = List.length s in
+    let s = to_str nf (floor_num (x */ power_num num_ten (num_of_int len)));
+    let l = List.length s;
 
     [46 :: XList.repeat (len - l) 48 @ s]
-  }
-  in
+  };
 
   if x </ num_zero then
     [45 :: pos_num_to_string len2 nf (minus_num x)]
@@ -1128,226 +851,157 @@ value number_to_string sign len2 nf x = do
     pos_num_to_string len2 nf x
 };
 
-value rec output_format_string fmt res args = do
+value rec output_format_string fmt args = do
 {
-  let rec add_string res str = match str with
-  [ []      -> res
-  | [c::cs] -> do
-    {
-      let r = ref Unbound in
-      !res := List (ref (Char c)) r;
-      add_string r cs
-    }
-  ]
-  in
-  let rec add_aligned_string res align pad len str = do
+  let rec add_string tail str = match str with
+  [ []      -> tail
+  | [c::cs] -> List (ref (Char c)) (ref (add_string tail cs))
+  ];
+  let rec add_aligned_string align pad len str = do
   {
-    let rec add_padding pad res n = do
+    let rec add_padding pad str n = do
     {
       if n <= 0 then
-        res
-      else do
-      {
-        let r = ref Unbound in
-        !res := List (ref (Char pad)) r;
-        add_padding pad r (n-1)
-      }
-    }
-    in
+        str
+      else
+        List (ref (Char pad))
+             (ref (add_padding pad str (n-1)))
+    };
 
     if len <= 0 then
-      add_string res str
+      add_string Nil str
     else do
     {
-      let l = List.length str in
+      let l = List.length str;
 
       if align then
         add_padding
           pad
-          (add_string res str)
+          (add_string Nil str)
           (l - len)
       else
         add_string
-          (add_padding pad res (l - len))
+          (add_padding pad Nil (l - len))
           str
     }
-  }
-  in
-  let rec format_argument res var fmt arg = match fmt with
+  };
+  let rec format_argument var fmt arg = match fmt with
   [ FS_Literal str -> do
     {
-      !res := add_string var str
+      add_string var str
     }
   | FS_String align len -> do
     {
-      cont2
-        (fun () -> Evaluate.evaluate_unknown arg)
-        (fun () -> match !arg with
-          [ Char c   -> !res := add_aligned_string var align 32 len [c]
-          | Symbol s -> !res := add_aligned_string var align 32 len (Array.to_list (symbol_to_string s))
-          | Nil      -> !res := add_aligned_string var align 32 len []
-          | List _ _ -> do
-            {
-              let str = ref [] in
+      match !arg with
+      [ Char c   -> add_aligned_string align 32 len [c]
+      | Symbol s -> add_aligned_string align 32 len (Array.to_list (symbol_to_string s))
+      | Nil      -> add_aligned_string align 32 len []
+      | List _ _ -> do
+        {
+          let str = evaluate_char_list "format_string" arg;
 
-              cont2
-                (fun () -> evaluate_char_list "format_string" str arg)
-                (fun () -> !res := add_aligned_string var align 32 len !str)
-            }
-          | _ -> runtime_error "format_string: invalid argument for %s"
-          ])
+          add_aligned_string align 32 len str
+        }
+      | _ -> runtime_error "format_string: invalid argument for %s"
+      ]
     }
   | FS_List spec sep -> do
     {
-      let lst = ref [] in
+      let lst = Evaluate.evaluate_list "format_string" arg;
 
-      cont2
-        (fun () -> Evaluate.evaluate_list "format_string" lst arg)
-        (fun () -> match !lst with
-         [ []      -> !res := var
-         | [x::xs] -> do
-           {
-             let r = ref var in
-             cont2
-               (fun () -> format_argument r var spec x)
-               (fun () -> do
-                 {
-                   iter !r xs
+      match lst with
+      [ []      -> var
+      | [x::xs] -> do
+        {
+          let r = format_argument var spec x;
 
-                   where rec iter var lst = match lst with
-                   [ []      -> !res := var
-                   | [x::xs] -> do
-                     {
-                       let r = ref var in
-                       cont3
-                         (fun () -> !r := add_string var sep)
-                         (fun () -> format_argument r !r spec x)
-                         (fun () -> iter !r xs)
-                     }
-                   ]
-                 })
-           }
-         ])
+          iter r xs
+
+          where rec iter var lst = match lst with
+          [ []      -> var
+          | [x::xs] -> do
+            {
+              iter
+                (format_argument (add_string var sep) spec x)
+                xs
+            }
+          ]
+        }
+      ]
     }
   | FS_Number align sign len len2 nf -> do
     {
-      let n = ref num_zero in
-      cont2
-        (fun () -> Evaluate.evaluate_num "format_string" n arg)
-        (fun () -> do
-          {
-            !res := add_aligned_string var align 32 len
-                      (number_to_string sign len2 nf !n)
-          })
-    }
-  ]
-  in
+      let n = Evaluate.evaluate_num "format_string" arg;
 
-  iter res fmt args
+      add_aligned_string align 32 len
+        (number_to_string sign len2 nf n)
+    }
+  ];
+
+  iter Nil fmt args
 
   where rec iter res fmt args = match fmt with
-  [ []                     -> !res := Nil
-  | [FS_Literal str :: fs] -> do
-    {
-      iter (add_string res str) fs args
-    }
+  [ []                     -> res
+  | [FS_Literal str :: fs] -> iter (add_string res str) fs args
   | [f :: fs] -> match args with
-    [ [b::bs] -> do
-      {
-        let r = ref res in
-        cont2
-          (fun () -> format_argument r res f b)
-          (fun () -> iter !r fs bs)
-      }
-    | _ -> assert False
-    ]
+                 [ [b::bs] -> iter (format_argument res f b) fs bs
+                 | _       -> assert False
+                 ]
   ]
 };
 
-value prim_format_string res fmt_string = do
+value prim_format_string fmt_string = do
 {
-  let fmt = ref [] in
+  let fmt = evaluate_char_list "format_string" fmt_string;
 
-  cont2
-    (fun () -> evaluate_char_list "format_string" fmt fmt_string)
-    (fun () -> do
-      {
-        let (f, n) = parse_format_string !fmt in
+  let (f, n) = parse_format_string fmt;
 
-        !res := PrimitiveN n (output_format_string f)
-      })
+  PrimitiveN n (output_format_string f)
 };
 
-value prim_to_tuple res x = do
+value prim_to_tuple x = do
 {
-  let lst = ref [] in
-
-  cont2
-    (fun () -> Evaluate.evaluate_list "to_tuple" lst x)
-    (fun () -> !res := Tuple (Array.of_list !lst))
+  Tuple (Array.of_list (Evaluate.evaluate_list "to_tuple" x))
 };
 
-value rec prim_to_list res x = match !x with
-[ Tuple xs     -> !res := Array.fold_right
+value rec prim_to_list x = match !x with
+[ Tuple xs     -> Array.fold_right
                     (fun a b -> List a (ref b))
                     xs
                     Nil
-| UnevalT _ _  -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> prim_to_list res x)
-  }
 | Unbound
 | Constraint _ -> runtime_error "to_list: argument undefined"
 | _            -> runtime_error "to_list: invalid argument"
 ];
 
-value rec unary_vec2_prim f name res x = match !x with
-[ Tuple [| a; b |] -> do
-  {
-    cont3
-      (fun () -> Evaluate.evaluate_unknown a)
-      (fun () -> Evaluate.evaluate_unknown b)
-      (fun () -> match (!a, !b) with
-      [ (Number n, Number m) -> do
-        {
-          try
-            !res := f n m
-          with
-          [ _ -> runtime_error (name ^ ": invalid argument") ]
-        }
-      | _ -> runtime_error (name ^ ": invalid argument")
-      ])
-  }
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> unary_vec2_prim f name res x)
-  }
+value rec unary_vec2_prim f name x = match !x with
+[ Tuple [| a; b |] -> match (!a, !b) with
+    [ (Number n, Number m) -> do
+      {
+        try
+          f n m
+        with
+        [ _ -> runtime_error (name ^ ": invalid argument") ]
+      }
+    | _ -> runtime_error (name ^ ": invalid argument")
+    ]
 | LinForm l -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form x l)
-      (fun () -> match !x with
-      [ Tuple _ -> unary_vec2_prim f name res x
-      | _       -> runtime_error (name ^ ": invalid argument")
-      ])
+    Evaluate.evaluate_lin_form x l;
+
+    match !x with
+    [ Tuple _ -> unary_vec2_prim f name x
+    | _       -> runtime_error (name ^ ": invalid argument")
+    ]
   }
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
 
-value rec prim_dir res x = do
+value rec prim_dir x = do
 {
-  let a = ref Unbound in
-  let b = ref Unbound in
-
-  !res := Tuple [| a; b |];
-
-  cont2
-    (fun () -> prim_cosd a x)
-    (fun () -> prim_sind b x)
+  Tuple
+    [| ref (prim_cosd x);
+       ref (prim_sind x) |]
 };
 
 value prim_angle = unary_vec2_prim
@@ -1364,56 +1018,36 @@ value prim_angle = unary_vec2_prim
     ])
   "angle";
 
-value rec prim_rotate res a vec = match !a with
+value rec prim_rotate a vec = match !a with
 [ Number n    -> unary_vec2_prim
                    (fun x y -> do
                      {
-                       let x2 = cosd n */ x -/ sind n */ y in
-                       let y2 = sind n */ x +/ cosd n */ y in
+                       let x2 = cosd n */ x -/ sind n */ y;
+                       let y2 = sind n */ x +/ cosd n */ y;
 
                        Tuple [| ref (Number x2); ref (Number y2) |]
                      })
                    "rotate"
-                   res
                    vec
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown a)
-      (fun () -> prim_rotate res a vec)
-  }
 | LinForm l   -> do
   {
-    cont2
-      (fun () -> Evaluate.evaluate_lin_form a l)
-      (fun () -> match !a with
-      [ Number _ -> prim_rotate res a vec
-      | _        -> runtime_error "rotate: invalid argument"
-      ])
+    Evaluate.evaluate_lin_form a l;
+    match !a with
+    [ Number _ -> prim_rotate a vec
+    | _        -> runtime_error "rotate: invalid argument"
+    ]
   }
 | _ -> runtime_error "rotate: invalid argument"
 ];
 
-value rec prim_add_to_dict res args = match args with
+value rec prim_add_to_dict args = match args with
 [ [sym; val; dict] -> match !sym with
   [ Symbol s -> match !dict with
-    [ Dictionary d -> !res := Dictionary (SymbolMap.add s val d)
-    | UnevalT _ _ -> do
-      {
-        cont2
-          (fun () -> Evaluate.evaluate_unknown dict)
-          (fun () -> prim_add_to_dict res args)
-      }
+    [ Dictionary d -> Dictionary (SymbolMap.add s val d)
     | Unbound
     | Constraint _ -> runtime_error "add_to_dict: argument undefined"
     | _            -> runtime_error ("add_to_dict: invalid argument (got " ^ type_name !dict ^ " instead of dictionary)")
     ]
-  | UnevalT _ _ -> do
-    {
-      cont2
-        (fun () -> Evaluate.evaluate_unknown sym)
-        (fun () -> prim_add_to_dict res args)
-    }
   | Unbound
   | Constraint _ -> runtime_error "add_to_dict: argument undefined"
   | _            -> runtime_error ("add_to_dict: invalid argument (got " ^ type_name !dict ^ " instead of symbol)")
@@ -1423,19 +1057,11 @@ value rec prim_add_to_dict res args = match args with
 
 (* characters *)
 
-value rec unary_char_prim f name res x = match !x with
+value rec unary_char_prim f name x = match !x with
 [ Char n -> do
   {
-    try
-      !res := f n
-    with
+    try f n with
     [ _ -> runtime_error (name ^ ": invalid argument") ]
-  }
-| UnevalT _ _ -> do
-  {
-    cont2
-      (fun () -> Evaluate.evaluate_unknown x)
-      (fun () -> unary_char_prim f name res x)
   }
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
@@ -1520,58 +1146,52 @@ value prim_char_category =
      ])
     "char_category";
 
-value prim_to_symbol res x = do
+value prim_to_symbol x = do
 {
-  let str = ref [] in
+  let str = evaluate_char_list "to_symbol" x;
 
-  cont2
-    (fun () -> evaluate_char_list "to_symbol" str x)
-    (fun () -> !res := Symbol (string_to_symbol (Array.of_list !str)))
+  Symbol (string_to_symbol (Array.of_list str))
 };
 
-value prim_generate_symbol res _ = do
+value prim_generate_symbol _ = do
 {
-  !res := Symbol (alloc_symbol ())
+  Symbol (alloc_symbol ())
 };
 
 (* serialisation *)
 
-value prim_serialise res file val = do
+value prim_serialise file val = do
 {
-  let str = ref [] in
+  let str = evaluate_char_list "serialise" file;
 
-  cont3
-    (fun () -> evaluate_char_list "serialise" str file)
-    (fun () -> Evaluate.evaluate_unknown val)
-    (fun () -> try do
-      {
-        let os = IO.make_out_stream (UString.bytes_to_string !str) in
-        Serialise.serialise_unknown os val;
-        IO.free os;
-       !res := Bool True
-      }
-      with [ _ -> !res := Bool False ])
+  try do
+  {
+    let os = IO.make_out_stream (UString.bytes_to_string str);
+    Serialise.serialise_unknown os val;
+    IO.free os;
+    Bool True
+  }
+  with [ _ -> Bool False ]
 };
 
-value prim_unserialise res file = do
+value prim_unserialise file = do
 {
-  let str = ref [] in
+  let str = evaluate_char_list "unserialise" file;
 
-  cont2
-    (fun () -> evaluate_char_list "unserialise" str file)
-    (fun () -> try do
-      {
-        let is = IO.make_rand_in_stream (UString.bytes_to_string !str) in
-        !res := Serialise.unserialise_unknown is;
-        IO.free is;
-      }
-      with
-      [ Sys_error _ -> do
-        {
-          Logging.log_warn ("",0,0) ("Cannot open file " ^ (UString.bytes_to_string !str) ^ "!");
-          !res := Unbound
-        }
-      ])
+  try do
+  {
+    let is  = IO.make_rand_in_stream (UString.bytes_to_string str);
+    let res = Serialise.unserialise_unknown is;
+    IO.free is;
+    res
+  }
+  with
+  [ Sys_error _ -> do
+    {
+      Logging.log_warn ("",0,0) ("Cannot open file " ^ (UString.bytes_to_string str) ^ "!");
+      Unbound
+    }
+  ]
 };
 
 (* initialisation *)
@@ -1583,7 +1203,7 @@ value bind_primitive scope name v = do
 
 value bind_bin_op_l scope name pri v = do
 {
-  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+  let sym = string_to_symbol (UString.uc_string_of_ascii name);
 
   Scope.add_bin_op scope pri Lexer.Left sym;
   Scope.add_global scope sym v
@@ -1591,7 +1211,7 @@ value bind_bin_op_l scope name pri v = do
 
 value bind_bin_op_n scope name pri v = do
 {
-  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+  let sym = string_to_symbol (UString.uc_string_of_ascii name);
 
   Scope.add_bin_op scope pri Lexer.NonA sym;
   Scope.add_global scope sym v
@@ -1599,7 +1219,7 @@ value bind_bin_op_n scope name pri v = do
 
 value bind_bin_op_r scope name pri v = do
 {
-  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+  let sym = string_to_symbol (UString.uc_string_of_ascii name);
 
   Scope.add_bin_op scope pri Lexer.Right sym;
   Scope.add_global scope sym v
@@ -1607,7 +1227,7 @@ value bind_bin_op_r scope name pri v = do
 
 value bind_pre_op scope name v = do
 {
-  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+  let sym = string_to_symbol (UString.uc_string_of_ascii name);
 
   Scope.add_pre_op scope sym;
   Scope.add_global scope sym v
@@ -1615,7 +1235,7 @@ value bind_pre_op scope name v = do
 
 value bind_post_op scope name v = do
 {
-  let sym = string_to_symbol (UString.uc_string_of_ascii name) in
+  let sym = string_to_symbol (UString.uc_string_of_ascii name);
 
   Scope.add_post_op scope sym;
   Scope.add_global  scope sym v
@@ -1623,12 +1243,12 @@ value bind_post_op scope name v = do
 
 value initial_scope () = do
 {
-  let scope = Scope.create () in
+  let scope = Scope.create ();
 
-  let add = bind_primitive scope in
+  let add = bind_primitive scope;
 
-  let add1 name f = bind_primitive scope name (Primitive1 f) in
-  let add2 name f = bind_primitive scope name (Primitive2 f) in
+  let add1 name f = bind_primitive scope name (Primitive1 f);
+  let add2 name f = bind_primitive scope name (Primitive2 f);
 
   (* control *)
 
@@ -1653,10 +1273,10 @@ value initial_scope () = do
 
   (* general arithmetic *)
 
-  add2 "+"        Evaluate.add_unknowns;
-  add2 "-"        Evaluate.sub_unknowns;
-  add2 "*"        Evaluate.mul_unknowns;
-  add2 "/"        Evaluate.div_unknowns;
+  add2 "+"        Evaluate.prim_add;
+  add2 "-"        Evaluate.prim_sub;
+  add2 "*"        Evaluate.prim_mul;
+  add2 "/"        Evaluate.prim_div;
   add2 "^"        prim_pow;
   add2 "quot"     prim_quot;
   add2 "mod"      prim_mod;
@@ -1743,12 +1363,11 @@ value initial_scope () = do
   (* dimensions *)
 
   let scale x =
-    SimpleFunction 1 []
-      (TApplication
-        (TConstant (Primitive2 Evaluate.mul_unknowns))
-        [TConstant (Number x);
-         TVariable 0 0])
-  in
+    Function [] 1
+      [|BConst (Number x);
+        BConst (Primitive2 Evaluate.prim_mul);
+        BApply 2;
+        BReturn|];
 
   bind_post_op scope "pt" (scale num_one);
   bind_post_op scope "bp" (scale ( 7227 /:  7200));

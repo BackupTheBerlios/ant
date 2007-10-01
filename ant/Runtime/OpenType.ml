@@ -21,10 +21,10 @@ value make_tag str = do
     invalid_arg "make_tag: 4 characters expected"
   else do
   {
-    let d0 = int_of_char str.[0] in
-    let d1 = int_of_char str.[1] in
-    let d2 = int_of_char str.[2] in
-    let d3 = int_of_char str.[3] in
+    let d0 = int_of_char str.[0];
+    let d1 = int_of_char str.[1];
+    let d2 = int_of_char str.[2];
+    let d3 = int_of_char str.[3];
 
     if d0 >= 32 && d0 <= 126
     && d1 >= 32 && d1 <= 126
@@ -43,10 +43,10 @@ value make_tag_uc str = do
     invalid_arg "make_tag_uc: 4 characters expected"
   else do
   {
-    let d0 = str.(0) in
-    let d1 = str.(1) in
-    let d2 = str.(2) in
-    let d3 = str.(3) in
+    let d0 = str.(0);
+    let d1 = str.(1);
+    let d2 = str.(2);
+    let d3 = str.(3);
 
     if d0 >= 32 && d0 <= 126
     && d1 >= 32 && d1 <= 126
@@ -61,11 +61,11 @@ value make_tag_uc str = do
 
 value tag_to_string tag = do
 {
-  let str = String.make 4 ' ' in
+  let str = String.make 4 ' ';
 
   let x = Int32.to_int (Int32.logand (Int32.shift_right tag 16)
-                                     (Int32.of_int 0xffff))     in
-  let y = Int32.to_int (Int32.logand tag (Int32.of_int 0xffff)) in
+                                     (Int32.of_int 0xffff));
+  let y = Int32.to_int (Int32.logand tag (Int32.of_int 0xffff));
 
   str.[0] := char_of_int ((x lsr 8) land 0xff);
   str.[1] := char_of_int (x land 0xff);
@@ -158,32 +158,32 @@ value read_u8 table off = int_of_char (table.[off]);
 
 value read_u16 table off = do
 {
-  let x = read_u8 table off in
-  let y = read_u8 table (off+1) in
+  let x = read_u8 table off;
+  let y = read_u8 table (off+1);
 
   0x100 * x + y
 };
 
 value read_u24 table off = do
 {
-  let x = read_u8 table off     in
-  let y = read_u8 table (off+1) in
-  let z = read_u8 table (off+2) in
+  let x = read_u8 table off;
+  let y = read_u8 table (off+1);
+  let z = read_u8 table (off+2);
 
   0x10000 * x + 0x100 * y + z
 };
 
 value read_u32 table off = do
 {
-  let x = read_u16 table off in
-  let y = read_u16 table (off+2) in
+  let x = read_u16 table off;
+  let y = read_u16 table (off+2);
 
   Tag.compose_tag x y
 };
 
 value read_i8 table off = do
 {
-  let x = read_u8 table off in
+  let x = read_u8 table off;
 
   if x > 0x7f then
     x - 0x100
@@ -193,7 +193,7 @@ value read_i8 table off = do
 
 value read_i16 table off = do
 {
-  let x = read_u16 table off in
+  let x = read_u16 table off;
 
   if x > 0x7fff then
     x - 0x10000
@@ -330,8 +330,7 @@ value get_lookups ps_table script lang_sys features = do
     Array.iter
       (fun l -> lookups.(l) := True)
       feature.f_lookups
-  }
-  in
+  };
   let mark_lang_sys_lookups lookups lang_sys features = do
   {
     match lang_sys.ls_required with
@@ -344,19 +343,17 @@ value get_lookups ps_table script lang_sys features = do
                   mark_feature_lookups lookups f
                 else ())
       lang_sys.ls_features
-  }
-  in
+  };
 
-  let num_lookups = Array.length ps_table.t_lookups in
-  let marks       = Array.make num_lookups False    in
+  let num_lookups = Array.length ps_table.t_lookups;
+  let marks       = Array.make num_lookups False;
 
-  let s  = TagMap.find script ps_table.t_scripts in
+  let s  = TagMap.find script ps_table.t_scripts;
 
   let ls = try
              TagMap.find lang_sys s
            with
-           [ Not_found -> TagMap.find dflt_tag s ]
-  in
+           [ Not_found -> TagMap.find dflt_tag s ];
 
   mark_lang_sys_lookups marks ls features;
 
@@ -370,8 +367,7 @@ value get_lookups ps_table script lang_sys features = do
             (i-1, lu)
         })
       ps_table.t_lookups
-      (num_lookups-1, [])
-  in
+      (num_lookups-1, []);
 
   active_lookups
 };
@@ -389,17 +385,17 @@ value parse_size_params table table_off =
 
 value parse_features table table_off = do
 {
-  let num_features = read_u16 table table_off in
+  let num_features = read_u16 table table_off;
 
   let read_feature i = do
   {
-    let f_off  = table_off + 6 * i + 2      in
-    let tag    = read_u32 table f_off       in
-    let offset = read_u16 table (f_off + 4) in
+    let f_off  = table_off + 6 * i + 2;
+    let tag    = read_u32 table f_off;
+    let offset = read_u16 table (f_off + 4);
 
-    let params      = read_u16       table (table_off + offset)                 in
-    let num_lookups = read_u16       table (table_off + offset + 2)             in
-    let lookups     = read_u16_array table (table_off + offset + 4) num_lookups in
+    let params      = read_u16       table (table_off + offset);
+    let num_lookups = read_u16       table (table_off + offset + 2);
+    let lookups     = read_u16_array table (table_off + offset + 4) num_lookups;
 
     {
       f_tag         = tag;
@@ -407,16 +403,15 @@ value parse_features table table_off = do
       f_lookups     = lookups;
       f_script_list = TagMap.empty
     }
-  }
-  in
+  };
 
   Array.init num_features read_feature;
 };
 
 value process_lang_sys table table_off (required_script_list, script_list) script lang = do
 {
-  let f = read_u16 table (table_off + 2) in
-  let n = read_u16 table (table_off + 4) in
+  let f = read_u16 table (table_off + 2);
+  let n = read_u16 table (table_off + 4);
 
   if f = 0xffff then
     ()
@@ -425,7 +420,7 @@ value process_lang_sys table table_off (required_script_list, script_list) scrip
 
   for i = 0 to n-1 do
   {
-    let f = read_u16 table (table_off + 2 * i + 6) in
+    let f = read_u16 table (table_off + 2 * i + 6);
 
     script_list.(f) := TagMap.add script lang script_list.(f)
   }
@@ -435,8 +430,8 @@ value parse_scripts table table_off features = do
 {
   let read_lang_sys table_off = do
   {
-    let f = read_u16 table (table_off + 2) in
-    let n = read_u16 table (table_off + 4) in
+    let f = read_u16 table (table_off + 2);
+    let n = read_u16 table (table_off + 4);
 
     {
       ls_required =
@@ -449,7 +444,7 @@ value parse_scripts table table_off features = do
             n
             (fun i -> do
               {
-                let f = read_u16 table (table_off + 2 * i + 6) in
+                let f = read_u16 table (table_off + 2 * i + 6);
 
                 features.(f)
               })
@@ -457,19 +452,18 @@ value parse_scripts table table_off features = do
   };
   let read_script i scripts = do
   {
-    let script_tag = read_u32 table (table_off + 6 * i + 2) in
-    let script_off = read_u16 table (table_off + 6 * i + 6) in
+    let script_tag = read_u32 table (table_off + 6 * i + 2);
+    let script_off = read_u16 table (table_off + 6 * i + 6);
 
-    let off          = table_off + script_off   in
-    let def_lang_sys = read_u16 table off       in
-    let num_langs    = read_u16 table (off + 2) in
+    let off          = table_off + script_off;
+    let def_lang_sys = read_u16 table off;
+    let num_langs    = read_u16 table (off + 2);
 
     let ls =
       if def_lang_sys <> 0 then
         TagMap.add dflt_tag (read_lang_sys (off + def_lang_sys)) TagMap.empty
       else
-        TagMap.empty
-    in
+        TagMap.empty;
 
     iter 0 ls
 
@@ -479,16 +473,15 @@ value parse_scripts table table_off features = do
         TagMap.add script_tag ls scripts
       else do
       {
-        let t = read_u32 table (off + 6 * i + 4) in
-        let o = read_u16 table (off + 6 * i + 8) in
+        let t = read_u32 table (off + 6 * i + 4);
+        let o = read_u16 table (off + 6 * i + 8);
 
         iter (i+1) (TagMap.add t (read_lang_sys (off + o)) ls)
       }
     }
-  }
-  in
+  };
 
-  let num_scripts = read_u16 table table_off in
+  let num_scripts = read_u16 table table_off;
 
   iter 0 TagMap.empty
 
@@ -506,13 +499,13 @@ value get_coverage_table table table_off = do
   match read_u16 table table_off with
   [ 1 -> do
     {
-      let num = read_u16 table (table_off + 2) in
+      let num = read_u16 table (table_off + 2);
 
       read_u16_array table (table_off + 4) num
     }
   | 2 -> do
     {
-      let rel_num = read_u16 table (table_off + 2) in
+      let rel_num = read_u16 table (table_off + 2);
 
       iter 0 0 []
 
@@ -520,7 +513,7 @@ value get_coverage_table table table_off = do
       {
         if i >= rel_num then do
         {
-          let glyphs = Array.make num_glyphs 0 in
+          let glyphs = Array.make num_glyphs 0;
 
           List.iter
             (fun (first, last, ind) -> do
@@ -536,9 +529,9 @@ value get_coverage_table table table_off = do
         }
         else do
         {
-          let first = read_u16 table (table_off + 6 * i + 4) in
-          let last  = read_u16 table (table_off + 6 * i + 6) in
-          let ind   = read_u16 table (table_off + 6 * i + 8) in
+          let first = read_u16 table (table_off + 6 * i + 4);
+          let last  = read_u16 table (table_off + 6 * i + 6);
+          let ind   = read_u16 table (table_off + 6 * i + 8);
 
           iter (i+1) (max num_glyphs (ind + last - first + 1))
                      [(first, last, ind) :: intervals]
@@ -551,25 +544,24 @@ value get_coverage_table table table_off = do
 
 value parse_lookups table table_off read = do
 {
-  let num_lookups    = read_u16 table table_off                         in
-  let lookup_offsets = read_u16_array table (table_off + 2) num_lookups in
+  let num_lookups    = read_u16 table table_off;
+  let lookup_offsets = read_u16_array table (table_off + 2) num_lookups;
 
   let rec read_lookup l = do
   {
-    let off    = table_off + lookup_offsets.(l) in
-    let l_type = read_u16 table off       in
-    let flags  = read_u16 table (off + 2) in
-    let num    = read_u16 table (off + 4) in
+    let off    = table_off + lookup_offsets.(l);
+    let l_type = read_u16 table off;
+    let flags  = read_u16 table (off + 2);
+    let num    = read_u16 table (off + 4);
 
-    let offsets = read_u16_array table (off + 6) num in
+    let offsets = read_u16_array table (off + 6) num;
 
-    let commands = Array.init num (fun i -> read read_lookup table (off + offsets.(i)) l_type) in
+    let commands = Array.init num (fun i -> read read_lookup table (off + offsets.(i)) l_type);
     {
       l_flags    = flags;
       l_commands = commands
     }
-  }
-  in
+  };
 
   Array.init num_lookups read_lookup
 };
@@ -579,8 +571,8 @@ value read_class_table table table_off = do
   match read_u16 table table_off with
   [ 1 -> do
     {
-      let start = read_u16 table (table_off + 2) in
-      let num   = read_u16 table (table_off + 4) in
+      let start = read_u16 table (table_off + 2);
+      let num   = read_u16 table (table_off + 4);
 
       init_map num
         (fun i -> start + i)
@@ -588,7 +580,7 @@ value read_class_table table table_off = do
     }
   | 2 -> do
     {
-      let num = read_u16 table (table_off + 2) in
+      let num = read_u16 table (table_off + 2);
 
       iter 0 IntMap.empty
 
@@ -598,9 +590,9 @@ value read_class_table table table_off = do
           ct
         else do
         {
-          let first = read_u16 table (table_off + 6 * i + 4) in
-          let last  = read_u16 table (table_off + 6 * i + 6) in
-          let cls   = read_u16 table (table_off + 6 * i + 8) in
+          let first = read_u16 table (table_off + 6 * i + 4);
+          let last  = read_u16 table (table_off + 6 * i + 6);
+          let cls   = read_u16 table (table_off + 6 * i + 8);
 
           add first ct
 
@@ -627,10 +619,10 @@ value read_pos_rule_record table table_off read_lookup num = do
 
 value read_context_subrule table table_off read_lookup first i = do
 {
-  let off = table_off + read_u16 table (table_off + 2 * i + 2) in
+  let off = table_off + read_u16 table (table_off + 2 * i + 2);
 
-  let num1 = read_u16 table off       in
-  let num2 = read_u16 table (off + 2) in
+  let num1 = read_u16 table off;
+  let num2 = read_u16 table (off + 2);
 
   let first_array =
     Array.init num1
@@ -640,10 +632,9 @@ value read_context_subrule table table_off read_lookup first i = do
             first
           else
             read_u16 table (off + 2 * i + 2)
-        })
-  in
+        });
 
-  let sl_off = off + 2 * num1 + 2 in
+  let sl_off = off + 2 * num1 + 2;
 
   (first_array,
    read_pos_rule_record table sl_off read_lookup num2)
@@ -653,25 +644,24 @@ value read_context_1 _read read_lookup table table_off is_gpos = do
 {
   let read_rule glyphs i = do
   {
-    let off = table_off + read_u16 table (table_off + 2 * i + 6) in
+    let off = table_off + read_u16 table (table_off + 2 * i + 6);
 
     if off = table_off then
       [| |]
     else do
     {
-      let num_sub = read_u16 table off in
+      let num_sub = read_u16 table off;
 
       Array.init num_sub (read_context_subrule table off read_lookup glyphs.(i))
     }
-  }
-  in
+  };
 
-  let coverage  = read_u16 table (table_off + 2) in
-  let num_rules = read_u16 table (table_off + 4) in
+  let coverage  = read_u16 table (table_off + 2);
+  let num_rules = read_u16 table (table_off + 4);
 
-  let glyphs = get_coverage_table table (table_off + coverage) in
+  let glyphs = get_coverage_table table (table_off + coverage);
 
-  let rules = Array.init num_rules (read_rule glyphs) in
+  let rules = Array.init num_rules (read_rule glyphs);
 
   iter 0 0 DynUCTrie.empty
 
@@ -688,7 +678,7 @@ value read_context_1 _read read_lookup table table_off is_gpos = do
       iter (i+1) 0 trie
     else do
     {
-      let (glyphs, lookups) = rules.(i).(k) in
+      let (glyphs, lookups) = rules.(i).(k);
 
       iter i (k+1) (DynUCTrie.add_string glyphs lookups trie)
     }
@@ -699,35 +689,33 @@ value read_context_2 _read read_lookup table table_off is_gpos = do
 {
   let read_rule table_off i = do
   {
-    let off = table_off + read_u16 table (table_off + 2 * i) in
+    let off = table_off + read_u16 table (table_off + 2 * i);
 
     if off = table_off then
       [| |]
     else do
     {
-      let num_sub = read_u16 table off in
+      let num_sub = read_u16 table off;
 
       Array.init num_sub (read_context_subrule table off read_lookup i)
     }
-  }
-  in
+  };
 
-(*  let coverage = read_u16 table (table_off + 2) in *)
-  let class_off = read_u16 table (table_off + 4) in
-  let num_rules = read_u16 table (table_off + 6) in
+(*  let coverage = read_u16 table (table_off + 2); *)
+  let class_off = read_u16 table (table_off + 4);
+  let num_rules = read_u16 table (table_off + 6);
 
-(*  let glyphs    = get_coverage_table table (table_off + coverage) in *)
-  let class_table = read_class_table table (table_off + class_off) in
+(*  let glyphs    = get_coverage_table table (table_off + coverage); *)
+  let class_table = read_class_table table (table_off + class_off);
 
-  let rules = Array.init num_rules (read_rule (table_off + 8)) in
+  let rules = Array.init num_rules (read_rule (table_off + 8));
 
   let num_psr =
     Array.fold_left
       (fun n sr -> n + Array.length sr)
       0
-      rules
-  in
-  let ps_rules = Array.make num_psr { psr_data = [||]; psr_lookups = [||] } in
+      rules;
+  let ps_rules = Array.make num_psr { psr_data = [||]; psr_lookups = [||] };
 
   iter 0 0 0
 
@@ -744,7 +732,7 @@ value read_context_2 _read read_lookup table table_off is_gpos = do
       iter (i+1) 0 n
     else do
     {
-      let (classes, lookups) = rules.(i).(k) in
+      let (classes, lookups) = rules.(i).(k);
 
       ps_rules.(n) :=
         {
@@ -759,25 +747,23 @@ value read_context_2 _read read_lookup table table_off is_gpos = do
 
 value read_context_3 _read read_lookup table table_off is_gpos = do
 {
-  let num_glyphs = read_u16 table (table_off + 2) in
-  let num_sl     = read_u16 table (table_off + 4) in
+  let num_glyphs = read_u16 table (table_off + 2);
+  let num_sl     = read_u16 table (table_off + 4);
 
-  let coverage   = read_u16_array table (table_off + 6) num_glyphs in
+  let coverage   = read_u16_array table (table_off + 6) num_glyphs;
 
-  let sl = read_pos_rule_record table (table_off + 2 * num_glyphs + 6) read_lookup num_sl in
+  let sl = read_pos_rule_record table (table_off + 2 * num_glyphs + 6) read_lookup num_sl;
 
   let glyphs =
     Array.map
       (fun off -> get_coverage_table table (table_off + off))
-      coverage
-  in
+      coverage;
 
   let ps_rules =
     [| {
          psr_data    = glyphs;
          psr_lookups = sl
-       } |]
-  in
+       } |];
 
   if is_gpos then
     ContextCoveragePos   ps_rules
@@ -797,12 +783,12 @@ value rec read_context read read_lookup table table_off is_gpos = do
 
 value read_chaining_subrule table table_off read_lookup first i = do
 {
-  let b_off   = table_off + read_u16 table (table_off + 2 * i + 2) in
-  let b_num   = read_u16 table b_off                   in
-  let b_array = read_u16_array table (b_off + 2) b_num in
+  let b_off   = table_off + read_u16 table (table_off + 2 * i + 2);
+  let b_num   = read_u16 table b_off;
+  let b_array = read_u16_array table (b_off + 2) b_num;
 
-  let i_off = b_off + 2 * b_num + 2 in
-  let i_num = read_u16 table i_off  in
+  let i_off = b_off + 2 * b_num + 2;
+  let i_num = read_u16 table i_off;
 
   let i_array =
     Array.init i_num
@@ -812,16 +798,15 @@ value read_chaining_subrule table table_off read_lookup first i = do
             first
           else
             read_u16 table (i_off + 2 * i)
-        })
-  in
+        });
 
-  let a_off = i_off + 2 * i_num + 2 in
-  let a_num = read_u16 table a_off  in
+  let a_off = i_off + 2 * i_num + 2;
+  let a_num = read_u16 table a_off;
 
-  let a_array = read_u16_array table (a_off + 2) a_num in
+  let a_array = read_u16_array table (a_off + 2) a_num;
 
-  let p_off = a_off + 2 * a_num + 2 in
-  let num_p = read_u16 table p_off in
+  let p_off = a_off + 2 * a_num + 2;
+  let num_p = read_u16 table p_off;
 
   (b_array, i_array, a_array,
    read_pos_rule_record table (p_off + 2) read_lookup num_p)
@@ -831,33 +816,31 @@ value read_chaining_1 _read read_lookup table table_off is_gpos = do
 {
   let read_rule glyphs i = do
   {
-    let off = table_off + read_u16 table (table_off + 2 * i + 6) in
+    let off = table_off + read_u16 table (table_off + 2 * i + 6);
 
     if off = table_off then
       [| |]
     else do
     {
-      let num_sub = read_u16 table off in
+      let num_sub = read_u16 table off;
 
       Array.init num_sub (read_chaining_subrule table off read_lookup glyphs.(i))
     }
-  }
-  in
+  };
 
-  let coverage  = read_u16 table (table_off + 2) in
-  let num_rules = read_u16 table (table_off + 4) in
+  let coverage  = read_u16 table (table_off + 2);
+  let num_rules = read_u16 table (table_off + 4);
 
-  let glyphs = get_coverage_table table (table_off + coverage) in
+  let glyphs = get_coverage_table table (table_off + coverage);
 
-  let rules = Array.init num_rules (read_rule glyphs) in
+  let rules = Array.init num_rules (read_rule glyphs);
 
   let num_psr =
     Array.fold_left
       (fun n sr -> n + Array.length sr)
       0
-      rules
-  in
-  let ps_rules = Array.make num_psr { psr_data = ([||], [||], [||]); psr_lookups = [||] } in
+      rules;
+  let ps_rules = Array.make num_psr { psr_data = ([||], [||], [||]); psr_lookups = [||] };
 
   iter 0 0 0
 
@@ -874,7 +857,7 @@ value read_chaining_1 _read read_lookup table table_off is_gpos = do
       iter (i+1) 0 n
     else do
     {
-      let (b,g,f, lookups) = rules.(i).(k) in
+      let (b,g,f, lookups) = rules.(i).(k);
 
       ps_rules.(n) :=
         {
@@ -891,39 +874,37 @@ value read_chaining_2 _read read_lookup table table_off is_gpos = do
 {
   let read_rule table_off i = do
   {
-    let off = table_off + read_u16 table (table_off + 2 * i) in
+    let off = table_off + read_u16 table (table_off + 2 * i);
 
     if off = table_off then
       [| |]
     else do
     {
-      let num_sub = read_u16 table off in
+      let num_sub = read_u16 table off;
 
       Array.init num_sub (read_chaining_subrule table off read_lookup i)
     }
-  }
-  in
+  };
 
-(*  let coverage  = read_u16 table (table_off +  2) in *)
-  let b_class_off = read_u16 table (table_off +  4) in
-  let g_class_off = read_u16 table (table_off +  6) in
-  let f_class_off = read_u16 table (table_off +  8) in
-  let num_rules   = read_u16 table (table_off + 10) in
+(*  let coverage  = read_u16 table (table_off +  2); *)
+  let b_class_off = read_u16 table (table_off +  4);
+  let g_class_off = read_u16 table (table_off +  6);
+  let f_class_off = read_u16 table (table_off +  8);
+  let num_rules   = read_u16 table (table_off + 10);
 
-(*  let glyphs  = get_coverage_table table (table_off + coverage)  in *)
-  let b_classes = read_class_table table (table_off + b_class_off) in
-  let g_classes = read_class_table table (table_off + g_class_off) in
-  let f_classes = read_class_table table (table_off + f_class_off) in
+(*  let glyphs  = get_coverage_table table (table_off + coverage); *)
+  let b_classes = read_class_table table (table_off + b_class_off);
+  let g_classes = read_class_table table (table_off + g_class_off);
+  let f_classes = read_class_table table (table_off + f_class_off);
 
-  let rules = Array.init num_rules (read_rule (table_off + 12)) in
+  let rules = Array.init num_rules (read_rule (table_off + 12));
 
   let num_psr =
     Array.fold_left
       (fun n sr -> n + Array.length sr)
       0
-      rules
-  in
-  let ps_rules = Array.make num_psr { psr_data = ([||], [||], [||]); psr_lookups = [||] } in
+      rules;
+  let ps_rules = Array.make num_psr { psr_data = ([||], [||], [||]); psr_lookups = [||] };
 
   iter 0 0 0
 
@@ -940,7 +921,7 @@ value read_chaining_2 _read read_lookup table table_off is_gpos = do
       iter (i+1) 0 n
     else do
     {
-      let (b,g,f, lookups) = rules.(i).(k) in
+      let (b,g,f, lookups) = rules.(i).(k);
 
       ps_rules.(n) :=
         {
@@ -955,41 +936,37 @@ value read_chaining_2 _read read_lookup table table_off is_gpos = do
 
 value read_chaining_3 _read read_lookup table table_off is_gpos = do
 {
-  let num_b      = read_u16 table (table_off + 2)             in
-  let b_coverage = read_u16_array table (table_off + 4) num_b in
-  let n_off      = table_off + 2 * num_b + 4                  in
-  let num_n      = read_u16 table n_off                       in
-  let n_coverage = read_u16_array table (n_off + 2) num_n     in
-  let f_off      = n_off + 2 * num_n + 2                      in
-  let num_f      = read_u16 table f_off                       in
-  let f_coverage = read_u16_array table (f_off + 2) num_f     in
-  let sl_off     = f_off + 2 * num_f + 2                      in
-  let num_sl     = read_u16 table sl_off                      in
+  let num_b      = read_u16 table (table_off + 2);
+  let b_coverage = read_u16_array table (table_off + 4) num_b;
+  let n_off      = table_off + 2 * num_b + 4;
+  let num_n      = read_u16 table n_off;
+  let n_coverage = read_u16_array table (n_off + 2) num_n;
+  let f_off      = n_off + 2 * num_n + 2;
+  let num_f      = read_u16 table f_off;
+  let f_coverage = read_u16_array table (f_off + 2) num_f;
+  let sl_off     = f_off + 2 * num_f + 2;
+  let num_sl     = read_u16 table sl_off;
 
-  let sl = read_pos_rule_record table (sl_off + 2) read_lookup num_sl in
+  let sl = read_pos_rule_record table (sl_off + 2) read_lookup num_sl;
 
   let b_glyphs =
     Array.map
       (fun off -> get_coverage_table table (table_off + off))
-      b_coverage
-  in
+      b_coverage;
   let n_glyphs =
     Array.map
       (fun off -> get_coverage_table table (table_off + off))
-      n_coverage
-  in
+      n_coverage;
   let f_glyphs =
     Array.map
       (fun off -> get_coverage_table table (table_off + off))
-      f_coverage
-  in
+      f_coverage;
 
   let ps_rules =
     [| {
          psr_data    = (b_glyphs, n_glyphs, f_glyphs);
          psr_lookups = sl
-       } |]
-  in
+       } |];
 
   if is_gpos then
     ChainCoveragePos   ps_rules
@@ -1009,21 +986,21 @@ value rec read_chaining read read_lookup table table_off is_gpos = do
 
 value read_extension read read_lookup table table_off = do
 {
-  let lu_type = read_u16 table (table_off + 2) in
-  let offset  = read_u16 table (table_off + 4) in
+  let lu_type = read_u16 table (table_off + 2);
+  let offset  = read_u16 table (table_off + 4);
 
   read read_lookup table (table_off + offset) lu_type
 };
 
 value parse_table table read = do
 {
-  let script_offset  = read_u16 table 4 in
-  let feature_offset = read_u16 table 6 in
-  let lookup_offset  = read_u16 table 8 in
+  let script_offset  = read_u16 table 4;
+  let feature_offset = read_u16 table 6;
+  let lookup_offset  = read_u16 table 8;
 
-  let features = parse_features table feature_offset         in
-  let scripts  = parse_scripts  table script_offset features in
-  let lookups  = parse_lookups  table lookup_offset read     in
+  let features = parse_features table feature_offset;
+  let scripts  = parse_scripts  table script_offset features;
+  let lookups  = parse_lookups  table lookup_offset read;
 
   let rec get_size f = do
   {
@@ -1033,9 +1010,8 @@ value parse_table table read = do
       Some (parse_size_params table (feature_offset + features.(f).f_params))
     else
       get_size (f+1)
-  }
-  in
-  let size = get_size 0 in
+  };
+  let size = get_size 0;
 
   make_pos_subst_table scripts lookups size
 };
@@ -1059,7 +1035,7 @@ type value_record =
 
 value value_record_len vf = do
 {
-  let bit i = if vf land i <> 0 then 2 else 0 in
+  let bit i = if vf land i <> 0 then 2 else 0;
 
     bit 0x01 + bit 0x02 + bit 0x04 + bit 0x08
   + bit 0x10 + bit 0x20 + bit 0x40 + bit 0x80
@@ -1067,12 +1043,12 @@ value value_record_len vf = do
 
 value read_value_record table table_off vf = do
 {
-  let read (t,o) bit = if bit = 0 then ((t,o), 0) else ((t, o+2), read_i16 t o) in
+  let read (t,o) bit = if bit = 0 then ((t,o), 0) else ((t, o+2), read_i16 t o);
 
-  let (t1, x_placement) = read (table, table_off) (vf land 0x01) in
-  let (t2, y_placement) = read t1                 (vf land 0x02) in
-  let (t3, x_advance)   = read t2                 (vf land 0x04) in
-  let (_,  y_advance)   = read t3                 (vf land 0x08) in
+  let (t1, x_placement) = read (table, table_off) (vf land 0x01);
+  let (t2, y_placement) = read t1                 (vf land 0x02);
+  let (t3, x_advance)   = read t2                 (vf land 0x04);
+  let (_,  y_advance)   = read t3                 (vf land 0x08);
 
   {
     x_placement = x_placement;
@@ -1084,7 +1060,7 @@ value read_value_record table table_off vf = do
 
 value read_value_records table table_off num vf = do
 {
-  let len = value_record_len vf in
+  let len = value_record_len vf;
 
   Array.init num
     (fun i -> read_value_record table (table_off + i * len) vf)
@@ -1100,14 +1076,14 @@ value value_record_to_positioning vr =
 
 value gpos_simple_pos table table_off = do
 {
-  let format = read_u16 table table_off in
+  let format = read_u16 table table_off;
 
   if format <> 1 && format <> 2 then
     NoCommand
   else do
   {
-    let coverage     = read_u16 table (table_off + 2) in
-    let value_format = read_u16 table (table_off + 4) in
+    let coverage     = read_u16 table (table_off + 2);
+    let value_format = read_u16 table (table_off + 4);
 
     if value_format land 0xf = 0 then
       NoCommand
@@ -1117,16 +1093,14 @@ value gpos_simple_pos table table_off = do
         if format = 1 then
           1
         else
-          read_u16 table (table_off + 6)
-      in
+          read_u16 table (table_off + 6);
       let record_off =
         if format = 1 then
           table_off + 6
         else
-          table_off + 8
-      in
-      let value_records = read_value_records table record_off num_records value_format in
-      let glyphs        = get_coverage_table table (table_off + coverage) in
+          table_off + 8;
+      let value_records = read_value_records table record_off num_records value_format;
+      let glyphs        = get_coverage_table table (table_off + coverage);
 
       Position
         (init_map (Array.length glyphs)
@@ -1139,49 +1113,47 @@ value gpos_simple_pos table table_off = do
 
 value gpos_kern table table_off = do
 {
-  let format = read_u16 table table_off in
+  let format = read_u16 table table_off;
 
   if format <> 1 && format <> 2 then
     NoCommand
   else do
   {
-    let coverage = read_u16 table (table_off + 2) in
-    let vf1      = read_u16 table (table_off + 4) in
-    let vf2      = read_u16 table (table_off + 6) in
-    let vr1_len  = value_record_len vf1 in
-    let vr2_len  = value_record_len vf2 in
+    let coverage = read_u16 table (table_off + 2);
+    let vf1      = read_u16 table (table_off + 4);
+    let vf2      = read_u16 table (table_off + 6);
+    let vr1_len  = value_record_len vf1;
+    let vr2_len  = value_record_len vf2;
 
     match format with
     [ 1 -> do
       {
-        let num = read_u16 table (table_off + 8) in
+        let num = read_u16 table (table_off + 8);
 
-        let offsets = read_u16_array table (table_off + 10) num       in
-        let glyphs  = get_coverage_table table (table_off + coverage) in
+        let offsets = read_u16_array table (table_off + 10) num;
+        let glyphs  = get_coverage_table table (table_off + coverage);
 
-        let record_len = vr1_len + vr2_len + 2    in
+        let record_len = vr1_len + vr2_len + 2;
 
         let num_pairs = Array.map
                           (fun off -> read_u16 table (table_off + off))
-                          offsets
-        in
+                          offsets;
 
         let read_sub_table i = do
         {
-          let off = table_off + offsets.(i) in
+          let off = table_off + offsets.(i);
 
           init_map num_pairs.(i)
             (fun k -> read_u16 table (off + k * record_len + 2))
             (fun k -> do
               {
-                let vr1 = read_value_record table (off + k * record_len + 4)           vf1 in
-                let vr2 = read_value_record table (off + k * record_len + vr1_len + 4) vf2 in
+                let vr1 = read_value_record table (off + k * record_len + 4)           vf1;
+                let vr2 = read_value_record table (off + k * record_len + vr1_len + 4) vf2;
 
                 (value_record_to_positioning vr1,
                  value_record_to_positioning vr2)
                })
-        }
-        in
+        };
 
         Kern
           (init_map num
@@ -1190,20 +1162,20 @@ value gpos_kern table table_off = do
       }
     | 2 -> do
       {
-        let class1_off = read_u16 table (table_off +  8) in
-        let class2_off = read_u16 table (table_off + 10) in
-        let class1_num = read_u16 table (table_off + 12) in
-        let class2_num = read_u16 table (table_off + 14) in
+        let class1_off = read_u16 table (table_off +  8);
+        let class2_off = read_u16 table (table_off + 10);
+        let class1_num = read_u16 table (table_off + 12);
+        let class2_num = read_u16 table (table_off + 14);
 
-        let class1 = read_class_table table (table_off + class1_off) in
-        let class2 = read_class_table table (table_off + class2_off) in
+        let class1 = read_class_table table (table_off + class1_off);
+        let class2 = read_class_table table (table_off + class2_off);
 
-        let kern_val1 = Array.make (class1_num * class2_num) { p_x_off = 0; p_y_off = 0; p_h_adv_off = 0; p_v_adv_off = 0 } in
-        let kern_val2 = Array.make (class1_num * class2_num) { p_x_off = 0; p_y_off = 0; p_h_adv_off = 0; p_v_adv_off = 0 } in
+        let kern_val1 = Array.make (class1_num * class2_num) { p_x_off = 0; p_y_off = 0; p_h_adv_off = 0; p_v_adv_off = 0 };
+        let kern_val2 = Array.make (class1_num * class2_num) { p_x_off = 0; p_y_off = 0; p_h_adv_off = 0; p_v_adv_off = 0 };
 
         for i = 0 to class1_num * class2_num - 1 do
         {
-          let off = table_off + i * (vr1_len + vr2_len) + 16 in
+          let off = table_off + i * (vr1_len + vr2_len) + 16;
 
           kern_val1.(i) := value_record_to_positioning (read_value_record table off             vf1);
           kern_val2.(i) := value_record_to_positioning (read_value_record table (off + vr1_len) vf2)
@@ -1222,17 +1194,16 @@ value gpos_cursive table table_off = do
     NoCommand
   else do
   {
-    let coverage = read_u16 table (table_off + 2) in
-    let num      = read_u16 table (table_off + 4) in
+    let coverage = read_u16 table (table_off + 2);
+    let num      = read_u16 table (table_off + 4);
 
     let offsets =
       Array.init num
         (fun i ->
           (read_u16 table (table_off + 4 * i + 6),
-           read_u16 table (table_off + 4 * i + 8)))
-    in
+           read_u16 table (table_off + 4 * i + 8)));
 
-    let glyphs = get_coverage_table table (table_off + coverage) in
+    let glyphs = get_coverage_table table (table_off + coverage);
 
     iter 0 IntMap.empty IntMap.empty
 
@@ -1242,7 +1213,7 @@ value gpos_cursive table table_off = do
         CursiveAnchors entry_map exit_map
       else do
       {
-        let (entry, exit) = offsets.(i) in
+        let (entry, exit) = offsets.(i);
 
         let new_entry =
           if entry = 0 then
@@ -1252,8 +1223,7 @@ value gpos_cursive table table_off = do
               glyphs.(i)
               (read_u16 table (table_off + entry + 2),
                read_u16 table (table_off + entry + 4))
-             entry_map
-        in
+             entry_map;
         let new_exit =
           if exit = 0 then
             exit_map
@@ -1262,8 +1232,7 @@ value gpos_cursive table table_off = do
               glyphs.(i)
               (read_u16 table (table_off + exit + 2),
                read_u16 table (table_off + exit + 4))
-             exit_map
-        in
+             exit_map;
 
         iter (i+1) new_entry new_exit
       }
@@ -1273,14 +1242,13 @@ value gpos_cursive table table_off = do
 
 value read_marks table table_off mark_glyphs = do
 {
-  let num = read_u16 table table_off in
+  let num = read_u16 table table_off;
 
   let offsets =
     Array.init num
       (fun i ->
           (read_u16 table (table_off + 4 * i + 2),
-           read_u16 table (table_off + 4 * i + 4)))
-  in
+           read_u16 table (table_off + 4 * i + 4)));
 
   iter 0 []
 
@@ -1290,9 +1258,9 @@ value read_marks table table_off mark_glyphs = do
       Array.of_list marks
     else do
     {
-      let g = mark_glyphs.(i) in
+      let g = mark_glyphs.(i);
 
-      let (cls, off) = offsets.(i) in
+      let (cls, off) = offsets.(i);
 
       if off <> 0 then
         iter (i+1)
@@ -1307,9 +1275,9 @@ value read_marks table table_off mark_glyphs = do
 
 value read_bases table table_off base_glyphs num_classes = do
 {
-  let num = read_u16 table table_off in
+  let num = read_u16 table table_off;
 
-  let offsets = read_u16_array table (table_off + 2) num in
+  let offsets = read_u16_array table (table_off + 2) num;
 
   let read_base i = do
   {
@@ -1317,65 +1285,61 @@ value read_bases table table_off base_glyphs num_classes = do
       Array.init num_classes
         (fun k -> do
           {
-            let off = offsets.(i * num_classes + k) in
+            let off = offsets.(i * num_classes + k);
 
             (read_u16 table (table_off + off + 2),
              read_u16 table (table_off + off + 4))
-          })
-    in
+          });
 
     (base_glyphs.(i), anchors)
-  }
-  in
+  };
 
   Array.init num (fun i -> read_base i)
 };
 
 value read_ligs table table_off base_glyphs num_classes = do
 {
-  let num = read_u16 table table_off in
+  let num = read_u16 table table_off;
 
-  let loffsets = read_u16_array table (table_off + 2) num in
+  let loffsets = read_u16_array table (table_off + 2) num;
 
   let read_lig i = do
   {
-    let off = table_off + loffsets.(i) in
+    let off = table_off + loffsets.(i);
 
-    let num_comp = read_u16 table off                                      in
-    let aoffsets = read_u16_array table (off + 2) (num_classes * num_comp) in
+    let num_comp = read_u16 table off;
+    let aoffsets = read_u16_array table (off + 2) (num_classes * num_comp);
 
     let anchors =
       Array.init num_comp
         (fun k -> Array.init num_classes
           (fun c -> do
             {
-              let aoff = aoffsets.(k * num_classes + c) in
+              let aoff = aoffsets.(k * num_classes + c);
 
               (read_u16 table (off + aoff + 2),
                read_u16 table (off + aoff + 4))
-            }))
-    in
+            }));
 
     (base_glyphs.(i), anchors)
-  }
-  in
+  };
 
   Array.init num (fun i -> read_lig i)
 };
 
 value gpos_mark read_base table table_off = do
 {
-  let mark_coverage = read_u16 table (table_off +  2) in
-  let base_coverage = read_u16 table (table_off +  4) in
-  let num_classes   = read_u16 table (table_off +  6) in
-  let mark_offset   = read_u16 table (table_off +  8) in
-  let base_offset   = read_u16 table (table_off + 10) in
+  let mark_coverage = read_u16 table (table_off +  2);
+  let base_coverage = read_u16 table (table_off +  4);
+  let num_classes   = read_u16 table (table_off +  6);
+  let mark_offset   = read_u16 table (table_off +  8);
+  let base_offset   = read_u16 table (table_off + 10);
 
-  let mark_glyphs = get_coverage_table table (table_off + mark_coverage) in
-  let base_glyphs = get_coverage_table table (table_off + base_coverage) in
+  let mark_glyphs = get_coverage_table table (table_off + mark_coverage);
+  let base_glyphs = get_coverage_table table (table_off + base_coverage);
 
-  let marks = read_marks table (table_off + mark_offset) mark_glyphs in
-  let bases = read_base  table (table_off + base_offset) base_glyphs num_classes in
+  let marks = read_marks table (table_off + mark_offset) mark_glyphs;
+  let bases = read_base  table (table_off + base_offset) base_glyphs num_classes;
 
   (marks, bases)
 };
@@ -1409,18 +1373,18 @@ open OTF_Pos_Subst;
 
 value gsub_simple_subst table table_off = do
 {
-  let format = read_u16 table table_off in
+  let format = read_u16 table table_off;
 
   if format <> 1 && format <> 2 then
     NoCommand
   else do
   {
-    let coverage    = read_u16 table (table_off + 2)                  in
-    let from_glyphs = get_coverage_table table (table_off + coverage) in
+    let coverage    = read_u16 table (table_off + 2);
+    let from_glyphs = get_coverage_table table (table_off + coverage);
 
     if format = 1 then do
     {
-      let delta = read_u16 table (table_off + 4) in
+      let delta = read_u16 table (table_off + 4);
 
       Substitution
         (init_map (Array.length from_glyphs)
@@ -1429,9 +1393,9 @@ value gsub_simple_subst table table_off = do
     }
     else do
     {
-      let num = read_u16 table (table_off + 4) in
+      let num = read_u16 table (table_off + 4);
 
-      let to_glyphs = read_u16_array table (table_off + 6) num in
+      let to_glyphs = read_u16_array table (table_off + 6) num;
 
       Substitution
         (init_map (Array.length from_glyphs)
@@ -1447,18 +1411,18 @@ value gsub_multiple table table_off = do
     IntMap.empty
   else do
   {
-    let coverage = read_u16 table (table_off + 2)                  in
-    let num_off  = read_u16 table (table_off + 4)                  in
-    let offsets  = read_u16_array table (table_off + 6) num_off    in
-    let glyphs   = get_coverage_table table (table_off + coverage) in
+    let coverage = read_u16 table (table_off + 2);
+    let num_off  = read_u16 table (table_off + 4);
+    let offsets  = read_u16_array table (table_off + 6) num_off;
+    let glyphs   = get_coverage_table table (table_off + coverage);
 
     init_map (Array.length glyphs)
       (fun i -> glyphs.(i))
       (fun i -> do
         {
-          let off        = table_off + offsets.(i) in
-          let num_glyphs = read_u16 table off      in
-          let to_glyphs  = read_u16_array table (off + 2) num_glyphs in
+          let off        = table_off + offsets.(i);
+          let num_glyphs = read_u16 table off;
+          let to_glyphs  = read_u16_array table (off + 2) num_glyphs;
 
           to_glyphs
         })
@@ -1467,10 +1431,10 @@ value gsub_multiple table table_off = do
 
 value gsub_ligature table table_off = do
 {
-  let coverage = read_u16 table (table_off + 2)                  in
-  let num      = read_u16 table (table_off + 4)                  in
-  let offsets  = read_u16_array table (table_off + 6) num        in
-  let glyphs   = get_coverage_table table (table_off + coverage) in
+  let coverage = read_u16 table (table_off + 2);
+  let num      = read_u16 table (table_off + 4);
+  let offsets  = read_u16_array table (table_off + 6) num;
+  let glyphs   = get_coverage_table table (table_off + coverage);
 
   iter_i 0 DynUCTrie.empty
 
@@ -1480,9 +1444,9 @@ value gsub_ligature table table_off = do
       Ligature trie
     else do
     {
-      let off         = table_off + offsets.(i) in
-      let num_ligs    = read_u16 table off      in
-      let lig_offsets = read_u16_array table (off + 2) num_ligs in
+      let off         = table_off + offsets.(i);
+      let num_ligs    = read_u16 table off;
+      let lig_offsets = read_u16_array table (off + 2) num_ligs;
 
       iter_k 0 trie
 
@@ -1492,17 +1456,16 @@ value gsub_ligature table table_off = do
           iter_i (i+1) trie
         else do
         {
-          let loff         = off + lig_offsets.(k)     in
-          let lig          = read_u16 table loff       in
-          let num_lig_comp = read_u16 table (loff + 2) in
+          let loff         = off + lig_offsets.(k);
+          let lig          = read_u16 table loff;
+          let num_lig_comp = read_u16 table (loff + 2);
 
           let lig_glyphs =
             Array.init num_lig_comp
               (fun l -> if l = 0 then
                           glyphs.(i)
                         else
-                          read_u16 table (loff + 2 * l + 2))
-          in
+                          read_u16 table (loff + 2 * l + 2));
 
           iter_k (k+1) (DynUCTrie.add_string lig_glyphs lig trie)
         }
@@ -1517,17 +1480,17 @@ value gsub_reverse_chain table table_off = do
     NoCommand
   else do
   {
-    let coverage = read_u16 table (table_off + 2)                  in
-    let glyphs   = get_coverage_table table (table_off + coverage) in
+    let coverage = read_u16 table (table_off + 2);
+    let glyphs   = get_coverage_table table (table_off + coverage);
 
-    let num_b      = read_u16 table (table_off + 4)             in
-    let b_coverage = read_u16_array table (table_off + 6) num_b in
-    let f_off      = table_off + 2 * num_b + 6                  in
-    let num_f      = read_u16 table f_off                       in
-    let f_coverage = read_u16_array table (f_off + 2) num_f     in
-    let s_off      = f_off + 2 * num_f + 2                      in
-    let num_s      = read_u16 table s_off                       in
-    let s_glyphs   = read_u16_array table (s_off + 2) num_s     in
+    let num_b      = read_u16 table (table_off + 4);
+    let b_coverage = read_u16_array table (table_off + 6) num_b;
+    let f_off      = table_off + 2 * num_b + 6;
+    let num_f      = read_u16 table f_off;
+    let f_coverage = read_u16_array table (f_off + 2) num_f;
+    let s_off      = f_off + 2 * num_f + 2;
+    let num_s      = read_u16 table s_off;
+    let s_glyphs   = read_u16_array table (s_off + 2) num_s;
 
     ReverseSubst glyphs s_glyphs
       (Array.map (fun off -> get_coverage_table table (table_off + off)) b_coverage)
@@ -1578,32 +1541,32 @@ open Table;
 
 value parse_head table = do
 {
-  let units_per_em        = read_u16 table 18 in
-  let index_to_loc_format = read_u16 table 50 in
+  let units_per_em        = read_u16 table 18;
+  let index_to_loc_format = read_u16 table 50;
 
   (units_per_em, index_to_loc_format <> 0)
 };
 
 value parse_hhea table = do
 {
-(*  let ascent        = read_u16 table  4 in
-  let descent       = read_u16 table  6 in
-  let leading       = read_u16 table  8 in*)
-  let num_h_metrics = read_u16 table 34 in
+(*  let ascent        = read_u16 table  4;
+  let descent       = read_u16 table  6;
+  let leading       = read_u16 table  8;*)
+  let num_h_metrics = read_u16 table 34;
 
   num_h_metrics
 };
 
 value parse_maxp table = do
 {
-  let num_glyphs = read_u16 table 4 in
+  let num_glyphs = read_u16 table 4;
 
   num_glyphs
 };
 
 value parse_hmtx table num_glyphs num_h_metrics = do
 {
-  let width = Array.make num_glyphs 0 in
+  let width = Array.make num_glyphs 0;
 
   for i = 0 to num_h_metrics - 1 do
   {
@@ -1636,7 +1599,7 @@ value parse_glyf table glyph_locations = do
     (Array.length glyph_locations)
     (fun i -> do
       {
-        let off = glyph_locations.(i) in
+        let off = glyph_locations.(i);
 
         (read_u16 table (off+2),
          read_u16 table (off+4),
@@ -1659,8 +1622,8 @@ value parse_cff table = do
     raise (Failure "wrong CFF version")
   else do
   {
-    let header_len  = read_u8 table 2 in
-    let offset_size = read_u8 table 3 in
+    let header_len  = read_u8 table 2;
+    let offset_size = read_u8 table 3;
 
     ()
   }
@@ -1676,15 +1639,15 @@ open Tag;
 
 value read_tag is = do
 {
-  let x = IO.read_be_u16 is in
-  let y = IO.read_be_u16 is in
+  let x = IO.read_be_u16 is;
+  let y = IO.read_be_u16 is;
 
   compose_tag x y
 };
 
 value read_tables is = do
 {
-  let version = read_tag is in
+  let version = read_tag is;
 
   if version = ttcf_tag then
     raise (Failure "font collections not supported")
@@ -1694,7 +1657,7 @@ value read_tables is = do
     raise (Failure "unknown font type")
   else do
   {
-    let num_tables = IO.read_be_u16 is in
+    let num_tables = IO.read_be_u16 is;
 
     IO.skip is 6;
 
@@ -1702,16 +1665,15 @@ value read_tables is = do
       Array.init num_tables
         (fun _ -> do
           {
-            let tag = read_tag is in
+            let tag = read_tag is;
 
             IO.skip is 4;
 
-            let offset = int_of_num (IO.read_be_u32 is) in
-            let length = int_of_num (IO.read_be_u32 is) in
+            let offset = int_of_num (IO.read_be_u32 is);
+            let length = int_of_num (IO.read_be_u32 is);
 
             (tag, offset, length)
-          })
-    in
+          });
 
     iter 0 TagMap.empty
 
@@ -1721,7 +1683,7 @@ value read_tables is = do
         tables
       else do
       {
-        let (tag, off, len) = table_list.(i) in
+        let (tag, off, len) = table_list.(i);
 
         IO.seek is off;
 
@@ -1737,7 +1699,7 @@ value parse_cff_font tables num_glyphs units_per_em advance_widths gpos gsub = d
     Array.init num_glyphs
       (fun i -> do
         {
-          let (x0,y0,x1,y1) = (0,0,0,0) (*bboxes.(i)*) in
+          let (x0,y0,x1,y1) = (0,0,0,0); (*bboxes.(i)*)
 
           {
             g_adv_width = advance_widths.(i);
@@ -1746,8 +1708,7 @@ value parse_cff_font tables num_glyphs units_per_em advance_widths gpos gsub = d
             g_max_x     = x1;
             g_max_y     = y1
           }
-        })
-  in
+        });
 
   let font =
   {
@@ -1755,8 +1716,7 @@ value parse_cff_font tables num_glyphs units_per_em advance_widths gpos gsub = d
     otf_glyphs       = glyphs;
     otf_gpos         = gpos;
     otf_gsub         = gsub
-  }
-  in
+  };
 
   (* not implemented *)
 
@@ -1765,17 +1725,17 @@ value parse_cff_font tables num_glyphs units_per_em advance_widths gpos gsub = d
 
 value parse_ttf_font tables num_glyphs units_per_em index_to_loc_format advance_widths gpos gsub = do
 {
-  let loca_table = TagMap.find loca_tag tables in
-  let glyf_table = TagMap.find loca_tag tables in
+  let loca_table = TagMap.find loca_tag tables;
+  let glyf_table = TagMap.find loca_tag tables;
 
-  let locations = Parse_Simple_Tables.parse_loca loca_table num_glyphs index_to_loc_format in
-  let bboxes    = Parse_Simple_Tables.parse_glyf glyf_table locations in
+  let locations = Parse_Simple_Tables.parse_loca loca_table num_glyphs index_to_loc_format;
+  let bboxes    = Parse_Simple_Tables.parse_glyf glyf_table locations;
 
   let glyphs =
     Array.init num_glyphs
       (fun i -> do
         {
-          let (x0,y0,x1,y1) = bboxes.(i) in
+          let (x0,y0,x1,y1) = bboxes.(i);
 
           {
             g_adv_width = advance_widths.(i);
@@ -1784,8 +1744,7 @@ value parse_ttf_font tables num_glyphs units_per_em index_to_loc_format advance_
             g_max_x     = x1;
             g_max_y     = y1
           }
-        })
-  in
+        });
 
   (* FIX: read kern table, if present *)
 
@@ -1795,8 +1754,7 @@ value parse_ttf_font tables num_glyphs units_per_em index_to_loc_format advance_
     otf_glyphs       = glyphs;
     otf_gpos         = gpos;
     otf_gsub         = gsub
-  }
-  in
+  };
 
   font
 };
@@ -1806,13 +1764,11 @@ value read_pos_subst tables = do
   let gpos_table =
     try
       Some (GPOS.parse_gpos_table (TagMap.find gpos_tag tables))
-    with [ Not_found -> None ]
-  in
+    with [ Not_found -> None ];
   let gsub_table =
     try
       Some (GSUB.parse_gsub_table (TagMap.find gsub_tag tables))
-    with [ Not_found -> None ]
-  in
+    with [ Not_found -> None ];
 
   (gpos_table, gsub_table)
 };
@@ -1831,28 +1787,27 @@ value parse_pos_subst tables = do
 
 value parse_font is = do
 {
-  let tables = read_tables is in
+  let tables = read_tables is;
 
   try do
   {
-    let head_table = TagMap.find head_tag tables in
-    let hhea_table = TagMap.find hhea_tag tables in
-    let maxp_table = TagMap.find maxp_tag tables in
-    let hmtx_table = TagMap.find hmtx_tag tables in
+    let head_table = TagMap.find head_tag tables;
+    let hhea_table = TagMap.find hhea_tag tables;
+    let maxp_table = TagMap.find maxp_tag tables;
+    let hmtx_table = TagMap.find hmtx_tag tables;
 
-    let (upm, itlf)    = Parse_Simple_Tables.parse_head head_table in
-    let num_h_metrics  = Parse_Simple_Tables.parse_hhea hhea_table in
-    let num_glyphs     = Parse_Simple_Tables.parse_maxp maxp_table in
-    let advance_widths = Parse_Simple_Tables.parse_hmtx hmtx_table num_glyphs num_h_metrics in
+    let (upm, itlf)    = Parse_Simple_Tables.parse_head head_table;
+    let num_h_metrics  = Parse_Simple_Tables.parse_hhea hhea_table;
+    let num_glyphs     = Parse_Simple_Tables.parse_maxp maxp_table;
+    let advance_widths = Parse_Simple_Tables.parse_hmtx hmtx_table num_glyphs num_h_metrics;
 
-    let (gpos, gsub)   = read_pos_subst tables in
+    let (gpos, gsub)   = read_pos_subst tables;
 
     let font =
       if TagMap.mem glyf_tag tables then
         parse_ttf_font tables num_glyphs upm itlf advance_widths gpos gsub
       else
-        parse_cff_font tables num_glyphs upm advance_widths gpos gsub
-    in
+        parse_cff_font tables num_glyphs upm advance_widths gpos gsub;
 
     font
   }
@@ -1875,8 +1830,7 @@ value check_sum str = do
       0
     else
       int_of_char (String.unsafe_get str i)
-  }
-  in
+  };
 
   iter 0 Int32.zero
 
@@ -1886,12 +1840,12 @@ value check_sum str = do
       chk
     else do
     {
-      let a = get pos     in
-      let b = get (pos+1) in
-      let c = get (pos+2) in
-      let d = get (pos+3) in
+      let a = get pos;
+      let b = get (pos+1);
+      let c = get (pos+2);
+      let d = get (pos+3);
 
-      let x = compose_tag ((a lsl 8) + b) ((c lsl 8) + d) in
+      let x = compose_tag ((a lsl 8) + b) ((c lsl 8) + d);
 
       iter (pos + 4) (Int32.add chk x)
     }
@@ -1900,8 +1854,8 @@ value check_sum str = do
 
 value write_tag os tag = do
 {
-  let x = Int32.to_int (Int32.logand (Int32.shift_right tag 16) (Int32.of_int 0xffff)) in
-  let y = Int32.to_int (Int32.logand tag (Int32.of_int 0xffff)) in
+  let x = Int32.to_int (Int32.logand (Int32.shift_right tag 16) (Int32.of_int 0xffff));
+  let y = Int32.to_int (Int32.logand tag (Int32.of_int 0xffff));
 
   IO.write_be_u16 os x;
   IO.write_be_u16 os y
@@ -1911,14 +1865,14 @@ value write_tables os tables ttf = do
 {
   (* create preamble *)
 
-  let preamble = IO.make_buffer_stream 0x1000 in
+  let preamble = IO.make_buffer_stream 0x1000;
 
   if ttf then
     write_tag preamble (Int32.of_int 0x10000)
   else
     write_tag preamble otto_tag;
 
-  let num_tables = Array.length tables in
+  let num_tables = Array.length tables;
   let num_bits   = iter 0 num_tables
     where rec iter x i = do
     {
@@ -1926,40 +1880,37 @@ value write_tables os tables ttf = do
         i - 1
       else
         iter x (i+1)
-    }
-  in
+    };
 
   IO.write_be_u16 preamble num_tables;
   IO.write_be_u16 preamble (16 * (1 lsl num_bits));
   IO.write_be_u16 preamble num_bits;
   IO.write_be_u16 preamble (16 * num_tables - num_bits);
 
-  let table_offsets = Array.make num_tables 0 in
+  let table_offsets = Array.make num_tables 0;
   let _ = Array.fold_left
             (fun (i,off) (_,table) -> do
               {
-                let len     = String.length table in
+                let len     = String.length table;
                 let new_off = if len land 3 = 0 then
                                 off + len
                               else
-                                off + len + 4 - (len land 3)
-                in
+                                off + len + 4 - (len land 3);
 
                 table_offsets.(i) := off;
 
                 (i+1, new_off)
               })
             (0, 12 + 16 * num_tables)
-            tables
-  in
+            tables;
 
-  let chk = ref Int32.zero in
+  let chk = ref Int32.zero;
 
   for i = 0 to num_tables - 1 do
   {
-    let (tag,tab) = tables.(i) in
+    let (tag,tab) = tables.(i);
 
-    let c = check_sum tab in
+    let c = check_sum tab;
 
     !chk := Int32.add !chk c;
 
@@ -1971,7 +1922,7 @@ value write_tables os tables ttf = do
 
   (* write preamble *)
 
-  let p = IO.to_string preamble in
+  let p = IO.to_string preamble;
 
   IO.write_string os p;
 
@@ -1980,9 +1931,9 @@ value write_tables os tables ttf = do
   (* Fix check sum in head table. *)
   (* We assume that the head table is the first element of <tables>! *)
 
-  let (_, head) = tables.(0) in
+  let (_, head) = tables.(0);
 
-  let h = IO.from_string head in
+  let h = IO.from_string head;
   IO.seek h 8;
   write_tag h (Int32.sub (compose_tag 0xb1b0 0xafba) !chk);
 
@@ -1992,7 +1943,7 @@ value write_tables os tables ttf = do
 
   for i = 0 to num_tables - 1 do
   {
-    let (_,tab) = tables.(i) in
+    let (_,tab) = tables.(i);
 
     IO.write_string os tab;
 
@@ -2011,9 +1962,9 @@ value make_head_table font = do
 {
   (* Just copy the table but set the checksum to 0.*)
 
-  let head = TagMap.find head_tag font in
+  let head = TagMap.find head_tag font;
 
-  let s = IO.from_string head in
+  let s = IO.from_string head;
 
   IO.seek s 8;
   IO.write_be_u32 s num_zero;
@@ -2023,11 +1974,11 @@ value make_head_table font = do
 
 value make_hhea_table font encoding = do
 {
-  let hhea = TagMap.find hhea_tag font in
+  let hhea = TagMap.find hhea_tag font;
 
   (* Just change the number of metrics. *)
 
-  let s = IO.from_string hhea in
+  let s = IO.from_string hhea;
 
   IO.seek s 34;
   IO.write_be_u16 s (Array.length encoding);
@@ -2037,20 +1988,20 @@ value make_hhea_table font encoding = do
 
 value make_hmtx_table font encoding = do
 {
-  let hhea = IO.make_string_stream (TagMap.find hhea_tag font) in
-  let maxp = IO.make_string_stream (TagMap.find maxp_tag font) in
-  let hmtx = IO.make_string_stream (TagMap.find hmtx_tag font) in
+  let hhea = IO.make_string_stream (TagMap.find hhea_tag font);
+  let maxp = IO.make_string_stream (TagMap.find maxp_tag font);
+  let hmtx = IO.make_string_stream (TagMap.find hmtx_tag font);
 
   IO.seek hhea 34;
   IO.seek maxp 4;
 
-  let num_metrics = IO.read_be_u16 hhea in
-  let num_glyphs  = IO.read_be_u16 maxp in
+  let num_metrics = IO.read_be_u16 hhea;
+  let num_glyphs  = IO.read_be_u16 maxp;
 
-  let width        = Array.make num_glyphs 0 in
-  let side_bearing = Array.make num_glyphs 0 in
+  let width        = Array.make num_glyphs 0;
+  let side_bearing = Array.make num_glyphs 0;
 
-  let os = IO.make_buffer_stream (4 * Array.length encoding) in
+  let os = IO.make_buffer_stream (4 * Array.length encoding);
 
   for i = 0 to num_metrics - 1 do
   {
@@ -2075,11 +2026,11 @@ value make_hmtx_table font encoding = do
 
 value make_maxp_table font encoding = do
 {
-  let maxp = TagMap.find maxp_tag font in
+  let maxp = TagMap.find maxp_tag font;
 
   (* Just change the number of glyphs. *)
 
-  let s = IO.from_string maxp in
+  let s = IO.from_string maxp;
 
   IO.seek s 4;
   IO.write_be_u16 s (Array.length encoding);
@@ -2089,7 +2040,7 @@ value make_maxp_table font encoding = do
 
 value make_cmap_table encoding = do
 {
-  let cmap = IO.make_buffer_stream 0x100 in
+  let cmap = IO.make_buffer_stream 0x100;
 
   IO.write_be_u16 cmap 0;
   IO.write_be_u16 cmap 1;
@@ -2125,11 +2076,11 @@ value make_os2_table  font = do
 
 value make_post_table font = do
 {
-  let post = IO.make_string_stream (TagMap.find post_tag font) in
+  let post = IO.make_string_stream (TagMap.find post_tag font);
 
   IO.seek post 4;
 
-  let os = IO.make_buffer_stream 0x80 in
+  let os = IO.make_buffer_stream 0x80;
 
   IO.write_be_u16 os 3;
   IO.write_be_u16 os 0;
@@ -2155,16 +2106,16 @@ value make_prep_table font = do
 
 value make_glyf_loca_tables font encoding = do
 {
-  let head = TagMap.find head_tag font in
-  let glyf = TagMap.find glyf_tag font in
-  let loca = TagMap.find loca_tag font in
+  let head = TagMap.find head_tag font;
+  let glyf = TagMap.find glyf_tag font;
+  let loca = TagMap.find loca_tag font;
 
-  let loca_fmt = (head.[50] <> '\000' || head.[51] <> '\000') in
+  let loca_fmt = (head.[50] <> '\000' || head.[51] <> '\000');
 
-  let igs = IO.make_string_stream glyf                        in
-  let ils = IO.make_string_stream loca                        in
-  let ogs = IO.make_buffer_stream (String.length glyf)        in
-  let ols = IO.make_buffer_stream (4 * Array.length encoding) in
+  let igs = IO.make_string_stream glyf;
+  let ils = IO.make_string_stream loca;
+  let ogs = IO.make_buffer_stream (String.length glyf);
+  let ols = IO.make_buffer_stream (4 * Array.length encoding);
 
   let get_loca = if loca_fmt then
                    (fun n -> do
@@ -2177,18 +2128,16 @@ value make_glyf_loca_tables font encoding = do
                      {
                        IO.seek ils (2 * n);
                        2 * IO.read_be_u16 ils
-                     })
-  in
+                     });
   let set_loca = if loca_fmt then
                    (fun off -> IO.write_be_u32 ols (num_of_int off))
                  else
-                   (fun off -> IO.write_be_u16 ols (off / 2))
-  in
+                   (fun off -> IO.write_be_u16 ols (off / 2));
 
   for i = 0 to Array.length encoding - 1 do
   {
-    let off  = get_loca encoding.(i)       in
-    let next = get_loca (encoding.(i) + 1) in
+    let off  = get_loca encoding.(i);
+    let next = get_loca (encoding.(i) + 1);
 
     set_loca (IO.bytes_written ogs);
 
@@ -2207,19 +2156,19 @@ value make_cff_table font encoding = do
 
 value write_ttf_subset stream font encoding = do
 {
-  let cmap = make_cmap_table encoding in
-  let head = make_head_table font in
-  let hhea = make_hhea_table font encoding in
-  let hmtx = make_hmtx_table font encoding in
-  let maxp = make_maxp_table font encoding in
-  let name = make_name_table font in
-  let os2  = make_os2_table  font in
-  let post = make_post_table font in
-  let cvt  = make_cvt_table  font in
-  let prep = make_prep_table font in
-  let fpgm = make_fpgm_table font in
+  let cmap = make_cmap_table encoding;
+  let head = make_head_table font;
+  let hhea = make_hhea_table font encoding;
+  let hmtx = make_hmtx_table font encoding;
+  let maxp = make_maxp_table font encoding;
+  let name = make_name_table font;
+  let os2  = make_os2_table  font;
+  let post = make_post_table font;
+  let cvt  = make_cvt_table  font;
+  let prep = make_prep_table font;
+  let fpgm = make_fpgm_table font;
 
-  let (glyf, loca) = make_glyf_loca_tables font encoding in
+  let (glyf, loca) = make_glyf_loca_tables font encoding;
 
   write_tables stream
     [|
@@ -2242,15 +2191,15 @@ value write_ttf_subset stream font encoding = do
 
 value write_cff_subset stream font encoding = do
 {
-  let cmap = make_cmap_table encoding in
-  let head = make_head_table font in
-  let hhea = make_hhea_table font encoding in
-  let hmtx = make_hmtx_table font encoding in
-  let maxp = make_maxp_table font encoding in
-  let name = make_name_table font in
-  let os2  = make_os2_table  font in
-  let post = make_post_table font in
-  let cff  = make_cff_table  font encoding in
+  let cmap = make_cmap_table encoding;
+  let head = make_head_table font;
+  let hhea = make_hhea_table font encoding;
+  let hmtx = make_hmtx_table font encoding;
+  let maxp = make_maxp_table font encoding;
+  let name = make_name_table font;
+  let os2  = make_os2_table  font;
+  let post = make_post_table font;
+  let cff  = make_cff_table  font encoding;
 
   write_tables stream
     [|

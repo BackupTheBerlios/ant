@@ -33,7 +33,7 @@ value rec split_at n l = do
     ([], l)
   else match l with
   [ []      -> ([], [])
-  | [x::xs] -> let (a, b) = split_at (n-1) xs in
+  | [x::xs] -> let (a, b) = split_at (n-1) x in
                ([x :: a], b)
   ]
 };
@@ -87,8 +87,8 @@ value rev_to_array x = match x with
 [ []      -> [| |]
 | [y::ys] -> do
   {
-    let len = List.length x    in
-    let arr = Array.make len y in
+    let len = List.length x;
+    let arr = Array.make len y;
 
     iter (len - 2) ys
 

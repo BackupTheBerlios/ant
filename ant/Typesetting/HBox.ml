@@ -66,7 +66,7 @@ value calc_width_and_glue boxes = do
   [ []      -> (width, [delta :: glue])
   | [b::bs] -> do
     {
-      let new_width = xdim_add_dim width b.b_width in
+      let new_width = xdim_add_dim width b.b_width;
 
       (* Check whether it is explicit glue. *)
       match b.b_contents with
@@ -92,14 +92,13 @@ value layout dir boxes = match boxes with
   ]
 | _ -> do
   {
-    let (width, height, depth) = dimensions boxes    in
-    let result                 = ListBuilder.make () in
+    let (width, height, depth) = dimensions boxes;
+    let result                 = ListBuilder.make ();
 
     let start_x = match dir with
     [ LR -> xdim_zero
     | RL -> dim_to_xdim width
-    ]
-    in
+    ];
 
     iter start_x boxes
 
@@ -123,7 +122,7 @@ value layout dir boxes = match boxes with
           }
         | RL -> do
           {
-            let new_x = xdim_sub_dim x b.b_width in
+            let new_x = xdim_sub_dim x b.b_width;
 
             ListBuilder.add result
               (Graphic.PutBox
@@ -140,13 +139,12 @@ value layout dir boxes = match boxes with
 
 value layout_scaled dir (orig_width, height, depth) scaled_width boxes = do
 {
-  let (factor, order) = adjustment_ratio orig_width scaled_width in
+  let (factor, order) = adjustment_ratio orig_width scaled_width;
   let ratio           = if factor </ num_of_int (-1) && order = 0 then
                           (num_of_int (-1), 0)
                         else
-                          (factor, order)
-                        in
-  let bad             = dim_scale_badness (factor, order) in
+                          (factor, order);
+  let bad             = dim_scale_badness (factor, order);
 
   if bad >/ !max_h_badness then do
   {
@@ -167,13 +165,12 @@ value layout_scaled dir (orig_width, height, depth) scaled_width boxes = do
   else
     ();
 
-  let result = ListBuilder.make () in
+  let result = ListBuilder.make ();
 
   let start_x = match dir with
   [ LR -> xdim_zero
   | RL -> dim_to_xdim (fixed_dim scaled_width)
-  ]
-  in
+  ];
 
   iter start_x boxes
 
@@ -188,7 +185,7 @@ value layout_scaled dir (orig_width, height, depth) scaled_width boxes = do
     | _ -> match dir with
       [ LR -> do
         {
-          let box = scale_box_horiz b ratio in
+          let box = scale_box_horiz b ratio;
 
           ListBuilder.add result (Graphic.PutBox (fixed_dim x.xd_base) dim_zero box);
 
@@ -196,8 +193,8 @@ value layout_scaled dir (orig_width, height, depth) scaled_width boxes = do
         }
       | RL -> do
         {
-          let box   = scale_box_horiz b ratio    in
-          let new_x = xdim_sub_dim x box.b_width in
+          let box   = scale_box_horiz b ratio;
+          let new_x = xdim_sub_dim x box.b_width;
 
           ListBuilder.add result (Graphic.PutBox (fixed_dim new_x.xd_base) dim_zero box);
 
@@ -217,14 +214,14 @@ value make_to dir width boxes = do
 
 value make_scaled dir factor boxes = do
 {
-  let (w, h, d) = dimensions boxes in
+  let (w, h, d) = dimensions boxes;
 
   layout_scaled dir (w, h, d) (factor */ w.d_base) boxes
 };
 
 value make_spread dir amount boxes = do
 {
-  let (w, h, d) = dimensions boxes in
+  let (w, h, d) = dimensions boxes;
 
   layout_scaled dir (w, h, d) (w.d_base +/ amount) boxes
 };

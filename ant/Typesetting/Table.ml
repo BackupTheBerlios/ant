@@ -24,8 +24,7 @@ value calc_column_sizes num_columns entries = do
                    d_stretch_order  = 10;
                    d_shrink_factor  = infinite;
                    d_shrink_order   = 10
-                 }
-               in
+                 };
 
   let rec sum_widths f t = do
   {
@@ -33,8 +32,7 @@ value calc_column_sizes num_columns entries = do
       xdim_zero
     else
       xdim_add_dim (sum_widths (f+1) t) widths.(f)
-  }
-  in
+  };
 
   calc_width 0 entries
 
@@ -50,8 +48,8 @@ value calc_column_sizes num_columns entries = do
     {
       if e.te_right = col then do
       {
-        let prev_width        = xdim_to_dim (sum_widths e.te_left (e.te_right-1)) in
-        let (cur_width, _, _) = e.te_contents in
+        let prev_width        = xdim_to_dim (sum_widths e.te_left (e.te_right-1));
+        let (cur_width, _, _) = e.te_contents;
 
         widths.(col) := dim_max widths.(col) (dim_sub cur_width prev_width)
       }
@@ -64,9 +62,9 @@ value calc_column_sizes num_columns entries = do
 
 value calc_row_sizes num_rows entries line_params = do
 {
-  let heights   = Array.make num_rows dim_zero in
-  let depths    = Array.make num_rows dim_zero in
-  let baselines = Array.make num_rows dim_zero in
+  let heights   = Array.make num_rows dim_zero;
+  let depths    = Array.make num_rows dim_zero;
+  let baselines = Array.make num_rows dim_zero;
 
   let rec sum_baselines f t = do
   {
@@ -74,8 +72,7 @@ value calc_row_sizes num_rows entries line_params = do
       xdim_zero
     else
       xdim_add_dim (sum_baselines (f+1) t) baselines.(f)
-  }
-  in
+  };
 
   calc_size 0 entries
 
@@ -89,8 +86,7 @@ value calc_row_sizes num_rows entries line_params = do
           let leading = line_params.Galley.leading
                           (new_rule_box dim_zero dim_zero depths.(row-1))
                           (new_rule_box dim_zero heights.(row) dim_zero)
-                          line_params
-                        in
+                          line_params;
           baselines.(row-1) := dim_add (dim_add depths.(row-1) heights.(row)) leading
         }
         else ();
@@ -117,15 +113,15 @@ value calc_row_sizes num_rows entries line_params = do
           The latter seems preferable but would be more complicated to implement.
         *)
 
-        let prev_height = xdim_to_dim (sum_baselines e.te_top (e.te_baseline-1)) in
-        let (_, cur_height, _) = e.te_contents in
+        let prev_height = xdim_to_dim (sum_baselines e.te_top (e.te_baseline-1));
+        let (_, cur_height, _) = e.te_contents;
 
         heights.(row) := dim_max heights.(row) (dim_sub cur_height prev_height);
       }
       else if e.te_bottom = row then do
       {
-        let prev_depth = xdim_to_dim (sum_baselines e.te_baseline (e.te_bottom-1)) in
-        let (_, _, cur_depth) = e.te_contents in
+        let prev_depth = xdim_to_dim (sum_baselines e.te_baseline (e.te_bottom-1));
+        let (_, _, cur_depth) = e.te_contents;
 
         depths.(row) := dim_max depths.(row) (dim_sub cur_depth prev_depth)
       }
@@ -140,13 +136,12 @@ value make num_columns num_rows entries line_params = do
 {
   let dimensions = List.map
                      (fun e -> { (e) with te_contents = HBox.dimensions e.te_contents })
-                     entries
-                   in
-  let widths                       = calc_column_sizes num_columns dimensions in
-  let (heights, depths, baselines) = calc_row_sizes num_rows dimensions line_params in
+                     entries;
+  let widths                       = calc_column_sizes num_columns dimensions;
+  let (heights, depths, baselines) = calc_row_sizes num_rows dimensions line_params;
 
-  let col_start = Array.make (num_columns + 1) xdim_zero in
-  let row_start = Array.make (num_rows    + 1) xdim_zero in
+  let col_start = Array.make (num_columns + 1) xdim_zero;
+  let row_start = Array.make (num_rows    + 1) xdim_zero;
 
   for i = 0 to num_columns - 1 do
   {
@@ -158,7 +153,7 @@ value make num_columns num_rows entries line_params = do
   };
   row_start.(num_rows) := xdim_add_dim row_start.(num_rows - 1) depths.(num_rows - 1);
 
-  let sum_widths first last = xdim_to_dim (xdim_sub col_start.(last + 1) col_start.(first)) in
+  let sum_widths first last = xdim_to_dim (xdim_sub col_start.(last + 1) col_start.(first));
 
   new_compound_box
     (xdim_to_dim col_start.(num_columns))

@@ -24,9 +24,9 @@ value char_code table chr = do
 
 value hyphenate table left_min right_min str = do
 {
-  let len     = Array.length str       in
-  let numbers = Array.make (len + 1) 0 in
-  let codes   = Array.map (char_code table) str in
+  let len     = Array.length str;
+  let numbers = Array.make (len + 1) 0;
+  let codes   = Array.map (char_code table) str;
 
   for pos = 0 to len - 1 do
   {

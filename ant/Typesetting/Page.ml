@@ -79,22 +79,19 @@ value find_place_in_area_top page area top height bottom = do
   let total_height = xdim_to_dim
                        (xdim_add_dim
                          (xdim_add_dim height top)
-                         bottom)
-                     in
-  let min_height   = dim_min_value total_height in
+                         bottom);
+  let min_height   = dim_min_value total_height;
   let min_top      = if total_height.d_shrink_order = 0 then
                        (dim_scale_upto top (num_minus_one, 0)).d_base
                      else
-                       (dim_scale_upto top (top.d_base, total_height.d_shrink_order)).d_base
-                     in
+                       (dim_scale_upto top (top.d_base, total_height.d_shrink_order)).d_base;
   let min_bottom   = if total_height.d_shrink_order = 0 then
                        (dim_scale_upto bottom (num_minus_one, 0)).d_base
                      else
-                       (dim_scale_upto bottom (bottom.d_base, total_height.d_shrink_order)).d_base
-                     in
+                       (dim_scale_upto bottom (bottom.d_base, total_height.d_shrink_order)).d_base;
 
-  let min_top_shift    = max_num num_zero (min_top    -/ area.as_top)    in
-  let min_bottom_shift = max_num num_zero (min_bottom -/ area.as_bottom) in
+  let min_top_shift    = max_num num_zero (min_top    -/ area.as_top);
+  let min_bottom_shift = max_num num_zero (min_bottom -/ area.as_bottom);
 
   match
     PlanePartition.find_free_top
@@ -108,23 +105,22 @@ value find_place_in_area_top page area top height bottom = do
   [ None       -> None
   | Some (a1,a2) -> do
     {
-      let b2 = min_num a2 (area.as_pos_y +/ area.as_top) in
+      let b2 = min_num a2 (area.as_pos_y +/ area.as_top);
 
       (* First try the maximal height. *)
 
       let h = if a1 +/ total_height.d_base <=/ a2 then
                 total_height.d_base
               else
-                a2 -/ a1
-              in
-      let r = adjustment_ratio total_height h  in
-      let t = (dim_scale_upto top    r).d_base in
-      let b = (dim_scale_upto bottom r).d_base in
+                a2 -/ a1;
+      let r = adjustment_ratio total_height h;
+      let t = (dim_scale_upto top    r).d_base;
+      let b = (dim_scale_upto bottom r).d_base;
 
       (* Are the top and bottom baselines ok? *)
 
-      let top_baseline    = b2 -/ t      in
-      let bottom_baseline = b2 -/ h +/ b in
+      let top_baseline    = b2 -/ t;
+      let bottom_baseline = b2 -/ h +/ b;
 
       if top_baseline    <=/ area.as_pos_y
       && bottom_baseline >=/ area.as_pos_y -/ area.as_height
@@ -134,14 +130,13 @@ value find_place_in_area_top page area top height bottom = do
       {
         (* Shrink box to fit. *)
 
-        let top_shift = max_num num_zero (top_baseline -/ area.as_pos_y) in
+        let top_shift = max_num num_zero (top_baseline -/ area.as_pos_y);
         let bot_shift = max_num num_zero
                           (max_num (area.as_pos_y -/ area.as_height)
                                    (a1 +/ b)
-                           -/ bottom_baseline)
-                        in
+                           -/ bottom_baseline);
 
-        let r = adjustment_ratio total_height (h -/ top_shift -/ bot_shift) in
+        let r = adjustment_ratio total_height (h -/ top_shift -/ bot_shift);
 
         Some (top_baseline -/ top_shift, r)
       }
@@ -154,22 +149,19 @@ value find_place_in_area_bottom page area top height bottom = do
   let total_height = xdim_to_dim
                        (xdim_add_dim
                          (xdim_add_dim height top)
-                         bottom)
-                     in
-  let min_height   = dim_min_value total_height in
+                         bottom);
+  let min_height   = dim_min_value total_height;
   let min_top      = if total_height.d_shrink_order = 0 then
                        (dim_scale_upto top (num_minus_one, 0)).d_base
                      else
-                       (dim_scale_upto top (top.d_base, total_height.d_shrink_order)).d_base
-                     in
+                       (dim_scale_upto top (top.d_base, total_height.d_shrink_order)).d_base;
   let min_bottom   = if total_height.d_shrink_order = 0 then
                        (dim_scale_upto bottom (num_minus_one, 0)).d_base
                      else
-                       (dim_scale_upto bottom (bottom.d_base, total_height.d_shrink_order)).d_base
-                     in
+                       (dim_scale_upto bottom (bottom.d_base, total_height.d_shrink_order)).d_base;
 
-  let min_top_shift    = max_num num_zero (min_top    -/ area.as_top)    in
-  let min_bottom_shift = max_num num_zero (min_bottom -/ area.as_bottom) in
+  let min_top_shift    = max_num num_zero (min_top    -/ area.as_top);
+  let min_bottom_shift = max_num num_zero (min_bottom -/ area.as_bottom);
 
   match
     PlanePartition.find_free_bottom
@@ -183,23 +175,22 @@ value find_place_in_area_bottom page area top height bottom = do
   [ None       -> None
   | Some (a1,a2) -> do
     {
-      let b1 = max_num a1 (area.as_pos_y -/ area.as_height -/ area.as_bottom) in
+      let b1 = max_num a1 (area.as_pos_y -/ area.as_height -/ area.as_bottom);
 
       (* First try the maximal height. *)
 
       let h = if a1 +/ total_height.d_base <=/ a2 then
                 total_height.d_base
               else
-                a2 -/ a1
-              in
-      let r = adjustment_ratio total_height h  in
-      let t = (dim_scale_upto top    r).d_base in
-      let b = (dim_scale_upto bottom r).d_base in
+                a2 -/ a1;
+      let r = adjustment_ratio total_height h;
+      let t = (dim_scale_upto top    r).d_base;
+      let b = (dim_scale_upto bottom r).d_base;
 
       (* Are the top and bottom baselines ok? *)
 
-      let top_baseline    = b1 +/ h -/ t in
-      let bottom_baseline = b1 +/ b      in
+      let top_baseline    = b1 +/ h -/ t;
+      let bottom_baseline = b1 +/ b;
 
       if top_baseline    <=/ area.as_pos_y
       && top_baseline    <=/ a2 -/ t
@@ -211,14 +202,12 @@ value find_place_in_area_bottom page area top height bottom = do
 
         let top_shift = max_num num_zero
                           (top_baseline -/
-                            (max_num area.as_pos_y (a2 -/ t)))
-                        in
+                            (max_num area.as_pos_y (a2 -/ t)));
         let bot_shift = max_num
                           num_zero
-                          (area.as_pos_y -/ area.as_height -/ bottom_baseline)
-                        in
+                          (area.as_pos_y -/ area.as_height -/ bottom_baseline);
 
-        let r = adjustment_ratio total_height (h -/ top_shift -/ bot_shift) in
+        let r = adjustment_ratio total_height (h -/ top_shift -/ bot_shift);
 
         Some (top_baseline -/ top_shift, r)
       }
@@ -228,7 +217,7 @@ value find_place_in_area_bottom page area top height bottom = do
 
 value find_place_in_area_horiz find page area width = do
 {
-  let min_width = dim_min_value width in
+  let min_width = dim_min_value width;
 
   match
     find

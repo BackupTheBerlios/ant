@@ -4,6 +4,8 @@ open Types;
 open VMPrivate;
 open Runtime;
 
+value tracing_bytecode = Evaluate.tracing_bytecode;
+
 (* scopes *)
 
 type scope = Scope.scope;
@@ -27,132 +29,60 @@ value uc_string_to_char_list = Primitives.uc_string_to_char_list;
 value uc_list_to_char_list   = Primitives.uc_list_to_char_list;
 value ascii_to_char_list     = Primitives.ascii_to_char_list;
 
-value execute_declarations   = Compile.compile_declarations;
-value evaluate_unknown       = Evaluate.evaluate_unknown;
+value execute_declarations scope decls  = do
+{
+  let code = Compile.compile_declarations scope decls;
+
+  ignore (Evaluate.execute code [ref Unbound])
+};
+
+value execute                = Evaluate.execute;
 value evaluate_lin_form      = Evaluate.evaluate_lin_form;
-value evaluate_num           = Evaluate.evaluate_num;
 value evaluate_opaque        = Evaluate.evaluate_opaque;
 value unify                  = Evaluate.unify;
-value continue               = CStack.cont;
-value continue2              = CStack.cont2;
-value continue3              = CStack.cont3;
-value continue4              = CStack.cont4;
 
 value set_unknown x v = do
 {
-  CStack.start_vm ();
-  Evaluate.forced_unify x (ref v);
-  CStack.end_vm ()
-};
-
-value evaluate x = do
-{
-  CStack.start_vm ();
-
-  Evaluate.evaluate_unknown x;
-
-  CStack.end_vm ()
+  Evaluate.forced_unify x (ref v)
 };
 
 value evaluate_expression scope stream = do
 {
-  let e = Compile.compile_expression scope stream in
+  let code = Compile.compile_expression scope stream;
 
-  let result = ref (UnevalT [] e) in
+  let x = Evaluate.execute code [];
 
-  evaluate result;
-
-  !result
+  !x
 };
 
-value evaluate_string_expr name scope stream = do
+value evaluate_function f args = do
 {
-  let term = Compile.compile_expression scope stream in
-  let lst  = ref [] in
-  let x    = ref (UnevalT [] term) in
-
-  CStack.start_vm ();
-
-  CStack.cont2
-    (fun () -> Evaluate.evaluate_unknown x)
-    (fun () -> Primitives.evaluate_char_list name lst x);
-
-  CStack.end_vm ();
-
-  !lst
+  Evaluate.execute [| BGlobal f; BApply (List.length args) |] args
 };
 
 value evaluate_monad_expr scope stream init = do
 {
-  let term = Compile.compile_expression scope stream in
+  let code = Compile.compile_expression scope stream;
 
-  let result = ref (UnevalT [] (TApplication term [TConstant init])) in
+  let f = Evaluate.execute code [];
 
-  evaluate result;
+  let x = evaluate_function f [ref init];
 
-  !result
+  !x
 };
 
-value decode_function _name f args = do
+value decode_string = Primitives.evaluate_char_list;
+value decode_list   = Evaluate.evaluate_list;
+value decode_num    = Evaluate.evaluate_num;
+
+value evaluate_string_expr name scope stream = do
 {
-  let result = ref Unbound in
-
-  CStack.start_vm ();
-
-  CStack.cont2
-    (fun () -> Evaluate.evaluate_unknown f)
-    (fun () -> Evaluate.evaluate_application result !f args);
-
-  CStack.end_vm ();
-
-  result
-};
-
-value decode_string name str = do
-{
-  let lst = ref [] in
-
-  CStack.start_vm ();
-
-  CStack.cont2
-    (fun () -> Evaluate.evaluate_unknown str)
-    (fun () -> Primitives.evaluate_char_list name lst str);
-
-  CStack.end_vm ();
-
-  !lst
-};
-
-value decode_list name lst = do
-{
-  let l = ref [] in
-
-  CStack.start_vm ();
-
-  CStack.cont2
-    (fun () -> Evaluate.evaluate_unknown lst)
-    (fun () -> Evaluate.evaluate_list name l lst);
-
-  CStack.end_vm ();
-
-  !l
-};
-
-value decode_num name x = do
-{
-  let result = ref num_zero in
-
-  CStack.start_vm ();
-  evaluate_num name result x;
-  CStack.end_vm ();
-
-  !result
+  decode_string name (ref (evaluate_expression scope stream))
 };
 
 value lookup_symbol scope sym = do
 {
-  let x = Scope.lookup_global scope (string_to_symbol sym) in
-  evaluate x;
+  let x = Scope.lookup_global scope (string_to_symbol sym);
   !x
 };
 

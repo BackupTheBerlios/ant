@@ -93,7 +93,7 @@ struct
       else do
       {
         try
-          let next = ChildMap.find str.(i) trie.children in
+          let next = ChildMap.find str.(i) trie.children;
 
           iter (i+1) next
         with
@@ -107,7 +107,7 @@ struct
   | [c::cs] -> do
     {
       try
-        let next = ChildMap.find c trie.children in
+        let next = ChildMap.find c trie.children;
 
         lookup_list cs next
       with
@@ -127,7 +127,7 @@ struct
       (fold
         (fun (last, t) c -> do
           {
-            let next = prefix t c in
+            let next = prefix t c;
 
             match next.data with
             [ Some _ -> (next, next)
@@ -159,7 +159,7 @@ struct
       else do
       {
         try
-          let next = ChildMap.find str.(i) trie.children in
+          let next = ChildMap.find str.(i) trie.children;
 
           match next.data with
           [ Some _ -> iter (i+1) next next.data
@@ -183,7 +183,7 @@ struct
     | [c::cs] -> do
       {
         try
-          let next = ChildMap.find c trie.children in
+          let next = ChildMap.find c trie.children;
 
           match next.data with
           [ Some _ -> iter next cs next.data
@@ -228,8 +228,7 @@ struct
         let next = try
                      ChildMap.find str.(i) trie.children
                    with
-                   [ Not_found -> empty ]
-        in
+                   [ Not_found -> empty ];
 
         {
           (trie)
@@ -253,7 +252,7 @@ struct
       else do
       {
         try
-          let next = ChildMap.find str.(i) trie.children in
+          let next = ChildMap.find str.(i) trie.children;
 
           {
             (trie)
@@ -275,8 +274,7 @@ struct
       let next = try
                    ChildMap.find c trie.children
                  with
-                 [ Not_found -> empty ]
-      in
+                 [ Not_found -> empty ];
 
       {
         (trie)
@@ -293,7 +291,7 @@ struct
   | [c::cs] -> do
     {
       try
-        let next = ChildMap.find c trie.children in
+        let next = ChildMap.find c trie.children;
 
         {
           (trie)
@@ -370,7 +368,7 @@ struct
 
     where rec iter str trie e = do
     {
-      let x = ChildMap.fold (fun c t y -> iter [c :: str] t y) trie.children e in
+      let x = ChildMap.fold (fun c t y -> iter [c :: str] t y) trie.children e;
 
       match trie.data with
       [ Some y -> f (XList.rev_to_array str) y x
@@ -388,8 +386,7 @@ struct
       let d = ChildMap.fold
                 (fun _ t d -> max d (depth t))
                 trie.children
-                0
-      in
+                0;
 
       d + 1
     }

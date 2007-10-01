@@ -56,7 +56,7 @@ value rec alloc_object pdf = do
   {
     (* The free list is nonempty. *)
 
-    let o = pdf.xrefs.(0) in
+    let o = pdf.xrefs.(0);
 
     pdf.xrefs.(0) := pdf.xrefs.(o);
 
@@ -66,7 +66,7 @@ value rec alloc_object pdf = do
   {
     (* Enlarge the arrays. *)
 
-    let len = Array.length pdf.xrefs in
+    let len = Array.length pdf.xrefs;
 
     pdf.revs := Array.init (2 * len)
                   (fun i ->
@@ -183,11 +183,11 @@ value read_keyword is str = do
 {
   skip_white_space_and_comments is;
 
-  let len = String.length str in
+  let len = String.length str;
 
   if IO.peek_string is 0 len = str then do
   {
-    let c = IO.peek_char is len in
+    let c = IO.peek_char is len;
 
     if is_special c || is_white_space c then do
     {
@@ -206,7 +206,7 @@ value read_token is = do
 {
   skip_white_space is;
 
-  let c = IO.read_char is in
+  let c = IO.read_char is;
 
   if is_special c then
     [c]
@@ -215,7 +215,7 @@ value read_token is = do
 
   where rec iter token = do
   {
-    let c = IO.peek_char is 0 in
+    let c = IO.peek_char is 0;
 
     if is_special c || is_white_space c then
       List.rev token
@@ -232,7 +232,7 @@ value read_token is = do
 
 value ascii_hex_decode stream = do
 {
-  let cs = IO.make_buffer_stream (IO.size stream) in
+  let cs = IO.make_buffer_stream (IO.size stream);
 
   iter ()
 
@@ -247,7 +247,7 @@ value ascii_hex_decode stream = do
     }
     else do
     {
-      let c = IO.read_char stream in
+      let c = IO.read_char stream;
 
       if c = '>' then do
       {
@@ -258,7 +258,7 @@ value ascii_hex_decode stream = do
       {
         skip_white_space stream;
 
-        let d = IO.read_char stream in
+        let d = IO.read_char stream;
 
         if d = '>' then do
         {
@@ -278,7 +278,7 @@ value ascii_hex_decode stream = do
 
 value ascii_85_decode stream = do
 {
-  let cs = IO.make_buffer_stream (IO.size stream) in
+  let cs = IO.make_buffer_stream (IO.size stream);
 
   iter ()
 
@@ -291,7 +291,7 @@ value ascii_85_decode stream = do
     }
     else do
     {
-      let c = IO.read_byte stream in
+      let c = IO.read_byte stream;
 
       if c = 126 then do
       {
@@ -310,17 +310,17 @@ value ascii_85_decode stream = do
       {
         IO.skip_while stream (fun x -> x < '\033' || (x > '\117' && x <> '\126'));
 
-        let d = IO.read_byte stream in
+        let d = IO.read_byte stream;
 
         if d < 33 || d > 117 then
           iter ()
         else do
         {
-          let c = 85 * c + d in
+          let c = 85 * c + d;
 
           IO.skip_while stream (fun x -> x < '\033' || (x > '\117' && x <> '\126'));
 
-          let d = IO.read_byte stream in
+          let d = IO.read_byte stream;
 
           if d < 33 || d > 117 then do
           {
@@ -329,11 +329,11 @@ value ascii_85_decode stream = do
           }
           else do
           {
-            let c = 85 * c + d in
+            let c = 85 * c + d;
 
             IO.skip_while stream (fun x -> x < '\033' || (x > '\117' && x <> '\126'));
 
-            let d = IO.read_byte stream in
+            let d = IO.read_byte stream;
 
             if d < 33 || d > 117 then do
             {
@@ -342,11 +342,11 @@ value ascii_85_decode stream = do
             }
             else do
             {
-              let c = 85 * c + d in
+              let c = 85 * c + d;
 
               IO.skip_while stream (fun x -> x < '\033' || (x > '\117' && x <> '\126'));
 
-              let d = IO.read_byte stream in
+              let d = IO.read_byte stream;
 
               if d < 33 || d > 117 then do
               {
@@ -370,7 +370,7 @@ value ascii_85_decode stream = do
 
 value run_length_decode stream = do
 {
-  let cs = IO.make_buffer_stream (IO.size stream) in
+  let cs = IO.make_buffer_stream (IO.size stream);
 
   iter ()
 
@@ -383,7 +383,7 @@ value run_length_decode stream = do
     }
     else do
     {
-      let len = IO.read_byte stream in
+      let len = IO.read_byte stream;
 
       if len < 128 then do
       {
@@ -405,14 +405,12 @@ value apply_filter filter param (stream : IO.irstream) = do
   [ Symbol f -> [Symbol f]
   | Array fs -> fs
   | _        -> []
-  ]
-  in
+  ];
   let params = match param with
   [ Dictionary d -> [Dictionary d]
   | Array ds     -> ds
   | _            -> []
-  ]
-  in
+  ];
 
   iter stream filters params
 
@@ -469,7 +467,7 @@ value rec read_int is = do
 
       where rec iter x = do
       {
-        let c = IO.peek_char is 0 in
+        let c = IO.peek_char is 0;
 
         if c < '0' || c > '9' then
           x
@@ -501,7 +499,7 @@ value rec read_float is = do
     }
   | _ -> do
     {
-      let x = read_int is in
+      let x = read_int is;
 
       if IO.peek_char is 0 <> '.' then    (* . *)
         float_of_int x
@@ -514,7 +512,7 @@ value rec read_float is = do
 
       where rec iter x f = do
       {
-        let c = IO.peek_char is 0 in
+        let c = IO.peek_char is 0;
 
         if c < '0' || c > '9' then
           x
@@ -531,7 +529,7 @@ value rec read_float is = do
 
 value read_literal_string is = do
 {
-  let str = IO.make_buffer_stream 0x100 in
+  let str = IO.make_buffer_stream 0x100;
 
   IO.read_char is;   (* ( *)
 
@@ -630,7 +628,7 @@ value read_literal_string is = do
 
             if c >= '0' || c <= '7' then do
             {
-              let d = IO.peek_char is 0 in
+              let d = IO.peek_char is 0;
 
               if d < '0' || d > '7' then
                 IO.write_char str c
@@ -638,8 +636,8 @@ value read_literal_string is = do
               {
                 IO.read_char is;
 
-                let c = 8 * int_of_char c + int_of_char d in
-                let d = IO.peek_char is 0 in
+                let c = 8 * int_of_char c + int_of_char d;
+                let d = IO.peek_char is 0;
 
                 if d < '0' || d > '7' then
                   IO.write_byte str c
@@ -663,7 +661,7 @@ value read_literal_string is = do
 
 value read_hex_string is = do
 {
-  let str = IO.make_buffer_stream 0x100 in
+  let str = IO.make_buffer_stream 0x100;
 
   IO.read_char is;   (* < *)
 
@@ -673,7 +671,7 @@ value read_hex_string is = do
   {
     skip_white_space is;
 
-    let c = IO.read_char is in
+    let c = IO.read_char is;
 
     if c = '>' then
       str
@@ -681,7 +679,7 @@ value read_hex_string is = do
     {
       skip_white_space is;
 
-      let d = IO.read_char is in
+      let d = IO.read_char is;
 
       if d = '>' then do
       {
@@ -716,7 +714,7 @@ value read_symbol is = do
     ""
   else do
   {
-    let sym = IO.make_buffer_stream 0x100 in
+    let sym = IO.make_buffer_stream 0x100;
 
     IO.read_char is;
 
@@ -724,7 +722,7 @@ value read_symbol is = do
 
     where rec iter () = do
     {
-      let c = IO.peek_char is 0 in
+      let c = IO.peek_char is 0;
 
       if is_special c || is_white_space c then
         IO.to_string sym
@@ -732,8 +730,8 @@ value read_symbol is = do
       {
         IO.read_char is;
 
-        let c = IO.read_char is in
-        let d = IO.read_char is in
+        let c = IO.read_char is;
+        let d = IO.read_char is;
 
         IO.write_byte sym (16 * hex_to_dec c + hex_to_dec d);
 
@@ -752,8 +750,8 @@ value read_symbol is = do
 
 value read_reference is = do
 {
-  let id  = read_int is in
-  let rev = read_int is in
+  let id  = read_int is;
+  let rev = read_int is;
 
   if read_keyword is "R" then
     Reference id rev
@@ -763,13 +761,13 @@ value read_reference is = do
 
 value read_float_or_reference is = do
 {
-  let pos = IO.pos is in
+  let pos = IO.pos is;
 
   skip_digits 0
 
   where rec skip_digits i = do
   {
-    let c = IO.peek_char is i in
+    let c = IO.peek_char is i;
 
     if c >= '0' && c <= '9' then
       skip_digits (i+1)
@@ -778,7 +776,7 @@ value read_float_or_reference is = do
   }
   where rec skip_space i = do
   {
-    let c = IO.peek_char is i in
+    let c = IO.peek_char is i;
 
     if is_white_space c then
       skip_space (i+1)
@@ -804,7 +802,7 @@ value rec read_array pdf = do
     []
   else do
   {
-    let arr = ListBuilder.make () in
+    let arr = ListBuilder.make ();
 
     IO.skip pdf.file 1;
 
@@ -836,7 +834,7 @@ and read_dictionary pdf = do
     []
   else do
   {
-    let dict = ListBuilder.make () in
+    let dict = ListBuilder.make ();
 
     IO.skip pdf.file 2;
 
@@ -853,7 +851,7 @@ and read_dictionary pdf = do
       }
       else do
       {
-        let k = read_symbol pdf.file in
+        let k = read_symbol pdf.file;
 
         skip_white_space_and_comments pdf.file;
 
@@ -896,13 +894,12 @@ and read_file pdf file_desc = do
       ]
     }
   | _ -> IO.make_string_stream ""
-  ]
-  in
+  ];
 
   if IO.size file_name > 0 then do
   {
-    let ic = open_in_bin (IO.to_string file_name) in
-    let cs = IO.make_buffer_stream 0x10000        in
+    let ic = open_in_bin (IO.to_string file_name);
+    let cs = IO.make_buffer_stream 0x10000;
 
     IO.append_channel cs ic;
 
@@ -929,8 +926,8 @@ and read_stream pdf dict = do
     }
     else ();
 
-    let len  = value_to_int (lookup_reference pdf (dict_lookup dict "Length")) in
-    let data = (IO.coerce_ir (IO.sub_stream pdf.file len))                     in
+    let len  = value_to_int (lookup_reference pdf (dict_lookup dict "Length"));
+    let data = (IO.coerce_ir (IO.sub_stream pdf.file len));
 
     skip_eol pdf.file;
 
@@ -941,8 +938,8 @@ and read_stream pdf dict = do
       match lookup_reference pdf (dict_lookup dict "F") with
       [ Null -> do
         {
-          let filter = lookup_reference pdf (dict_lookup dict "Filter")      in
-          let params = lookup_reference pdf (dict_lookup dict "DecodeParms") in
+          let filter = lookup_reference pdf (dict_lookup dict "Filter");
+          let params = lookup_reference pdf (dict_lookup dict "DecodeParms");
 
           apply_filter filter params data
         }
@@ -950,9 +947,9 @@ and read_stream pdf dict = do
         {
           (* read external file *)
 
-          let data   = read_file pdf file in
-          let filter = lookup_reference pdf (dict_lookup dict "FFilter")      in
-          let params = lookup_reference pdf (dict_lookup dict "FDecodeParms") in
+          let data   = read_file pdf file;
+          let filter = lookup_reference pdf (dict_lookup dict "FFilter");
+          let params = lookup_reference pdf (dict_lookup dict "FDecodeParms");
 
           apply_filter filter params data
         }
@@ -970,7 +967,7 @@ and read_value pdf = do
     {
       if IO.peek_char pdf.file 1 = '<' then do
       {
-        let dict = read_dictionary pdf in
+        let dict = read_dictionary pdf;
 
         skip_white_space_and_comments pdf.file;
 
@@ -1006,8 +1003,8 @@ and read_value pdf = do
 }
 and read_object pdf = do
 {
-  let id  = read_int pdf.file in
-  let rev = read_int pdf.file in
+  let id  = read_int pdf.file;
+  let rev = read_int pdf.file;
 
   skip_white_space_and_comments pdf.file;
 
@@ -1015,7 +1012,7 @@ and read_object pdf = do
     { id = id; rev = rev; data = Null }
   else do
   {
-    let data = read_value pdf in
+    let data = read_value pdf;
 
     skip_white_space_and_comments pdf.file;
 
@@ -1042,7 +1039,7 @@ and lookup_reference pdf val = do
         Null
       else do
       {
-        let obj = load_object pdf id in
+        let obj = load_object pdf id;
 
         iter obj.data [id :: ids]
       }
@@ -1063,14 +1060,14 @@ value rec read_xrefs is file pos = do
 
     where rec read_subsection () = do
     {
-      let start = read_int is in
-      let len   = read_int is in
+      let start = read_int is;
+      let len   = read_int is;
 
       skip_white_space_and_comments is;
 
       for i = 0 to len - 1 do
       {
-        let entry = IO.read_string is 20 in
+        let entry = IO.read_string is 20;
 
         Scanf.sscanf entry "%10d %5d %c"
           (fun pos rev _c -> do
@@ -1086,13 +1083,13 @@ value rec read_xrefs is file pos = do
 
       skip_white_space_and_comments is;
 
-      let c = IO.peek_char is 0 in
+      let c = IO.peek_char is 0;
 
       if c >= '0' && c <= '9' then
         read_subsection ()
       else if IO.read_string is 7 = "trailer" then do
       {
-        let trailer = read_dictionary file in
+        let trailer = read_dictionary file;
 
         match dict_lookup trailer "Prev" with
         [ Int   pos -> read_xrefs is file pos
@@ -1108,7 +1105,7 @@ value rec read_xrefs is file pos = do
 value rec get_object pdf val = match val with
 [ Reference idx _ -> do
   {
-    let obj = load_object pdf idx in
+    let obj = load_object pdf idx;
     get_object pdf obj.data
   }
 | _               -> val
@@ -1118,14 +1115,14 @@ value read_pdf_file filename = do
 {
   try do
   {
-    let is  = IO.make_rand_in_stream filename in
-    let pdf = create_pdf is 1.4               in
+    let is  = IO.make_rand_in_stream filename;
+    let pdf = create_pdf is 1.4;
 
     if IO.read_string is 5 <> "%PDF-" then
       pdf
     else do
     {
-      let version = read_float is in
+      let version = read_float is;
 
       iter (IO.size is - 5)
 
@@ -1149,14 +1146,13 @@ value read_pdf_file filename = do
       where read_trailer () = do
       {
 
-        let trailer = read_dictionary pdf in
+        let trailer = read_dictionary pdf;
 
         let size = match dict_lookup trailer "Size" with
                    [ Int x   -> x
                    | Float x -> int_of_float x
                    | _       -> 0
-                   ]
-                   in
+                   ];
 
         let pdf =
         {
@@ -1166,8 +1162,7 @@ value read_pdf_file filename = do
           info    = dict_lookup trailer "Info";
           revs    = Array.make size (-1);
           xrefs   = Array.make size 0
-        }
-        in
+        };
 
         if size <= 0 || pdf.root = Null then
           None
@@ -1179,7 +1174,7 @@ value read_pdf_file filename = do
             None
           else do
           {
-            let xref_pos = read_int is in
+            let xref_pos = read_int is;
 
             skip_white_space is;
 
@@ -1208,14 +1203,13 @@ value read_pdf_file filename = do
 
 value get_dimensions filename = do
 {
-  let pdf = read_pdf_file filename in
+  let pdf = read_pdf_file filename;
 
   let get_num x = match get_object pdf x with
   [ Int i   -> float_of_int i
   | Float f -> f
   | _       -> 0.0
-  ]
-  in
+  ];
   let get_dim page = do
   {
     match get_object pdf page with
@@ -1225,8 +1219,7 @@ value get_dimensions filename = do
       ]
     | _ -> (0.0, 0.0, 0.0, 0.0)
     ]
-  }
-  in
+  };
 
   match get_object pdf pdf.root with
   [ Dictionary root -> match get_object pdf (dict_lookup root "Pages") with
@@ -1283,7 +1276,7 @@ value write_symbol os sym = do
 
   for i = 0 to String.length sym - 1 do
   {
-    let c = sym.[i] in
+    let c = sym.[i];
 
     if is_special c || is_white_space c || c = '#' then
       IO.printf os "#%2x" (int_of_char c)
@@ -1326,13 +1319,12 @@ and write_stream os dict (str : IO.irstream) = do
 {
   IO.seek str 0;
 
-  let compress = IO.size str > 256 in
+  let compress = IO.size str > 256;
   let data     = if compress then
                    IO.compress str 9
                  else
-                   str
-                 in
-  let len      = IO.size data in
+                   str;
+  let len      = IO.size data;
 
   iter [] dict
 
@@ -1389,7 +1381,7 @@ value write_object os id rev val = do
 
 value set_object pdf id val = do
 {
-  let new_rev = pdf.revs.(id) + 1 in
+  let new_rev = pdf.revs.(id) + 1;
 
   pdf.revs.(id)  := new_rev;
   pdf.xrefs.(id) := IO.bytes_written pdf.file;
@@ -1399,7 +1391,7 @@ value set_object pdf id val = do
 
 value create_pdf_file filename version = do
 {
-  let pdf = create_pdf (IO.make_out_stream filename) version in
+  let pdf = create_pdf (IO.make_out_stream filename) version;
 
   IO.printf pdf.file "%%PDF-%s\n%%\255\255\255\255\n" (string_of_float version);
 
@@ -1416,10 +1408,9 @@ value finish_pdf_file pdf = do
       count_objects last (n+1)
     else
       count_objects n    (n+1)
-  }
-  in
+  };
 
-  let num_objects = count_objects 0 0 in
+  let num_objects = count_objects 0 0;
 
   let rec next_free i = do
   {
@@ -1429,10 +1420,9 @@ value finish_pdf_file pdf = do
       i
     else
       next_free (i+1)
-  }
-  in
+  };
 
-  let xref_pos = IO.bytes_written pdf.file in
+  let xref_pos = IO.bytes_written pdf.file;
 
   IO.printf pdf.file "xref\n0 %d\n" num_objects;
 

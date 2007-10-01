@@ -52,13 +52,12 @@ type par_params =
 
 value calc_adjust_ratio line_width goal_width background_width = do
 {
-  let width = xdim_add line_width background_width in
-  let delta = goal_width -/ width.xd_base          in
+  let width = xdim_add line_width background_width;
+  let delta = goal_width -/ width.xd_base;
   let s     = if delta </ num_zero then
                 xdim_max_shrink  width
               else
-                xdim_max_stretch width
-              in
+                xdim_max_stretch width;
 
   if s >=/ infinite then
     num_zero
@@ -83,14 +82,12 @@ value calc_demerits line_break_params badness penalty hyphen_demerits cur_hyphen
   let alpha = if cur_hyphen && prev_hyphen then
                 hyphen_demerits
               else
-                num_zero
-              in
-  let beta  = line_break_params.line_penalty +/ badness in
+                num_zero;
+  let beta  = line_break_params.line_penalty +/ badness;
   let gamma = if abs (cur_fit - prev_fit) > 1 then
                 line_break_params.adj_demerits
               else
-                num_zero
-              in
+                num_zero;
 
   if penalty >=/ num_zero then
     beta */ beta +/ penalty */ penalty +/ alpha +/ gamma
@@ -235,7 +232,7 @@ value break_lines loc boxes par_params line_break_params = do
 {
   (* FIX: check that left- and right-skip don't contain infinite shrinkability *)
 
-  let left_right_skip = xdim_add_dim (dim_to_xdim par_params.left_skip) par_params.right_skip in
+  let left_right_skip = xdim_add_dim (dim_to_xdim par_params.left_skip) par_params.right_skip;
 
   (* |insert_delta <dist> <active>| inserts a delta node into the active list. *)
 
@@ -251,8 +248,7 @@ value break_lines loc boxes par_params line_break_params = do
                            else
                              [Delta dist :: active]
       ]
-  ]
-  in
+  ];
 
   (* |inc_pos <box> <state>| moves on to the next box. *)
 
@@ -267,8 +263,7 @@ value break_lines loc boxes par_params line_break_params = do
                     | None      -> state.bs_active
                     ];
     bs_passive    = state.bs_passive
-  }
-  in
+  };
 
   (* |skip_glue <box> <state>| moves on to the next box where the current box is a glue-box. *)
 
@@ -299,8 +294,7 @@ value break_lines loc boxes par_params line_break_params = do
                    bs_active     = state.bs_active;
                    bs_passive    = state.bs_passive
                  }
-  ]
-  in
+  ];
 
   (*
     |try_break <threshold> <hyphen-demerits> <force-active> <background-width> <break-box> <state>|
@@ -317,16 +311,15 @@ value break_lines loc boxes par_params line_break_params = do
       match break_box.b_contents with
       [ BreakBox p h pre post _ -> (p,h,pre,post)
       | _                       -> assert False
-      ]
-    in
-    let no_break_width   = break_box.b_width            in
-    let pre_break_width  = HBox.calc_width pre_break    in
-    let post_break_width = HBox.calc_width post_break   in
-    let forced_break     = (penalty <=/ minus_infinite) in
+      ];
+    let no_break_width   = break_box.b_width;
+    let pre_break_width  = HBox.calc_width pre_break;
+    let post_break_width = HBox.calc_width post_break;
+    let forced_break     = (penalty <=/ minus_infinite);
 
     let iter_breaks cur_dist n act new_breaks = do
     {
-      let new_act = ListBuilder.make () in
+      let new_act = ListBuilder.make ();
 
       iter cur_dist n act new_breaks
 
@@ -342,10 +335,10 @@ value break_lines loc boxes par_params line_break_params = do
             }
           | Break bp   -> do
             {
-              let (left_indent, right_indent) = par_params.par_shape bp.bp_line        in
-              let width            = par_params.measure -/ left_indent -/ right_indent in
-              let adjustment_ratio = calc_adjust_ratio cur_dist width background_width in
-              let badness          = badness adjustment_ratio                          in
+              let (left_indent, right_indent) = par_params.par_shape bp.bp_line;
+              let width            = par_params.measure -/ left_indent -/ right_indent;
+              let adjustment_ratio = calc_adjust_ratio cur_dist width background_width;
+              let badness          = badness adjustment_ratio;
 
               if adjustment_ratio </ num_m1 then do
               {
@@ -409,8 +402,7 @@ value break_lines loc boxes par_params line_break_params = do
                                        (if adjustment_ratio </ num_zero then
                                           minus_num badness
                                         else
-                                          badness)
-                                     in
+                                          badness);
                 let demerits       = (*if forced_break then
                                        num_zero
                                      else *)
@@ -420,9 +412,8 @@ value break_lines loc boxes par_params line_break_params = do
                                          penalty
                                          hyphen_demerits
                                          hyph bp.bp_hyph
-                                         fit  bp.bp_fit
-                                     in
-                let total_demerits = bp.bp_demerits +/ demerits in
+                                         fit  bp.bp_fit;
+                let total_demerits = bp.bp_demerits +/ demerits;
 
                 if !tracing_line_breaks then do
                 {
@@ -460,13 +451,12 @@ value break_lines loc boxes par_params line_break_params = do
           ]
         ]
       }
-    }
-    in
+    };
 
     let (new_act, act, pas) =
         iter_breaks (xdim_add_dim state.bs_dist pre_break_width)
-                    state.bs_number state.bs_active []
-    in do
+                    state.bs_number state.bs_active [];
+    do
     {
       if !tracing_line_breaks then do
       {
@@ -497,7 +487,7 @@ value break_lines loc boxes par_params line_break_params = do
         }
       else do
       {
-        let inter_dist = xdim_sub_dim (xdim_add_dim state.bs_dist no_break_width) post_break_width in
+        let inter_dist = xdim_sub_dim (xdim_add_dim state.bs_dist no_break_width) post_break_width;
 
         if post_break = [] then
           {
@@ -527,8 +517,7 @@ value break_lines loc boxes par_params line_break_params = do
           }
       }
     }
-  }
-  in
+  };
 
   (* |split_lines <cur-break> <breaks> <boxes>| splits the list of boxes into the individual lines. *)
 
@@ -545,10 +534,9 @@ value break_lines loc boxes par_params line_break_params = do
         else
           iter [arr.(i) :: result] (i - 1)
       }
-    }
-    in
+    };
 
-    let boxes = Array.of_list boxes in
+    let boxes = Array.of_list boxes;
 
     iter cur_break []
 
@@ -558,28 +546,25 @@ value break_lines loc boxes par_params line_break_params = do
         lines
       else do
       {
-        let prev = breaks.(cur_break.bp_prev) in
+        let prev = breaks.(cur_break.bp_prev);
 
         let (post_break, first_pos) =
           match boxes.(prev.bp_pos).b_contents with
           [ BreakBox _ _ _ p _ -> (p, prev.bp_pos + 1)
           | _                  -> ([], prev.bp_pos)
-          ]
-        in
+          ];
         let pre_break = match boxes.(cur_break.bp_pos).b_contents with
           [ BreakBox _ _ p _ _ -> p
           | _                  -> []
-          ]
-        in
+          ];
 
-        let line             = get_subrange boxes first_pos (cur_break.bp_pos - 1)          in
-        let (cmds, new_line) = discard_glue (post_break @ (remove_breaks line) @ pre_break) in
+        let line             = get_subrange boxes first_pos (cur_break.bp_pos - 1);
+        let (cmds, new_line) = discard_glue (post_break @ (remove_breaks line) @ pre_break);
 
         iter prev [cmds @ new_line :: lines]
       }
     }
-  }
-  in
+  };
 
   (*
     |check_result <boxes> <state>| tests whether there is a feasible break-point at the end of the
@@ -588,7 +573,7 @@ value break_lines loc boxes par_params line_break_params = do
 
   let check_result boxes state = do
   {
-    let end_pos = List.length boxes - 1 in
+    let end_pos = List.length boxes - 1;
 
     let rec find_best break_points = do
     {
@@ -605,8 +590,7 @@ value break_lines loc boxes par_params line_break_params = do
         else
           iter (i - 1) best
       }
-    }
-    in
+    };
 
     let rec find_line best looseness break_points = do
     {
@@ -618,7 +602,7 @@ value break_lines loc boxes par_params line_break_params = do
           best
         else do
         {
-          let delta = break_points.(i).bp_line - best.bp_line in
+          let delta = break_points.(i).bp_line - best.bp_line;
 
           if break_points.(i).bp_pos < end_pos then
             best
@@ -640,8 +624,7 @@ value break_lines loc boxes par_params line_break_params = do
           }
         }
       }
-    }
-    in
+    };
 
     let breaks = Array.of_list
                    (List.fold_left
@@ -650,9 +633,8 @@ value break_lines loc boxes par_params line_break_params = do
                       | _       -> l
                       ])
                      []
-                     (state.bs_active @ state.bs_passive))
-    in
-    let num_breaks = Array.length breaks in
+                     (state.bs_active @ state.bs_passive));
+    let num_breaks = Array.length breaks;
 
     if num_breaks = 0 then
       None
@@ -662,16 +644,14 @@ value break_lines loc boxes par_params line_break_params = do
         if line_break_params.looseness = 0 then
           find_best breaks
         else
-          find_line (find_best breaks) line_break_params.looseness breaks
-      in
+          find_line (find_best breaks) line_break_params.looseness breaks;
 
       if breaks.(num_breaks - 1).bp_pos <> end_pos then
         None
       else
         Some (split_lines best_break breaks boxes)
     }
-  }
-  in
+  };
 
   (*
     |pass <tolerance> <left-right-skip> <allow-hyphen> <force-active> <state> <boxes>|
@@ -727,8 +707,7 @@ value break_lines loc boxes par_params line_break_params = do
         }
       }
     ]
-  }
-  in
+  };
 
   let initial_state =
   {
@@ -746,8 +725,7 @@ value break_lines loc boxes par_params line_break_params = do
                        bp_demerits   = num_zero
                      }];
     bs_passive    = []
-  }
-  in
+  };
 
   if !tracing_line_breaks then
     log_info loc "@firstpass\n"
@@ -823,9 +801,8 @@ value make_break_graph items threshold left_right_skip allow_breaks par_params l
        | _ -> n
        ])
       0
-      items
-  in
-  let breaks = Array.make num_breaks 0 in
+      items;
+  let breaks = Array.make num_breaks 0;
 
   Array.fold_left
     (fun (n,k) i -> match i with
@@ -928,17 +905,16 @@ value calc_rivers params adj_ratio width last_rivers current_rivers = do
       (dim_scale
          (xdim_select_order d width.d_stretch_order width.d_shrink_order)
          adj_ratio).d_base
-    }
-    in
+    };
 
     let rec scale_rivers x rivers = match rivers with
     [ []  -> assert False              (* <rivers> is of odd length. *)
     | [_] -> []
     | [a; b :: rs] -> do
       {
-        let delta = scale a in         (* distance to start of white space *)
-        let width = scale b in         (* width of white space             *)
-        let right = delta +/ width in  (* position of right border         *)
+        let delta = scale a;         (* distance to start of white space *)
+        let width = scale b;         (* width of white space             *)
+        let right = delta +/ width;  (* position of right border         *)
 
         (* Ignore tiny white space. *)
 
@@ -947,12 +923,11 @@ value calc_rivers params adj_ratio width last_rivers current_rivers = do
         else
           scale_rivers right rs
       }
-    ]
-    in
+    ];
     (* FIX: add left-skip and left-indent *)
-    let scaled_rivers = scale_rivers num_zero current_rivers in
+    let scaled_rivers = scale_rivers num_zero current_rivers;
 
-    let result = ListBuilder.make () in
+    let result = ListBuilder.make ();
 
     merge_rivers num_zero last_rivers scaled_rivers
 
@@ -983,10 +958,10 @@ value calc_rivers params adj_ratio width last_rivers current_rivers = do
             }
             else do
             {
-              let u = max_num a x in
-              let v = min_num b y in
+              let u = max_num a x;
+              let v = min_num b y;
 
-              let new_dem = d +/ (v -/ u) */ params.river_demerits in
+              let new_dem = d +/ (v -/ u) */ params.river_demerits;
 
               ListBuilder.add result (a,b,new_dem);
               merge_rivers (demerits +/ new_dem) last cs
@@ -1003,16 +978,14 @@ value calc_line_demerits graph prev_bp is_final hyph fit badness penalty = do
   let hyphen_demerits = if is_final then
                           graph.bg_line_break_params.final_hyphen_demerits
                         else
-                          graph.bg_line_break_params.double_hyphen_demerits
-                        in
+                          graph.bg_line_break_params.double_hyphen_demerits;
   let demerits        = calc_demerits
                           graph.bg_line_break_params
                           badness
                           penalty
                           hyphen_demerits
                           hyph prev_bp.bp_hyph
-                          fit  prev_bp.bp_fit
-                        in
+                          fit  prev_bp.bp_fit;
   prev_bp.bp_demerits +/ demerits
 };
 
@@ -1023,14 +996,11 @@ value make_break_point graph prev_bp line rivers width is_final forced_break hyp
       (if fst adj_ratio </ num_zero then
          minus_num badness
        else
-         badness)
-  in
+         badness);
   let (river_demerits, new_rivers) =
-    calc_rivers graph.bg_line_break_params adj_ratio width prev_bp.bp_rivers rivers
-  in
+    calc_rivers graph.bg_line_break_params adj_ratio width prev_bp.bp_rivers rivers;
   let demerits =
-    river_demerits +/ calc_line_demerits graph prev_bp is_final hyph fit badness penalty
-  in
+    river_demerits +/ calc_line_demerits graph prev_bp is_final hyph fit badness penalty;
 
   if !tracing_line_breaks then do
   {
@@ -1087,8 +1057,8 @@ value compute_line graph partial_line previous current = do
     {
       (* We do not care about rivers. *)
 
-      let width1 = HBox.calc_xwidth boxes1 in
-      let width2 = HBox.calc_xwidth boxes2 in
+      let width1 = HBox.calc_xwidth boxes1;
+      let width2 = HBox.calc_xwidth boxes2;
 
       let new_partial_line =
         {
@@ -1097,8 +1067,7 @@ value compute_line graph partial_line previous current = do
           pl_position     = new_pos;
           pl_right_margin = right_margin;
           pl_width        = xdim_add partial_line.pl_width width1
-        }
-      in
+        };
 
       (List.rev_append new_partial_line.pl_prefix boxes2,
        [],
@@ -1115,16 +1084,14 @@ value compute_line graph partial_line previous current = do
           [ []      -> assert False
           | [y::ys] -> List.rev_append xs [xdim_add x y :: ys]
           ]
-      ]
-      in
+      ];
 
-      let (width1, rivers1) = HBox.calc_width_and_glue boxes1 in
-      let (width2, rivers2) = HBox.calc_width_and_glue boxes2 in
+      let (width1, rivers1) = HBox.calc_width_and_glue boxes1;
+      let (width2, rivers2) = HBox.calc_width_and_glue boxes2;
 
       let rivers = rev_append_rivers
                      partial_line.pl_rivers
-                     (rev_append_rivers rivers1 rivers2)
-      in
+                     (rev_append_rivers rivers1 rivers2);
 
       let new_partial_line =
         {
@@ -1133,28 +1100,25 @@ value compute_line graph partial_line previous current = do
           pl_position     = new_pos;
           pl_right_margin = right_margin;
           pl_width        = xdim_add partial_line.pl_width width1
-        }
-      in
+        };
 
       (List.rev_append new_partial_line.pl_prefix boxes2,
        rivers,
        xdim_add new_partial_line.pl_width width2,
        new_partial_line)
     }
-  }
-  in
+  };
 
   let make_margin_glyph border_item = match border_item with
   [ `Glyph (_,f) -> [`Glyph (Border Margin, f)]
   | _            -> []
-  ]
-  in
+  ];
   let prefix_with_list list array = match list with
   [ []      -> array
   | [x::xs] -> do
     {
-      let l = List.length list                      in
-      let a = Array.make (l + Array.length array) x in
+      let l = List.length list;
+      let a = Array.make (l + Array.length array) x;
 
       List.fold_left
         (fun i x -> do { a.(i) := x; i + 1 })
@@ -1168,14 +1132,13 @@ value compute_line graph partial_line previous current = do
 
       a
     }
-  ]
-  in
+  ];
   let postfix_with_list list array = match list with
   [ []      -> array
   | [x::xs] -> do
     {
-      let l = List.length list in
-      let a = Array.make (l + Array.length array) x in
+      let l = List.length list;
+      let a = Array.make (l + Array.length array) x;
 
       List.fold_left
         (fun i x -> do { a.(i + Array.length array) := x; i + 1 })
@@ -1189,8 +1152,7 @@ value compute_line graph partial_line previous current = do
 
       a
     }
-  ]
-  in
+  ];
 
   if partial_line.pl_position < 0 then do
   {
@@ -1200,21 +1162,18 @@ value compute_line graph partial_line previous current = do
     [ `Break (_, _, _, p, _) -> prefix_with_list graph.bg_par_params.post_break p
                                 (* FIX: post_break should depend on the line number *)
     | _                      -> assert False
-    ]
-    in
+    ];
     let pre_break = match graph.bg_items.(current) with
     [ `Break (_, _, p, _, _) -> postfix_with_list graph.bg_par_params.pre_break p
                                 (* FIX: pre_break should depend on the line number *)
     | _                      -> assert False
-    ]
-    in
+    ];
 
     let (cmds1, pos1) =
       Compose.discard_glue_array
         (previous + 1)
         (current - 1)
-        graph.bg_items
-    in
+        graph.bg_items;
 
     (* compute margin glyphs for margin kerning *)
 
@@ -1227,8 +1186,7 @@ value compute_line graph partial_line previous current = do
             | None   -> []
             ]
         ]
-    ]
-    in
+    ];
 
     if pos1 >= current then do
     {
@@ -1244,35 +1202,32 @@ value compute_line graph partial_line previous current = do
               | None   -> []
               ]
           ]
-      ]
-      in
+      ];
 
       let (cmds2, pos2) =
         Compose.discard_glue_array
           0
           (Array.length pre_break - 1)
-          pre_break
-      in
-      let boxes = XList.append_sub_array pre_break pos2 (Array.length pre_break - 1) right_margin in
+          pre_break;
+      let boxes = XList.append_sub_array pre_break pos2 (Array.length pre_break - 1) right_margin;
 
       let line =
         XList.append_sub_array
           post_break
           0
           (Array.length post_break - 1)
-          (cmds1 @ cmds2 @ boxes)
-      in
-      let boxes = List.map extended_item_to_box (left_margin @ line) in
+          (cmds1 @ cmds2 @ boxes);
+      let boxes = List.map extended_item_to_box (left_margin @ line);
 
       if graph.bg_line_break_params.river_demerits <=/ num_zero then do
       {
-        let width = HBox.calc_xwidth boxes in
+        let width = HBox.calc_xwidth boxes;
 
         (boxes, [], width, partial_line)
       }
       else do
       {
-        let (width, rivers) = HBox.calc_width_and_glue boxes in
+        let (width, rivers) = HBox.calc_width_and_glue boxes;
 
         (boxes, rivers, width, partial_line)
       }
@@ -1280,20 +1235,17 @@ value compute_line graph partial_line previous current = do
     else do
     {
       let items1 =
-        XList.from_sub_array graph.bg_items pos1 (current - 1)
-      in
+        XList.from_sub_array graph.bg_items pos1 (current - 1);
       let line_prefix =
           left_margin
         @ XList.append_sub_array
             post_break
             0
             (Array.length post_break - 1)
-            (cmds1 @ items1)
-      in
+            (cmds1 @ items1);
       let (prefix, len, rest) =
-        JustHyph.add_lig_kern_iterative_list False [] line_prefix
-      in
-      let prefix_pos = pos1 + len - Array.length post_break - List.length cmds1 - List.length left_margin in
+        JustHyph.add_lig_kern_iterative_list False [] line_prefix;
+      let prefix_pos = pos1 + len - Array.length post_break - List.length cmds1 - List.length left_margin;
 
       let prefix_right_margin = match Substitute.last_real_item graph.bg_items pos1 (prefix_pos - 1) with
           [ Some i -> make_margin_glyph i
@@ -1301,16 +1253,14 @@ value compute_line graph partial_line previous current = do
               [ Some i -> make_margin_glyph i
               | None   -> []
               ]
-          ]
-      in
+          ];
       let right_margin = match Substitute.last_real_item pre_break 0 (Array.length pre_break - 1) with
       [ Some i -> make_margin_glyph i
       | None   -> match Substitute.last_real_item graph.bg_items prefix_pos (current - 1) with
           [ Some i -> make_margin_glyph i
           | None   -> prefix_right_margin
           ]
-      ]
-      in
+      ];
 
       let suffix =
         JustHyph.add_lig_kern False
@@ -1318,10 +1268,9 @@ value compute_line graph partial_line previous current = do
                     pre_break
                     0
                     (Array.length pre_break-1)
-                    right_margin)
-      in
-      let boxes1 = List.map simple_item_to_box prefix in
-      let boxes2 = List.map simple_item_to_box suffix in
+                    right_margin);
+      let boxes1 = List.map simple_item_to_box prefix;
+      let boxes2 = List.map simple_item_to_box suffix;
 
       return_result partial_line prefix_pos prefix_right_margin boxes1 boxes2
     }
@@ -1334,8 +1283,7 @@ value compute_line graph partial_line previous current = do
     [ `Break (_, _, p, _, _) -> postfix_with_list graph.bg_par_params.pre_break p
                                 (* FIX: pre_break should depend on the line number *)
     | _                      -> assert False
-    ]
-    in
+    ];
 
     let (new_prefix, prefix_pos) =
       JustHyph.add_lig_kern_iterative_array
@@ -1343,22 +1291,19 @@ value compute_line graph partial_line previous current = do
         []
         partial_line.pl_position
         (current - 1)
-        graph.bg_items
-    in
+        graph.bg_items;
 
     let prefix_right_margin = match Substitute.last_real_item graph.bg_items partial_line.pl_position (prefix_pos - 1) with
         [ Some i -> make_margin_glyph i
         | None   -> partial_line.pl_right_margin
-        ]
-    in
+        ];
     let right_margin = match Substitute.last_real_item pre_break 0 (Array.length pre_break - 1) with
     [ Some i -> make_margin_glyph i
     | None   -> match Substitute.last_real_item graph.bg_items prefix_pos (current - 1) with
         [ Some i -> make_margin_glyph i
         | None   -> prefix_right_margin
         ]
-    ]
-    in
+    ];
 
     let line_suffix =
       JustHyph.add_lig_kern
@@ -1371,10 +1316,9 @@ value compute_line graph partial_line previous current = do
             pre_break
             0
             (Array.length pre_break-1)
-            right_margin))
-    in
-    let boxes1 = List.map simple_item_to_box new_prefix  in
-    let boxes2 = List.map simple_item_to_box line_suffix in
+            right_margin));
+    let boxes1 = List.map simple_item_to_box new_prefix;
+    let boxes2 = List.map simple_item_to_box line_suffix;
 
     return_result partial_line prefix_pos prefix_right_margin boxes1 boxes2
   }
@@ -1382,7 +1326,7 @@ value compute_line graph partial_line previous current = do
 
 value update_breaks graph previous_breaks partial_line previous current breaks = do
 {
-  let new_line = ref None in
+  let new_line = ref None;
 
   iter (-1) breaks previous_breaks
 
@@ -1401,43 +1345,39 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
       else do
       {
         let (left_indent, right_indent) =
-          graph.bg_par_params.par_shape b.bp_line_no
-        in
-        let goal_width = graph.bg_par_params.measure -/ right_indent -/ left_indent in
+          graph.bg_par_params.par_shape b.bp_line_no;
+        let goal_width = graph.bg_par_params.measure -/ right_indent -/ left_indent;
 
         if xdim_min_value (xdim_add partial_line.pl_width graph.bg_left_right_skip) >/ goal_width then
           (* Abort early since the line is too long. *)
           iter b.bp_line_no new_breaks bs
         else do
         {
-          let previous_pos = graph.bg_breaks.(previous) in
-          let current_pos  = graph.bg_breaks.(current)  in
+          let previous_pos = graph.bg_breaks.(previous);
+          let current_pos  = graph.bg_breaks.(current);
 
           let (penalty, hyph) = match graph.bg_items.(current_pos) with
           [ `Break (p, h, _, _, _) -> (p, h)
           | _                      -> assert False
-          ]
-          in
-          let forced_break = penalty <=/ minus_infinite in
+          ];
+          let forced_break = penalty <=/ minus_infinite;
 
           let (line, rivers, line_width, _) = match !new_line with
           [ Some l -> l
           | None   -> do
             {
-              let l = compute_line graph partial_line previous_pos current_pos in
+              let l = compute_line graph partial_line previous_pos current_pos;
 
               !new_line := Some l;
               l
             }
-          ]
-          in
+          ];
 
           let total_width =
             xdim_to_dim
-              (xdim_add line_width graph.bg_left_right_skip)
-          in
-          let adj_ratio = adjustment_ratio total_width goal_width in
-          let badness   = dim_scale_badness adj_ratio             in
+              (xdim_add line_width graph.bg_left_right_skip);
+          let adj_ratio = adjustment_ratio total_width goal_width;
+          let badness   = dim_scale_badness adj_ratio;
 
           if badness >/ graph.bg_threshold then
             (* break not possible *)
@@ -1449,8 +1389,7 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
               make_break_point
                 graph b line rivers total_width
                 (current = Array.length graph.bg_breaks - 1)
-                forced_break hyph adj_ratio badness penalty
-            in
+                forced_break hyph adj_ratio badness penalty;
 
             iter b.bp_line_no (insert_break_point graph new_breaks new_bp) bs
           }
@@ -1462,7 +1401,7 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
 
 value compute_best_break graph breaks = do
 {
-  let num_breaks = Array.length breaks in
+  let num_breaks = Array.length breaks;
 
   match breaks.(num_breaks - 1) with
   [ []      -> None
@@ -1474,13 +1413,12 @@ value compute_best_break graph breaks = do
                      find_best b bs
                    else
                      find_best best bs
-      ]
-      in
+      ];
       let rec get_break best looseness breaks = match breaks with
       [ []      -> best
       | [b::bs] -> do
         {
-          let delta = b.bp_line_no - best.bp_line_no in
+          let delta = b.bp_line_no - best.bp_line_no;
 
           if delta = 0 then do
           {
@@ -1498,8 +1436,7 @@ value compute_best_break graph breaks = do
               get_break best looseness bs
           }
         }
-      ]
-      in
+      ];
 
       Some
         (get_break
@@ -1535,8 +1472,7 @@ value break_lines loc items par_params line_break_params hyphen_params = do
       bp_hyph     = False;
       bp_forced   = True;
       bp_demerits = num_zero
-    }
-  in
+    };
   let pass tolerance left_right_skip allow_breaks = do
   {
     let graph = make_break_graph
@@ -1546,8 +1482,7 @@ value break_lines loc items par_params line_break_params hyphen_params = do
                   allow_breaks
                   par_params
                   line_break_params
-                  hyphen_params
-                in
+                  hyphen_params;
 
     ShortestPath.find_shortest_path
       update_breaks
@@ -1563,13 +1498,11 @@ value break_lines loc items par_params line_break_params hyphen_params = do
       }
       graph
       (Array.length graph.bg_breaks)
-  }
-  in
+  };
 
   let left_right_skip = xdim_add_dim
                           (dim_to_xdim par_params.left_skip)
-                          par_params.right_skip
-                        in
+                          par_params.right_skip;
 
   if !tracing_line_breaks then
     log_string "\n@firstpass\n"
@@ -1614,7 +1547,7 @@ value break_lines loc items par_params line_break_params hyphen_params = do
                      True
               with
               [ Some bp -> get_lines bp
-              | None    -> assert False
+              | None    -> [] (* FIX: assert False *)
               ]
             }
             else do
@@ -1658,7 +1591,7 @@ value check_shrinkage loc items = do
 {
   let check_box box = do
   {
-    let width = box.b_width in
+    let width = box.b_width;
 
     if width.d_shrink_factor = num_zero || width.d_shrink_order = 0 then
       box
@@ -1676,8 +1609,7 @@ value check_shrinkage loc items = do
         b_width = { (width)  with  d_shrink_factor = width.d_base;  d_shrink_order = 0 }
       }
     }
-  }
-  in
+  };
 
   List.map check items
 
@@ -1694,7 +1626,7 @@ value check_shrinkage loc items = do
 
 value add_par_fill_skip items par_params = do
 {
-  let (cmds, par) = Compose.discard_glue (List.rev items) in
+  let (cmds, par) = Compose.discard_glue (List.rev items);
 
   [`Command (new_glue_box par_params.par_indent dim_zero True False)
     :: List.rev [`Break (minus_infinite, False, [||], [||], [||]);
@@ -1707,7 +1639,7 @@ value add_par_fill_skip items par_params = do
 
 value break_paragraph loc items par_params line_break_params hyphen_params = do
 {
-  let par = add_par_fill_skip (check_shrinkage loc items) par_params in
+  let par = add_par_fill_skip (check_shrinkage loc items) par_params;
 
   if line_break_params.simple_breaking then
     Fast.break_lines
@@ -1738,10 +1670,9 @@ value layout_line width line_no line par_params = do
       }
     | _ -> [b :: process_commands bs]
     ]
-  ]
-  in
+  ];
 
-  let (left_indent, right_indent) = par_params.par_shape line_no in
+  let (left_indent, right_indent) = par_params.par_shape line_no;
 
   let boxes =
     process_commands
@@ -1756,8 +1687,7 @@ value layout_line width line_no line par_params = do
             (dim_add par_params.right_skip (fixed_dim right_indent))
             dim_zero
             True False
-         ]))
-  in
+         ]));
 
   HBox.make_to HBox.LR width boxes
 };

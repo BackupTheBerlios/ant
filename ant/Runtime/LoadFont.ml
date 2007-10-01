@@ -25,10 +25,9 @@ value find_font name = do
                            (id, String.sub name 0 (String.length name - String.length suf))
                          else
                            lookup_format fs
-  ]
-  in
+  ];
 
-  let (fmt, basename) = lookup_format supported_formats in
+  let (fmt, basename) = lookup_format supported_formats;
 
   match KPathSea.find_file name fmt True with
   [ ""       -> raise Not_found

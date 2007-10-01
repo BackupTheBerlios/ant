@@ -101,8 +101,8 @@ value xdim_shrink d = do
 
 value xdim_to_dim d = do
 {
-  let (st_f, st_o) = xdim_stretch d in
-  let (sh_f, sh_o) = xdim_shrink  d in
+  let (st_f, st_o) = xdim_stretch d;
+  let (sh_f, sh_o) = xdim_shrink  d;
   {
     d_base           = d.xd_base;
     d_stretch_factor = st_f;
@@ -193,13 +193,12 @@ value dim_add d1 d2 = do
       (s1, o1)
     else
       (s1 +/ s2, o1)
-  }
-  in
+  };
 
   let (st_f, st_o) = add_order d1.d_stretch_factor d1.d_stretch_order
-                               d2.d_stretch_factor d2.d_stretch_order in
+                               d2.d_stretch_factor d2.d_stretch_order;
   let (sh_f, sh_o) = add_order d1.d_shrink_factor  d1.d_shrink_order
-                               d2.d_shrink_factor  d2.d_shrink_order  in
+                               d2.d_shrink_factor  d2.d_shrink_order;
   {
     d_base = d1.d_base +/ d2.d_base;
     d_stretch_factor = st_f;
@@ -220,13 +219,11 @@ value xdim_add d1 d2 = do
       [(s +/ x, o) :: zs]
     else
       [(x, y) :: insert_order zs (s, o)]
-  ]
-  in
+  ];
   let rec add_lists l1 l2 = match l2 with
   [ []          -> l1
   | [(s,o)::xs] -> insert_order (add_lists l1 xs) (s, o)
-  ]
-  in
+  ];
 
   {
     xd_base    = d1.xd_base +/ d2.xd_base;
@@ -246,8 +243,7 @@ value xdim_add_dim d1 d2 = do
       [(s +/ x, o) :: zs]
     else
       [(x, y) :: insert_order zs s o]
-  ]
-  in
+  ];
 
   {
     xd_base    = d1.xd_base +/ d2.d_base;
@@ -267,7 +263,7 @@ value dim_neg d =
 
 value xdim_neg d = do
 {
-  let neg_list l = List.map (fun [(x,y) -> (minus_num x, y)]) l in
+  let neg_list l = List.map (fun [(x,y) -> (minus_num x, y)]) l;
   {
     xd_base    = minus_num d.xd_base;
     xd_stretch = neg_list d.xd_stretch;
@@ -290,7 +286,7 @@ value dim_mult factor d =
 
 value xdim_mult factor d = do
 {
-  let mult_list l = List.map (fun [(x,y) -> (factor */ x, y)]) l in
+  let mult_list l = List.map (fun [(x,y) -> (factor */ x, y)]) l;
   {
     xd_base    = factor */ d.xd_base;
     xd_stretch = mult_list d.xd_stretch;
@@ -350,7 +346,7 @@ value shift_order (f, o) delta = do
     (f, o)
   else do
   {
-    let x = f +/ delta in
+    let x = f +/ delta;
 
     if (f >=/ num_zero && x >=/ num_zero) ||
        (f </  num_zero && x </  num_zero) then
@@ -368,8 +364,8 @@ value shift_order (f, o) delta = do
 
 value dim_shift_base dim delta = do
 {
-  let (st_f, st_o) = shift_order (dim_stretch dim) (minus_num delta) in
-  let (sh_f, sh_o) = shift_order (dim_shrink  dim) delta             in
+  let (st_f, st_o) = shift_order (dim_stretch dim) (minus_num delta);
+  let (sh_f, sh_o) = shift_order (dim_shrink  dim) delta;
   {
     d_base           = dim.d_base +/ delta;
     d_stretch_factor = st_f;
@@ -404,7 +400,7 @@ value dim_shift_base_upto dim delta = do
 
 value dim_inc_upto dim delta = do
 {
-  let max_delta = dim_max_stretch dim in
+  let max_delta = dim_max_stretch dim;
 
   if max_delta </ delta then
     dim_shift_base dim max_delta
@@ -419,7 +415,7 @@ value dim_inc_upto dim delta = do
 
 value dim_dec_upto dim delta = do
 {
-  let max_delta = dim_max_shrink dim in
+  let max_delta = dim_max_shrink dim;
 
   if max_delta </ delta then
     dim_shift_base dim (minus_num max_delta)
@@ -513,10 +509,10 @@ value dim_max d1 d2 = do
 {
   if d1.d_base >/ d2.d_base then do
   {
-    let delta = d1.d_base -/ d2.d_base in
+    let delta = d1.d_base -/ d2.d_base;
 
-    let (st_f, st_o) = min_order (dim_stretch d1) (shift_order (dim_stretch d2) (minus_num delta)) in
-    let (sh_f, sh_o) = min_order (dim_shrink  d1) (shift_order (dim_shrink  d2) delta)             in
+    let (st_f, st_o) = min_order (dim_stretch d1) (shift_order (dim_stretch d2) (minus_num delta));
+    let (sh_f, sh_o) = min_order (dim_shrink  d1) (shift_order (dim_shrink  d2) delta);
     {
       d_base           = d1.d_base;
       d_stretch_factor = st_f;
@@ -527,10 +523,10 @@ value dim_max d1 d2 = do
   }
   else do
   {
-    let delta = d2.d_base -/ d1.d_base in
+    let delta = d2.d_base -/ d1.d_base;
 
-    let (st_f, st_o) = min_order (shift_order (dim_stretch d1) (minus_num delta)) (dim_stretch d2) in
-    let (sh_f, sh_o) = min_order (shift_order (dim_shrink  d1) delta)             (dim_shrink  d2) in
+    let (st_f, st_o) = min_order (shift_order (dim_stretch d1) (minus_num delta)) (dim_stretch d2);
+    let (sh_f, sh_o) = min_order (shift_order (dim_shrink  d1) delta)             (dim_shrink  d2);
     {
       d_base           = d2.d_base;
       d_stretch_factor = st_f;
@@ -545,10 +541,10 @@ value dim_min d1 d2 = do
 {
   if d1.d_base </ d2.d_base then do
   {
-    let delta = d1.d_base -/ d2.d_base in
+    let delta = d1.d_base -/ d2.d_base;
 
-    let (st_f, st_o) = min_order (dim_stretch d1) (shift_order (dim_stretch d2) (minus_num delta)) in
-    let (sh_f, sh_o) = min_order (dim_shrink  d1) (shift_order (dim_shrink  d2) delta)             in
+    let (st_f, st_o) = min_order (dim_stretch d1) (shift_order (dim_stretch d2) (minus_num delta));
+    let (sh_f, sh_o) = min_order (dim_shrink  d1) (shift_order (dim_shrink  d2) delta);
     {
       d_base           = d1.d_base;
       d_stretch_factor = st_f;
@@ -559,10 +555,10 @@ value dim_min d1 d2 = do
   }
   else do
   {
-    let delta = d2.d_base -/ d1.d_base in
+    let delta = d2.d_base -/ d1.d_base;
 
-    let (st_f, st_o) = min_order (shift_order (dim_stretch d1) (minus_num delta)) (dim_stretch d2) in
-    let (sh_f, sh_o) = min_order (shift_order (dim_shrink  d1) delta)             (dim_shrink  d2) in
+    let (st_f, st_o) = min_order (shift_order (dim_stretch d1) (minus_num delta)) (dim_stretch d2);
+    let (sh_f, sh_o) = min_order (shift_order (dim_shrink  d1) delta)             (dim_shrink  d2);
     {
       d_base           = d2.d_base;
       d_stretch_factor = st_f;
@@ -589,7 +585,7 @@ value adjustment_ratio dim size = do
     else
       (delta // factor, order)
   }
-  and b = dim.d_base in
+  and b = dim.d_base;
 
   if size </ b then
     scale (dim_shrink dim)  (size -/ b)
@@ -653,10 +649,9 @@ value xdim_select_order dim stretch_order shrink_order = do
         (f,order)
       else
         find order l
-  ]
-  in
-  let (st_f, st_o) = find stretch_order dim.xd_stretch in
-  let (sh_f, sh_o) = find shrink_order  dim.xd_stretch in
+  ];
+  let (st_f, st_o) = find stretch_order dim.xd_stretch;
+  let (sh_f, sh_o) = find shrink_order  dim.xd_stretch;
   {
     d_base           = dim.xd_base;
     d_stretch_factor = st_f;

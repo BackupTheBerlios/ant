@@ -12,7 +12,7 @@ value rec num_to_ar digits base x = do
     [48]
   else do
   {
-    let b = num_of_int base in
+    let b = num_of_int base;
 
     iter [] x
 
@@ -22,8 +22,8 @@ value rec num_to_ar digits base x = do
         str
       else do
       {
-        let d = mod_num x b in
-        let y = quo_num x b in
+        let d = mod_num x b;
+        let y = quo_num x b;
 
         iter [digits.(int_of_num d) :: str] y
       }
@@ -55,11 +55,11 @@ value rec num_to_rm m d c l x v i n = do
     [48]                                             (* 0 *)
   else do
   {
-    let mm = int_of_num (quo_num n (num_of_int 1000)) in
-    let z  = int_of_num (mod_num n (num_of_int 1000)) in
-    let cc = z / 100            in
-    let xx = z / 10     - 10*cc in
-    let ii = z - 100*cc - 10*xx in
+    let mm = int_of_num (quo_num n (num_of_int 1000));
+    let z  = int_of_num (mod_num n (num_of_int 1000));
+    let cc = z / 100;
+    let xx = z / 10     - 10*cc;
+    let ii = z - 100*cc - 10*xx;
 
       XList.repeat mm m       (* m *)
     @ roman_digit  cc c d m   (* c d m *)
@@ -80,8 +80,8 @@ value rec num_to_alpha first n = do
     [48]
   else do
   {
-    let k = quo_num (n -/ num_one) num_26 in
-    let i = mod_num (n -/ num_one) num_26 in
+    let k = quo_num (n -/ num_one) num_26;
+    let i = mod_num (n -/ num_one) num_26;
 
     XList.repeat (int_of_num k + 1) (first + int_of_num i)
   }

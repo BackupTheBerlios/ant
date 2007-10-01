@@ -19,7 +19,7 @@ Hashtbl.add symbol_table [| |] 0;
 
 value alloc_symbol () = do
 {
-  let n = !table_size in
+  let n = !table_size;
 
   !table_size := n + 1;
 
@@ -39,7 +39,7 @@ value alloc_symbol () = do
 
 value add_symbol (str : uc_string) = do
 {
-  let n = alloc_symbol () in
+  let n = alloc_symbol ();
 
   (* add string to <symbol_table> and <name_table> *)
 

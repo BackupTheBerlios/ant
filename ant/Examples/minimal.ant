@@ -2,6 +2,7 @@
 \ALcommand{
   do
     ;; declare a font
+
     ps_declare_font "lmroman10-regular.otf" "Latin Modern" "medium" "normal" (0,0) {};
 
     ;; define a page layout

@@ -103,8 +103,7 @@ value simple_builder () = do
       boxes    = ListBuilder.make ();
       font     = FontMetric.empty_font;
       composer = fun x -> x
-    }
-  in
+    };
 
   ({
       add_char  = sb_add_char  b;

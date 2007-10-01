@@ -5,7 +5,7 @@ type charmap 'a = array (array 'a);
 
 value create x = do
 {
-  let page = Array.make 0x100 x in
+  let page = Array.make 0x100 x;
 
   Array.make 0x100 page
 };
@@ -32,8 +32,8 @@ value build array = do
 
 value lookup map char = do
 {
-  let i = char / 0x100   in
-  let k = char mod 0x100 in
+  let i = char / 0x100;
+  let k = char mod 0x100;
 
   if i < Array.length map then
     map.(i).(k)
@@ -43,8 +43,8 @@ value lookup map char = do
 
 value set map char x = do
 {
-  let i = char / 0x100   in
-  let k = char mod 0x100 in
+  let i = char / 0x100;
+  let k = char mod 0x100;
 
   if i < Array.length map then do
   {

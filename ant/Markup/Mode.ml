@@ -21,16 +21,16 @@ value init_source_specials job = do
 
 value insert_source_special ps = do
 {
-  let ((file, line, col) as loc) = location ps in
+  let ((file, line, col) as loc) = location ps;
 
   if file <> "" then do
   {
-    let dvi_spec = Printf.sprintf "src:%d:%d %s" line col file in
+    let dvi_spec = Printf.sprintf "src:%d:%d %s" line col file;
 
     let pdf_spec pi (x,y) = do
     {
-      let x_pos = int_of_float (float_of_num x *. 65536.0) in
-      let y_pos = int_of_float (float_of_num y *. 65536.0) in
+      let x_pos = int_of_float (float_of_num x *. 65536.0);
+      let y_pos = int_of_float (float_of_num y *. 65536.0);
 
       if pi.Box.pi_page_no <> !pdf_page then do
       {
@@ -42,8 +42,7 @@ value insert_source_special ps = do
       IO.printf !pdf_src_spec_stream "(%s\nl %d %d\np %d %d %d\n)\n" file !pdf_spec_num line !pdf_spec_num x_pos y_pos;
 
       !pdf_spec_num := !pdf_spec_num + 1
-    }
-    in
+    };
 
     add_node ps (Node.CommandBox loc (`Special (`DVI_Special dvi_spec)));
     add_node ps (Node.CommandBox loc (`PageCmd (Box.CallPageFunction pdf_spec)))
@@ -162,8 +161,7 @@ value set_mode ps mode = do
                     True
                   }
   | _          -> False
-  ]
-  in
+  ];
 
   let set_mode_math ps = match current_mode ps with
   [ `Galley    -> do
@@ -184,8 +182,7 @@ value set_mode ps mode = do
                     True
                   }
   | _          -> False
-  ]
-  in
+  ];
 
   match mode with
   [ `Galley    -> do

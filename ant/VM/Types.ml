@@ -27,50 +27,41 @@ and partial_value =
 | Char of uc_char
 | Symbol of symbol
 | LinForm of LinForm.lin_form unknown
-| UnevalT of environment and term           (* unevaluated term      *)
-| Primitive1 of unknown -> unknown -> unit
-| Primitive2 of unknown -> unknown -> unknown -> unit
-| PrimitiveN of int and (unknown -> list unknown -> unit)
-| SimpleFunction of int and environment and term
-                                            (* arity, environment, and body           *)
-| PatternFunction of int and environment and int and int and
-                     list (list pattern_check * option term * term)
-                                            (* arity, stack_depth, num_vars, patterns *)
-| Chain of environment and array statement
-| Relation of int and list statement        (* aritiy, local variables, and equations *)
-| Application of partial_value and list unknown
+| Primitive1 of unknown -> partial_value
+| Primitive2 of unknown -> unknown -> partial_value
+| PrimitiveN of int and (list unknown -> partial_value)
+| Function of environment and int and array bytecode
+| Chain of environment and array bytecode
+| Relation of int and array bytecode        (* aritiy, local variables, and equations *)
+| Application of partial_value and int and list unknown
 | Nil
 | List of unknown and unknown
 | Tuple of array unknown
 | Dictionary of SymbolMap.t unknown
 | Opaque of Opaque.opaque unknown
 ]
-and term =
-[ TConstant of partial_value
-| TGlobal of unknown
-| TVariable of int and int
-| TLinForm of LinForm.lin_form term
-| TConsTuple of array term
-| TConsList  of term and term
-| TApplication of term and list term
-| TDictionary of list (symbol * term)
-| TSimpleFunction of int and term
-| TPatternFunction of int and int and int and list (list pattern_check * option term * term)
-| TIfThenElse of term and term and term
-| TLocalScope of array term and term
-| TSequence of array statement and term
-| TDo of array statement
-| TMatch of term and int and int and list (list pattern_check * option term * term)
-| TUnify of term and term
-| TTrigger of statement
-]
-and statement =
-[ SEquation of term and term
-| SIfThen of term and statement
-| SIfThenElse of term and statement and statement
-| SRelation of list unknown
-| SForce of array term
-| SFunction of term
+and bytecode =
+[ BDup
+| BPop
+| BPopN of int
+| BConst of partial_value
+| BGlobal of unknown
+| BVariable of int and int
+| BFunction of int and array bytecode
+| BDictionary of array symbol
+| BPair
+| BTuple of int
+| BSet of int and int
+| BApply of int
+| BReturn
+| BCondJump of int
+| BJump of int
+| BLocal of int
+| BEndLocal
+| BMatch1 of list pattern_check and int and int and int
+| BMatchN of array (list pattern_check) and int and int and int
+| BUnify
+| BRaise of string
 ]
 and pattern_check =
 [ PCAnything
@@ -104,8 +95,8 @@ value identical x y = do
 value compare_unknowns x y = match (!x, !y) with
 [ (Constraint c, Constraint d) -> do
   {
-    let a = List.hd c in
-    let b = List.hd d in
+    let a = List.hd c;
+    let b = List.hd d;
 
     if a == b then
       LinForm.Eq
@@ -160,15 +151,13 @@ value type_name x = match x with
 | Char _        -> "character"
 | Symbol _      -> "symbol"
 | LinForm _     -> "linear form"
-| UnevalT _ _   -> "<unevaluated>"
 | Primitive1 _  -> "function"
 | Primitive2 _  -> "function"
-| PrimitiveN _ _            -> "function"
-| SimpleFunction _ _ _      -> "function"
-| PatternFunction _ _ _ _ _ -> "function"
-| Chain _                   -> "function"
-| Relation _ _              -> "relation"
-| Application _ _           -> "<application>"
+| PrimitiveN _ _    -> "function"
+| Function _ _ _    -> "function"
+| Chain _           -> "function"
+| Relation _ _      -> "relation"
+| Application _ _ _ -> "<application>"
 | Nil           -> "nil"
 | List _ _      -> "list"
 | Tuple _       -> "tuple"

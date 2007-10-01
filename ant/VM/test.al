@@ -9,16 +9,20 @@ declare_infix_right 0 $;
 
 ;; the usual examples faculty and fibonacci
 
-;;fib 0 := 1;
-;;fib 1 := 1;
-;;fib n := fib (n-2) + fib (n-1);
+;; fib 0 := 1;
+;; fib 1 := 1;
+;; fib n := fib (n-2) + fib (n-1);
 
 fac n & n <= 1 := 1;
 fac n          := n * fac (n-1);
 
-fib := [1, 1 : iter 2]
+fib n := iter 0 1 n
 where
-  iter i := [fib (i-1) + fib (i-2) : iter (i+1)]
+  iter i k n := if n <= 0 then
+                  i
+                else
+                  iter k (i + k) (n - 1)
+                end
 end;
 
 ;; list functions
@@ -54,14 +58,6 @@ where
   rev_iter [x:xs] res := rev_iter xs [x:res];
 end;
 
-;; (++)   : [a] -> [a] -> [a]
-;; concat : [[a]] -> [a]
-
-[]     ++ ys := ys;
-[x:xs] ++ ys := [x : xs ++ ys];
-
-concat := foldr (++) [];
-
 ;; (!!) : [a] -> int -> a
 
 [x:_]  !! 0         := x;
@@ -93,6 +89,14 @@ foldr f e [x:xs] := f x (foldr f e xs);
 
 foldr_1 _ [x]    := x;
 foldr_1 f [x:xs] := f x (foldr_1 f xs);
+
+;; (++)   : [a] -> [a] -> [a]
+;; concat : [[a]] -> [a]
+
+[]     ++ ys := ys;
+[x:xs] ++ ys := [x : xs ++ ys];
+
+concat := foldr (++) [];
 
 ;; scanl   : (a -> b -> a) -> a -> [b] -> [a]
 ;; scanl_1 : (a -> a -> a) -> [a] -> [a]
@@ -330,5 +334,7 @@ until p f x       := until p f (f x);
 ;;  iter spec [(Point, (x, y))                   : zs] := p_add_point spec x y;
 ;;  iter spec [(Control, (x_1, y_1), (x_2, y_2)) : zs] := p_add_control_points spec x_1 y_1 x_2 y_2;
 ;;end;
+
+;; test := foldl (+) 1 (map (mod 2) (map (+1) (enum_from_to 0 1000000)));
 
 ;; vim:set ft=al:

@@ -84,12 +84,11 @@ value rec box_add_lig_kern boxes = do
       }
     | _ -> assert False
     ]
-  }
-  in
+  };
 
   let collect_commands boxes = do
   {
-    let cmds = ListBuilder.make () in
+    let cmds = ListBuilder.make ();
 
     iter boxes
 
@@ -106,8 +105,7 @@ value rec box_add_lig_kern boxes = do
         }
       }
     ]
-  }
-  in
+  };
 
   let process_lig_kern b1 boxes = match collect_commands boxes with
   [ (cmds, [])                 -> [b1 :: cmds]
@@ -121,7 +119,7 @@ value rec box_add_lig_kern boxes = do
                            :: cmds @ box_add_lig_kern boxes]
           | Ligature c s k1 k2 -> do
             {
-              let new_boxes = insert_lig c k1 k2 b1 b2 rest in
+              let new_boxes = insert_lig c k1 k2 b1 b2 rest;
 
               XList.take s new_boxes @ box_add_lig_kern (XList.drop s new_boxes)
             }
@@ -131,8 +129,7 @@ value rec box_add_lig_kern boxes = do
       }
     | _ -> [b1 :: cmds @ box_add_lig_kern bs]
     ]
-  ]
-  in
+  ];
 
   match boxes with
   [ []      -> []
@@ -216,7 +213,7 @@ value end_word_just_hyph composer = do
   [ []   -> ()
   | word -> do
     {
-      let items = JustHyph.convert_to_glyphs_and_add_breaks composer.hyphen_params composer.font composer.composer word in
+      let items = JustHyph.convert_to_glyphs_and_add_breaks composer.hyphen_params composer.font composer.composer word;
 
       ListBuilder.add_list
         composer.result
@@ -247,7 +244,7 @@ value end_word_hyph_only composer = do
   [ []   -> ()
   | word -> do
     {
-      let items = JustHyph.convert_to_glyphs_and_add_breaks composer.hyphen_params composer.font composer.composer word in
+      let items = JustHyph.convert_to_glyphs_and_add_breaks composer.hyphen_params composer.font composer.composer word;
 
       ListBuilder.add_list composer.result items
     }

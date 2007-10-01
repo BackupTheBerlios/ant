@@ -18,36 +18,34 @@ type float_params =
 
 value layout params page area floats page_state = do
 {
-  let width = area.Page.as_width in
+  let width = area.Page.as_width;
 
-  let float_sep_glue = new_glue_box dim_zero params.float_sep False False in
+  let float_sep_glue = new_glue_box dim_zero params.float_sep False False;
 
   let make_box items = do
   {
-    let boxes = List.map extended_item_to_box items                   in
-    let box   = resize_box_horiz_upto (HBox.make HBox.LR boxes) width in
-    let shift = fixed_dim ((width -/ box.b_width.d_base) // num_two)  in
+    let boxes = List.map extended_item_to_box items;
+    let box   = resize_box_horiz_upto (HBox.make HBox.LR boxes) width;
+    let shift = fixed_dim ((width -/ box.b_width.d_base) // num_two);
 
     new_compound_box
       (fixed_dim width)
       box.b_height
       box.b_depth
       [PutBox shift dim_zero box]
-  }
-  in
+  };
 
   let rec make_boxes floats = match floats with
   [ []      -> []
   | [f]     -> [make_box f]
   | [f::fs] -> [make_box f; float_sep_glue :: make_boxes fs]
-  ]
-  in
+  ];
 
   match make_boxes floats with
   [ []    -> PageLayout.simple_page_update page page_state
   | boxes -> do
     {
-      let (top, height, bottom) = VBox.calc_vert_dimensions boxes in
+      let (top, height, bottom) = VBox.calc_vert_dimensions boxes;
 
       (* FIX: process page-commands in <boxes> *)
       (* FIX: consider top-sep and bottom-sep  *)
@@ -55,16 +53,15 @@ value layout params page area floats page_state = do
       let placement_function = match params.alignment with
       [ Top    -> Page.find_place_in_area_top
       | Bottom -> Page.find_place_in_area_bottom
-      ]
-      in
+      ];
 
       match placement_function page area top height bottom with
       [ None        -> None
       | Some (y, r) -> do
         {
-          let x        = area.Page.as_pos_x                       in
-          let box      = VBox.to_top (VBox.layout_scaled r boxes) in
-          let new_page = Page.put_box_on_page page x y box        in
+          let x        = area.Page.as_pos_x;
+          let box      = VBox.to_top (VBox.layout_scaled r boxes);
+          let new_page = Page.put_box_on_page page x y box;
 
           if !PageLayout.tracing_page_layout then do
           {

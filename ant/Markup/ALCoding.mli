@@ -212,7 +212,6 @@ value decode_char      : string -> unknown -> int;
 value decode_option    : string -> (string -> unknown -> 'a) -> unknown -> option 'a;
 value decode_uc_string : string -> unknown -> uc_string;
 value decode_tuple     : string -> unknown -> array unknown;
-value decode_function  : string -> unknown -> list unknown -> unknown;
 value decode_dict      : string -> unknown -> SymbolMap.t unknown;
 
 value lookup : (unknown -> 'a) -> SymbolMap.t unknown -> symbol -> option 'a;

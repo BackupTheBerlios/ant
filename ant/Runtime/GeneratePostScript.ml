@@ -45,15 +45,14 @@ value new_type3_font state font_name fm encoding = do
 
 value new_font state font = do
 {
-  let n  = List.length state.fonts in
+  let n  = List.length state.fonts;
   let fd =
     {
       font              = font;
       first_glyph_index = font.first_glyph;
       used_glyphs       = 0;
       glyph_map         = Array.make (font.last_glyph - font.first_glyph + 1) (-1)
-    }
-  in
+    };
 
   state.fonts := state.fonts @ [fd];
 
@@ -70,7 +69,7 @@ value write_font_defs state font_number font_def = do
       ()
     else do
     {
-      let encoding = Array.make 0x100 (-1) in
+      let encoding = Array.make 0x100 (-1);
 
       (* select all glyphs mapped to numbers between i * 0x100 and i * 0x100 + 0xff *)
 
@@ -102,7 +101,7 @@ value write_font_defs state font_number font_def = do
 
 value get_glyph_index font_def char = do
 {
-  let i = font_def.glyph_map.(char - font_def.first_glyph_index) in
+  let i = font_def.glyph_map.(char - font_def.first_glyph_index);
 
   if i >= 0 then
     i
@@ -128,7 +127,7 @@ value load_font state font char = do
     }
   | [] -> do
     {
-      let (i, fd) = new_font state font in
+      let (i, fd) = new_font state font;
 
       (i, get_glyph_index fd char)
     }
@@ -148,8 +147,7 @@ value write_preamble os comment pages = do
   let (w,h) = List.fold_left
                 (fun (w,h) p -> (max_num w p.p_width, max_num h p.p_height))
                 (num_zero, num_zero)
-                pages
-              in
+                pages;
 
   IO.write_string os "%!PS-Adobe-2.0\n";
   IO.write_string os "%%Creator: ";
@@ -178,8 +176,8 @@ value write_page state no page = do
     ]
   and write_boxes_char char font x y = do
   {
-    let (fn, cn) = load_font state font char in
-    let c        = cn land 0xff in
+    let (fn, cn) = load_font state font char;
+    let c        = cn land 0xff;
 
     if c <= 0x20 || c >= 0x80 || c =  0x28 || c = 0x29  || c =  0x5c then    (* (  )  \ *)
       IO.printf state.pages "(\\%o" c
@@ -191,10 +189,10 @@ value write_page state no page = do
   }
   and write_boxes_rule width height x y = do
   {
-    let x1 = pt_to_bp x in
-    let y1 = pt_to_bp y in
-    let x2 = pt_to_bp (x +/ width)  in
-    let y2 = pt_to_bp (y +/ height) in
+    let x1 = pt_to_bp x;
+    let y1 = pt_to_bp y;
+    let x2 = pt_to_bp (x +/ width);
+    let y2 = pt_to_bp (y +/ height);
 
     IO.printf state.pages
       "newpath %f %f moveto %f %f lineto %f %f lineto %f %f lineto closepath fill\n"
@@ -226,8 +224,7 @@ value write_page state no page = do
                      (float_of_num c) (float_of_num m) (float_of_num y) (float_of_num k)
         ; ()
       }
-    ]
-    in
+    ];
     let write_path path_cmd path state = do
     {
       let rec draw_path cur_x cur_y path = match path with
@@ -249,8 +246,7 @@ value write_page state no page = do
 
           draw_path dx dy ps
         }
-      ]
-      in
+      ];
 
       match path with
       [ [] -> ()
@@ -263,35 +259,29 @@ value write_page state no page = do
           draw_path (ax -/ num_one) num_zero path;
         }
       ]
-    }
-    in
+    };
     let set_alpha _ = do
     {
       log_string "Warning: PostScript does not support transparency."
-    }
-    in
+    };
     let set_line_width w = do
     {
       IO.printf state.pages " %f setlinewidth" (pt_to_bp w)
-    }
-    in
+    };
     let set_line_cap c = match c with
     [ Graphic.Butt   -> IO.write_string state.pages "0 setlinecap"
     | Graphic.Circle -> IO.write_string state.pages "1 setlinecap"
     | Graphic.Square -> IO.write_string state.pages "2 setlinecap"
-    ]
-    in
+    ];
     let set_line_join j = match j with
     [ Graphic.Miter -> IO.write_string state.pages "0 setlinejoin"
     | Graphic.Round -> IO.write_string state.pages "1 setlinejoin"
     | Graphic.Bevel -> IO.write_string state.pages "2 setlinejoin"
-    ]
-    in
+    ];
     let set_miter_limit l = do
     {
       IO.printf state.pages "%f setmiterlimit" (float_of_num l)
-    }
-    in
+    };
 
     let write_gfx_cmd cmd = match cmd with
     [ Graphic.PutBox bx by box -> write_boxes box (x +/ bx) (y +/ by)
@@ -303,14 +293,12 @@ value write_page state no page = do
     | Graphic.SetLineCap    c  -> set_line_cap    c
     | Graphic.SetLineJoin   j  -> set_line_join   j
     | Graphic.SetMiterLimit l  -> set_miter_limit l
-    ]
-    in
+    ];
 
     IO.write_string state.pages "gsave\n";
     List.iter write_gfx_cmd bs;
     IO.write_string state.pages "grestore\n"
-  }
-  in
+  };
 
   IO.write_string state.pages "%%Page: ";
   IO.printf       state.pages "%d %d\n" page.p_number no;
@@ -322,7 +310,7 @@ value write_page state no page = do
 
 value write_postscript_file name comment pages = do
 {
-  let state = new_state () in
+  let state = new_state ();
 
   write_preamble state.preamble comment pages;
 
@@ -338,7 +326,7 @@ value write_postscript_file name comment pages = do
     0
     state.fonts;
 
-  let oc = open_out_bin name in
+  let oc = open_out_bin name;
 
   IO.to_channel state.preamble oc;
   IO.to_channel state.pages    oc

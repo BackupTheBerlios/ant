@@ -141,7 +141,7 @@ value open_node_list ps mode = do
 value close_node_list ps mode = do
 {
   try
-    let (m,n) = Stack.top ps.parse_stack in
+    let (m,n) = Stack.top ps.parse_stack;
 
     if m = mode then do
     {
@@ -173,7 +173,7 @@ value close_node_list ps mode = do
 value add_node ps node = do
 {
   try
-    let (_,n) = Stack.top ps.parse_stack in
+    let (_,n) = Stack.top ps.parse_stack;
 
     ListBuilder.add n node
   with
@@ -183,7 +183,7 @@ value add_node ps node = do
 value current_mode ps = do
 {
   try
-    let (m,_) = Stack.top ps.parse_stack in
+    let (m,_) = Stack.top ps.parse_stack;
 
     m
   with
@@ -275,8 +275,7 @@ value save_command ps name = do
       let old_list = match DynUCTrie.lookup_list name ps.saved_commands with
       [ None   -> []
       | Some l -> l
-      ]
-      in
+      ];
 
       ps.saved_commands := DynUCTrie.add_list name [cmd :: old_list] ps.saved_commands
     }
@@ -317,8 +316,7 @@ value save_pattern ps name = do
       let old_list = match DynUCTrie.lookup_list name ps.saved_patterns with
       [ None   -> []
       | Some l -> l
-      ]
-      in
+      ];
 
       ps.saved_patterns := DynUCTrie.add_list name [pat :: old_list] ps.saved_patterns
     }
@@ -365,7 +363,7 @@ value pop_env ps = do
 {
   try do
   {
-    let (name, args) = Stack.pop ps.environment_stack in
+    let (name, args) = Stack.pop ps.environment_stack;
 
     if !tracing_stacks then do
     {
@@ -390,7 +388,7 @@ value set_env_args ps args = do
 {
   try do
   {
-    let (name, _) = Stack.pop ps.environment_stack in
+    let (name, _) = Stack.pop ps.environment_stack;
 
     Stack.push (name, args) ps.environment_stack;
   }
@@ -508,13 +506,13 @@ value reference_exists ps name = do
 value lookup_reference ps name = do
 {
   try
-    let ref = DynUCTrie.find_list name ps.references in
+    let ref = DynUCTrie.find_list name ps.references;
 
     ref
   with
   [ Not_found ->
     try
-      let ref = DynUCTrie.find_list name ps.old_references in
+      let ref = DynUCTrie.find_list name ps.old_references;
 
       ref
     with
@@ -550,16 +548,14 @@ value compare_references ps = do
        differ || (DynUCTrie.find_string name ps.old_references <> str)
     with
     [ Not_found -> True ]
-  }
-  in
+  };
 
   (* where any references deleted? *)
 
   let find name _ differ = do
   {
     differ || (not (DynUCTrie.mem_string name ps.references))
-  }
-  in
+  };
 
      DynUCTrie.fold cmp  ps.references     False
   || DynUCTrie.fold find ps.old_references False
@@ -567,7 +563,7 @@ value compare_references ps = do
 
 value write_references ps name = do
 {
-  let oc = open_out_bin name in
+  let oc = open_out_bin name;
 
   let print_ref name str = do
   {
@@ -576,8 +572,7 @@ value write_references ps name = do
     output_string oc "}{";
     output_string oc (UString.to_string (Array.to_list str));
     output_string oc "}\n"
-  }
-  in
+  };
 
   iter_references ps print_ref;
 
@@ -618,7 +613,7 @@ value execute_next_char ps = do
         False
       else do
       {
-        let cmd = ps.default_char_cmd in
+        let cmd = ps.default_char_cmd;
         cmd.execute ps;
         True
       }
@@ -664,7 +659,7 @@ value execute_argument ps = do
 {
   let rec execute_group nest = do
   {
-    let c = UCStream.next_char ps.input_stream in
+    let c = UCStream.next_char ps.input_stream;
 
     if c < 0 then
       ()
@@ -688,8 +683,7 @@ value execute_argument ps = do
         execute_group nest
       }
     ]
-  }
-  in
+  };
 
   if UCStream.next_char ps.input_stream = CharCode.begin_group_char then do
   {

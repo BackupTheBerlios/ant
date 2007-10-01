@@ -202,8 +202,7 @@ value lookup_adjustment adj_table glyphs = match adj_table with
     let c = List.map
              (fun g -> try IntMap.find g classes
                        with [ Not_found -> 0])
-             glyphs
-    in
+             glyphs;
 
     DynUCTrie.lookup_list c trie
   }
@@ -211,8 +210,8 @@ value lookup_adjustment adj_table glyphs = match adj_table with
   [ [g1; g2] -> do
     {
       try
-        let i1 = IntMap.find g1 c1 in
-        let i2 = IntMap.find g2 c2 in
+        let i1 = IntMap.find g1 c1;
+        let i2 = IntMap.find g2 c2;
 
         Some arr.(n * i1 + i2)
       with
@@ -224,8 +223,8 @@ value lookup_adjustment adj_table glyphs = match adj_table with
   [ [g1; g2] -> do
     {
       try
-        let a = IntMap.find g1 exit  in
-        let b = IntMap.find g2 entry in
+        let a = IntMap.find g1 exit;
+        let b = IntMap.find g2 entry;
 
         (* FIX: Replace the x coordinate of a = (x,y) by glyph_width - x *)
         Some (anchor_pair_cmd a b, 1)
@@ -302,13 +301,12 @@ value max2_adjustment_depth adjustments = do
 
 value make_adjustment_trie adjustments = do
 {
-  let max_depth = max_adjustment_depth adjustments in
+  let max_depth = max_adjustment_depth adjustments;
 
-  let is_empty (n, _)        = (n > max_depth)      in
-  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]) in
+  let is_empty (n, _)        = (n > max_depth);
+  let prefix (n, glyphs) g   = (n+1, [g :: glyphs]);
   let root_value (_, glyphs) =
-    lookup_adjustments adjustments (List.rev glyphs)
-  in
+    lookup_adjustments adjustments (List.rev glyphs);
 
   ((is_empty, prefix, root_value), (0, []))
 };
@@ -320,8 +318,7 @@ value match_substitution_trie get_border_glyph (is_empty, prefix_trie, root_valu
   let return_match found = match found with
   [ (_,      _,    None)     -> None
   | (prefix, rest, Some adj) -> Some (List.rev prefix, rest, adj)
-  ]
-  in
+  ];
 
   iter ([], items, None) [] items subst_trie
 
@@ -331,8 +328,8 @@ value match_substitution_trie get_border_glyph (is_empty, prefix_trie, root_valu
       let rec match_with_glyph g = match g with
       [ Simple x -> do
         {
-          let new_prefix = [i :: prefix]      in
-          let next       = prefix_trie trie x in
+          let new_prefix = [i :: prefix];
+          let next       = prefix_trie trie x;
 
           match root_value next with
           [ Some _ as adj -> iter (new_prefix, is, adj) new_prefix is next
@@ -341,8 +338,7 @@ value match_substitution_trie get_border_glyph (is_empty, prefix_trie, root_valu
         }
       | Border b -> match_with_glyph (get_border_glyph b)
       | _        -> return_match found
-      ]
-      in
+      ];
 
       if is_empty trie then
         return_match found
@@ -359,8 +355,7 @@ value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_va
   let return_match found = match found with
   [ (_,      _,    None)     -> None
   | (prefix, rest, Some adj) -> Some (prefix, rest, adj)
-  ]
-  in
+  ];
 
   iter ([], items, None) [] items subst_trie
 
@@ -373,8 +368,8 @@ value match_substitution_trie (*border_kerning*) (is_empty, prefix_trie, root_va
       else match g with
       [ Simple x -> do
         {
-          let new_prefix = [i :: prefix]      in
-          let next       = prefix_trie trie x in
+          let new_prefix = [i :: prefix];
+          let next       = prefix_trie trie x;
 
           match root_value next with
           [ Some _ as val -> iter (new_prefix, is, val) new_prefix is next
@@ -448,10 +443,9 @@ value separate_items items = do
     | `Box _
     | `Glyph _ -> (List.rev cmds, items)
     ]
-  ]
-  in
+  ];
 
-  let (first_commands, items) = get_commands [] items in
+  let (first_commands, items) = get_commands [] items;
 
   iter [] items
 
@@ -461,7 +455,7 @@ value separate_items items = do
     {
       (* <g> is either a `Box or a `Glyph *)
 
-      let (cmds, rest) = get_commands [] is in
+      let (cmds, rest) = get_commands [] is;
 
       iter [(g,cmds) :: result] rest
     }
@@ -470,9 +464,9 @@ value separate_items items = do
 
 value substitute font find_subst items = do
 {
-  let result = ListBuilder.make () in
+  let result = ListBuilder.make ();
 
-  let (first_commands, glyphs) = separate_items items in
+  let (first_commands, glyphs) = separate_items items;
 
   ListBuilder.add_list result first_commands;
 
@@ -492,8 +486,7 @@ value substitute font find_subst items = do
         skip_prefix (skip - 1) gs
       }
     ]
-  }
-  in
+  };
 
   iter glyphs
 
@@ -502,7 +495,7 @@ value substitute font find_subst items = do
   | _  -> match find_subst glyphs with
     [ Some (prefix, rest, (adj, skip)) -> do
       {
-        let (cmds, new_glyphs) = apply_substitution font prefix rest adj in
+        let (cmds, new_glyphs) = apply_substitution font prefix rest adj;
 
         ListBuilder.add_list result cmds;
 
@@ -560,19 +553,18 @@ value separate_items items = do
       ]
     | [] -> (cmds, items)
     ]
-  }
-  in
+  };
 
   iter 0 [] [] items
 
   where rec iter n glyphs cmds items = match items with
   [ [] -> do
     {
-      let glyph_arr = Array.of_list glyphs in
+      let glyph_arr = Array.of_list glyphs;
 
       (* <cmds> might lack the last entry, so we build the array manually. *)
 
-      let cmd_arr   = Array.make (n+1) []  in
+      let cmd_arr   = Array.make (n+1) [];
 
       List.fold_left
         (fun i c -> do
@@ -587,7 +579,7 @@ value separate_items items = do
     }
   | _  -> do
     {
-      let (new_cmds, rest) = collect_commands items in
+      let (new_cmds, rest) = collect_commands items;
 
       match rest with
       [ [`Glyph gf :: is] -> iter (n+1) [gf :: glyphs] [new_cmds :: cmds] is
@@ -599,7 +591,7 @@ value separate_items items = do
 
 value substitute font find_subst items = do
 {
-  let result = ListBuilder.make () in
+  let result = ListBuilder.make ();
 
   (* |skip_prefix <skip> <items>| moves the first <skip> glyphs from <items> to <result>. *)
 
@@ -619,8 +611,7 @@ value substitute font find_subst items = do
         ]
       }
     ]
-  }
-  in
+  };
 
   iter items
 
@@ -629,8 +620,8 @@ value substitute font find_subst items = do
   | _  -> match find_subst items with
     [ Some (prefix, rest, (adj, skip)) -> do
       {
-        let (glyphs, cmds) = separate_items prefix                        in
-        let new_items      = apply_substitution font glyphs cmds rest adj in
+        let (glyphs, cmds) = separate_items prefix;
+        let new_items      = apply_substitution font glyphs cmds rest adj;
 
         iter (skip_prefix skip new_items)
       }

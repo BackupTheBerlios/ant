@@ -38,8 +38,7 @@ value encode_gfx_cmd cmd = match cmd with
     [ Graphic.Stroke -> sym_Stroke
     | Graphic.Fill   -> sym_Fill
     | Graphic.Clip   -> sym_Clip
-    ]
-    in
+    ];
 
     Types.Tuple [|ref (Types.Symbol sym); ref (encode_path p)|]
   }
@@ -71,7 +70,7 @@ where rec encode_path path = match path with
 
 value decode_line_cap name cap = do
 {
-  let s = decode_symbol name cap in
+  let s = decode_symbol name cap;
 
   if s = sym_Butt then
     Graphic.Butt
@@ -85,7 +84,7 @@ value decode_line_cap name cap = do
 
 value decode_line_join name join = do
 {
-  let s = decode_symbol name join in
+  let s = decode_symbol name join;
 
   if s = sym_Miter then
     Graphic.Miter
@@ -99,13 +98,13 @@ value decode_line_join name join = do
 
 value decode_gfx_cmd name cmd = do
 {
-  let arr = decode_tuple name cmd in
+  let arr = decode_tuple name cmd;
 
   if Array.length arr < 1 then
     Types.runtime_error (name ^ ": invalid argument")
   else do
   {
-    let s = decode_symbol name arr.(0) in
+    let s = decode_symbol name arr.(0);
 
     if s = sym_PutBox then do
     {

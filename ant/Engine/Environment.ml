@@ -132,23 +132,21 @@ value save_environment env =
 
 value restore_environment env = do
 {
-  let old_env = sync_tables env.old_environment in
+  let old_env = sync_tables env.old_environment;
 
   let restore name galley = do
   {
     try
-      let old_galley = DynUCTrie.find_string name (PTable.table old_env.galleys) in
+      let old_galley = DynUCTrie.find_string name (PTable.table old_env.galleys);
 
-      let g = Galley.copy_params galley old_galley in
+      let g = Galley.copy_params galley old_galley;
       g
     with
     [ Not_found -> galley ]
-  }
-  in
+  };
   let new_galley_table = PTable.select
                            (PTable.mapi env.galleys restore)
-                           (PTable.key old_env.galleys)
-                         in
+                           (PTable.key old_env.galleys);
   {
     (old_env)
 
@@ -183,7 +181,7 @@ value get_hyphen_table loc language = do
 
 value new_galley name measure _ env = do
 {
-  let cur_galley = current_galley env in
+  let cur_galley = current_galley env;
   let new_galley = Galley.new_galley
                      measure
                      (Galley.line_params       cur_galley)
@@ -191,8 +189,7 @@ value new_galley name measure _ env = do
                      (Galley.line_break_params cur_galley)
                      (Galley.hyphen_params     cur_galley)
                      (Galley.space_params      cur_galley)
-                     (Galley.math_params       cur_galley)
-                   in
+                     (Galley.math_params       cur_galley);
   {
     (env)
 
@@ -278,9 +275,9 @@ value modify_par_params
 
 value set_par_params params loc env = do
 {
-  let galley = current_galley env               in
-  let p      = Galley.par_params         galley in
-  let cp     = Galley.current_par_params galley in
+  let galley = current_galley env;
+  let p      = Galley.par_params         galley;
+  let cp     = Galley.current_par_params galley;
 
   set_galley
     (Galley.set_current_par_params
@@ -294,8 +291,8 @@ value set_par_params params loc env = do
 
 value set_current_par_params params loc env = do
 {
-  let galley = current_galley env               in
-  let cp     = Galley.current_par_params galley in
+  let galley = current_galley env;
+  let cp     = Galley.current_par_params galley;
 
   set_galley
     (Galley.set_current_par_params
@@ -333,9 +330,9 @@ value modify_line_params
 
 value set_line_params params loc env = do
 {
-  let galley = current_galley env                 in
-  let l      = Galley.line_params         galley  in
-  let cl     = Galley.current_line_params galley  in
+  let galley = current_galley env;
+  let l      = Galley.line_params         galley;
+  let cl     = Galley.current_line_params galley;
 
   set_galley
     (Galley.set_current_line_params
@@ -349,8 +346,8 @@ value set_line_params params loc env = do
 
 value set_current_line_params params loc env = do
 {
-  let galley = current_galley env                 in
-  let cl     = Galley.current_line_params galley  in
+  let galley = current_galley env;
+  let cl     = Galley.current_line_params galley;
 
   set_galley
     (Galley.set_current_line_params
@@ -414,9 +411,9 @@ value modify_line_break_params
 
 value set_line_break_params params loc env = do
 {
-  let galley = current_galley env                      in
-  let l      = Galley.line_break_params         galley in
-  let cl     = Galley.current_line_break_params galley in
+  let galley = current_galley env;
+  let l      = Galley.line_break_params         galley;
+  let cl     = Galley.current_line_break_params galley;
 
   set_galley
     (Galley.set_current_line_break_params
@@ -430,8 +427,8 @@ value set_line_break_params params loc env = do
 
 value set_current_line_break_params params loc env = do
 {
-  let galley = current_galley env                      in
-  let cl     = Galley.current_line_break_params galley in
+  let galley = current_galley env;
+  let cl     = Galley.current_line_break_params galley;
 
   set_galley
     (Galley.set_current_line_break_params
@@ -474,9 +471,9 @@ value modify_hyphen_params
 
 value set_hyphen_params params loc env = do
 {
-  let galley = current_galley env                  in
-  let h      = Galley.hyphen_params         galley in
-  let ch     = Galley.current_hyphen_params galley in
+  let galley = current_galley env;
+  let h      = Galley.hyphen_params         galley;
+  let ch     = Galley.current_hyphen_params galley;
 
   set_galley
     (Galley.set_current_hyphen_params
@@ -490,8 +487,8 @@ value set_hyphen_params params loc env = do
 
 value set_current_hyphen_params params loc env = do
 {
-  let galley = current_galley env                  in
-  let ch     = Galley.current_hyphen_params galley in
+  let galley = current_galley env;
+  let ch     = Galley.current_hyphen_params galley;
 
   set_galley
     (Galley.set_current_hyphen_params
@@ -525,9 +522,9 @@ value modify_space_params
 
 value set_space_params params loc env = do
 {
-  let galley = current_galley env                 in
-  let s      = Galley.space_params         galley in
-  let cs     = Galley.current_space_params galley in
+  let galley = current_galley env;
+  let s      = Galley.space_params         galley;
+  let cs     = Galley.current_space_params galley;
 
   set_galley
     (Galley.set_current_space_params
@@ -541,8 +538,8 @@ value set_space_params params loc env = do
 
 value set_current_space_params params loc env = do
 {
-  let galley = current_galley env                 in
-  let cs     = Galley.current_space_params galley in
+  let galley = current_galley env;
+  let cs     = Galley.current_space_params galley;
 
   set_galley
     (Galley.set_current_space_params
@@ -597,9 +594,9 @@ value modify_math_params
 
 value set_math_params params loc env = do
 {
-  let galley = current_galley env                in
-  let m      = Galley.math_params         galley in
-  let cm     = Galley.current_math_params galley in
+  let galley = current_galley env;
+  let m      = Galley.math_params         galley;
+  let cm     = Galley.current_math_params galley;
 
   set_galley
     (Galley.set_current_math_params
@@ -613,8 +610,8 @@ value set_math_params params loc env = do
 
 value set_current_math_params params loc env = do
 {
-  let galley = current_galley env                in
-  let cm     = Galley.current_math_params galley in
+  let galley = current_galley env;
+  let cm     = Galley.current_math_params galley;
 
   set_galley
     (Galley.set_current_math_params
@@ -647,9 +644,9 @@ value set_colour c loc env = do
 
 value adjust_graphics_state old_env new_env = do
 {
-  let galley_name = PTable.key new_env.galleys in
-  let new_gfx = Galley.graphics_params (current_galley new_env)                 in
-  let old_gfx = Galley.graphics_params (PTable.get old_env.galleys galley_name) in
+  let galley_name = PTable.key new_env.galleys;
+  let new_gfx = Galley.graphics_params (current_galley new_env);
+  let old_gfx = Galley.graphics_params (PTable.get old_env.galleys galley_name);
 
     (if Graphic.compare_colour old_gfx.Galley.gp_colour new_gfx.Galley.gp_colour <> 0 then
        [new_command_box (`GfxCmd (Graphic.SetColour new_gfx.Galley.gp_colour))]
@@ -674,8 +671,7 @@ value new_page_layout name width height _ env = do
                      PageLayout.pl_width  = width;
                      PageLayout.pl_height = height;
                      PageLayout.pl_areas  = [| |]
-                   }
-                   in
+                   };
   {
     (env)
 
@@ -754,7 +750,7 @@ value declare_font name family series shape size params _ env =
 
 value set_font (family, series, shape, size, script, features) loc env = do
 {
-  let cur_font = current_font env in
+  let cur_font = current_font env;
 
   let fam = match family with
             [ Some x -> x
@@ -782,8 +778,7 @@ value set_font (family, series, shape, size, script, features) loc env = do
                           SymbolSet.empty
                           x
             | None   -> env.font_data.fd_features
-            ]
-  in
+            ];
 
   match get_font env.font_table fam ser sha siz with
   [ None -> do
@@ -865,7 +860,7 @@ value scale_font font_table loc font size = do
 
 value get_math_font env style family = do
 {
-  let (t, s, ss) = env.font_data.fd_math_fonts.(check_math_family env family) in
+  let (t, s, ss) = env.font_data.fd_math_fonts.(check_math_family env family);
 
   match style with
   [ MathLayout.Display | MathLayout.CrampedDisplay
@@ -877,10 +872,10 @@ value get_math_font env style family = do
 
 value set_math_font (math_family, family, series, shape, text_size, script_size, script2_size) loc env = do
 {
-  let (old_t_font, _, _) = env.font_data.fd_math_fonts.(0) in
-  let old_t  = old_t_font.f_size                           in
-  let old_s1 = current_script_size env                     in
-  let old_s2 = current_script_script_size env              in
+  let (old_t_font, _, _) = env.font_data.fd_math_fonts.(0);
+  let old_t  = old_t_font.f_size;
+  let old_s1 = current_script_size env;
+  let old_s2 = current_script_script_size env;
 
   let (s1, s2) = match (text_size, script_size, script2_size) with
   [ (Some t, Some s, Some ss) -> (s // t,     ss // t    )
@@ -891,12 +886,11 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
   | (None,   None,   Some ss) -> (old_s1,     ss // old_t)
   | (Some _, None,   None   ) -> (old_s1,     old_s2     )
   | (None,   None,   None   ) -> (old_s1,     old_s2     )
-  ]
-  in
+  ];
 
   let get_fonts mfam = do
   {
-    let (old_font, _, _) = env.font_data.fd_math_fonts.(check_math_family env mfam) in
+    let (old_font, _, _) = env.font_data.fd_math_fonts.(check_math_family env mfam);
 
     let fam = match family with
               [ Some x -> x
@@ -913,8 +907,7 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
     and siz = match text_size with
               [ Some x -> x
               | None   -> old_font.f_size
-              ]
-    in
+              ];
 
     let text_font = match get_font env.font_table fam ser sha siz with
     [ None -> do
@@ -929,19 +922,17 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
         log_num siz;
         log_string ") not found!";
 
-        let (t,_,_) = env.font_data.fd_math_fonts.(check_math_family env mfam) in
+        let (t,_,_) = env.font_data.fd_math_fonts.(check_math_family env mfam);
 
         t
       }
     | Some f -> f
-    ]
-    in
+    ];
 
     (text_font,
      scale_font env.font_table loc text_font (siz */ s1),
      scale_font env.font_table loc text_font (siz */ s2))
-  }
-  in
+  };
 
   (* update math-font array *)
 
@@ -957,29 +948,26 @@ value set_math_font (math_family, family, series, shape, text_size, script_size,
   | None    -> Array.init
                  (Array.length env.font_data.fd_math_fonts)
                  get_fonts
-  ]
-  in
+  ];
 
   (* update math-font parameter *)
 
   let (font_sym_t, font_sym_s, font_sym_ss) =
     if Array.length new_math_fonts > 2 then do
     {
-      let (t,s,ss) = new_math_fonts.(2) in
+      let (t,s,ss) = new_math_fonts.(2);
       (t.f_metric, s.f_metric, ss.f_metric)
     }
     else
-      (FontMetric.empty_font, FontMetric.empty_font, FontMetric.empty_font)
-  in
+      (FontMetric.empty_font, FontMetric.empty_font, FontMetric.empty_font);
   let font_ex =
     if Array.length new_math_fonts > 3 then do
     {
-      let (t,_,_) = new_math_fonts.(3) in
+      let (t,_,_) = new_math_fonts.(3);
       t.f_metric
     }
     else
-      FontMetric.empty_font
-  in
+      FontMetric.empty_font;
 
   {
     (env)
@@ -1017,8 +1005,7 @@ value adapt_fonts_to_math_style loc env = match env.math_style with
     and new_math_fonts =
       Array.map
         (fun (_,s,ss) -> (s,ss,ss))
-        (current_math_fonts env)
-    in
+        (current_math_fonts env);
 
     { (env)
 
@@ -1051,8 +1038,7 @@ value adapt_fonts_to_math_style loc env = match env.math_style with
     and new_math_fonts =
       Array.map
         (fun (_,_,ss) -> (ss,ss,ss))
-        (current_math_fonts env)
-    in
+        (current_math_fonts env);
 
     { (env)
 
@@ -1079,8 +1065,8 @@ value adapt_fonts_to_math_style loc env = match env.math_style with
 
 value set_space_factor env sf = do
 {
-  let galley = current_galley env                 in
-  let cs     = Galley.current_space_params galley in
+  let galley = current_galley env;
+  let cs     = Galley.current_space_params galley;
 
   set_galley
     (Galley.set_current_space_params
@@ -1118,7 +1104,7 @@ value get_space_factor env char = do
 
 value adjust_space_factor char _ env = do
 {
-  let sf = get_space_factor env char in
+  let sf = get_space_factor env char;
 
   if sf = num_one then
     set_space_factor env num_one
@@ -1152,8 +1138,7 @@ value initialise_environment () = do
       ParLayout.pre_break         = [];
       ParLayout.post_break        = [];
       ParLayout.post_process_line = fun l -> l
-    }
-  in
+    };
   let line_params =
     {
       Galley.baseline_skip      = dim_12pt;
@@ -1164,8 +1149,7 @@ value initialise_environment () = do
                                     num_zero
                                   else
                                     num_of_int 1000
-    }
-  in
+    };
   let line_break_params =
     {
       ParLayout.pre_tolerance          = num_of_int   100;
@@ -1179,8 +1163,7 @@ value initialise_environment () = do
       ParLayout.river_demerits         = num_zero;
       ParLayout.river_threshold        = num_one;
       ParLayout.simple_breaking        = True
-    }
-  in
+    };
   let hyphen_params =
     {
       JustHyph.hyphen_table      = try
@@ -1199,16 +1182,14 @@ value initialise_environment () = do
       JustHyph.left_hyphen_min   = 2;
       JustHyph.right_hyphen_min  = 3;
       JustHyph.script_lang       = [||]
-    }
-  in
+    };
   let space_params =
     {
       Galley.space_factor      = num_of_int 1;
       Galley.space_skip        = None;
       Galley.xspace_skip       = None;
       Galley.victorian_spacing = False
-    }
-  in
+    };
   let math_params =
     {
       MathLayout.thin_math_skip  = fixed_dim (num_of_int 3);
@@ -1232,8 +1213,7 @@ value initialise_environment () = do
       MathLayout.delimiter_factor     = num_of_ints 901 1000;
       MathLayout.delimiter_shortfall  = num_of_int 5;
       MathLayout.null_delimiter_space = fixed_dim (num_of_ints 12 10)
-    }
-  in
+    };
   let main_galley =
     Galley.new_galley
       (num_of_int 345)
@@ -1242,8 +1222,7 @@ value initialise_environment () = do
       line_break_params
       hyphen_params
       space_params
-      math_params
-  in
+      math_params;
   let text_area =
     {
       PageLayout.ar_name  = UString.uc_string_of_ascii "main";
@@ -1265,45 +1244,42 @@ value initialise_environment () = do
             AreaGalley.min_size    = num_of_int 60;
             AreaGalley.grid_size   = num_of_int 12
           }
-    }
-  in
+    };
   let default_layout =
     {
       PageLayout.pl_width  = num_of_int 210 */ num_of_ints 7227 2540;
       PageLayout.pl_height = num_of_int 297 */ num_of_ints 7227 2540;
       PageLayout.pl_areas  = [| text_area |]
-    }
-  in
-  let font_table          = initialise_font_table ()                                     in
-  let family_roman        = [| |] (*UString.uc_string_of_ascii "Computer Modern Roman"*)           in
-  let family_math         = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Italic"*)     in
-  let family_symbols      = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Symbols"*)    in
-  let family_extensions   = [| |] (*UString.uc_string_of_ascii "Computer Modern Math Extensions"*) in
-  let series_medium       = [| |] (*UString.uc_string_of_ascii "medium"*)  in
-  let shape_upright       = [| |] (*UString.uc_string_of_ascii "normal"*)  in
-  let shape_italic        = [| |] (*UString.uc_string_of_ascii "italic"*)  in
-  let size_normal         = num_of_int 10 in
-  let size_script         = num_of_int  7 in
-  let size_tiny           = num_of_int  5 in
+    };
+  let font_table          = initialise_font_table ();
+  let family_roman        = [| |]; (*UString.uc_string_of_ascii "Computer Modern Roman"*)
+  let family_math         = [| |]; (*UString.uc_string_of_ascii "Computer Modern Math Italic"*)
+  let family_symbols      = [| |]; (*UString.uc_string_of_ascii "Computer Modern Math Symbols"*)
+  let family_extensions   = [| |]; (*UString.uc_string_of_ascii "Computer Modern Math Extensions"*)
+  let series_medium       = [| |]; (*UString.uc_string_of_ascii "medium"*)
+  let shape_upright       = [| |]; (*UString.uc_string_of_ascii "normal"*)
+  let shape_italic        = [| |]; (*UString.uc_string_of_ascii "italic"*)
+  let size_normal         = num_of_int 10;
+  let size_script         = num_of_int  7;
+  let size_tiny           = num_of_int  5;
 
-  let lookup_font fam ser sha siz = Option.from_some (get_font font_table fam ser sha siz) in
+  let lookup_font fam ser sha siz = Option.from_some (get_font font_table fam ser sha siz);
 
   try
-    let text_font       = lookup_font family_roman      series_medium shape_upright size_normal in
-    let math_font_ex    = lookup_font family_extensions series_medium shape_upright size_normal in
-    let math_font_rm_t  = lookup_font family_roman      series_medium shape_upright size_normal in
-    let math_font_mi_t  = lookup_font family_math       series_medium shape_italic  size_normal in
-    let math_font_sy_t  = lookup_font family_symbols    series_medium shape_upright size_normal in
-    let math_font_rm_s  = lookup_font family_roman      series_medium shape_upright size_script in
-    let math_font_mi_s  = lookup_font family_math       series_medium shape_italic  size_script in
-    let math_font_sy_s  = lookup_font family_symbols    series_medium shape_upright size_script in
-    let math_font_rm_ss = lookup_font family_roman      series_medium shape_upright size_tiny   in
-    let math_font_mi_ss = lookup_font family_math       series_medium shape_italic  size_tiny   in
-    let math_font_sy_ss = lookup_font family_symbols    series_medium shape_upright size_tiny   in
+    let text_font       = lookup_font family_roman      series_medium shape_upright size_normal;
+    let math_font_ex    = lookup_font family_extensions series_medium shape_upright size_normal;
+    let math_font_rm_t  = lookup_font family_roman      series_medium shape_upright size_normal;
+    let math_font_mi_t  = lookup_font family_math       series_medium shape_italic  size_normal;
+    let math_font_sy_t  = lookup_font family_symbols    series_medium shape_upright size_normal;
+    let math_font_rm_s  = lookup_font family_roman      series_medium shape_upright size_script;
+    let math_font_mi_s  = lookup_font family_math       series_medium shape_italic  size_script;
+    let math_font_sy_s  = lookup_font family_symbols    series_medium shape_upright size_script;
+    let math_font_rm_ss = lookup_font family_roman      series_medium shape_upright size_tiny;
+    let math_font_mi_ss = lookup_font family_math       series_medium shape_italic  size_tiny;
+    let math_font_sy_ss = lookup_font family_symbols    series_medium shape_upright size_tiny;
     let std_features = SymbolSet.add (SymbolTable.string_to_symbol (UString.uc_string_of_ascii "liga"))
                          (SymbolSet.add (SymbolTable.string_to_symbol (UString.uc_string_of_ascii "kern"))
-                           SymbolSet.empty)
-    in
+                           SymbolSet.empty);
     let font_data =
     {
       fd_font       = text_font;
@@ -1328,8 +1304,7 @@ value initialise_environment () = do
       fd_script_script_size = num_of_ints 5 10;
       fd_script_lang        = UString.uc_string_of_ascii "latn";
       fd_features           = std_features
-    }
-    in
+    };
 
     let rec env =
     {
@@ -1342,8 +1317,7 @@ value initialise_environment () = do
       math_style        = MathLayout.Text;
       font_table        = font_table;
       font_data         = font_data
-    }
-    in
+    };
 
     env
   with

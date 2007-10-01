@@ -109,9 +109,8 @@ value calc_top_skip line max_top line_params = do
 
                      Galley.line_skip_limit = num_zero;
                      Galley.line_skip       = dim_zero
-                   }
-                   in
-  let top_skip   = dim_sub line_params.Galley.baseline_skip max_top in
+                   };
+  let top_skip   = dim_sub line_params.Galley.baseline_skip max_top;
 
   top_params.Galley.leading
     (new_rule_box line.b_width dim_zero top_skip)
@@ -128,9 +127,8 @@ value calc_bot_skip line max_bot line_params = do
 
                      Galley.line_skip_limit = num_zero;
                      Galley.line_skip       = dim_zero
-                   }
-                   in
-  let bot_skip   = dim_sub line_params.Galley.baseline_skip max_bot in
+                   };
+  let bot_skip   = dim_sub line_params.Galley.baseline_skip max_bot;
 
   bot_params.Galley.leading
     line
@@ -147,14 +145,14 @@ value calc_bot_skip line max_bot line_params = do
 
 value calc_top_shift line max_top line_params = do
 {
-  let skip = calc_top_skip line max_top line_params in
+  let skip = calc_top_skip line max_top line_params;
 
   dim_sub (dim_add skip line.b_height) max_top
 };
 
 value calc_bot_shift line max_bot line_params = do
 {
-  let skip = calc_bot_skip line max_bot line_params in
+  let skip = calc_bot_skip line max_bot line_params;
 
   dim_sub (dim_add skip line.b_depth) max_bot
 };
@@ -185,15 +183,14 @@ value assemble_interval lines (top, height, bottom) line_params = do
       else
         get_last_line last bs
     }
-  ]
-  in
+  ];
 
   match get_first_and_last_line lines with
   [ None -> new_compound_box dim_zero dim_zero (fixed_dim height) []
   | Some (first_line, last_line) -> do
     {
-      let top_skip = calc_top_skip first_line (fixed_dim top)    line_params in
-      let bot_skip = calc_bot_skip last_line  (fixed_dim bottom) line_params in
+      let top_skip = calc_top_skip first_line (fixed_dim top)    line_params;
+      let bot_skip = calc_bot_skip last_line  (fixed_dim bottom) line_params;
 
       shift_compound_vert
         (VBox.make_to (height +/ top +/ bottom)
@@ -214,8 +211,7 @@ value assemble_interval lines (top, height, bottom) line_params = do
 value break_page (top, height, bottom) lines line_params = do
 {
   let calc_badness current_height height_goal =
-    dim_scale_badness (adjustment_ratio current_height height_goal)
-  in
+    dim_scale_badness (adjustment_ratio current_height height_goal);
 
   let rec add_lines break_state boxes = match boxes with
   [ []      -> (ListBuilder.get break_state.bs_chosen_lines,
@@ -224,11 +220,11 @@ value break_page (top, height, bottom) lines line_params = do
                 break_state.bs_best_badness)
   | [b::bs] -> do
     {
-      let skip       = calc_bot_shift b (fixed_dim bottom) line_params                 in
-      let bh         = dim_add b.b_height skip                                         in
-      let bd         = dim_sub b.b_depth  skip                                         in
-      let new_height = dim_add (dim_add break_state.bs_height break_state.bs_depth) bh in
-      let bad        = calc_badness break_state.bs_height break_state.bs_height_goal   in
+      let skip       = calc_bot_shift b (fixed_dim bottom) line_params;
+      let bh         = dim_add b.b_height skip;
+      let bd         = dim_sub b.b_depth  skip;
+      let new_height = dim_add (dim_add break_state.bs_height break_state.bs_depth) bh;
+      let bad        = calc_badness break_state.bs_height break_state.bs_height_goal;
 
       if break_state.bs_height.d_base >/ break_state.bs_height_goal && bad >= infinite then do
       {
@@ -356,8 +352,7 @@ value break_page (top, height, bottom) lines line_params = do
         }
       ]
     }
-  ]
-  in
+  ];
 
   let rec filter_cmds cmds = match cmds with
   [ []        -> []
@@ -368,14 +363,13 @@ value break_page (top, height, bottom) lines line_params = do
       | _                   -> filter_cmds cs
       ]
   | [_ :: cs] -> filter_cmds cs
-  ]
-  in
+  ];
 
   match discard_glue lines with
   [ (cmds, [])               -> ([], filter_cmds cmds, [], num_zero)
   | (cmds, [first_line::ls]) -> do
     {
-      let first_skip = calc_top_skip first_line (fixed_dim top) line_params in
+      let first_skip = calc_top_skip first_line (fixed_dim top) line_params;
 
       add_lines
         {
@@ -428,14 +422,12 @@ value make_gfx_cmd_boxes (fg, bg, alpha) = do
 value layout_interval page page_state x y interval lines line_params = do
 {
   let (boxes, marks, remaining, badness) =
-    break_page interval lines line_params
-  in
+    break_page interval lines line_params;
 
   let gfx_cmds = make_gfx_cmd_boxes
-                   (List.fold_left update_gfx_cmds (None, None, None) marks)
-  in
+                   (List.fold_left update_gfx_cmds (None, None, None) marks);
 
-  let ps  = process_marks marks page_state in
+  let ps  = process_marks marks page_state;
   let ps2 =
     {
       (ps)
@@ -444,8 +436,7 @@ value layout_interval page page_state x y interval lines line_params = do
 
       ps_badness  = ps.ps_badness +/ badness;
       ps_finished = ps.ps_finished && (boxes == [])
-    }
-  in
+    };
 
   if boxes <> [] then
     (put_box_on_page
@@ -472,7 +463,7 @@ value contents_from_galley params page area _floats page_state = do
     }
   | Some (lines, g) -> do
     {
-      let line_params = Galley.line_params g in
+      let line_params = Galley.line_params g;
 
       iter (page, page_state, lines) (area_free_vert page area)
 
@@ -491,8 +482,8 @@ value contents_from_galley params page area _floats page_state = do
         }
       | [(a,b) :: is] -> do
         {
-          let b2 = b -/ params.top_skip    in
-          let a2 = a +/ params.bottom_skip in
+          let b2 = b -/ params.top_skip;
+          let a2 = a +/ params.bottom_skip;
 
           let max_y = if b2 >=/ area.as_pos_y then
                         area.as_pos_y
@@ -501,8 +492,7 @@ value contents_from_galley params page area _floats page_state = do
                         +/ params.grid_size
                            */ floor_num ((b2 -/ area.as_pos_y) // params.grid_size)
                       else
-                        b2
-                      in
+                        b2;
           let min_y = if a2 <=/ area.as_pos_y -/ area.as_height then
                         area.as_pos_y -/ area.as_height
                       else if params.grid_size >/ num_zero then
@@ -510,10 +500,9 @@ value contents_from_galley params page area _floats page_state = do
                         +/ params.grid_size
                            */ ceiling_num ((a2 -/ area.as_pos_y) // params.grid_size)
                       else
-                        a2
-                      in
-          let max_top = min_num area.as_top    (b2 -/ max_y) in
-          let max_bot = min_num area.as_bottom (min_y -/ a2) in
+                        a2;
+          let max_top = min_num area.as_top    (b2 -/ max_y);
+          let max_bot = min_num area.as_bottom (min_y -/ a2);
 
           if max_y -/ min_y <=/ params.min_size then
             iter (page, page_state, lines) is

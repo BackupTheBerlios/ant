@@ -162,8 +162,8 @@ and eval_node_list env builder nodes = match nodes with
 [ []      -> env
 | [n::ns] -> do
   {
-    let e1 = eval_node      env builder n  in
-    let e2 = eval_node_list e1  builder ns in
+    let e1 = eval_node      env builder n;
+    let e2 = eval_node_list e1  builder ns;
 
     e2
   }
@@ -171,8 +171,8 @@ and eval_node_list env builder nodes = match nodes with
 
 and eval_grouped_list env builder nodes = do
 {
-  let e  = eval_node_list (save_environment env) builder nodes in
-  let e2 = restore_environment e                               in
+  let e  = eval_node_list (save_environment env) builder nodes;
+  let e2 = restore_environment e;
 
   Builder.add_cmd_list builder (adjust_graphics_state e e2);
 
@@ -185,7 +185,7 @@ and ev_command env builder loc cmd = do
     log_string "\n#E: command"
   else ();
 
-  let e = cmd loc env in
+  let e = cmd loc env;
 
   Builder.set_font builder (current_font_metric e) (current_composer e);
   Builder.set_hyphen_params builder (Galley.current_hyphen_params (current_galley e));
@@ -253,8 +253,7 @@ and ev_gfx_command env builder _loc cmd = do
       (fun (ax,ay,bx,by,cx,cy,dx,dy) ->
         (ax env, ay env, bx env, by env,
          cx env, cy env, dx env, dy env))
-      path
-  in
+      path;
   let c = match cmd with
   [ Graphic.PutBox x y b    -> Graphic.PutBox (x env) (y env) b
   | Graphic.Draw pc p       -> Graphic.Draw pc (conv p)
@@ -265,8 +264,7 @@ and ev_gfx_command env builder _loc cmd = do
   | Graphic.SetLineCap    c -> Graphic.SetLineCap    c
   | Graphic.SetLineJoin   j -> Graphic.SetLineJoin   j
   | Graphic.SetMiterLimit l -> Graphic.SetMiterLimit l
-  ]
-  in
+  ];
 
   Builder.add_cmd builder (new_command_box (`GfxCmd c));
   env
@@ -287,7 +285,7 @@ and ev_end_group env builder _loc = do
     log_string "\n#E: end group"
   else ();
 
-  let e = restore_environment env in
+  let e = restore_environment env;
 
   Builder.set_font builder (current_font_metric e) (current_composer e);
   Builder.set_hyphen_params builder (Galley.current_hyphen_params (current_galley e));
@@ -351,8 +349,8 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                        {
                          Footnote.separator = do
                            {
-                             let (b, get) = Builder.simple_builder () in
-                             let _        = eval_node_list env b sep  in
+                             let (b, get) = Builder.simple_builder ();
+                             let _        = eval_node_list env b sep;
                              VBox.make (get ())
                            };
                          Footnote.top_skip          = t env;
@@ -374,13 +372,12 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                  | `Direct f ->
                      (fun page area _ ps -> do
                       {
-                        let (b, get) = Builder.simple_builder () in
+                        let (b, get) = Builder.simple_builder ();
                         let _        = eval_node_list env b
                                          (f (PageLayout.get_page_info page ps)
                                             (area.Page.as_pos_x,
-                                             page.Page.p_height -/ area.Page.as_pos_y))
-                        in
-                        let boxes    = get () in
+                                             page.Page.p_height -/ area.Page.as_pos_y));
+                        let boxes    = get ();
 
                         PageLayout.simple_page_update
                           (Page.put_box_on_page
@@ -390,10 +387,9 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                                 (VBox.make boxes))
                           ps
                       })
-                 ]
-                 in
-  let page_layout = current_page_layout env         in
-  let areas       = page_layout.PageLayout.pl_areas in
+                 ];
+  let page_layout = current_page_layout env;
+  let areas       = page_layout.PageLayout.pl_areas;
   let area_shape  =
     {
       Page.as_pos_x  = x       env;
@@ -403,22 +399,19 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
       Page.as_height = height  env;
       Page.as_top    = max_top env;
       Page.as_bottom = max_bot env
-    }
-  in
+    };
   let new_area =
     {
       PageLayout.ar_name     = name;
       PageLayout.ar_shape    = area_shape;
       PageLayout.ar_contents = c_fun
-    }
-  in
+    };
   let new_areas = Array.init
                     (Array.length areas + 1)
                     (fun i -> if i < Array.length areas then
                                 areas.(i)
                               else
-                                new_area)
-                  in
+                                new_area);
   set_page_layout
     {
       (current_page_layout env)
@@ -443,10 +436,9 @@ and ev_float env builder _loc name boxes = do
   let (b, get) = Compose.hyph_only_builder
                   (current_font_metric env)
                   (current_composer    env)
-                  (Galley.hyphen_params (current_galley env))
-                 in
-  let _        = eval_node_list env b boxes in
-  let items    = get ()                     in
+                  (Galley.hyphen_params (current_galley env));
+  let _        = eval_node_list env b boxes;
+  let items    = get ();
 
   Builder.add_cmd builder (new_command_box (`PageCmd (Box.Float (name, items))));
   env
@@ -464,10 +456,9 @@ and ev_paragraph env _builder loc boxes = do
     Compose.hyph_only_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let new_env = eval_node_list (set_space_factor env num_one) b boxes in
-  let bs      = get ()                                                in
+      (Galley.hyphen_params (current_galley env));
+  let new_env = eval_node_list (set_space_factor env num_one) b boxes;
+  let bs      = get ();
 
   if !tracing_engine then do
   {
@@ -480,13 +471,11 @@ and ev_paragraph env _builder loc boxes = do
   let g1 = match bs with
            [ [] -> current_galley new_env
            | _  -> Galley.add_paragraph (current_galley new_env) loc bs
-           ]
-  in
+           ];
   let g2 = List.fold_left
              Galley.add_glue
              g1
-             (adjust_graphics_state env new_env)
-           in
+             (adjust_graphics_state env new_env);
 
   set_galley
     (Galley.reset_params g2)
@@ -512,20 +501,19 @@ and ev_add_to_galley env builder loc galley nodes = do
         log_string "\n#E: )"
       else ();
 
-      let e = restore_environment env in
+      let e = restore_environment env;
 
       Builder.add_cmd_list builder (adjust_graphics_state env e);
       e
     }
   | [n :: ns] -> do
     {
-      let (b, get) = Builder.simple_builder () in
-      let e        = eval_node env b n         in
+      let (b, get) = Builder.simple_builder ();
+      let e        = eval_node env b n;
       let g        = List.fold_left
                        Galley.add_glue
                        (current_galley e)
-                       (get ())
-                     in
+                       (get ());
 
       iter (set_galley g loc e) ns
     }
@@ -558,18 +546,17 @@ and ev_shipout_pages env _builder loc even odd number = do
   }
   else ();
 
-  let e = sync_tables env in
+  let e = sync_tables env;
 
   try
-    let even_layout = DynUCTrie.find_string even (PTable.table (page_layout_table e)) in
+    let even_layout = DynUCTrie.find_string even (PTable.table (page_layout_table e));
 
     try
-      let odd_layout  = DynUCTrie.find_string odd (PTable.table (page_layout_table e)) in
+      let odd_layout  = DynUCTrie.find_string odd (PTable.table (page_layout_table e));
       let abort       = if number <= 0 then
                           PageLayout.abort_when_done
                         else
-                          PageLayout.abort_on_page (current_page_number e + number)
-                        in
+                          PageLayout.abort_on_page (current_page_number e + number);
       let (pages, rs) = PageLayout.layout_run_of_pages
                           (PageLayout.layout_two_sided even_layout odd_layout)
                           abort
@@ -577,8 +564,7 @@ and ev_shipout_pages env _builder loc even odd number = do
                             (current_page_number e)
                             (current_float_misplacement_demerits e)
                             (PTable.table (galley_table e))
-                            (PTable.table (page_layout_table e)))
-                        in
+                            (PTable.table (page_layout_table e)));
       add_pages
         (PageLayout.page_no rs)
         pages
@@ -615,7 +601,7 @@ and ev_glyph env builder _loc glyph = do
   }
   else ();
 
-  let font = current_font_metric env in
+  let font = current_font_metric env;
 
   Builder.add_box builder
     (new_glyph_box (FontMetric.index_to_glyph font glyph) font);
@@ -654,10 +640,9 @@ and ev_space env builder _loc = do
           d_shrink_factor  = width.d_shrink_factor  // factor
         }
         dim_zero
-        False True)
-  in
+        False True);
 
-  let space_params = Galley.current_space_params (current_galley env) in
+  let space_params = Galley.current_space_params (current_galley env);
 
   if space_params.Galley.space_factor </ num_of_int 2 then
     match space_params.Galley.space_skip with
@@ -669,7 +654,7 @@ and ev_space env builder _loc = do
     [ Some s -> add_blank num_one s
     | None   -> do
       {
-        let fm = current_font_metric env in
+        let fm = current_font_metric env;
 
         match space_params.Galley.space_skip with
         [ Some s -> add_blank
@@ -687,8 +672,8 @@ and ev_space env builder _loc = do
 
 and ev_glue env builder _loc width height implicit discard = do
 {
-  let w = width  env in
-  let h = height env in
+  let w = width  env;
+  let h = height env;
 
   if !tracing_engine then do
   {
@@ -714,8 +699,7 @@ and ev_break env builder _loc penalty hyph pre_break post_break no_break = do
                       else
                         num_zero
           | Some x -> x
-          ]
-          in
+          ];
 
   if !tracing_engine then do
   {
@@ -733,14 +717,13 @@ and ev_break env builder _loc penalty hyph pre_break post_break no_break = do
   let (b, get) = Compose.char_item_builder
                    (current_font_metric env)
                    (current_composer    env)
-                   (Galley.hyphen_params (current_galley env))
-                 in
-  let _        = eval_node_list env b pre_break  in
-  let pre      = get ()                          in
-  let _        = eval_node_list env b post_break in
-  let post     = get ()                          in
-  let _        = eval_node_list env b no_break   in
-  let no       = get ()                          in
+                   (Galley.hyphen_params (current_galley env));
+  let _        = eval_node_list env b pre_break;
+  let pre      = get ();
+  let _        = eval_node_list env b post_break;
+  let post     = get ();
+  let _        = eval_node_list env b no_break;
+  let no       = get ();
 
   Builder.add_break builder p hyph pre post no;
   env
@@ -748,9 +731,9 @@ and ev_break env builder _loc penalty hyph pre_break post_break no_break = do
 
 and ev_rule env builder _loc width height depth = do
 {
-  let w = width  env in
-  let h = height env in
-  let d = depth  env in
+  let w = width  env;
+  let h = height env;
+  let d = depth  env;
 
   if !tracing_engine then do
   {
@@ -769,8 +752,8 @@ and ev_rule env builder _loc width height depth = do
 
 and ev_image env builder _loc file fmt width height = do
 {
-  let w = width  env in
-  let h = height env in
+  let w = width  env;
+  let h = height env;
 
   if !tracing_engine then do
   {
@@ -793,10 +776,10 @@ and ev_accent env builder loc acc chr = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ()   in
-  let e        = eval_grouped_list env b chr in
-  let bs       = get ()                      in
-  let font     = current_font_metric env     in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b chr;
+  let bs       = get ();
+  let font     = current_font_metric env;
 
   match bs with
   [ []                               -> Builder.add_char builder acc
@@ -830,17 +813,15 @@ and ev_hbox env builder _loc dir boxes = do
   [ `LR      -> HBox.LR
   | `RL      -> HBox.RL
   | `Default -> HBox.LR (* FIX: take value from par-param *)
-  ]
-  in
+  ];
 
   let (composer, get) =
     Compose.ligature_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let e  = eval_grouped_list env composer boxes in
-  let bs = get ()                               in
+      (Galley.hyphen_params (current_galley env));
+  let e  = eval_grouped_list env composer boxes;
+  let bs = get ();
 
   Builder.add_box builder (HBox.make d bs);
   e
@@ -848,7 +829,7 @@ and ev_hbox env builder _loc dir boxes = do
 
 and ev_hbox_to env builder _loc dir width boxes = do
 {
-  let w = width env in
+  let w = width env;
 
   if !tracing_engine then do
   {
@@ -861,17 +842,15 @@ and ev_hbox_to env builder _loc dir width boxes = do
   [ `LR      -> HBox.LR
   | `RL      -> HBox.RL
   | `Default -> HBox.LR (* FIX: take value from par-param *)
-  ]
-  in
+  ];
 
   let (composer, get) =
     Compose.ligature_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let e        = eval_grouped_list env composer boxes in
-  let bs       = get ()                               in
+      (Galley.hyphen_params (current_galley env));
+  let e        = eval_grouped_list env composer boxes;
+  let bs       = get ();
 
   Builder.add_box builder (HBox.make_to d w bs);
   e
@@ -879,7 +858,7 @@ and ev_hbox_to env builder _loc dir width boxes = do
 
 and ev_hbox_spread env builder _loc dir amount boxes = do
 {
-  let a = amount env in
+  let a = amount env;
 
   if !tracing_engine then do
   {
@@ -892,17 +871,15 @@ and ev_hbox_spread env builder _loc dir amount boxes = do
   [ `LR      -> HBox.LR
   | `RL      -> HBox.RL
   | `Default -> HBox.LR (* FIX: take value from par-param *)
-  ]
-  in
+  ];
 
   let (composer, get) =
     Compose.ligature_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let e        = eval_grouped_list env composer boxes in
-  let bs       = get ()                               in
+      (Galley.hyphen_params (current_galley env));
+  let e        = eval_grouped_list env composer boxes;
+  let bs       = get ();
 
   Builder.add_box builder (HBox.make_spread d a bs);
   e
@@ -914,9 +891,9 @@ and ev_vbox env builder _loc boxes = do
     log_string "\n#E: vbox"
   else ();
 
-  let (b, get) = Builder.simple_builder ()     in
-  let e        = eval_grouped_list env b boxes in
-  let bs       = get ()                        in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b boxes;
+  let bs       = get ();
 
   Builder.add_box builder (VBox.make bs);
   e
@@ -924,7 +901,7 @@ and ev_vbox env builder _loc boxes = do
 
 and ev_vbox_to env builder _loc height boxes = do
 {
-  let h = height env in
+  let h = height env;
 
   if !tracing_engine then do
   {
@@ -933,9 +910,9 @@ and ev_vbox_to env builder _loc height boxes = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ()     in
-  let e        = eval_grouped_list env b boxes in
-  let bs       = get ()                        in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b boxes;
+  let bs       = get ();
 
   Builder.add_box builder (VBox.make_to h bs);
   e
@@ -943,7 +920,7 @@ and ev_vbox_to env builder _loc height boxes = do
 
 and ev_vbox_spread env builder _loc amount boxes = do
 {
-  let a = amount env in
+  let a = amount env;
 
   if !tracing_engine then do
   {
@@ -952,9 +929,9 @@ and ev_vbox_spread env builder _loc amount boxes = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ()     in
-  let e        = eval_grouped_list env b boxes in
-  let bs       = get ()                        in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b boxes;
+  let bs       = get ();
 
   Builder.add_box builder (VBox.make_spread a bs);
   e
@@ -966,10 +943,9 @@ and ev_phantom env builder _loc horiz vert nodes = do
     Compose.ligature_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let e        = eval_grouped_list env composer nodes in
-  let boxes    = get ()                               in
+      (Galley.hyphen_params (current_galley env));
+  let e        = eval_grouped_list env composer nodes;
+  let boxes    = get ();
 
   if horiz then do
   {
@@ -995,15 +971,14 @@ and ev_hleaders env builder _loc width nodes = do
     Compose.ligature_builder
       (current_font_metric env)
       (current_composer    env)
-      (Galley.hyphen_params (current_galley env))
-  in
-  let e        = eval_grouped_list env composer nodes in
-  let boxes    = get ()                               in
-  let box      = HBox.make HBox.LR boxes              in
+      (Galley.hyphen_params (current_galley env));
+  let e        = eval_grouped_list env composer nodes;
+  let boxes    = get ();
+  let box      = HBox.make HBox.LR boxes;
 
   let f _pi (x, _y) b = do
     {
-      let n = (floor_num ((x +/ b.b_width.d_base) // box.b_width.d_base)) in
+      let n = (floor_num ((x +/ b.b_width.d_base) // box.b_width.d_base));
 
       iter ((n -/ num_one) */ box.b_width.d_base) []
 
@@ -1017,8 +992,7 @@ and ev_hleaders env builder _loc width nodes = do
             [Graphic.PutBox (fixed_dim (z -/ x)) dim_zero box
              :: cmds]
       }
-    }
-  in
+    };
 
   Builder.add_box builder
     (new_proc_box (width env) box.b_height box.b_depth f);
@@ -1027,9 +1001,9 @@ and ev_hleaders env builder _loc width nodes = do
 
 and ev_vinsert env builder _loc below nodes = do
 {
-  let (b, get) = Builder.simple_builder ()     in
-  let e        = eval_grouped_list env b nodes in
-  let boxes    = get ()                        in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b nodes;
+  let boxes    = get ();
 
   Builder.add_cmd builder
     (new_command_box (`ParCmd (Box.VInsert below boxes)));
@@ -1045,15 +1019,15 @@ and ev_table_entry env _builder loc = do
 
 and ev_table env builder _loc nodes = do
 {
-  let (sb, get) = Builder.simple_builder () in
+  let (sb, get) = Builder.simple_builder ();
 
   let rec eval_entries env nodes = match nodes with
   [ [] -> (env, [])
   | [Node.TableEntry _loc l r t bl b c :: ns] -> do
     {
-      let e1        = eval_grouped_list env sb c in
-      let boxes     = get ()                     in
-      let (e2, tes) = eval_entries e1 ns         in
+      let e1        = eval_grouped_list env sb c;
+      let boxes     = get ();
+      let (e2, tes) = eval_entries e1 ns;
 
       let entry =
         {
@@ -1063,28 +1037,25 @@ and ev_table env builder _loc nodes = do
           Table.te_baseline = bl;
           Table.te_bottom   = b;
           Table.te_contents = boxes
-        }
-      in
+        };
 
       (e2, [entry :: tes])
     }
   | [n :: ns] -> do
     {
-      let e = eval_node env Builder.void_builder n in
+      let e = eval_node env Builder.void_builder n;
 
       eval_entries e ns
     }
-  ]
-  in
+  ];
 
-  let (e, tes)     = eval_entries env nodes in
+  let (e, tes)     = eval_entries env nodes;
   let (cols, rows) = List.fold_left
                        (fun (c,r) te ->
                          (max c (te.Table.te_right+1), max r (te.Table.te_bottom+1)))
                        (0,0)
-                       tes
-                     in
-  let line_params  = Galley.current_line_params (current_galley e) in
+                       tes;
+  let line_params  = Galley.current_line_params (current_galley e);
 
   Builder.add_box builder (Table.make cols rows tes line_params);
   e
@@ -1098,12 +1069,11 @@ and ev_math env builder _loc nodes = do
     log_string "\n#E: math"
   else ();
 
-  let (b, get) = Builder.simple_builder () in
+  let (b, get) = Builder.simple_builder ();
   let e        = eval_node_list
                    (set_math_style env MathLayout.Text)
-                   b nodes
-                 in
-  let body     = get () in
+                   b nodes;
+  let body     = get ();
 
   Builder.add_box_list builder
     (MathLayout.layout
@@ -1125,12 +1095,11 @@ and ev_math_code env builder _loc code nodes = do
   [ []  -> new_glue_box dim_zero dim_zero False False
   | [b] -> MathLayout.remove_math_box b
   | _   -> HBox.make HBox.LR (Compose.box_add_lig_kern body)
-  ]
-  in
+  ];
 
-  let (b, get) = Builder.simple_builder ()  in
-  let e        = eval_node_list env b nodes in
-  let body     = get ()                     in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_node_list env b nodes;
+  let body     = get ();
 
   Builder.add_box builder
     (new_math_box
@@ -1155,7 +1124,7 @@ and ev_math_char env builder _loc code (f,_) (c,_) = do
   }
   else ();
 
-  let font = get_math_font env (current_math_style env) f in
+  let font = get_math_font env (current_math_style env) f;
 
   match code with
   [ Box.Operator -> Builder.add_box builder
@@ -1181,13 +1150,12 @@ and ev_sub_script env builder _loc nodes = do
     log_string "\n#E: sub-script"
   else ();
 
-  let (b, get) = Builder.simple_builder () in
+  let (b, get) = Builder.simple_builder ();
   let e        = eval_grouped_list
                    (set_math_style env  (MathLayout.sub_style (current_math_style env)))
                    b
-                   nodes
-                 in
-  let script = get () in
+                   nodes;
+  let script = get ();
 
   if script = [] then
     ()
@@ -1211,13 +1179,12 @@ and ev_super_script env builder _loc nodes = do
     log_string "\n#E: super-script"
   else ();
 
-  let (b, get) = Builder.simple_builder () in
+  let (b, get) = Builder.simple_builder ();
   let e        = eval_node_list
                    (set_math_style env (MathLayout.super_style (current_math_style env)))
                    b
-                   nodes
-                 in
-  let script   = get () in
+                   nodes;
+  let script   = get ();
 
   if script = [] then
     ()
@@ -1241,9 +1208,9 @@ and ev_underline env builder _loc nodes = do
     log_string "\n#E: underline"
   else ();
 
-  let (b, get) = Builder.simple_builder ()     in
-  let e        = eval_grouped_list env b nodes in
-  let body     = get ()                        in
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list env b nodes;
+  let body     = get ();
 
   Builder.add_box builder
     (MathLayout.make_underline
@@ -1261,10 +1228,10 @@ and ev_overline env builder _loc nodes = do
     log_string "\n#E: overline"
   else ();
 
-  let style    = MathLayout.cramped_style (current_math_style env)    in
-  let (b, get) = Builder.simple_builder ()                            in
-  let e        = eval_grouped_list (set_math_style env style) b nodes in
-  let body     = get () in
+  let style    = MathLayout.cramped_style (current_math_style env);
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list (set_math_style env style) b nodes;
+  let body     = get ();
 
   Builder.add_box builder
     (MathLayout.make_overline
@@ -1281,11 +1248,11 @@ and ev_math_accent env builder _loc family char nodes = do
     log_string "\n#E: math-accent"
   else ();
 
-  let style    = MathLayout.cramped_style (current_math_style env)    in
-  let (b, get) = Builder.simple_builder ()                            in
-  let e        = eval_grouped_list (set_math_style env style) b nodes in
-  let body     = get ()                         in
-  let font     = get_math_font env style family in
+  let style    = MathLayout.cramped_style (current_math_style env);
+  let (b, get) = Builder.simple_builder ();
+  let e        = eval_grouped_list (set_math_style env style) b nodes;
+  let body     = get ();
+  let font     = get_math_font env style family;
 
   Builder.add_box builder
     (MathLayout.make_accent
@@ -1305,9 +1272,9 @@ and family_to_fonts env style fam = do
     []
   else do
   {
-    let text_fam    = get_math_font env MathLayout.Text    fam in
-    let script_fam  = get_math_font env MathLayout.Script  fam in
-    let script2_fam = get_math_font env MathLayout.Script2 fam in
+    let text_fam    = get_math_font env MathLayout.Text    fam;
+    let script_fam  = get_math_font env MathLayout.Script  fam;
+    let script2_fam = get_math_font env MathLayout.Script2 fam;
 
     match style with
     [ MathLayout.Display | MathLayout.CrampedDisplay
@@ -1333,14 +1300,14 @@ and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
   }
   else ();
 
-  let style = MathLayout.cramped_style (current_math_style env) in
+  let style = MathLayout.cramped_style (current_math_style env);
 
-  let small_fonts = family_to_fonts env (current_math_style env) small_fam in
-  let large_fonts = family_to_fonts env (current_math_style env) large_fam in
+  let small_fonts = family_to_fonts env (current_math_style env) small_fam;
+  let large_fonts = family_to_fonts env (current_math_style env) large_fam;
 
-  let (b, get)    = Builder.simple_builder ()                            in
-  let e           = eval_grouped_list (set_math_style env style) b nodes in
-  let body        = get () in
+  let (b, get)    = Builder.simple_builder ();
+  let e           = eval_grouped_list (set_math_style env style) b nodes;
+  let body        = get ();
 
   Builder.add_box builder
     (MathLayout.make_root
@@ -1367,12 +1334,11 @@ and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
 
 and node_to_delim_spec env (f1, f2) (c1, c2) style = do
 {
-  let small_fonts = family_to_fonts env style f1 in
+  let small_fonts = family_to_fonts env style f1;
   let large_fonts = if c1 <> c2 || f1 <> f2 then
                       family_to_fonts env style f2
                     else
-                      []
-                    in
+                      [];
 
   (c1, small_fonts, c2, large_fonts)
 }
@@ -1399,11 +1365,10 @@ and ev_left_right env builder loc nodes = do
         node_to_delim_spec env f c (current_math_style env)
       }
     | _ -> do { log_warn loc "illegal delimiter!"; raise (Failure "") }
-    ]
-  in
+    ];
 
-  let delims = ListBuilder.make () in
-  let bodies = ListBuilder.make () in
+  let delims = ListBuilder.make ();
+  let bodies = ListBuilder.make ();
 
   try
     iter env nodes
@@ -1434,9 +1399,9 @@ and ev_left_right env builder loc nodes = do
     {
       ListBuilder.add delims (get_delim d);
 
-      let (b, get) = Builder.simple_builder () in
-      let e        = eval_grouped_list env b n in
-      let bs       = get ()                    in
+      let (b, get) = Builder.simple_builder ();
+      let e        = eval_grouped_list env b n;
+      let bs       = get ();
 
       ListBuilder.add bodies bs;
 
@@ -1451,21 +1416,19 @@ and ev_fraction env builder loc num_nodes denom_nodes left right thick = do
     log_string "\n#E: fraction"
   else ();
 
-  let (b, get) = Builder.simple_builder () in
+  let (b, get) = Builder.simple_builder ();
   let e1       = eval_grouped_list
                    (set_math_style env
                      (MathLayout.numerator_style   (current_math_style env)))
                    b
-                   num_nodes
-                 in
-  let num      = get () in
+                   num_nodes;
+  let num      = get ();
   let e2       = eval_grouped_list
                    (set_math_style e1
                      (MathLayout.denominator_style (current_math_style env)))
                    b
-                   denom_nodes
-                 in
-  let denom    = get () in
+                   denom_nodes;
+  let denom    = get ();
 
   match (left, right) with
   [ (Node.MathChar _ (_, fl, cl), Node.MathChar _ (_, fr, cr)) -> do
@@ -1508,7 +1471,7 @@ and ev_index_position env builder _loc p = do
 
 value evaluate ast = do
 {
-  let env = eval_node_list (initialise_environment ()) Builder.void_builder ast in
+  let env = eval_node_list (initialise_environment ()) Builder.void_builder ast;
 
   get_pages env
 };

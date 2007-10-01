@@ -169,12 +169,12 @@ value parse_line_param loc dict = do
 {
   check_keys dict line_param_dict loc;
 
-  let baseline_skip   = lookup_dim    dict str_baseline_skip   in
-  let line_skip_limit = lookup_skip   dict str_line_skip_limit in
-  let line_skip       = lookup_dim    dict str_line_skip       in
-  let leading_type    = lookup_string dict str_leading         in
-  let club_penalty    = lookup_num    dict str_club_penalty    in
-  let widow_penalty   = lookup_num    dict str_widow_penalty   in
+  let baseline_skip   = lookup_dim    dict str_baseline_skip;
+  let line_skip_limit = lookup_skip   dict str_line_skip_limit;
+  let line_skip       = lookup_dim    dict str_line_skip;
+  let leading_type    = lookup_string dict str_leading;
+  let club_penalty    = lookup_num    dict str_club_penalty;
+  let widow_penalty   = lookup_num    dict str_widow_penalty;
 
   let leading = match leading_type with
   [ None     -> None
@@ -188,8 +188,7 @@ value parse_line_param loc dict = do
           Some Galley.leading_TeX
         }
       ]
-  ]
-  in
+  ];
 
   let simple_cw club_penalty widow_penalty above below = do
   {
@@ -199,16 +198,14 @@ value parse_line_param loc dict = do
       widow_penalty
     else
       num_zero
-  }
-  in
+  };
 
   let club_widow_penalty = match (club_penalty, widow_penalty) with
   [ (None,   None)   -> None
   | (Some c, Some w) -> Some (simple_cw c w)
   | (Some c, None)   -> Some (simple_cw c num_zero)
   | (None,   Some w) -> Some (simple_cw num_zero w)
-  ]
-  in
+  ];
 
   (baseline_skip, line_skip_limit, line_skip, leading, club_widow_penalty)
 };
@@ -217,7 +214,7 @@ value parse_par_shape left_stream right_stream = do
 {
   let read_next stream = do
   {
-    let (a,b) = Parser.read_range stream in
+    let (a,b) = Parser.read_range stream;
 
     if UCStream.next_char stream = 58 then do  (* : *)
     {
@@ -232,15 +229,14 @@ value parse_par_shape left_stream right_stream = do
       log_int (UCStream.next_char stream);
       (-1, -1, (fun _ -> num_zero))
     }
-  }
-  in
+  };
   let rec parse_shape stream = do
   {
     Parser.skip_spaces stream;
 
     if UCStream.next_char stream >= 0 then do
     {
-      let (a,b,s) = read_next stream in
+      let (a,b,s) = read_next stream;
 
       if a < 0 then
         []
@@ -265,11 +261,10 @@ value parse_par_shape left_stream right_stream = do
     }
     else
       []
-  }
-  in
+  };
 
-  let left_indent  = parse_shape left_stream  in
-  let right_indent = parse_shape right_stream in
+  let left_indent  = parse_shape left_stream;
+  let right_indent = parse_shape right_stream;
 
   let rec lookup n list = match list with
   [ []              -> fun _ -> num_zero
@@ -277,51 +272,48 @@ value parse_par_shape left_stream right_stream = do
                          s
                        else
                          lookup n ls
-  ]
-  in
+  ];
 
-  let par_shape env n = (lookup n left_indent env, lookup n right_indent env) in
+  let par_shape env n = (lookup n left_indent env, lookup n right_indent env);
 
   par_shape
 };
 
 value parse_boxes ps code env = do
 {
-  let nodes = execute_string_in_mode ps code `HBox in
+  let nodes = execute_string_in_mode ps code `HBox;
 
   let (b, get) =
     Compose.hyph_only_builder
       (Environment.current_font_metric env)
       (Environment.current_composer    env)
-      (Galley.hyphen_params (Environment.current_galley env))
-  in
-  let _ = Evaluate.eval_node_list env b nodes in
+      (Galley.hyphen_params (Environment.current_galley env));
+  let _ = Evaluate.eval_node_list env b nodes;
 
   get ()
 };
 
 value parse_annotation ps left_annotation right_annotation = do
 {
-  let new_ps = duplicate ps in
+  let new_ps = duplicate ps;
 
   let annotate env boxes = do
   {
     (* <left> and <right> should evaluate to a box of width zero. *)
 
-    let left  = execute_string_in_mode new_ps left_annotation  `HBox in
-    let right = execute_string_in_mode new_ps right_annotation `HBox in
+    let left  = execute_string_in_mode new_ps left_annotation  `HBox;
+    let right = execute_string_in_mode new_ps right_annotation `HBox;
 
-    let (b, get) = Builder.simple_builder () in
+    let (b, get) = Builder.simple_builder ();
 
-    let _ = Evaluate.eval_node_list env b left  in
+    let _ = Evaluate.eval_node_list env b left;
 
     Builder.add_box_list b boxes;
 
-    let _ = Evaluate.eval_node_list env b right in
+    let _ = Evaluate.eval_node_list env b right;
 
     get ()
-  }
-  in
+  };
 
   annotate
 };
@@ -346,27 +338,26 @@ value parse_par_param ps loc dict = do
 {
   check_keys dict par_param_dict loc;
 
-  let measure           = lookup_num    dict str_measure          in
-  let par_indent        = lookup_dim    dict str_par_indent       in
-  let par_fill_skip     = lookup_dim    dict str_par_fill_skip    in
-  let left_skip         = lookup_dim    dict str_left_skip        in
-  let right_skip        = lookup_dim    dict str_right_skip       in
-  let par_shape_left    = lookup_string dict str_left_par_shape   in
-  let par_shape_right   = lookup_string dict str_right_par_shape  in
-  let par_skip          = lookup_dim    dict str_par_skip         in
-  let left_ann          = lookup_list   dict str_left_annotation  in
-  let right_ann         = lookup_list   dict str_right_annotation in
-  let pre_break         = lookup_list   dict str_pre_break        in
-  let post_break        = lookup_list   dict str_post_break       in
-  let post_process_line = None (* FIX *)                          in
+  let measure           = lookup_num    dict str_measure;
+  let par_indent        = lookup_dim    dict str_par_indent;
+  let par_fill_skip     = lookup_dim    dict str_par_fill_skip;
+  let left_skip         = lookup_dim    dict str_left_skip;
+  let right_skip        = lookup_dim    dict str_right_skip;
+  let par_shape_left    = lookup_string dict str_left_par_shape;
+  let par_shape_right   = lookup_string dict str_right_par_shape;
+  let par_skip          = lookup_dim    dict str_par_skip;
+  let left_ann          = lookup_list   dict str_left_annotation;
+  let right_ann         = lookup_list   dict str_right_annotation;
+  let pre_break         = lookup_list   dict str_pre_break;
+  let post_break        = lookup_list   dict str_post_break;
+  let post_process_line = None; (* FIX *)
 
   let par_shape = match (par_shape_left, par_shape_right) with
   [ (None, None)            -> None
   | (Some left, None)       -> Some (parse_par_shape (UCStream.of_string left) (UCStream.of_list []))
   | (None, Some right)      -> Some (parse_par_shape (UCStream.of_list [])     (UCStream.of_string right))
   | (Some left, Some right) -> Some (parse_par_shape (UCStream.of_string left) (UCStream.of_string right))
-  ]
-  in
+  ];
 
   let post_process = match (post_process_line, left_ann, right_ann) with
   [ (Some p, _,      _)      -> Some p
@@ -374,18 +365,15 @@ value parse_par_param ps loc dict = do
   | (None,   Some l, None)   -> Some (parse_annotation ps l  [])
   | (None,   None,   Some r) -> Some (parse_annotation ps [] r)
   | (None,   None,   None)   -> None
-  ]
-  in
+  ];
   let pre_break2 = match pre_break with
   [ Some p -> Some (parse_boxes ps p)
   | None   -> None
-  ]
-  in
+  ];
   let post_break2 = match post_break with
   [ Some p -> Some (parse_boxes ps p)
   | None   -> None
-  ]
-  in
+  ];
 
   (measure, par_indent, par_fill_skip, left_skip, right_skip, par_shape, par_skip, pre_break2, post_break2, post_process)
 };
@@ -408,17 +396,17 @@ value parse_line_break_param loc dict = do
 {
   check_keys dict line_break_param_dict loc;
 
-  let pre_tolerance          = lookup_num  dict str_pre_tolerance          in
-  let tolerance              = lookup_num  dict str_tolerance              in
-  let looseness              = lookup_int  dict str_looseness              in
-  let line_penalty           = lookup_num  dict str_line_penalty           in
-  let adj_demerits           = lookup_num  dict str_adj_demerits           in
-  let double_hyphen_demerits = lookup_num  dict str_double_hyphen_demerits in
-  let final_hyphen_demerits  = lookup_num  dict str_final_hyphen_demerits  in
-  let emergency_stretch      = lookup_skip dict str_emergency_stretch      in
-  let river_demerits         = lookup_num  dict str_river_demerits         in
-  let river_threshold        = lookup_skip dict str_river_threshold        in
-  let simple_breaking        = lookup_bool dict str_simple_breaking        in
+  let pre_tolerance          = lookup_num  dict str_pre_tolerance;
+  let tolerance              = lookup_num  dict str_tolerance;
+  let looseness              = lookup_int  dict str_looseness;
+  let line_penalty           = lookup_num  dict str_line_penalty;
+  let adj_demerits           = lookup_num  dict str_adj_demerits;
+  let double_hyphen_demerits = lookup_num  dict str_double_hyphen_demerits;
+  let final_hyphen_demerits  = lookup_num  dict str_final_hyphen_demerits;
+  let emergency_stretch      = lookup_skip dict str_emergency_stretch;
+  let river_demerits         = lookup_num  dict str_river_demerits;
+  let river_threshold        = lookup_skip dict str_river_threshold;
+  let simple_breaking        = lookup_bool dict str_simple_breaking;
 
   (pre_tolerance, tolerance, looseness, line_penalty, adj_demerits,
    double_hyphen_demerits, final_hyphen_demerits, emergency_stretch,
@@ -438,12 +426,12 @@ value parse_hyphen_param loc dict = do
 {
   check_keys dict hyphen_param_dict loc;
 
-  let hyphen_table      = lookup_string dict str_hyphen_table      in
-  let hyphen_penalty    = lookup_num    dict str_hyphen_penalty    in
-  let ex_hyphen_penalty = lookup_num    dict str_ex_hyphen_penalty in
-  let left_hyphen_min   = lookup_int    dict str_left_hyphen_min   in
-  let right_hyphen_min  = lookup_int    dict str_right_hyphen_min  in
-  let script_lang       = lookup_string dict str_script_lang       in
+  let hyphen_table      = lookup_string dict str_hyphen_table;
+  let hyphen_penalty    = lookup_num    dict str_hyphen_penalty;
+  let ex_hyphen_penalty = lookup_num    dict str_ex_hyphen_penalty;
+  let left_hyphen_min   = lookup_int    dict str_left_hyphen_min;
+  let right_hyphen_min  = lookup_int    dict str_right_hyphen_min;
+  let script_lang       = lookup_string dict str_script_lang;
 
   (hyphen_table, hyphen_penalty, ex_hyphen_penalty,
    left_hyphen_min, right_hyphen_min, script_lang)
@@ -462,17 +450,16 @@ value parse_font_dict loc dict = do
 {
   check_keys dict font_dict loc;
 
-  let family   = lookup_string dict str_family      in
-  let series   = lookup_string dict str_series      in
-  let shape    = lookup_string dict str_shape       in
-  let size     = lookup_num    dict str_size        in
-  let script   = lookup_string dict str_script_lang in
+  let family   = lookup_string dict str_family;
+  let series   = lookup_string dict str_series;
+  let shape    = lookup_string dict str_shape;
+  let size     = lookup_num    dict str_size;
+  let script   = lookup_string dict str_script_lang;
 
   let features = match lookup_list dict str_features with
   [ None     -> None
   | Some str -> Some (List.map Array.of_list (Parser.str_to_list str))
-  ]
-  in
+  ];
 
   (family, series, shape, size, script, features)
 };
@@ -491,13 +478,13 @@ value parse_math_font_dict loc dict = do
 {
   check_keys dict math_font_dict loc;
 
-  let math_family  = lookup_int    dict str_math_family  in
-  let family       = lookup_string dict str_family       in
-  let series       = lookup_string dict str_series       in
-  let shape        = lookup_string dict str_shape        in
-  let text_size    = lookup_num    dict str_text_size    in
-  let script_size  = lookup_num    dict str_script_size  in
-  let script2_size = lookup_num    dict str_script2_size in
+  let math_family  = lookup_int    dict str_math_family;
+  let family       = lookup_string dict str_family;
+  let series       = lookup_string dict str_series;
+  let shape        = lookup_string dict str_shape;
+  let text_size    = lookup_num    dict str_text_size;
+  let script_size  = lookup_num    dict str_script_size;
+  let script2_size = lookup_num    dict str_script2_size;
 
   (math_family, family, series, shape, text_size, script_size, script2_size)
 };
@@ -514,17 +501,16 @@ value parse_space_param loc dict = do
 {
   check_keys dict space_param_dict loc;
 
-  let space_factor = lookup_num  dict str_space_factor         in
-  let space_skip   = lookup_dim  dict str_space_skip           in
-  let xspace_skip  = lookup_dim  dict str_xspace_skip          in
-  let victorian    = lookup_bool dict str_victorian_spacing    in
-  let novictorian  = lookup_bool dict str_no_victorian_spacing in
+  let space_factor = lookup_num  dict str_space_factor;
+  let space_skip   = lookup_dim  dict str_space_skip;
+  let xspace_skip  = lookup_dim  dict str_xspace_skip;
+  let victorian    = lookup_bool dict str_victorian_spacing;
+  let novictorian  = lookup_bool dict str_no_victorian_spacing;
 
   let vic = match victorian with
   [ Some _ -> victorian
   | None   -> novictorian
-  ]
-  in
+  ];
 
   (space_factor, space_skip, xspace_skip, vic)
 };
@@ -545,15 +531,15 @@ value parse_math_param loc dict = do
 {
   check_keys dict math_param_dict loc;
 
-  let thin_math_skip       = lookup_dim  dict str_thin_math_skip       in
-  let med_math_skip        = lookup_dim  dict str_med_math_skip        in
-  let thick_math_skip      = lookup_dim  dict str_thick_math_skip      in
-  let script_space         = lookup_dim  dict str_script_space         in
-  let rel_penalty          = lookup_num  dict str_rel_penalty          in
-  let binop_penalty        = lookup_num  dict str_binop_penalty        in
-  let delimiter_factor     = lookup_num  dict str_delimiter_factor     in
-  let delimiter_shortfall  = lookup_skip dict str_delimiter_shortfall  in
-  let null_delimiter_space = lookup_dim  dict str_null_delimiter_space in
+  let thin_math_skip       = lookup_dim  dict str_thin_math_skip;
+  let med_math_skip        = lookup_dim  dict str_med_math_skip;
+  let thick_math_skip      = lookup_dim  dict str_thick_math_skip;
+  let script_space         = lookup_dim  dict str_script_space;
+  let rel_penalty          = lookup_num  dict str_rel_penalty;
+  let binop_penalty        = lookup_num  dict str_binop_penalty;
+  let delimiter_factor     = lookup_num  dict str_delimiter_factor;
+  let delimiter_shortfall  = lookup_skip dict str_delimiter_shortfall;
+  let null_delimiter_space = lookup_dim  dict str_null_delimiter_space;
 
   (thin_math_skip, med_math_skip, thick_math_skip, script_space, rel_penalty, binop_penalty,
    delimiter_factor, delimiter_shortfall, null_delimiter_space)
@@ -571,11 +557,11 @@ value parse_galley_area_dict loc dict = do
 {
   check_keys dict galley_area_dict loc;
 
-  let name = lookup_string dict str_name        in
-  let top  = lookup_skip   dict str_top_skip    in
-  let bot  = lookup_skip   dict str_bottom_skip in
-  let min  = lookup_skip   dict str_min_size    in
-  let grid = lookup_skip   dict str_grid_size   in
+  let name = lookup_string dict str_name;
+  let top  = lookup_skip   dict str_top_skip;
+  let bot  = lookup_skip   dict str_bottom_skip;
+  let min  = lookup_skip   dict str_min_size;
+  let grid = lookup_skip   dict str_grid_size;
 
   (Option.from_option [||]                               name,
    Option.from_option (Evaluate.const_em num_one)        top,
@@ -608,11 +594,10 @@ value parse_float_area_dict loc dict = do
         }
       ]
   | _ -> FloatVertical.Top
-  ]
-  in
-  let top = lookup_skip dict str_top_skip    in
-  let bot = lookup_skip dict str_bottom_skip in
-  let sep = lookup_dim  dict str_float_sep   in
+  ];
+  let top = lookup_skip dict str_top_skip;
+  let bot = lookup_skip dict str_bottom_skip;
+  let sep = lookup_dim  dict str_float_sep;
 
   (align,
    Option.from_option (Evaluate.const_em num_one) top,
@@ -639,8 +624,7 @@ value parse_footnote_area_dict ps loc dict = do
   let lookup_key_val dict name = match lookup_list dict name with
   [ None     -> DynUCTrie.empty
   | Some str -> Parser.str_to_key_val str
-  ]
-  in
+  ];
 
   check_keys dict footnote_area_dict loc;
 
@@ -648,21 +632,20 @@ value parse_footnote_area_dict ps loc dict = do
   [ None     -> []
   | Some str -> do
     {
-      let new_ps = duplicate ps in
+      let new_ps = duplicate ps;
       execute_string_in_mode new_ps str `VBox
     }
-  ]
-  in
+  ];
 
-  let top               = lookup_skip    dict str_top_skip          in
-  let bot               = lookup_skip    dict str_bottom_skip       in
-  let grid              = lookup_skip    dict str_grid_size         in
-  let line_params       = lookup_key_val dict str_line_params       in
-  let par_params        = lookup_key_val dict str_par_params        in
-  let line_break_params = lookup_key_val dict str_line_break_params in
-  let hyphen_params     = lookup_key_val dict str_hyphen_params     in
-  let space_params      = lookup_key_val dict str_space_params      in
-  let math_params       = lookup_key_val dict str_math_params       in
+  let top               = lookup_skip    dict str_top_skip;
+  let bot               = lookup_skip    dict str_bottom_skip;
+  let grid              = lookup_skip    dict str_grid_size;
+  let line_params       = lookup_key_val dict str_line_params;
+  let par_params        = lookup_key_val dict str_par_params;
+  let line_break_params = lookup_key_val dict str_line_break_params;
+  let hyphen_params     = lookup_key_val dict str_hyphen_params;
+  let space_params      = lookup_key_val dict str_space_params;
+  let math_params       = lookup_key_val dict str_math_params;
 
   (separator,
    Option.from_option (Evaluate.const_em num_one) top,
@@ -682,11 +665,11 @@ value parse_footnote_area_dict ps loc dict = do
 
 value set_param ps = do
 {
-  let param = arg_expanded ps in
-  let loc   = location ps     in
-  let val   = arg_key_val  ps in
+  let param = arg_expanded ps;
+  let loc   = location ps;
+  let val   = arg_key_val  ps;
 
-  let add_cmd cmd parse = add_node ps (Node.Command loc (cmd (parse loc val))) in
+  let add_cmd cmd parse = add_node ps (Node.Command loc (cmd (parse loc val)));
 
   match UString.to_string param with
   [ "font"             -> add_cmd Environment.set_font                      parse_font_dict
@@ -711,15 +694,15 @@ value set_param ps = do
 
 value set_math_font ps = do
 {
-  let font = parse_math_font_dict (location ps) (arg_key_val ps) in
+  let font = parse_math_font_dict (location ps) (arg_key_val ps);
 
   add_node ps (Node.Command (location ps) (Environment.set_math_font font))
 };
 
 value set_mark ps = do
 {
-  let mark = Array.of_list (arg_expanded ps) in
-  let val  = Array.of_list (arg_expanded ps) in
+  let mark = Array.of_list (arg_expanded ps);
+  let val  = Array.of_list (arg_expanded ps);
 
   add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.SetMark mark val)))
 };
@@ -730,7 +713,7 @@ value hskip ps = do
 {
   Mode.ensure_par_mode ps;
 
-  let width = arg_TeX_dim ps in
+  let width = arg_TeX_dim ps;
 
   add_node ps (Node.Glue (location ps) width (fun _ -> dim_zero) False True)
 };
@@ -739,14 +722,14 @@ value vskip ps = do
 {
   Mode.leave_par_mode ps;
 
-  let height = arg_TeX_dim ps in
+  let height = arg_TeX_dim ps;
 
   add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) height False True)
 };
 
 value kern ps = do
 {
-  let skip = arg_TeX_dim ps in
+  let skip = arg_TeX_dim ps;
 
   match current_mode ps with
   [ `Galley    | `VBox      -> add_node ps (Node.Glue (location ps) (fun _ -> dim_zero) skip True True)
@@ -758,16 +741,15 @@ value kern ps = do
 
 value hbox dir ps = do
 {
-  let close_hbox               contents = add_node ps (Node.HBox       (location ps) dir        contents) in
-  let close_hbox_to     width  contents = add_node ps (Node.HBoxTo     (location ps) dir width  contents) in
-  let close_hbox_spread amount contents = add_node ps (Node.HBoxSpread (location ps) dir amount contents) in
+  let close_hbox               contents = add_node ps (Node.HBox       (location ps) dir        contents);
+  let close_hbox_to     width  contents = add_node ps (Node.HBoxTo     (location ps) dir width  contents);
+  let close_hbox_spread amount contents = add_node ps (Node.HBoxSpread (location ps) dir amount contents);
 
   let mode = match dir with
   [ `LR      -> `LRBox
   | `RL      -> `RLBox
   | `Default -> `HBox
-  ]
-  in
+  ];
 
   let open_hbox close_command = do
   {
@@ -778,8 +760,7 @@ value hbox dir ps = do
     }
     else
       log_warn (location ps) "syntax error in \\hbox!";
-  }
-  in
+  };
 
   Parser.skip_blanks ps.input_stream;
 
@@ -789,7 +770,7 @@ value hbox dir ps = do
 
     Parser.skip_spaces ps.input_stream;
 
-    let width = Parser.read_simple_skip_expression ps.input_stream in
+    let width = Parser.read_simple_skip_expression ps.input_stream;
 
     open_hbox (fun c -> close_hbox_to width c)
   }
@@ -799,7 +780,7 @@ value hbox dir ps = do
 
     Parser.skip_spaces ps.input_stream;
 
-    let amount = Parser.read_simple_skip_expression ps.input_stream in
+    let amount = Parser.read_simple_skip_expression ps.input_stream;
 
     open_hbox (fun c -> close_hbox_spread amount c)
   }
@@ -809,9 +790,9 @@ value hbox dir ps = do
 
 value vbox ps = do
 {
-  let close_vbox               contents = add_node ps (Node.VBox       (location ps)         contents) in
-  let close_vbox_to     height contents = add_node ps (Node.VBoxTo     (location ps) height contents) in
-  let close_vbox_spread amount contents = add_node ps (Node.VBoxSpread (location ps) amount contents) in
+  let close_vbox               contents = add_node ps (Node.VBox       (location ps)        contents);
+  let close_vbox_to     height contents = add_node ps (Node.VBoxTo     (location ps) height contents);
+  let close_vbox_spread amount contents = add_node ps (Node.VBoxSpread (location ps) amount contents);
 
   let open_vbox close_command = do
   {
@@ -819,8 +800,7 @@ value vbox ps = do
       close_command (arg_execute ps `VBox)
     else
       log_warn (location ps) "syntax error in \\vbox!";
-  }
-  in
+  };
 
   Parser.skip_blanks ps.input_stream;
 
@@ -830,7 +810,7 @@ value vbox ps = do
 
     Parser.skip_spaces ps.input_stream;
 
-    let height = Parser.read_simple_skip_expression ps.input_stream in
+    let height = Parser.read_simple_skip_expression ps.input_stream;
 
     open_vbox (fun c -> close_vbox_to height c)
   }
@@ -840,7 +820,7 @@ value vbox ps = do
 
     Parser.skip_spaces ps.input_stream;
 
-    let amount = Parser.read_simple_skip_expression ps.input_stream in
+    let amount = Parser.read_simple_skip_expression ps.input_stream;
 
     open_vbox (fun c -> close_vbox_spread amount c)
   }
@@ -850,46 +830,46 @@ value vbox ps = do
 
 value phantom ps = do
 {
-  let arg = arg_execute ps `HBox in
+  let arg = arg_execute ps `HBox;
 
   add_node ps (Node.Phantom (location ps) True True arg)
 };
 
 value hphantom ps = do
 {
-  let arg = arg_execute ps `HBox in
+  let arg = arg_execute ps `HBox;
 
   add_node ps (Node.Phantom (location ps) True False arg)
 };
 
 value vphantom ps = do
 {
-  let arg = arg_execute ps `HBox in
+  let arg = arg_execute ps `HBox;
 
   add_node ps (Node.Phantom (location ps) False True arg)
 };
 
 value hleaders ps = do
 {
-  let width = arg_dim ps in
-  let body  = arg_execute ps `HBox in
+  let width = arg_dim ps;
+  let body  = arg_execute ps `HBox;
 
   add_node ps (Node.HLeaders (location ps) width body)
 };
 
 value vinsert ps = do
 {
-  let above = Parser.read_bool ps.input_stream in
-  let arg   = arg_execute ps `VBox in
+  let above = Parser.read_bool ps.input_stream;
+  let arg   = arg_execute ps `VBox;
 
   add_node ps (Node.VInsert (location ps) (not above) arg)
 };
 
 value rule ps = do
 {
-  let width  = arg_dim ps in
-  let height = arg_dim ps in
-  let depth  = arg_dim ps in
+  let width  = arg_dim ps;
+  let height = arg_dim ps;
+  let depth  = arg_dim ps;
 
   add_node ps (Node.Rule (location ps) width height depth)
 };
@@ -899,8 +879,7 @@ value image ps = do
   let add_image file fmt width height = do
   {
     add_node ps (Node.Image (location ps) (UString.to_string file) fmt width height)
-  }
-  in
+  };
 
   let get_scale options dpi = do
   {
@@ -922,8 +901,7 @@ value image ps = do
         }
       ]
     }
-  }
-  in
+  };
 (*  let get_dpi options info = do
   {
     match CamlImages.Images.dpi info with
@@ -944,55 +922,51 @@ value image ps = do
         ]
       }
     ]
-  }
-  in
+  };
   *)
 
-  let options = opt_key_val  ps in
-  let file    = arg_expanded ps in
+  let options = opt_key_val  ps;
+  let file    = arg_expanded ps;
 
   let page = match DynUCTrie.lookup_string str_page options with
   [ Some (Some p) -> do
     {
-      let n = Parser.str_expr_to_num p in
+      let n = Parser.str_expr_to_num p;
       int_of_num (floor_num n) - 1
     }
   | _ -> 0
-  ]
-  in
+  ];
 
   try
-    let (fmt, image_width, image_height, image_dpi) = LoadImage.get_dimensions (UString.bytes_to_string file) page in
+    let (fmt, image_width, image_height, image_dpi) = LoadImage.get_dimensions (UString.bytes_to_string file) page;
 
     match DynUCTrie.lookup_string str_width options with
     [ Some (Some w) -> do
       {
-        let width  = Parser.str_expr_to_skip w in
+        let width  = Parser.str_expr_to_skip w;
         let height = match DynUCTrie.lookup_string str_height options with
                      [ Some (Some h) -> Parser.str_expr_to_skip h
                      | _             -> fun e -> width e // image_width */ image_height
-                     ]
-                     in
+                     ];
 
         add_image file fmt width height
       }
     | _ -> match DynUCTrie.lookup_string str_height options with
       [ Some (Some h) -> do
         {
-          let height = Parser.str_expr_to_skip h in
+          let height = Parser.str_expr_to_skip h;
           let width  = match DynUCTrie.lookup_string str_height options with
                        [ Some (Some w) -> Parser.str_expr_to_skip w
                        | _             -> fun e -> height e // image_height */ image_width
-                       ]
-                       in
+                       ];
 
           add_image file fmt width height
         }
       | _ -> do
         {
-          let scale  = get_scale options image_dpi in
-          let width  = scale */ image_width        in
-          let height = scale */ image_height       in
+          let scale  = get_scale options image_dpi;
+          let width  = scale */ image_width;
+          let height = scale */ image_height;
 
           add_image file fmt (fun _ -> width) (fun _ -> height)
         }
@@ -1007,39 +981,37 @@ value image ps = do
     }
   ]
 (*
-    let (_, header) = CamlImages.Images.file_format (UString.bytes_to_string file) in
+    let (_, header) = CamlImages.Images.file_format (UString.bytes_to_string file);
 
     match DynUCTrie.lookup_string str_width options with
     [ Some (Some w) -> do
       {
-        let width  = Parser.str_expr_to_skip w in
+        let width  = Parser.str_expr_to_skip w;
         let height = match DynUCTrie.lookup_string str_height options with
                      [ Some (Some h) -> Parser.str_expr_to_skip h
                      | _ -> fun e -> width e // num_of_int header.CamlImages.Images.header_width
                                              */ num_of_int header.CamlImages.Images.header_height
-                     ]
-                     in
+                     ];
 
         add_image file width height
       }
     | _ -> match DynUCTrie.lookup_string str_height options with
       [ Some (Some h) -> do
         {
-          let height = Parser.str_expr_to_skip h in
+          let height = Parser.str_expr_to_skip h;
           let width  = match DynUCTrie.lookup_string str_height options with
                        [ Some (Some w) -> Parser.str_expr_to_skip w
                        | _ -> fun e -> height e // num_of_int header.CamlImages.Images.header_height
                                                 */ num_of_int header.CamlImages.Images.header_width
-                       ]
-                       in
+                       ];
 
           add_image file width height
         }
       | _ -> do
         {
-          let dpi    = get_dpi options header.CamlImages.Images.header_infos            in
-          let width  = inch */ num_of_int header.CamlImages.Images.header_width // dpi  in
-          let height = inch */ num_of_int header.CamlImages.Images.header_height // dpi in
+          let dpi    = get_dpi options header.CamlImages.Images.header_infos;
+          let width  = inch */ num_of_int header.CamlImages.Images.header_width // dpi;
+          let height = inch */ num_of_int header.CamlImages.Images.header_height // dpi;
 
           add_image file (fun _ -> width) (fun _ -> height)
         }
@@ -1058,8 +1030,8 @@ value image ps = do
 
 value parbox ps = do
 {
-  let pos    = opt_expanded ps [116] in
-  let width  = arg_skip     ps       in
+  let pos    = opt_expanded ps [116];
+  let width  = arg_skip     ps;
 
   open_node_list ps `Galley;
 
@@ -1067,8 +1039,8 @@ value parbox ps = do
 
   Mode.leave_par_mode ps;
 
-  let body = close_node_list ps `Galley in
-  let name = Array.of_list (gen_unique_name ()) in
+  let body = close_node_list ps `Galley;
+  let name = Array.of_list (gen_unique_name ());
 
   add_node ps (Node.BeginGroup  (location ps));
   add_node ps (Node.NewGalley   (location ps) name width);
@@ -1091,8 +1063,8 @@ value parbox ps = do
 
 value accent ps = do
 {
-  let acc = arg_int     ps       in
-  let chr = arg_execute ps `HBox in
+  let acc = arg_int     ps;
+  let chr = arg_execute ps `HBox;
 
   add_node ps (Node.Accent (location ps) acc chr)
 };
@@ -1111,13 +1083,13 @@ value begin_table_entry ps = do
 
 value end_table_entry ps = do
 {
-  let contents = close_node_list ps `HBox in
+  let contents = close_node_list ps `HBox;
 
-  let l  = get_counter ps str_table_entry_left     in
-  let r  = get_counter ps str_table_entry_right    in
-  let t  = get_counter ps str_table_entry_top      in
-  let bl = get_counter ps str_table_entry_baseline in
-  let b  = get_counter ps str_table_entry_bottom   in
+  let l  = get_counter ps str_table_entry_left;
+  let r  = get_counter ps str_table_entry_right;
+  let t  = get_counter ps str_table_entry_top;
+  let bl = get_counter ps str_table_entry_baseline;
+  let b  = get_counter ps str_table_entry_bottom;
 
   add_node ps (Node.TableEntry (location ps) l r t bl b contents);
 
@@ -1140,7 +1112,7 @@ value new_table_row ps = do
 {
   end_table_entry ps;
 
-  let bl = get_counter ps str_table_entry_baseline in
+  let bl = get_counter ps str_table_entry_baseline;
 
   set_counter ps str_table_entry_left     0;
   set_counter ps str_table_entry_right    0;
@@ -1175,22 +1147,21 @@ value end_table ps = do
 
 value penalty ps = do
 {
-  let arg = arg_num ps in
+  let arg = arg_num ps;
 
   add_node ps (Node.Break (location ps) (Some arg) False [] [] [])
 };
 
 value discretionary ps = do
 {
-  let hyph    = Parser.read_bool ps.input_stream in
+  let hyph    = Parser.read_bool ps.input_stream;
   let penalty = match opt_expanded ps [] with
                 [ [] -> None
                 | p  -> Some (Parser.str_expr_to_num p)
-                ]
-                in
-  let pre     = arg_execute ps `HBox in
-  let post    = arg_execute ps `HBox in
-  let no      = arg_execute ps `HBox in
+                ];
+  let pre     = arg_execute ps `HBox;
+  let post    = arg_execute ps `HBox;
+  let no      = arg_execute ps `HBox;
 
   add_node ps (Node.Break (location ps) penalty hyph pre post no)
 };
@@ -1199,13 +1170,12 @@ value discretionary ps = do
 
 value define_command ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
-  let tmpl = opt_expanded ps []                   in
+  let name = Parser.read_argument ps.input_stream;
+  let tmpl = opt_expanded ps [];
   let args = Macro.parse_arg_template
                (location ps)
-               tmpl
-             in
-  let body = Parser.read_argument ps.input_stream in
+               tmpl;
+  let body = Parser.read_argument ps.input_stream;
 
   if Parser.is_token name && List.hd name = CharCode.escape_char then
     ParseState.define_command ps name
@@ -1221,13 +1191,12 @@ value define_command ps = do
 
 value define_pattern ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
-  let tmpl = opt_expanded ps []                   in
+  let name = Parser.read_argument ps.input_stream;
+  let tmpl = opt_expanded ps [];
   let args = Macro.parse_arg_template
                (location ps)
-               tmpl
-             in
-  let body = Parser.read_argument ps.input_stream in
+               tmpl;
+  let body = Parser.read_argument ps.input_stream;
 
   ParseState.define_pattern ps name
     { execute = Macro.execute_macro args body;
@@ -1236,42 +1205,41 @@ value define_pattern ps = do
 
 value save_command ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
+  let name = Parser.read_argument ps.input_stream;
 
   ParseState.save_command ps name
 };
 
 value restore_command ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
+  let name = Parser.read_argument ps.input_stream;
 
   ParseState.restore_command ps name
 };
 
 value save_pattern ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
+  let name = Parser.read_argument ps.input_stream;
 
   ParseState.save_pattern ps name
 };
 
 value restore_pattern ps = do
 {
-  let name = Parser.read_argument ps.input_stream in
+  let name = Parser.read_argument ps.input_stream;
 
   ParseState.restore_pattern ps name
 };
 
 value define_environment ps = do
 {
-  let name       = Parser.read_argument ps.input_stream    in
-  let tmpl       = opt_expanded ps []                      in
+  let name       = Parser.read_argument ps.input_stream;
+  let tmpl       = opt_expanded ps [];
   let args       = Macro.parse_arg_template
                      (location ps)
-                     tmpl
-                   in
-  let begin_body = Parser.read_argument ps.input_stream    in
-  let end_body   = Parser.read_argument ps.input_stream    in
+                     tmpl;
+  let begin_body = Parser.read_argument ps.input_stream;
+  let end_body   = Parser.read_argument ps.input_stream;
 
   define_env ps name
     { execute = Macro.execute_begin_environment name args begin_body;
@@ -1314,7 +1282,7 @@ value begin_text ps = do
 
 value end_text ps = do
 {
-  let nodes = close_node_list ps `HBox in
+  let nodes = close_node_list ps `HBox;
 
   match current_mode ps with
   [ `Preamble | `Galley | `Paragraph -> do
@@ -1445,16 +1413,15 @@ value right_delim ps = do
        [ Node.Nodes ns -> ns
        | _             -> do { log_warn (location ps) "syntax error in left-right statement!"; [] }
        ])
-      (close_node_list ps `Math)
-  in
+      (close_node_list ps `Math);
 
   add_node ps (Node.LeftRight (location ps) nodes)
 };
 
 value fraction ps = do
 {
-  let num   = arg_execute ps `Math in
-  let denom = arg_execute ps `Math in
+  let num   = arg_execute ps `Math;
+  let denom = arg_execute ps `Math;
 
   add_node ps (Node.Fraction
                  (location ps)
@@ -1467,11 +1434,11 @@ value fraction ps = do
 
 value general_fraction ps = do
 {
-  let left  = arg_execute ps `Math in
-  let right = arg_execute ps `Math in
-  let thick = arg_skip    ps       in
-  let num   = arg_execute ps `Math in
-  let denom = arg_execute ps `Math in
+  let left  = arg_execute ps `Math;
+  let right = arg_execute ps `Math;
+  let thick = arg_skip    ps;
+  let num   = arg_execute ps `Math;
+  let denom = arg_execute ps `Math;
 
   if List.length left <> 1 || List.length right <> 1 then
     log_warn (location ps) "invalid delimiter!"
@@ -1486,7 +1453,7 @@ value set_math_style style ps = do
 
 value index_position ps = do
 {
-  let pos = Array.of_list (arg_expanded ps) in
+  let pos = Array.of_list (arg_expanded ps);
 
   if pos = str_left then
     add_node ps (Node.IndexPosition (location ps) LeftIndex)
@@ -1506,8 +1473,8 @@ value index_position ps = do
 
 value new_counter ps = do
 {
-  let super = Array.of_list (opt_expanded ps []) in
-  let ctr   = Array.of_list (arg_expanded ps) in
+  let super = Array.of_list (opt_expanded ps []);
+  let ctr   = Array.of_list (arg_expanded ps);
 
   if Array.length super = 0 then
     new_counter ps ctr 0 None
@@ -1517,16 +1484,16 @@ value new_counter ps = do
 
 value set_counter ps = do
 {
-  let ctr = Array.of_list (arg_expanded ps) in
-  let arg = arg_int ps in
+  let ctr = Array.of_list (arg_expanded ps);
+  let arg = arg_int ps;
 
   ParseState.set_counter ps ctr arg
 };
 
 value add_to_counter ps = do
 {
-  let ctr = Array.of_list (arg_expanded ps) in
-  let arg = arg_int ps in
+  let ctr = Array.of_list (arg_expanded ps);
+  let arg = arg_int ps;
 
   ParseState.set_counter ps ctr (get_counter ps ctr + arg)
 };
@@ -1537,9 +1504,9 @@ value format_counter ps fmt ctr = do
 
   let repeat n str = do
   {
-    let str_stream = UCStream.of_list str in
+    let str_stream = UCStream.of_list str;
 
-    let arg = Parser.read_argument str_stream in
+    let arg = Parser.read_argument str_stream;
 
     iter n
 
@@ -1550,14 +1517,13 @@ value format_counter ps fmt ctr = do
       else
         arg @ iter (i-1)
     }
-  }
-  in
+  };
 
   (* select the <n>-th argument of <str> *)
 
   let rec select n str = do
   {
-    let str_stream = UCStream.of_list str in
+    let str_stream = UCStream.of_list str;
 
     iter (Parser.read_argument str_stream) n
 
@@ -1568,8 +1534,7 @@ value format_counter ps fmt ctr = do
       else
         iter (Parser.read_argument str_stream) (i-1)
     }
-  }
-  in
+  };
 
   match fmt with
   [ [105] -> Format.num_to_roman      (num_of_int (get_counter ps ctr))   (* "i" *)
@@ -1584,18 +1549,18 @@ value format_counter ps fmt ctr = do
 
 value get_counter ps = do
 {
-  let fmt = arg_expanded ps in
-  let ctr = Array.of_list (arg_expanded ps) in
+  let fmt = arg_expanded ps;
+  let ctr = Array.of_list (arg_expanded ps);
 
   UCStream.insert_list ps.input_stream (format_counter ps fmt ctr)
 };
 
 value expand_get_counter ps _ = do
 {
-  let fmt = arg_expanded ps in
-  let ctr = Array.of_list (arg_expanded ps) in
+  let fmt = arg_expanded ps;
+  let ctr = Array.of_list (arg_expanded ps);
 
-  let val = format_counter ps fmt ctr in
+  let val = format_counter ps fmt ctr;
 
   val @ Macro.expand ps
 };
@@ -1604,25 +1569,25 @@ value expand_get_counter ps _ = do
 
 value shipout_pages ps = do
 {
-  let number = opt_int ps 0    in
-  let even   = Array.of_list (arg_expanded ps) in
-  let odd    = Array.of_list (arg_expanded ps) in
+  let number = opt_int ps 0;
+  let even   = Array.of_list (arg_expanded ps);
+  let odd    = Array.of_list (arg_expanded ps);
 
   add_node ps (Node.ShipOut (location ps) even odd (max 0 number))
 };
 
 value new_page_layout ps = do
 {
-  let name   = Array.of_list (arg_expanded ps) in
-  let width  = arg_skip ps in
-  let height = arg_skip ps in
+  let name   = Array.of_list (arg_expanded ps);
+  let width  = arg_skip ps;
+  let height = arg_skip ps;
 
   add_node ps (Node.NewLayout (location ps) name width height)
 };
 
 value next_page_layout ps = do
 {
-  let layout = arg_expanded ps in
+  let layout = arg_expanded ps;
 
   add_node ps
     (Node.CommandBox (location ps)
@@ -1631,18 +1596,18 @@ value next_page_layout ps = do
 
 value new_area ps = do
 {
-  let name       = Array.of_list (arg_expanded ps) in
-  let pos_x      = arg_skip ps in
-  let pos_y      = arg_skip ps in
-  let width      = arg_skip ps in
-  let height     = arg_skip ps in
-  let max_top    = arg_skip ps in
-  let max_bot    = arg_skip ps in
-  let area_type  = Array.of_list (arg_expanded ps) in
+  let name       = Array.of_list (arg_expanded ps);
+  let pos_x      = arg_skip ps;
+  let pos_y      = arg_skip ps;
+  let width      = arg_skip ps;
+  let height     = arg_skip ps;
+  let max_top    = arg_skip ps;
+  let max_bot    = arg_skip ps;
+  let area_type  = Array.of_list (arg_expanded ps);
 
   if area_type = str_galley then do
   {
-    let param = arg_key_val ps in
+    let param = arg_key_val ps;
 
     add_node ps
       (Node.NewArea (location ps)
@@ -1652,7 +1617,7 @@ value new_area ps = do
   }
   else if area_type = str_float then do
   {
-    let param = arg_key_val ps in
+    let param = arg_key_val ps;
 
     add_node ps
       (Node.NewArea (location ps)
@@ -1662,7 +1627,7 @@ value new_area ps = do
   }
   else if area_type = str_footnote then do
   {
-    let param = arg_key_val ps in
+    let param = arg_key_val ps;
 
     add_node ps
       (Node.NewArea (location ps)
@@ -1672,9 +1637,9 @@ value new_area ps = do
   }
   else if area_type = str_direct then do
   {
-    let code       = Parser.read_argument ps.input_stream in
-    let current_ps = duplicate ps                         in
-    let stream     = UCStream.of_list code                in
+    let code       = Parser.read_argument ps.input_stream;
+    let current_ps = duplicate ps;
+    let stream     = UCStream.of_list code;
 
     let f pi _ = do
     {
@@ -1702,8 +1667,7 @@ value new_area ps = do
         (List.rev pi.Box.pi_new_marks);
 
       ParseState.run_parser current_ps `VBox;
-    }
-    in
+    };
 
     add_node ps (Node.NewArea (location ps) name pos_x pos_y width height max_top max_bot (`Direct f))
   }
@@ -1717,15 +1681,15 @@ value new_area ps = do
 
 value new_galley ps = do
 {
-  let name    = Array.of_list (arg_expanded ps) in
-  let measure = arg_skip ps in
+  let name    = Array.of_list (arg_expanded ps);
+  let measure = arg_skip ps;
 
   add_node ps (Node.NewGalley (location ps) name measure)
 };
 
 value begin_galley ps = do
 {
-  let name = Array.of_list (arg_expanded ps) in
+  let name = Array.of_list (arg_expanded ps);
 
   open_node_list ps `Galley;
 
@@ -1747,24 +1711,24 @@ value end_galley ps = do
 
 value float_box ps = do
 {
-  let name = Array.of_list (arg_expanded ps) in
-  let body = arg_execute ps `VBox            in
+  let name = Array.of_list (arg_expanded ps);
+  let body = arg_execute ps `VBox;
 
   add_node ps (Node.Float (location ps) name body)
 };
 
 value float_par ps = do
 {
-  let name = Array.of_list (arg_expanded ps) in
-  let body = arg_execute ps `HBox            in
+  let name = Array.of_list (arg_expanded ps);
+  let body = arg_execute ps `HBox;
 
   add_node ps (Node.Float (location ps) name body)
 };
 
 value float_galley ps = do
 {
-  let name = Array.of_list (arg_expanded ps) in
-  let body = arg_execute ps `Galley          in
+  let name = Array.of_list (arg_expanded ps);
+  let body = arg_execute ps `Galley;
 
   add_node ps (Node.Float (location ps) name body)
 };
@@ -1774,21 +1738,20 @@ value annotate_paragraph ps = do
 {
   (* <left> and <right> should evaluate to a box of width zero. *)
 
-  let left  = arg_execute ps `HBox in
-  let right = arg_execute ps `HBox in
+  let left  = arg_execute ps `HBox;
+  let right = arg_execute ps `HBox;
 
   let annotate env boxes = do
   {
-    let (b, get) = Builder.simple_builder ()           in
-    let _        = Evaluate.eval_node_list env b left  in
+    let (b, get) = Builder.simple_builder ();
+    let _        = Evaluate.eval_node_list env b left;
 
     Builder.add_box_list b boxes;
 
-    let _ = Evaluate.eval_node_list env b right in
+    let _ = Evaluate.eval_node_list env b right;
 
     get ()
-  }
-  in
+  };
 
   add_node ps (Node.Command (location ps)
     (Environment.set_par_params
@@ -1799,7 +1762,7 @@ value set_par_shape ps = do
 {
   let read_next stream = do
   {
-    let (a,b) = Parser.read_range stream in
+    let (a,b) = Parser.read_range stream;
 
     if UCStream.next_char stream = 58 then do
     {
@@ -1814,15 +1777,14 @@ value set_par_shape ps = do
       log_int (UCStream.next_char stream);
       (-1, -1, (fun _ -> num_zero))
     }
-  }
-  in
+  };
   let rec parse_shape stream = do
   {
     Parser.skip_spaces stream;
 
     if UCStream.next_char stream >= 0 then do
     {
-      let (a,b,s) = read_next stream in
+      let (a,b,s) = read_next stream;
 
       if a < 0 then
         []
@@ -1847,14 +1809,13 @@ value set_par_shape ps = do
     }
     else
       []
-  }
-  in
+  };
 
-  let left_shape  = arg_expanded ps in
-  let right_shape = arg_expanded ps in
+  let left_shape  = arg_expanded ps;
+  let right_shape = arg_expanded ps;
 
-  let left_indent  = parse_shape (UCStream.of_list left_shape)  in
-  let right_indent = parse_shape (UCStream.of_list right_shape) in
+  let left_indent  = parse_shape (UCStream.of_list left_shape);
+  let right_indent = parse_shape (UCStream.of_list right_shape);
 
   let rec lookup n list = match list with
   [ []              -> fun _ -> num_zero
@@ -1862,10 +1823,9 @@ value set_par_shape ps = do
                          s
                        else
                          lookup n ls
-  ]
-  in
+  ];
 
-  let par_shape env n = (lookup n left_indent env, lookup n right_indent env) in
+  let par_shape env n = (lookup n left_indent env, lookup n right_indent env);
 
   add_node ps (Node.Command (location ps)
     (Environment.set_par_params
@@ -1889,7 +1849,7 @@ value indent ps = do
   add_node ps (Node.Command (location ps)
     (fun loc env -> do
       {
-        let p = Galley.par_params (Environment.current_galley env) in
+        let p = Galley.par_params (Environment.current_galley env);
         Environment.set_current_par_params
           (None, Some (fun _ -> p.ParLayout.par_indent), None, None, None, None, None, None, None, None)
           loc env
@@ -1898,24 +1858,22 @@ value indent ps = do
 
 value ensure_vskip ps = do
 {
-  let skip = arg_skip ps in
+  let skip = arg_skip ps;
 
   let f env glue = do
   {
-    let min_skip     = skip env in
+    let min_skip     = skip env;
     let current_skip = List.fold_left
                          (fun x b -> xdim_add_dim (xdim_add_dim x b.b_height) b.b_depth)
                          xdim_zero
-                         glue
-                       in
+                         glue;
 
     if current_skip.xd_base </ min_skip then
       [new_glue_box dim_zero (fixed_dim (min_skip -/ current_skip.xd_base)) False True
         :: glue]
     else
       glue
-  }
-  in
+  };
 
   add_node ps (Node.ModifyGalleyGlue (location ps) f)
 };
@@ -1935,7 +1893,7 @@ value cc_put_char ps = do
 {
   Mode.ensure_par_mode ps;
 
-  let c = UCStream.pop ps.input_stream in
+  let c = UCStream.pop ps.input_stream;
 
   if current_mode ps = `Math then
     add_math_char ps (get_math_code ps c)
@@ -1947,7 +1905,7 @@ value put_char ps = do
 {
   Mode.ensure_par_mode ps;
 
-  let c = arg_int ps in
+  let c = arg_int ps;
 
   if current_mode ps = `Math then
     add_math_char ps (get_math_code ps c)
@@ -1957,7 +1915,7 @@ value put_char ps = do
 
 value expand_put_char ps _ = do
 {
-  let char = arg_expanded ps in
+  let char = arg_expanded ps;
 
   [Parser.str_to_int char :: Macro.expand ps]
 };
@@ -1966,7 +1924,7 @@ value put_glyph ps = do
 {
   Mode.ensure_par_mode ps;
 
-  let c = arg_int ps in
+  let c = arg_int ps;
 
   add_node ps (Node.Glyph (location ps) c)
 };
@@ -1992,13 +1950,12 @@ value put_math_char ps = do
       log_warn (location ps) ("unknown math code `" ^ x ^ "'!");
       NoMath
     }
-  ]
-  in
+  ];
 
-  let f1 = arg_int ps in
-  let c1 = arg_int ps in
-  let f2 = arg_int ps in
-  let c2 = arg_int ps in
+  let f1 = arg_int ps;
+  let c1 = arg_int ps;
+  let f2 = arg_int ps;
+  let c2 = arg_int ps;
 
   add_math_char ps (mcode, (f1, f2), (c1, c2))
 };
@@ -2061,7 +2018,7 @@ value literal ps = do
       []
     else if Parser.match_substring ps.input_stream (UString.of_ascii "\\endliteral") i then do
     {
-      let arg = UCStream.take ps.input_stream i in
+      let arg = UCStream.take ps.input_stream i;
 
       UCStream.remove ps.input_stream (i + 11);
 
@@ -2069,10 +2026,9 @@ value literal ps = do
     }
     else
       read_argument (i+1)
-  }
-  in
+  };
 
-  let arg = read_argument 0 in
+  let arg = read_argument 0;
 
   Mode.ensure_par_mode ps;
 
@@ -2087,7 +2043,7 @@ value expand_literal ps _ = do
       []
     else if Parser.match_substring ps.input_stream (UString.of_ascii "\\endliteral") i then do
     {
-      let arg = UCStream.take ps.input_stream i in
+      let arg = UCStream.take ps.input_stream i;
 
       UCStream.remove ps.input_stream (i + 11);
 
@@ -2095,10 +2051,9 @@ value expand_literal ps _ = do
     }
     else
       read_argument (i+1)
-  }
-  in
+  };
 
-  let arg = read_argument 0 in
+  let arg = read_argument 0;
 
   arg @ Macro.expand ps
 };
@@ -2125,7 +2080,7 @@ value apostrophe ps = do
 
 value include_file ps = do
 {
-  let name = arg_expanded ps in
+  let name = arg_expanded ps;
 
   UCStream.include_file ps.input_stream (UString.to_string name)
 };
@@ -2143,27 +2098,25 @@ value declare_font ps = do
     [ None   -> default
     | Some z -> Parser.str_to_int z
     ]
-  ]
-  in
+  ];
   let make_num x default = match x with
   [ None   -> default
   | Some y -> match y with
     [ None   -> default
     | Some z -> Parser.str_to_num z
     ]
-  ]
-  in
+  ];
 
-  let name     = Array.of_list (arg_expanded ps) in
-  let family   = Array.of_list (arg_expanded ps) in
-  let series   = Array.of_list (arg_expanded ps) in
-  let shape    = Array.of_list (arg_expanded ps) in
-  let sizes    = arg_expanded ps in
-  let params   = arg_key_val  ps in
+  let name     = Array.of_list (arg_expanded ps);
+  let family   = Array.of_list (arg_expanded ps);
+  let series   = Array.of_list (arg_expanded ps);
+  let shape    = Array.of_list (arg_expanded ps);
+  let sizes    = arg_expanded ps;
+  let params   = arg_key_val  ps;
 
-  let hyphen = make_int (DynUCTrie.lookup_string str_hyphen params) (-1)    in
-  let skew   = make_int (DynUCTrie.lookup_string str_skew   params) (-1)    in
-  let scale  = make_num (DynUCTrie.lookup_string str_scale  params) num_one in
+  let hyphen = make_int (DynUCTrie.lookup_string str_hyphen params) (-1);
+  let skew   = make_int (DynUCTrie.lookup_string str_skew   params) (-1);
+  let scale  = make_num (DynUCTrie.lookup_string str_scale  params) num_one;
 
   DynUCTrie.iter
     (fun k _ ->
@@ -2179,8 +2132,7 @@ value declare_font ps = do
   let get_glyph g = if g < 0 then
                       Runtime.Substitute.Undef
                     else
-                      Runtime.Substitute.Simple g
-                    in
+                      Runtime.Substitute.Simple g;
 
   add_node ps
     (Node.Command (location ps)
@@ -2205,22 +2157,22 @@ value declare_font ps = do
 
 value add_ref ps = do
 {
-  let name = arg_expanded ps in
-  let str  = Array.of_list (arg_expanded ps) in
+  let name = arg_expanded ps;
+  let str  = Array.of_list (arg_expanded ps);
 
   add_reference ps name str
 };
 
 value get_ref ps = do
 {
-  let name = arg_expanded ps in
+  let name = arg_expanded ps;
 
   UCStream.insert_string ps.input_stream (lookup_reference ps name)
 };
 
 value expand_get_ref ps _ = do
 {
-  let name = arg_expanded ps in
+  let name = arg_expanded ps;
 
   UCStream.insert_string ps.input_stream (lookup_reference ps name);
 
@@ -2229,7 +2181,7 @@ value expand_get_ref ps _ = do
 
 value measure_position ps = do
 {
-  let name = arg_expanded ps in
+  let name = arg_expanded ps;
 
   let f pi (x,y) = do
   {
@@ -2237,27 +2189,24 @@ value measure_position ps = do
                   pi.Box.pi_page_no
                   (float_of_num x)
                   (float_of_num (pi.Box.pi_height -/ y))
-                  (* right handed -> left handed coordinate system *)
-                in
+                  (* right handed -> left handed coordinate system *);
 
     add_reference ps name (Array.of_list (UString.of_string str))
-  }
-  in
+  };
 
   add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.CallPageFunction f)))
 };
 
 value measure_line ps = do
 {
-  let name = arg_expanded ps in
+  let name = arg_expanded ps;
 
   let f line = do
   {
-    let str = Printf.sprintf "%i" line in
+    let str = Printf.sprintf "%i" line;
 
     add_reference ps name (Array.of_list (UString.of_string str))
-  }
-  in
+  };
 
   add_node ps (Node.CommandBox (location ps) (`ParCmd (Box.CallParFunction f)))
 };
@@ -2280,10 +2229,9 @@ value set_grey_colour ps = do
     }
     else
       x
-  }
-  in
+  };
 
-  let x = bound (arg_num ps) in
+  let x = bound (arg_num ps);
 
   add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.Grey x)))
 };
@@ -2304,12 +2252,11 @@ value set_rgb_colour ps = do
     }
     else
       x
-  }
-  in
+  };
 
-  let r = bound (arg_num ps) in
-  let g = bound (arg_num ps) in
-  let b = bound (arg_num ps) in
+  let r = bound (arg_num ps);
+  let g = bound (arg_num ps);
+  let b = bound (arg_num ps);
 
   add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.RGB r g b)))
 };
@@ -2330,13 +2277,12 @@ value set_cmyk_colour ps = do
     }
     else
       x
-  }
-  in
+  };
 
-  let c = bound (arg_num ps) in
-  let m = bound (arg_num ps) in
-  let y = bound (arg_num ps) in
-  let k = bound (arg_num ps) in
+  let c = bound (arg_num ps);
+  let m = bound (arg_num ps);
+  let y = bound (arg_num ps);
+  let k = bound (arg_num ps);
 
   add_node ps (Node.Command (location ps) (Environment.set_colour (Graphic.CMYK c m y k)))
 };
@@ -2351,7 +2297,7 @@ value al_declarations ps = do
       []
     else if Parser.match_substring ps.input_stream (UString.of_ascii "\\endALdeclarations") i then do
     {
-      let arg = UCStream.take ps.input_stream i in
+      let arg = UCStream.take ps.input_stream i;
 
       UCStream.remove ps.input_stream (i + 18);
 
@@ -2359,8 +2305,7 @@ value al_declarations ps = do
     }
     else
       read_argument (i+1)
-  }
-  in
+  };
 
   (*
     After reading the |\beginALdeclarations| command the parser might have
@@ -2373,9 +2318,9 @@ value al_declarations ps = do
     UCStream.remove ps.input_stream 4
   else ();
 
-  let loc = location ps          in
-  let arg = read_argument 0      in
-  let str = UCStream.of_list arg in
+  let loc = location ps;
+  let arg = read_argument 0;
+  let str = UCStream.of_list arg;
 
   UCStream.set_location str loc False;
 
@@ -2387,14 +2332,14 @@ value al_declarations ps = do
 
 value al_macro ps = do
 {
-  let loc  = location ps           in
-  let expr = arg_expanded ps       in
-  let str  = UCStream.of_list expr in
+  let loc  = location ps;
+  let expr = arg_expanded ps;
+  let str  = UCStream.of_list expr;
 
   UCStream.set_location str loc True;
 
   try
-    let result = VM.Machine.evaluate_string_expr "\\ALmacro" ps.al_scope str in
+    let result = VM.Machine.evaluate_string_expr "\\ALmacro" ps.al_scope str;
 
     UCStream.insert_list ps.input_stream result
   with
@@ -2405,9 +2350,9 @@ value al_macro ps = do
 
 value expand_al_macro ps _ = do
 {
-  let loc  = location ps           in
-  let expr = arg_expanded ps       in
-  let str  = UCStream.of_list expr in
+  let loc  = location ps;
+  let expr = arg_expanded ps;
+  let str  = UCStream.of_list expr;
 
   UCStream.set_location str loc True;
 
@@ -2424,17 +2369,16 @@ value expand_al_macro ps _ = do
                    log_warn (location ps) (UString.to_string (Array.to_list msg));
                    []
                  }
-               ]
-  in
+               ];
 
   result @ Macro.expand ps
 };
 
 value al_command ps = do
 {
-  let loc  = location ps           in
-  let expr = Parser.read_argument ps.input_stream in
-  let str  = UCStream.of_list expr in
+  let loc  = location ps;
+  let expr = Parser.read_argument ps.input_stream;
+  let str  = UCStream.of_list expr;
 
   UCStream.set_location str loc False;
 
@@ -2801,59 +2745,50 @@ value initialise ps = do
   {
     ParseState.define_command ps (UString.of_ascii name)
       { ParseState.execute = cmd; ParseState.expand  = exp }
-  }
-  in
+  };
   let def_unexpandable_cmd name cmd = do
   {
     def_expandable_cmd name cmd Macro.noexpand
-  }
-  in
+  };
   let def_expandable_pat name cmd exp = do
   {
     ParseState.define_pattern ps (UString.of_ascii name)
       { ParseState.execute = cmd; ParseState.expand  = exp }
-  }
-  in
+  };
   let def_unexpandable_pat name cmd = do
   {
     def_expandable_pat name cmd Macro.noexpand
-  }
-  in
+  };
   let def_macro name body = do
   {
     def_expandable_cmd name
       (Macro.execute_macro [] (UString.of_ascii body))
       (Macro.expand_macro [] (UString.of_ascii body))
-  }
-  in
+  };
   let def_macro_arg name body = do
   {
-    let t = Macro.parse_arg_template ("", 0, 0) [109] in   (* m *)
+    let t = Macro.parse_arg_template ("", 0, 0) [109];   (* m *)
 
     def_expandable_cmd name
       (Macro.execute_macro t (UString.of_ascii body))
       (Macro.expand_macro  t (UString.of_ascii body))
-  }
-  in
+  };
   let def_math_char name code family char = do
   {
     def_unexpandable_cmd name
       (fun ps -> add_math_char ps (code, (family, family), (char, char)))
-  }
-  in
+  };
   let def_math_delim name code small_family small_char large_family large_char = do
   {
     def_unexpandable_cmd name
       (fun ps -> add_math_char ps (code, (small_family, large_family), (small_char, large_char)))
-  }
-  in
+  };
 
   let def_math_acc name family char = do
   {
     def_unexpandable_cmd name
       (fun ps -> math_accent ps family char)
-  }
-  in
+  };
 
   ParseState.set_default_char_cmd ps
     { ParseState.execute = cc_put_char;

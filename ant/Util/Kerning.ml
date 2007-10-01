@@ -46,7 +46,7 @@ value calc_center weight glyph = do
         right
     else do
     {
-      let m = (left + right) / 2 in
+      let m = (left + right) / 2;
 
       if calc_momentum weight m glyph <=/ num_zero then
         iter left m
@@ -81,8 +81,8 @@ value calc_center weight glyph = do
 
 value calc_left weight inv_weight center glyph = do
 {
-  let width  = glyph.Glyph.max_x - glyph.Glyph.min_x + 1 in
-  let height = glyph.Glyph.max_y - glyph.Glyph.min_y + 1 in
+  let width  = glyph.Glyph.max_x - glyph.Glyph.min_x + 1;
+  let height = glyph.Glyph.max_y - glyph.Glyph.min_y + 1;
 
   iter_x (center - 1) num_zero
 
@@ -108,8 +108,8 @@ value calc_left weight inv_weight center glyph = do
 
 value calc_right weight inv_weight center glyph = do
 {
-  let width  = glyph.Glyph.max_x - glyph.Glyph.min_x + 1 in
-  let height = glyph.Glyph.max_y - glyph.Glyph.min_y + 1 in
+  let width  = glyph.Glyph.max_x - glyph.Glyph.min_x + 1;
+  let height = glyph.Glyph.max_y - glyph.Glyph.min_y + 1;
 
   iter_x (center - 1) num_zero
 
@@ -161,7 +161,7 @@ value calc_left_border glyph = do
 
 value calc_right_border glyph = do
 {
-  let width = glyph.Glyph.width - 1 in
+  let width = glyph.Glyph.width - 1;
 
   iter_y glyph.Glyph.min_y []
 
@@ -190,7 +190,7 @@ value calc_projection max_x border = do
 
   where rec iter x result = do
   {
-    let num = List.length (List.filter (fun z -> z <= x) border) in
+    let num = List.length (List.filter (fun z -> z <= x) border);
 
     if num = 0 then
       (x + 1, result)
@@ -251,18 +251,17 @@ value calc_kern hppp vppp glyph border = do
                  else
                    iter (pos+1) ns
     ]
-  }
-  in
+  };
 
-  let (first, numbers) = calc_projection glyph.Glyph.width border      in
-  let area_threshold   = hppp */ vppp                                  in
-  let area_weight x n  = num_of_int n */ num_of_int (x + 1) // hppp    in
-  let area             = calc_protuding_area area_weight numbers       in
-  let area_pos         = find_pos gt_num area_threshold area           in
-  let diff_order       = hppp // num_of_int 8                          in
-  let diff_threshold   = int_of_num (round_num (num_of_int 2 */ vppp)) in
-  let diff             = calc_border_diff (int_of_num (round_num diff_order)) numbers in
-  let diff_pos         = find_pos \> diff_threshold diff               in
+  let (first, numbers) = calc_projection glyph.Glyph.width border;
+  let area_threshold   = hppp */ vppp;
+  let area_weight x n  = num_of_int n */ num_of_int (x + 1) // hppp;
+  let area             = calc_protuding_area area_weight numbers;
+  let area_pos         = find_pos gt_num area_threshold area;
+  let diff_order       = hppp // num_of_int 8;
+  let diff_threshold   = int_of_num (round_num (num_of_int 2 */ vppp));
+  let diff             = calc_border_diff (int_of_num (round_num diff_order)) numbers;
+  let diff_pos         = find_pos \> diff_threshold diff;
 
   first + min area_pos diff_pos
 };
@@ -277,9 +276,9 @@ value calc_right_kern hppp vppp glyph = calc_kern hppp vppp glyph (calc_right_bo
 
 value output_lrcodes left_kern right_kern glyphs = do
 {
-  let std_l = List.nth left_kern  77 in
-  let std_r = List.nth right_kern 77 in
-  let std_g = List.nth glyphs     77 in
+  let std_l = List.nth left_kern  77;
+  let std_r = List.nth right_kern 77;
+  let std_g = List.nth glyphs     77;
 
   iter left_kern right_kern glyphs
 
@@ -287,8 +286,8 @@ value output_lrcodes left_kern right_kern glyphs = do
   [ []      -> ()
   | [g::gs] -> do
     {
-      let l = List.hd lk in
-      let r = List.hd rk in
+      let l = List.hd lk;
+      let r = List.hd rk;
 
       log_string "\\lpcode\\font ";
       log_int    g.Glyph.char;
@@ -320,8 +319,7 @@ value output_margin_test left_kern right_kern glyphs = do
     log_string "\\kern ";
     log_num    (num_of_ints (~-r) 600);
     log_string "in\\hbox to 1mm{}}\n"
-  }
-  in
+  };
 
   log_string "\\documentclass[a4paper,10pt]{article}\n";
   log_string "\\usepackage{geometry,multicol}\n";
@@ -330,9 +328,9 @@ value output_margin_test left_kern right_kern glyphs = do
   log_string "\\begin{document}%\n";
   log_string "\\begin{multicols}{5}%\n";
 
-  let fill_l = List.nth left_kern  77 in
-  let fill_r = List.nth right_kern 77 in
-  let fill_g = List.nth glyphs     77 in
+  let fill_l = List.nth left_kern  77;
+  let fill_r = List.nth right_kern 77;
+  let fill_g = List.nth glyphs     77;
 
   iter left_kern right_kern glyphs
 
@@ -380,10 +378,9 @@ value output_glyphs lk rk glyphs = do
     log_string "mm\\vrule width 0.1mm height 0pt depth ";
     log_num    (num_of_ints 13 10 */ num_of_int (g.Glyph.max_y - g.Glyph.min_y + 1));
     log_string "mm\\hss}%\n"
-  }
-  in
+  };
 
-  let pow4 x = num_of_int x */ num_of_int x */ num_of_int x */ num_of_int x in
+  let pow4 x = num_of_int x */ num_of_int x */ num_of_int x */ num_of_int x;
 
   log_string "\\documentclass[a4paper,10pt]{article}\n";
   log_string "\\usepackage{geometry}\n";
@@ -444,14 +441,14 @@ value main () = do
   {
     Job.start_job Sys.argv.(1);
 
-    let font = Font.load_font Sys.argv.(1) (num_of_string Sys.argv.(2)) in
+    let font = Font.load_font Sys.argv.(1) (num_of_string Sys.argv.(2));
 
     match FontPK.read_pk_font font (int_of_string Sys.argv.(3)) with
     [ None                           -> log_error "Can't load font!"
     | Some ((hppp, vppp, _), glyphs) -> do
       {
-        let left_kern  = XList.map (fun g -> calc_left_kern  hppp vppp g) glyphs in
-        let right_kern = XList.map (fun g -> calc_right_kern hppp vppp g) glyphs in
+        let left_kern  = XList.map (fun g -> calc_left_kern  hppp vppp g) glyphs;
+        let right_kern = XList.map (fun g -> calc_right_kern hppp vppp g) glyphs;
 
 (*        output_lrcodes     left_kern right_kern glyphs  *)
 (*        output_margin_test left_kern right_kern glyphs  *)

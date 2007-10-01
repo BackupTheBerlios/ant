@@ -49,11 +49,11 @@ value read_byte cs = do
 
 value peek_char cs off = do
 {
-  let pos = io_pos cs in
+  let pos = io_pos cs;
 
   io_seek cs (pos + off);
 
-  let chr = io_read_char cs in
+  let chr = io_read_char cs;
 
   io_seek cs pos;
 
@@ -62,11 +62,11 @@ value peek_char cs off = do
 
 value rec peek_string cs off len = do
 {
-  let pos = io_pos cs in
+  let pos = io_pos cs;
 
   io_seek cs (pos + off);
 
-  let str = io_read_string cs len in
+  let str = io_read_string cs len;
 
   io_seek cs pos;
 
@@ -87,32 +87,32 @@ value read_be_u8 cs = read_byte cs;
 
 value read_be_u16 cs = do
 {
-  let x = read_byte cs in
-  let y = read_byte cs in
+  let x = read_byte cs;
+  let y = read_byte cs;
 
   0x100 * x + y
 };
 
 value read_be_u24 cs = do
 {
-  let x = read_byte cs in
-  let y = read_byte cs in
-  let z = read_byte cs in
+  let x = read_byte cs;
+  let y = read_byte cs;
+  let z = read_byte cs;
 
   0x10000 * x + 0x100 * y + z
 };
 
 value read_be_u32 cs = do
 {
-  let x = read_be_u16 cs in
-  let y = read_be_u16 cs in
+  let x = read_be_u16 cs;
+  let y = read_be_u16 cs;
 
   num_of_int 0x10000 */ num_of_int x +/ num_of_int y
 };
 
 value read_be_i8 cs = do
 {
-  let x = read_be_u8 cs in
+  let x = read_be_u8 cs;
 
   if x > 0x7f then
     x - 0x100
@@ -122,7 +122,7 @@ value read_be_i8 cs = do
 
 value read_be_i16 cs = do
 {
-  let x = read_be_u16 cs in
+  let x = read_be_u16 cs;
 
   if x > 0x7fff then
     x - 0x10000
@@ -132,7 +132,7 @@ value read_be_i16 cs = do
 
 value read_be_i24 cs = do
 {
-  let x = read_be_u24 cs in
+  let x = read_be_u24 cs;
 
   if x > 0x7fffff then
     x - 0x1000000
@@ -142,7 +142,7 @@ value read_be_i24 cs = do
 
 value read_be_i32 cs = do
 {
-  let x = read_be_u32 cs in
+  let x = read_be_u32 cs;
 
   if x >=/ num_0x80000000 then
     x -/ num_0x100000000
@@ -176,14 +176,14 @@ value write_be_u24 cs x = do
 
 value write_be_u32 cs n = do
 {
-  let y = mod_num n (num_of_int 0x10000)        in
-  let x = quo_num (n -/ y) (num_of_int 0x10000) in
-  let u = int_of_num x                   in
-  let v = int_of_num y                   in
-  let b = (0x10000 + u) mod 0x100        in
-  let a = (u - b) / 0x100                in
-  let d = (0x10000 + v) mod 0x100        in
-  let c = (v - d) / 0x100                in
+  let y = mod_num n (num_of_int 0x10000);
+  let x = quo_num (n -/ y) (num_of_int 0x10000);
+  let u = int_of_num x;
+  let v = int_of_num y;
+  let b = (0x10000 + u) mod 0x100;
+  let a = (u - b) / 0x100;
+  let d = (0x10000 + v) mod 0x100;
+  let c = (v - d) / 0x100;
 
   write_byte cs a;
   write_byte cs b;
@@ -217,14 +217,14 @@ value write_be_i24 cs x = do
 
 value write_be_i32 cs n = do
 {
-  let y = mod_num n (num_of_int 0x10000)        in
-  let x = quo_num (n -/ y) (num_of_int 0x10000) in
-  let u = int_of_num x                   in
-  let v = int_of_num y                   in
-  let b = (0x10000 + u) mod 0x100        in
-  let a = (u - b) / 0x100                in
-  let d = (0x10000 + v) mod 0x100        in
-  let c = (v - d) / 0x100                in
+  let y = mod_num n (num_of_int 0x10000);
+  let x = quo_num (n -/ y) (num_of_int 0x10000);
+  let u = int_of_num x;
+  let v = int_of_num y;
+  let b = (0x10000 + u) mod 0x100;
+  let a = (u - b) / 0x100;
+  let d = (0x10000 + v) mod 0x100;
+  let c = (v - d) / 0x100;
 
   if a < 0 then
     write_byte cs (a + 0x100)
@@ -238,7 +238,7 @@ value write_be_i32 cs n = do
 
 value read_utf8_char cs = do
 {
-  let c = read_byte cs in
+  let c = read_byte cs;
 
   if c < 0x80 then
     c
@@ -246,7 +246,7 @@ value read_utf8_char cs = do
     c                            (* should never happen *)
   else if c < 0xe0 then do
   {
-    let c2 = read_byte cs in
+    let c2 = read_byte cs;
 
     if c2 < 0 then
       0x40 * (c - 0xc0)
@@ -255,8 +255,8 @@ value read_utf8_char cs = do
   }
   else do
   {
-    let c2 = read_byte cs in
-    let c3 = read_byte cs in
+    let c2 = read_byte cs;
+    let c3 = read_byte cs;
 
     if c2 < 0 then
       0x1000 * (c - 0xe0)
@@ -320,13 +320,13 @@ value in_channel_read_char ic eof = do
 
 value in_channel_read_string ic eof len = do
 {
-  let buf = String.create len in
+  let buf = String.create len;
 
   iter 0 len
 
   where rec iter off len = do
   {
-    let read = input ic buf off len in
+    let read = input ic buf off len;
 
     if read = len then
       buf
@@ -342,8 +342,8 @@ value in_channel_read_string ic eof len = do
 
 value make_in_stream filename = do
 {
-  let ic  = open_in_bin filename in
-  let eof = ref False            in
+  let ic  = open_in_bin filename;
+  let eof = ref False;
 
   io_make_read
     (fun ()  -> close_in ic)
@@ -354,8 +354,8 @@ value make_in_stream filename = do
 
 value make_rand_in_stream filename = do
 {
-  let ic  = open_in_bin filename in
-  let eof = ref False            in
+  let ic  = open_in_bin filename;
+  let eof = ref False;
 
   io_make_read_seek
     (fun ()  -> close_in ic)
@@ -369,7 +369,7 @@ value make_rand_in_stream filename = do
 
 value make_out_stream filename = do
 {
-  let oc = open_out_bin filename in
+  let oc = open_out_bin filename;
 
   io_make_write
     (fun ()  -> close_out oc)
@@ -380,7 +380,7 @@ value make_out_stream filename = do
 
 value make_rand_out_stream filename = do
 {
-  let oc = open_out_bin filename in
+  let oc = open_out_bin filename;
 
   io_make_write_seek
     (fun ()  -> close_out oc)
@@ -394,11 +394,11 @@ value make_rand_out_stream filename = do
 
 value make_buffer_stream buffer_size = do
 {
-  let buf_size = power_of_two (min buffer_size Sys.max_string_length) in
+  let buf_size = power_of_two (min buffer_size Sys.max_string_length);
 
-  let buffer = ref [| String.create buf_size |] in
-  let size   = ref 0 in
-  let pos    = ref 0 in
+  let buffer = ref [| String.create buf_size |];
+  let size   = ref 0;
+  let pos    = ref 0;
 
   let resize_buffer len = do
   {
@@ -408,16 +408,14 @@ value make_buffer_stream buffer_size = do
                      !buffer.(i)
                    else
                      String.create buf_size)
-  }
-  in
+  };
 
   (* doubles the size of the buffer array *)
 
   let double_buffer () = do
   {
     resize_buffer (2 * Array.length !buffer)
-  }
-  in
+  };
 
   (* returns the entry in the buffer array that contains the given position *)
 
@@ -430,22 +428,19 @@ value make_buffer_stream buffer_size = do
       double_buffer ();
       get_buffer pos
     }
-  }
-  in
+  };
 
   let get_buffer_pos pos =
-    pos land (buf_size - 1)
-  in
+    pos land (buf_size - 1);
 
   (* returns the offset within a buffer of the given position *)
 
-  let get_char pos = (get_buffer pos).[get_buffer_pos pos] in
+  let get_char pos = (get_buffer pos).[get_buffer_pos pos];
 
   let set_char pos chr = do
   {
     (get_buffer pos).[get_buffer_pos pos] := chr
-  }
-  in
+  };
 
   let seek new_pos = do
   {
@@ -455,27 +450,25 @@ value make_buffer_stream buffer_size = do
       !pos := !size
     else
       !pos := new_pos
-  }
-  in
+  };
   let read_char () = do
   {
     if !pos >= !size then
       '\000'
     else do
     {
-      let c = get_char !pos in
+      let c = get_char !pos;
       !pos := !pos + 1;
       c
     }
-  }
-  in
+  };
   let rec read_string len = do
   {
     if !pos + len > !size then
       read_string (!size - !pos)
     else do
     {
-      let str = String.create len in
+      let str = String.create len;
 
       for i = 0 to len - 1 do
       {
@@ -484,8 +477,7 @@ value make_buffer_stream buffer_size = do
 
       str
     }
-  }
-  in
+  };
   let write_char chr = do
   {
     if !pos >= !size then
@@ -495,16 +487,14 @@ value make_buffer_stream buffer_size = do
     set_char !pos chr;
 
     !pos := !pos + 1
-  }
-  in
+  };
   let write_string str = do
   {
     for i = 0 to String.length str - 1 do
     {
       write_char str.[i]
     }
-  }
-  in
+  };
 
   io_make
     (fun ()  -> ())
@@ -521,7 +511,7 @@ value make_buffer_stream buffer_size = do
 
 value make_string_stream str = do
 {
-  let pos = ref 0 in
+  let pos = ref 0;
 
   let seek new_pos = do
   {
@@ -531,28 +521,25 @@ value make_string_stream str = do
       !pos := String.length str
     else
       !pos := new_pos
-  }
-  in
+  };
   let read_char () = do
   {
     if !pos >= String.length str then
       '\000'
     else do
     {
-      let c = str.[!pos] in
+      let c = str.[!pos];
       !pos := !pos + 1;
       c
     }
-  }
-  in
+  };
   let read_string len = do
   {
     if !pos + len > String.length str then
       String.sub str !pos (String.length str - !pos)
     else
       String.sub str !pos len
-  }
-  in
+  };
 
   io_make_read_seek
     (fun ()  -> ())
@@ -592,15 +579,14 @@ value produce_stream os f = do
 
 value append_channel os ic = do
 {
-  let buffer = String.create 0x1000 in
+  let buffer = String.create 0x1000;
 
   let read () = do
   {
-    let len = input ic buffer 0 0x1000 in
+    let len = input ic buffer 0 0x1000;
 
     String.sub buffer 0 len
-  }
-  in
+  };
 
   produce_stream os read
 };
@@ -619,7 +605,7 @@ value to_channel is oc = do
 
 value from_string str = do
 {
-  let cs = make_buffer_stream (String.length str) in
+  let cs = make_buffer_stream (String.length str);
 
   write_string cs str;
 
@@ -630,7 +616,7 @@ value from_string str = do
 
 value to_string is = do
 {
-  let buf = Buffer.create 0x1000 in
+  let buf = Buffer.create 0x1000;
 
   consume_stream is (Buffer.add_string buf);
 
@@ -639,7 +625,7 @@ value to_string is = do
 
 value sub_stream cs len = do
 {
-  let new_cs = make_buffer_stream len in
+  let new_cs = make_buffer_stream len;
 
   if len <= Sys.max_string_length then
     write_string new_cs (read_string cs len)
@@ -666,7 +652,7 @@ value sub_stream cs len = do
 
 value to_buffer is = do
 {
-  let os = make_buffer_stream 0x1000 in
+  let os = make_buffer_stream 0x1000;
 
   append os is;
 
@@ -677,19 +663,19 @@ value to_buffer is = do
 
 value compress cs level = do
 {
-  let buffer_size = min (io_size cs) 0x10000       in
-  let new_cs      = make_buffer_stream buffer_size in
-  let pos         = pos cs                         in
+  let buffer_size = min (io_size cs) 0x10000;
+  let new_cs      = make_buffer_stream buffer_size;
+  let pos         = pos cs;
 
   seek cs 0;
 
-  let zs = Zlib.deflate_init buffer_size level in
+  let zs = Zlib.deflate_init buffer_size level;
 
   iter 0
 
   where rec iter i = do
   {
-    let str = Zlib.get_output zs in
+    let str = Zlib.get_output zs;
 
     if str <> "" then do
     {
@@ -717,7 +703,7 @@ value compress cs level = do
       {
         Zlib.deflate zs Zlib.finish;
 
-        let str = Zlib.get_output zs in
+        let str = Zlib.get_output zs;
 
         if str <> "" then do
         {
@@ -738,19 +724,19 @@ value compress cs level = do
 
 value uncompress cs = do
 {
-  let buffer_size = min (io_size cs) 0x10000       in
-  let new_cs      = make_buffer_stream buffer_size in
-  let pos         = pos cs                         in
+  let buffer_size = min (io_size cs) 0x10000;
+  let new_cs      = make_buffer_stream buffer_size;
+  let pos         = pos cs;
 
   seek cs 0;
 
-  let zs = Zlib.inflate_init buffer_size in
+  let zs = Zlib.inflate_init buffer_size;
 
   iter 0
 
   where rec iter i = do
   {
-    let str = Zlib.get_output zs in
+    let str = Zlib.get_output zs;
 
     if str <> "" then do
     {
@@ -778,7 +764,7 @@ value uncompress cs = do
       {
         Zlib.inflate zs Zlib.finish;
 
-        let str = Zlib.get_output zs in
+        let str = Zlib.get_output zs;
 
         if str <> "" then do
         {

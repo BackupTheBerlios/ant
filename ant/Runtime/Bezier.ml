@@ -130,10 +130,9 @@ value velocity sin_theta cos_theta sin_phi cos_phi tension = do
   let n = num_two +/
             num_sqrt_2 */ (sin_theta -/ sin_phi // num_16)
                        */ (sin_phi -/ sin_theta // num_16)
-                       */ (cos_theta -/ cos_phi)
-  in
-  let d = num_three +/ const1 */ cos_theta +/ const2 */ cos_phi in
-  let x = n // (d */ tension) in
+                       */ (cos_theta -/ cos_phi);
+  let d = num_three +/ const1 */ cos_theta +/ const2 */ cos_phi;
+  let x = n // (d */ tension);
 
   if x >=/ num_4 then
     num_4
@@ -143,15 +142,15 @@ value velocity sin_theta cos_theta sin_phi cos_phi tension = do
 
 value curl_ratio curl left_tension right_tension = do
 {
-  let alpha = num_one // right_tension in
-  let beta  = num_one // left_tension  in
+  let alpha = num_one // right_tension;
+  let beta  = num_one // left_tension;
 
-  let r     = alpha // beta  in
-  let gamma = r */ r */ curl in
+  let r     = alpha // beta;
+  let gamma = r */ r */ curl;
 
-  let d = gamma */ alpha +/ num_three -/ beta in
-  let n = gamma */ (num_three -/ alpha) +/ beta in
-  let x = n // d in
+  let d = gamma */ alpha +/ num_three -/ beta;
+  let n = gamma */ (num_three -/ alpha) +/ beta;
+  let x = n // d;
 
   if x >=/ num_4 then
     num_4
@@ -163,17 +162,16 @@ value curl_ratio curl left_tension right_tension = do
 
 value join_points spec = do
 {
-  let len = Array.length spec in
+  let len = Array.length spec;
 
   for i = 0 to len - 1 do
   {
     let n  = if i + 1 < len then
                i + 1
              else
-               0
-             in
-    let k1 = spec.(i) in
-    let k2 = spec.(n) in
+               0;
+    let k1 = spec.(i);
+    let k2 = spec.(n);
 
     if k1.point_x =/ k2.point_x &&
        k1.point_y =/ k2.point_y then do
@@ -207,21 +205,20 @@ value join_points spec = do
 
 value calculate_angles spec = do
 {
-  let len     = Array.length spec       in
-  let delta_x = Array.make len num_zero in   (* vector from one point to the next one *)
-  let delta_y = Array.make len num_zero in
-  let dist    = Array.make len num_zero in   (* distance between the current point and the next one *)
-  let psi     = Array.make len num_zero in   (* turning angle at the corresponding point *)
+  let len     = Array.length spec;
+  let delta_x = Array.make len num_zero;   (* vector from one point to the next one *)
+  let delta_y = Array.make len num_zero;
+  let dist    = Array.make len num_zero;   (* distance between the current point and the next one *)
+  let psi     = Array.make len num_zero;   (* turning angle at the corresponding point *)
 
   for i = 0 to len - 1 do
   {
     let n  = if i + 1 < len then
                i + 1
              else
-               0
-             in
-    let k1 = spec.(i) in
-    let k2 = spec.(n) in
+               0;
+    let k1 = spec.(i);
+    let k2 = spec.(n);
 
     delta_x.(i) := k2.point_x -/ k1.point_x;
     delta_y.(i) := k2.point_y -/ k1.point_y;
@@ -229,8 +226,8 @@ value calculate_angles spec = do
 
     if i > 0 then do
     {
-      let sine   = delta_y.(i-1) // dist.(i-1) in
-      let cosine = delta_x.(i-1) // dist.(i-1) in
+      let sine   = delta_y.(i-1) // dist.(i-1);
+      let cosine = delta_x.(i-1) // dist.(i-1);
 
       psi.(i) := num_of_float (angle_of_vec (delta_x.(i) */ cosine +/ delta_y.(i) */ sine)
                                             (delta_y.(i) */ cosine -/ delta_x.(i) */ sine))
@@ -240,8 +237,8 @@ value calculate_angles spec = do
 
   if is_cycle spec.(0).left_spec then do
   {
-    let sine   = delta_y.(len-1) // dist.(len-1) in
-    let cosine = delta_x.(len-1) // dist.(len-1) in
+    let sine   = delta_y.(len-1) // dist.(len-1);
+    let cosine = delta_x.(len-1) // dist.(len-1);
 
     psi.(0) := num_of_float (angle_of_vec (delta_x.(0) */ cosine +/ delta_y.(0) */ sine)
                                           (delta_y.(0) */ cosine -/ delta_x.(0) */ sine));
@@ -258,16 +255,16 @@ value calculate_angles spec = do
 
 value remove_open_at_endpoints spec first_knot last_knot = do
 {
-  let k1 = spec.(first_knot) in
-  let k2 = spec.(last_knot)  in
+  let k1 = spec.(first_knot);
+  let k2 = spec.(last_knot);
 
   if is_open k1.right_spec then do
   {
     match k1.left_spec with
     [ Explicit x y -> do
       {
-        let dx = k1.point_x -/ x in
-        let dy = k1.point_y -/ y in
+        let dx = k1.point_x -/ x;
+        let dy = k1.point_y -/ y;
 
         if dx =/ num_zero && dy =/ num_zero then
           spec.(first_knot) :=
@@ -286,8 +283,8 @@ value remove_open_at_endpoints spec first_knot last_knot = do
     match k2.right_spec with
     [ Explicit x y -> do
       {
-        let dx = x -/ k2.point_x in
-        let dy = y -/ k2.point_y in
+        let dx = x -/ k2.point_x;
+        let dy = y -/ k2.point_y;
 
         if dx =/ num_zero && dy =/ num_zero then
           spec.(last_knot) :=
@@ -304,36 +301,34 @@ value remove_open_at_endpoints spec first_knot last_knot = do
 
 value set_control_points knots left_knot right_knot delta_x delta_y sin_theta cos_theta sin_phi cos_phi = do
 {
-  let lk = knots.(left_knot)  in
-  let rk = knots.(right_knot) in
+  let lk = knots.(left_knot);
+  let rk = knots.(right_knot);
 
-  let left_tension  = lk.right_tension in
-  let right_tension = rk.left_tension  in
+  let left_tension  = lk.right_tension;
+  let right_tension = rk.left_tension;
 
-  let left_vel  = velocity sin_theta cos_theta sin_phi cos_phi (abs_num left_tension)  in
-  let right_vel = velocity sin_phi cos_phi sin_theta cos_theta (abs_num right_tension) in
+  let left_vel  = velocity sin_theta cos_theta sin_phi cos_phi (abs_num left_tension);
+  let right_vel = velocity sin_phi cos_phi sin_theta cos_theta (abs_num right_tension);
 
   let (left_vel2, right_vel2) =
     if (left_tension </ num_zero || right_tension </ num_zero)
     && ((sin_theta >=/ num_zero && sin_phi >=/ num_zero) ||
         (sin_theta <=/ num_zero && sin_phi <=/ num_zero)) then do
     {
-      let st = abs_num sin_theta in
-      let sp = abs_num sin_phi   in
-      let s = num_of_ints 4097 4096 */ (st */ cos_phi +/ sp */ cos_theta) in
+      let st = abs_num sin_theta;
+      let sp = abs_num sin_phi;
+      let s = num_of_ints 4097 4096 */ (st */ cos_phi +/ sp */ cos_theta);
 
       if s >/ num_zero then do
       {
         let l = if left_tension </ num_zero then
                   min_num (sp // s) left_vel
                 else
-                  left_vel
-        in
+                  left_vel;
         let r = if right_tension </ num_zero then
                   min_num (st // s) right_vel
                 else
-                  right_vel
-        in
+                  right_vel;
 
         (l,r)
       }
@@ -341,13 +336,12 @@ value set_control_points knots left_knot right_knot delta_x delta_y sin_theta co
         (left_vel, right_vel)
     }
     else
-     (left_vel, right_vel)
-  in
+     (left_vel, right_vel);
 
-  let left_x  = lk.point_x +/ left_vel2  */ (delta_x */ cos_theta -/ delta_y */ sin_theta) in
-  let left_y  = lk.point_y +/ left_vel2  */ (delta_y */ cos_theta +/ delta_x */ sin_theta) in
-  let right_x = rk.point_x -/ right_vel2 */ (delta_x */ cos_phi   +/ delta_y */ sin_phi)   in
-  let right_y = rk.point_y -/ right_vel2 */ (delta_y */ cos_phi   -/ delta_x */ sin_phi)   in
+  let left_x  = lk.point_x +/ left_vel2  */ (delta_x */ cos_theta -/ delta_y */ sin_theta);
+  let left_y  = lk.point_y +/ left_vel2  */ (delta_y */ cos_theta +/ delta_x */ sin_theta);
+  let right_x = rk.point_x -/ right_vel2 */ (delta_x */ cos_phi   +/ delta_y */ sin_phi);
+  let right_y = rk.point_y -/ right_vel2 */ (delta_y */ cos_phi   -/ delta_x */ sin_phi);
 
   knots.(left_knot)  := { (lk) with right_spec = Explicit left_x  left_y  };
   knots.(right_knot) := { (rk) with left_spec  = Explicit right_x right_y }
@@ -357,7 +351,7 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 {
   (* We solve a system of equations of the form  x_i + u_i x_{i+1} = v_i + w_i x_0 *)
 
-  let len = Array.length knots in
+  let len = Array.length knots;
 
   let idx i =
     if i < 0 then
@@ -365,21 +359,20 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
     else if i >= len then
       i - len
     else
-      i
-  in
+      i;
 
-  let u     = Array.make len num_zero in
-  let v     = Array.make len num_zero in
-  let w     = Array.make len num_zero in
-  let theta = Array.make len num_zero in
+  let u     = Array.make len num_zero;
+  let v     = Array.make len num_zero;
+  let w     = Array.make len num_zero;
+  let theta = Array.make len num_zero;
 
-  let next = idx (first_knot+1) in
+  let next = idx (first_knot+1);
 
   match knots.(first_knot).right_spec with
   [ Angle a -> match knots.(next).left_spec with
     [ Angle a2 -> do
       {
-        let angle = angle_of_vec delta_x.(first_knot) delta_y.(first_knot) in
+        let angle = angle_of_vec delta_x.(first_knot) delta_y.(first_knot);
 
         set_control_points
           knots first_knot next
@@ -401,11 +394,11 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
   | Curl c -> match knots.(next).left_spec with
     [ Curl _ -> do
       {
-        let kl = knots.(first_knot) in
-        let kr = knots.(next)       in
+        let kl = knots.(first_knot);
+        let kr = knots.(next);
 
-        let sl = num_three */ (abs_num kl.right_tension) in
-        let sr = num_three */ (abs_num kr.left_tension)  in
+        let sl = num_three */ (abs_num kl.right_tension);
+        let sr = num_three */ (abs_num kr.left_tension);
 
         knots.(first_knot) :=
           {
@@ -420,8 +413,8 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
       }
     | _ -> do
       {
-        let lt = abs_num knots.(first_knot).right_tension in
-        let rt = abs_num knots.(next).left_tension        in
+        let lt = abs_num knots.(first_knot).right_tension;
+        let rt = abs_num knots.(next).left_tension;
 
         if lt =/ num_one && rt =/ num_one then
           u.(first_knot) := (c +/ c +/ num_one) // (c +/ num_two)
@@ -445,28 +438,28 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 
   where rec iter middle = do
   {
-    let left  = idx (middle-1) in
-    let right = idx (middle+1) in
+    let left  = idx (middle-1);
+    let right = idx (middle+1);
 
     match knots.(middle).left_spec with
     [ Cycle | Open -> do
       {
-        let lt  = abs_num knots.(left).right_tension in
-        let rt  = abs_num knots.(right).left_tension in
+        let lt  = abs_num knots.(left).right_tension;
+        let rt  = abs_num knots.(right).left_tension;
 
-        let a = num_one // (num_three */ lt -/ num_one)         in
-        let b = num_one // (num_three */ rt -/ num_one)         in
-        let c = num_one -/ a */ u.(left)                        in
-        let d = dist.(middle) */ (num_three -/ (num_one // lt)) in
-        let e = dist.(left)   */ (num_three -/ (num_one // rt)) in
+        let a = num_one // (num_three */ lt -/ num_one);
+        let b = num_one // (num_three */ rt -/ num_one);
+        let c = num_one -/ a */ u.(left);
+        let d = dist.(middle) */ (num_three -/ (num_one // lt));
+        let e = dist.(left)   */ (num_three -/ (num_one // rt));
 
         let s = abs_num (knots.(middle).left_tension //
-                         knots.(middle).right_tension) in
-        let f = e // (e +/ c */ d */ s */ s)           in
+                         knots.(middle).right_tension);
+        let f = e // (e +/ c */ d */ s */ s);
 
         u.(middle) := b */ f;
 
-        let acc = minus_num (psi.(right) */ u.(middle)) in
+        let acc = minus_num (psi.(right) */ u.(middle));
 
         if is_curl knots.(left).right_spec then do
         {
@@ -475,9 +468,9 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
         }
         else do
         {
-          let f   = (num_one -/ f) // c      in
-          let acc = acc -/ psi.(middle) */ f in
-          let f   = a */ f                   in
+          let f   = (num_one -/ f) // c;
+          let acc = acc -/ psi.(middle) */ f;
+          let f   = a */ f;
 
           v.(middle) := acc -/ f */ v.(left);
           w.(middle) := minus_num (f */ w.(left))
@@ -491,14 +484,14 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 
           where rec iter2 a b i = do
           {
-            let c = v.(i) -/ a */ u.(i) in
-            let d = w.(i) -/ b */ u.(i) in
+            let c = v.(i) -/ a */ u.(i);
+            let d = w.(i) -/ b */ u.(i);
 
             if i <> last_knot then
               iter2 c d (idx (i-1))
             else do
             {
-              let e = c // (num_one -/ d) in
+              let e = c // (num_one -/ d);
 
               theta.(last_knot) := e;
               v.(first_knot)    := e;
@@ -507,7 +500,7 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 
               where rec iter3 i = do
               {
-                let n = idx (i+1) in
+                let n = idx (i+1);
 
                 v.(i) := v.(i) +/ e */ w.(i);
 
@@ -522,14 +515,13 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
       }
     | Curl c -> do
       {
-        let lt = abs_num knots.(middle).left_tension in
-        let rt = abs_num knots.(left).right_tension  in
+        let lt = abs_num knots.(middle).left_tension;
+        let rt = abs_num knots.(left).right_tension;
 
         let s = if lt =/ num_one && rt =/ num_one then
                   (c +/ c +/ num_one) // (c +/ num_two)
                 else
-                  curl_ratio c rt lt
-        in
+                  curl_ratio c rt lt;
 
         theta.(middle) := minus_num (s */ v.(left)) // (num_one -/ s */ u.(left));
       }
@@ -549,17 +541,17 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 
   where rec iter i = do
   {
-    let n = idx (i+1) in
+    let n = idx (i+1);
 
     if i <> last_knot then                      (* If the path is cyclic then we have already        *)
       theta.(i) := v.(i) -/ u.(i) */ theta.(n)  (* computed theta.(i) for i = first_knot = last_knot *)
     else ();
 
-    let phi       = minus_num psi.(n) -/ theta.(n) in
-    let sin_theta = sind (float_of_num theta.(i)) in
-    let cos_theta = cosd (float_of_num theta.(i)) in
-    let sin_phi   = sind (float_of_num phi)       in
-    let cos_phi   = cosd (float_of_num phi)       in
+    let phi       = minus_num psi.(n) -/ theta.(n);
+    let sin_theta = sind (float_of_num theta.(i));
+    let cos_theta = cosd (float_of_num theta.(i));
+    let sin_phi   = sind (float_of_num phi);
+    let cos_phi   = cosd (float_of_num phi);
 
     set_control_points
       knots i n
@@ -577,8 +569,8 @@ value calculate_splines knots (delta_x, delta_y, dist, psi) first_knot last_knot
 
 value compute_path spec = do
 {
-  let knots = Array.of_list spec in
-  let len   = Array.length knots in
+  let knots = Array.of_list spec;
+  let len   = Array.length knots;
 
   if len < 2 then do
   {
@@ -586,7 +578,7 @@ value compute_path spec = do
       [||]
     else do
     {
-      let k = knots.(0) in
+      let k = knots.(0);
       [|(k.point_x,k.point_y,
          k.point_x,k.point_y,
          k.point_x,k.point_y,
@@ -597,7 +589,7 @@ value compute_path spec = do
   {
     join_points knots;
 
-    let dist_psi = calculate_angles knots in
+    let dist_psi = calculate_angles knots;
 
     let idx i =
       if i < 0 then
@@ -605,32 +597,28 @@ value compute_path spec = do
       else if i >= len then
         i - len
       else
-        i
-    in
+        i;
 
     let make_path knots = do
     {
       let n = if is_endpoint knots.(0).left_spec then
                 Array.length knots - 1
               else
-                Array.length knots
-      in
+                Array.length knots;
       let make_spline i = do
       {
-        let k1 = knots.(i)         in
-        let k2 = knots.(idx (i+1)) in
+        let k1 = knots.(i);
+        let k2 = knots.(idx (i+1));
 
         match (k1.right_spec,k2.left_spec) with
         [ (Explicit x1 y1, Explicit x2 y2) ->
             (k1.point_x, k1.point_y, x1, y1, x2, y2, k2.point_x, k2.point_y)
         | _ -> assert False
         ]
-      }
-      in
+      };
 
       Array.init n make_spline
-    }
-    in
+    };
 
     let rec find_next_break i = do
     {
@@ -638,14 +626,12 @@ value compute_path spec = do
       [ (Open, Open) -> find_next_break (idx (i+1))
       | _            -> i
       ]
-    }
-    in
+    };
     let first_break = match knots.(0).left_spec with
     [ Endpoint -> 0
     | Cycle    -> find_next_break 1
     | _        -> assert False
-    ]
-    in
+    ];
 
     if first_break > 0 then do
     {
@@ -667,15 +653,14 @@ value compute_path spec = do
           iter next_break
         else
           make_path knots
-      }
-      in
+      };
 
       if is_explicit knots.(cur_break).right_spec then
         (* nothing to do *)
         continue (idx (cur_break+1))
       else do
       {
-        let next_break = find_next_break (idx (cur_break+1)) in
+        let next_break = find_next_break (idx (cur_break+1));
 
         remove_open_at_endpoints knots cur_break next_break;
 
@@ -714,9 +699,8 @@ value rec cleanup_spec cycle result spec = match spec with
   {
     if cycle then do
     {
-      let x = make_specs_consistent { (k) with left_spec = Open }
-      in
-      let y = { (x) with left_spec = Cycle } in
+      let x = make_specs_consistent { (k) with left_spec = Open };
+      let y = { (x) with left_spec = Cycle };
 
       [y :: result]
     }
@@ -739,8 +723,7 @@ value close_spec spec cycle = match spec with
                 spec
               else
                 [ { (k) with right_spec = Endpoint }
-                  :: ks ]
-      in
+                  :: ks ];
 
       compute_path (cleanup_spec cycle [] s)
     }

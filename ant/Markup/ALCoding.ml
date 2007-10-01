@@ -215,19 +215,14 @@ value sym_XSpaceSkip           = decl_sym "XspaceSkip";
 
 (* wrappers for various types *******************************************************************************)
 
-value decode_symbol name x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Symbol s -> s
-  | _              -> Types.runtime_error (name ^ ": symbol expected but got " ^ Types.type_name !x)
-  ]
-};
+value decode_symbol name x = match !x with
+[ Types.Symbol s -> s
+| _              -> Types.runtime_error (name ^ ": symbol expected but got " ^ Types.type_name !x)
+];
 
 value decode_int name x = do
 {
-  let n = Machine.decode_num name x in
+  let n = Machine.decode_num name x;
 
   if is_integer_num n then
     int_of_num n
@@ -235,68 +230,37 @@ value decode_int name x = do
     Types.runtime_error (name ^ ": integer expected but got arbitrary number")
 };
 
-value decode_bool name x = do
-{
-  Machine.evaluate x;
+value decode_bool name x = match !x with
+[ Types.Bool b -> b
+| _            -> Types.runtime_error (name ^ ": bool expected but got " ^ Types.type_name !x)
+];
 
-  match !x with
-  [ Types.Bool b -> b
-  | _            -> Types.runtime_error (name ^ ": bool expected but got " ^ Types.type_name !x)
-  ]
-};
+value decode_char name x = match !x with
+[ Types.Char c -> c
+| _            -> Types.runtime_error (name ^ ": character expected but got " ^ Types.type_name !x)
+];
 
-value decode_char name x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Char c -> c
-  | _            -> Types.runtime_error (name ^ ": character expected but got " ^ Types.type_name !x)
-  ]
-};
-
-value decode_option name decode x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Symbol s when s = sym_None -> None
-  | _                                -> Some (decode name x)
-  ]
-};
+value decode_option name decode x = match !x with
+[ Types.Symbol s when s = sym_None -> None
+| _                                -> Some (decode name x)
+];
 
 value decode_uc_string name x = do
 {
   Array.of_list (Machine.decode_string name x)
 };
 
-value decode_tuple name x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Tuple z -> z
-  | _             -> Types.runtime_error (name ^ ": tuple expected but got " ^ Types.type_name !x)
-  ]
-};
-
-value decode_function name x args = do
-{
-  Machine.evaluate x;
-  Machine.decode_function name x args
-};
+value decode_tuple name x = match !x with
+[ Types.Tuple z -> z
+| _             -> Types.runtime_error (name ^ ": tuple expected but got " ^ Types.type_name !x)
+];
 
 (* dictionaries *)
 
-value decode_dict name x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Dictionary d -> d
-  | _ -> Types.runtime_error (name ^ ": dictionary expected but got " ^ Types.type_name !x)
-  ]
-};
+value decode_dict name x = match !x with
+[ Types.Dictionary d -> d
+| _ -> Types.runtime_error (name ^ ": dictionary expected but got " ^ Types.type_name !x)
+];
 
 value lookup decode dict key = do
 {
@@ -317,16 +281,11 @@ value lookup_list   name dict key = lookup (Machine.decode_list name) dict key;
 
 (* generic unwrapper for opaque types *)
 
-value decode_opaque type_name unwrapper name x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Opaque y -> try unwrapper y with
-                      [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x) ]
-  | _ -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x)
-  ]
-};
+value decode_opaque type_name unwrapper name x = match !x with
+[ Types.Opaque y -> try unwrapper y with
+                    [ Opaque.Type_error -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x) ]
+| _ -> Types.runtime_error (name ^ ": " ^ type_name ^ " expected but got " ^ Types.type_name !x)
+];
 
 (* locations *)
 
@@ -336,20 +295,15 @@ value encode_location (file, line, col) =
       ref (Types.Number (num_of_int line));
       ref (Types.Number (num_of_int col))|];
 
-value decode_location name loc = do
-{
-  Machine.evaluate loc;
-
-  match !loc with
-  [ Types.Tuple [|file; line; col|] -> do
-    {
-      (UString.to_string (Machine.decode_string name file),
-       decode_int name line,
-       decode_int name col)
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid location")
-  ]
-};
+value decode_location name loc = match !loc with
+[ Types.Tuple [|file; line; col|] -> do
+  {
+    (UString.to_string (Machine.decode_string name file),
+     decode_int name line,
+     decode_int name col)
+  }
+| _ -> Types.runtime_error (name ^ ": invalid location")
+];
 
 (* index position *)
 
@@ -359,25 +313,20 @@ value encode_index_position s = match s with
 | Box.VertIndex  -> Types.Symbol sym_Vert
 ];
 
-value decode_index_position name s = do
-{
-  Machine.evaluate s;
-
-  match !s with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_Left then
-        Box.LeftIndex
-      else if s = sym_Right then
-        Box.RightIndex
-      else if s = sym_Vert then
-        Box.VertIndex
-      else
-        Types.runtime_error (name ^ ": invalid math style")
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid math style")
-  ]
-};
+value decode_index_position name s = match !s with
+[ Types.Symbol s -> do
+  {
+    if s = sym_Left then
+      Box.LeftIndex
+    else if s = sym_Right then
+      Box.RightIndex
+    else if s = sym_Vert then
+      Box.VertIndex
+    else
+      Types.runtime_error (name ^ ": invalid math style")
+  }
+| _ -> Types.runtime_error (name ^ ": invalid math style")
+];
 
 (* math-code *)
 
@@ -397,53 +346,46 @@ value encode_math_code c = match c with
                                        ref (encode_index_position p)|]
 ];
 
-value decode_math_code name c = do
-{
-  Machine.evaluate c;
-
-  match !c with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_NoMath then
-        Box.NoMath
-      else if s = sym_Ordinary then
-        Box.Ordinary
-      else if s = sym_BinOp then
-        Box.BinOp
-      else if s = sym_Relation then
-        Box.Relation
-      else if s = sym_Operator then
-        Box.Operator
-      else if s = sym_Punct then
-        Box.Punct
-      else if s = sym_Open then
-        Box.Open
-      else if s = sym_Close then
-        Box.Close
-      else if s = sym_Inner then
-        Box.Inner
-      else if s = sym_SubScript then
-        Box.SubScript
-      else if s = sym_SuperScript then
-        Box.SuperScript
-      else
-        Types.runtime_error (name ^ ": invalid math code")
-    }
-  | Types.Tuple [|a; b|] -> do
-    {
-      Machine.evaluate a;
-
-      match !a with
-      [ Types.Symbol s -> if s = sym_IndexPosition then
-                            Box.IndexPosition (decode_index_position name b)
-                          else
-                            Types.runtime_error (name ^ ": invalid math code")
+value decode_math_code name c = match !c with
+[ Types.Symbol s -> do
+  {
+    if s = sym_NoMath then
+      Box.NoMath
+    else if s = sym_Ordinary then
+      Box.Ordinary
+    else if s = sym_BinOp then
+      Box.BinOp
+    else if s = sym_Relation then
+      Box.Relation
+    else if s = sym_Operator then
+      Box.Operator
+    else if s = sym_Punct then
+      Box.Punct
+    else if s = sym_Open then
+      Box.Open
+    else if s = sym_Close then
+      Box.Close
+    else if s = sym_Inner then
+      Box.Inner
+    else if s = sym_SubScript then
+      Box.SubScript
+    else if s = sym_SuperScript then
+      Box.SuperScript
+    else
+      Types.runtime_error (name ^ ": invalid math code")
+  }
+| Types.Tuple [|a; b|] -> match !a with
+      [ Types.Symbol s -> do
+        {
+          if s = sym_IndexPosition then
+            Box.IndexPosition (decode_index_position name b)
+          else
+            Types.runtime_error (name ^ ": invalid math code")
+        }
       | _ -> Types.runtime_error (name ^ ": invalid math code")
       ]
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid math code")
-  ]
-};
+| _ -> Types.runtime_error (name ^ ": invalid math code")
+];
 
 (* math-style *)
 
@@ -458,35 +400,30 @@ value encode_math_style s = match s with
 | MathLayout.CrampedScript2 -> Types.Symbol sym_CrampedScript2
 ];
 
-value decode_math_style name s = do
-{
-  Machine.evaluate s;
-
-  match !s with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_Display then
-        MathLayout.Display
-      else if s = sym_CrampedDisplay then
-        MathLayout.CrampedDisplay
-      else if s = sym_Text then
-        MathLayout.Text
-      else if s = sym_CrampedText then
-        MathLayout.CrampedText
-      else if s = sym_Script then
-        MathLayout.Script
-      else if s = sym_CrampedScript then
-        MathLayout.CrampedScript
-      else if s = sym_Script2 then
-        MathLayout.Script2
-      else if s = sym_CrampedScript2 then
-        MathLayout.CrampedScript2
-      else
-        Types.runtime_error (name ^ ": invalid math style")
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid math style")
-  ]
-};
+value decode_math_style name s = match !s with
+[ Types.Symbol s -> do
+  {
+    if s = sym_Display then
+      MathLayout.Display
+    else if s = sym_CrampedDisplay then
+      MathLayout.CrampedDisplay
+    else if s = sym_Text then
+      MathLayout.Text
+    else if s = sym_CrampedText then
+      MathLayout.CrampedText
+    else if s = sym_Script then
+      MathLayout.Script
+    else if s = sym_CrampedScript then
+      MathLayout.CrampedScript
+    else if s = sym_Script2 then
+      MathLayout.Script2
+    else if s = sym_CrampedScript2 then
+      MathLayout.CrampedScript2
+    else
+      Types.runtime_error (name ^ ": invalid math style")
+  }
+| _ -> Types.runtime_error (name ^ ": invalid math style")
+];
 
 (* modes *)
 
@@ -502,37 +439,32 @@ value encode_mode m = match m with
 | `Table     -> Types.Symbol sym_Table
 ];
 
-value decode_mode name m = do
-{
-  Machine.evaluate m;
-
-  match !m with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_Preamble then
-        `Preamble
-      else if s = sym_Galley then
-        `Galley
-      else if s = sym_Paragraph then
-        `Paragraph
-      else if s = sym_Math then
-        `Math
-      else if s = sym_HBox then
-        `HBox
-      else if s = sym_LRBox then
-        `LRBox
-      else if s = sym_RLBox then
-        `RLBox
-      else if s = sym_VBox then
-        `VBox
-      else if s = sym_Table then
-        `Table
-      else
-        Types.runtime_error (name ^ ": invalid mode")
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid mode")
-  ]
-};
+value decode_mode name m = match !m with
+[ Types.Symbol s -> do
+  {
+    if s = sym_Preamble then
+      `Preamble
+    else if s = sym_Galley then
+      `Galley
+    else if s = sym_Paragraph then
+      `Paragraph
+    else if s = sym_Math then
+      `Math
+    else if s = sym_HBox then
+      `HBox
+    else if s = sym_LRBox then
+      `LRBox
+    else if s = sym_RLBox then
+      `RLBox
+    else if s = sym_VBox then
+      `VBox
+    else if s = sym_Table then
+      `Table
+    else
+      Types.runtime_error (name ^ ": invalid mode")
+  }
+| _ -> Types.runtime_error (name ^ ": invalid mode")
+];
 
 value encode_hbox_dir d = match d with
 [ `LR      -> Types.Symbol sym_LR
@@ -540,25 +472,20 @@ value encode_hbox_dir d = match d with
 | `Default -> Types.Symbol sym_Default
 ];
 
-value decode_hbox_dir name d = do
-{
-  Machine.evaluate d;
-
-  match !d with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_LR then
-        `LR
-      else if s = sym_RL then
-        `RL
-      else if s = sym_Default then
-        `Default
-      else
-        Types.runtime_error (name ^ ": invalid direction")
-    }
-  | _ -> Types.runtime_error (name ^ ": invalid direction")
-  ]
-};
+value decode_hbox_dir name d = match !d with
+[ Types.Symbol s -> do
+  {
+    if s = sym_LR then
+      `LR
+    else if s = sym_RL then
+      `RL
+    else if s = sym_Default then
+      `Default
+    else
+      Types.runtime_error (name ^ ": invalid direction")
+  }
+| _ -> Types.runtime_error (name ^ ": invalid direction")
+];
 
 (* colours *)
 
@@ -576,53 +503,43 @@ value encode_colour col = match col with
                                          ref (Types.Number k) |]
 ];
 
-value decode_colour name col = do
-{
-  Machine.evaluate col;
-
-  match !col with
-  [ Types.Tuple xs -> do
-    {
-      Machine.evaluate xs.(0);
-
-      match !(xs.(0)) with
-      [ Types.Symbol s -> do
-        {
-          if s = sym_Grey then match xs with
-            [ [|_; x|] -> do
-              {
-                Graphic.Grey (Machine.decode_num name x)
-              }
-            | _ -> Types.runtime_error (name ^ ": colour expected")
-            ]
-          else if s = sym_RGB then match xs with
-            [ [|_; r; g; b|] -> do
-              {
-                Graphic.RGB
-                  (Machine.decode_num name r)
-                  (Machine.decode_num name g)
-                  (Machine.decode_num name b)
-              }
-            | _ -> Types.runtime_error (name ^ ": colour expected")
-            ]
-          else if s = sym_CMYK then match xs with
-            [ [|_; c; m; y; k|] -> do
-              {
-                Graphic.CMYK
-                  (Machine.decode_num name c)
-                  (Machine.decode_num name m)
-                  (Machine.decode_num name y)
-                  (Machine.decode_num name k)
-              }
-            | _ -> Types.runtime_error (name ^ ": colour expected")
-            ]
-          else
-            Types.runtime_error (name ^ ": colour expected")
-        }
-      | _ -> Types.runtime_error (name ^ ": colour expected")
-      ]
-    }
-  | _ -> Types.runtime_error (name ^ ": colour expected")
-  ]
-};
+value decode_colour name col = match !col with
+[ Types.Tuple xs -> match !(xs.(0)) with
+    [ Types.Symbol s -> do
+      {
+        if s = sym_Grey then match xs with
+          [ [|_; x|] -> do
+            {
+              Graphic.Grey (Machine.decode_num name x)
+            }
+          | _ -> Types.runtime_error (name ^ ": colour expected")
+          ]
+        else if s = sym_RGB then match xs with
+          [ [|_; r; g; b|] -> do
+            {
+              Graphic.RGB
+                (Machine.decode_num name r)
+                (Machine.decode_num name g)
+                (Machine.decode_num name b)
+            }
+          | _ -> Types.runtime_error (name ^ ": colour expected")
+          ]
+        else if s = sym_CMYK then match xs with
+          [ [|_; c; m; y; k|] -> do
+            {
+              Graphic.CMYK
+                (Machine.decode_num name c)
+                (Machine.decode_num name m)
+                (Machine.decode_num name y)
+                (Machine.decode_num name k)
+            }
+          | _ -> Types.runtime_error (name ^ ": colour expected")
+          ]
+        else
+          Types.runtime_error (name ^ ": colour expected")
+      }
+    | _ -> Types.runtime_error (name ^ ": colour expected")
+    ]
+| _ -> Types.runtime_error (name ^ ": colour expected")
+];
 

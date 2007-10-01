@@ -8,7 +8,8 @@ type scope =
   symbol_table   : Hashtbl.t uc_string Lexer.token_class;
   global_symbols : Hashtbl.t int unknown;
   local_symbols  : Hashtbl.t int (int * int);
-  depth          : int
+  depth          : int;
+  shift          : int
 };
 
 value create () =
@@ -16,28 +17,29 @@ value create () =
   symbol_table   = Lexer.initial_symbol_table  ();
   global_symbols = Hashtbl.create 1000;
   local_symbols  = Hashtbl.create 100;
-  depth          = 0
+  depth          = 0;
+  shift          = 0
 };
 
 value symbol_table scope = scope.symbol_table;
 
 value add_bin_op scope pri assoc sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add scope.symbol_table str (Lexer.BINOP sym pri assoc)
 };
 
 value add_pre_op scope sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add scope.symbol_table str (Lexer.PREOP sym)
 };
 
 value add_post_op scope sym = do
 {
-  let str = symbol_to_string sym in
+  let str = symbol_to_string sym;
 
   Hashtbl.add scope.symbol_table str (Lexer.POSTOP sym)
 };
@@ -47,7 +49,8 @@ value copy scope =
   symbol_table   = Hashtbl.copy scope.symbol_table;
   global_symbols = Hashtbl.copy scope.global_symbols;
   local_symbols  = Hashtbl.copy scope.local_symbols;
-  depth          = scope.depth
+  depth          = scope.depth;
+  shift          = scope.shift
 };
 
 value add_global scope symbol val = do
@@ -57,16 +60,16 @@ value add_global scope symbol val = do
 
 value push scope symbols = do
 {
-  let local = Hashtbl.copy scope.local_symbols in
-  let depth = scope.depth + 1                  in
+  let local = Hashtbl.copy scope.local_symbols;
+  let depth = scope.depth + 1;
 
   iter 0 symbols
 
   where rec iter n symbols = match symbols with
   [ [] ->
       ({
-         symbol_table   = scope.symbol_table;
-         global_symbols = scope.global_symbols;
+        (scope)
+         with
          local_symbols  = local;
          depth          = depth
        },
@@ -79,11 +82,16 @@ value push scope symbols = do
   ]
 };
 
+value shift scope off = do
+{
+  { (scope) with shift = scope.shift + off }
+};
+
 value lookup_local scope symbol = do
 {
-  let (level, index) = Hashtbl.find scope.local_symbols symbol in
+  let (level, index) = Hashtbl.find scope.local_symbols symbol;
 
-  (scope.depth - level, index)
+  (scope.depth - level + scope.shift, index)
 };
 
 value lookup_global scope symbol = do
@@ -94,11 +102,11 @@ value lookup_global scope symbol = do
 value lookup scope symbol = do
 {
   try
-    let (depth, index) = lookup_local scope symbol in
+    let (depth, index) = lookup_local scope symbol;
 
-    TVariable depth index
+    BVariable depth index
   with
-  [ Not_found -> TGlobal (lookup_global scope symbol) ]
+  [ Not_found -> BGlobal (lookup_global scope symbol) ]
 };
 
 (*

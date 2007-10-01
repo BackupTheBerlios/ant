@@ -12,8 +12,7 @@ value output_pages job pages = match pages with
                 ^ string_of_int (job.time.Unix.tm_mon + 1) ^ "."
                 ^ string_of_int job.time.Unix.tm_mday ^ ":"
                 ^ string_of_int job.time.Unix.tm_hour
-                ^ string_of_int job.time.Unix.tm_min
-    in
+                ^ string_of_int job.time.Unix.tm_min;
 
     match job.output_format with
     [ DVI  -> GenerateDVI.write_dvi_file               job.output_file comment pages

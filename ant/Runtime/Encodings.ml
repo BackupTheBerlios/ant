@@ -6104,7 +6104,7 @@ value oml_to_uc =
 
 value fake_encoding map = do
 {
-  let cm = Charmap.create Undef in
+  let cm = Charmap.create Undef;
 
   for g = 0 to Array.length map - 1 do
   {
@@ -6160,8 +6160,7 @@ value array_decoding map glyph = do
     if g > 0 && g < Array.length map then
       Array.to_list map.(g)
     else
-      []
-  in
+      [];
 
   Array.of_list (decode glyph)
 

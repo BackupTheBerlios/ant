@@ -74,7 +74,7 @@ value skyline_dist line1 line2 = do
   [ [] -> b1.b_depth
   | [Graphic.PutBox x y b :: cs] -> do
     {
-      let d = dim_add (dist (off +/ x.d_base) b1 b) y in
+      let d = dim_add (dist (off +/ x.d_base) b1 b) y;
       dim_max d (dist_simple_comp off b1 cs)
     }
   | [_ :: cs] -> dist_simple_comp off b1 cs
@@ -83,7 +83,7 @@ value skyline_dist line1 line2 = do
   [ [] -> b2.b_height
   | [Graphic.PutBox x y b :: cs] -> do
     {
-      let d = dim_sub (dist (off -/ x.d_base) b b2) y in
+      let d = dim_sub (dist (off -/ x.d_base) b b2) y;
       dim_max d (dist_comp_simple off cs b2)
     }
   | [_ :: cs] -> dist_comp_simple off cs b2
@@ -92,12 +92,11 @@ value skyline_dist line1 line2 = do
   [ [] -> dim_zero
   | [Graphic.PutBox x y b :: cs] -> do
     {
-      let d = dim_sub (dist (off -/ x.d_base) b b2) y in
+      let d = dim_sub (dist (off -/ x.d_base) b b2) y;
       dim_max d (dist_comp_comp off cs b2)
     }
   | [_ :: cs] -> dist_comp_comp off cs b2
-  ]
-  in
+  ];
 
   dist num_zero line1 line2
 };
@@ -114,23 +113,23 @@ value skyline_dist line1 line2 = do
 
 value leading_fixed line1 line2 line_params = do
 {
-  let dist = dim_add line1.b_depth line2.b_height in
+  let dist = dim_add line1.b_depth line2.b_height;
 
   dim_sub line_params.baseline_skip dist;
 };
 
 value leading_register line1 line2 line_params = do
 {
-  let dist = dim_add line1.b_depth line2.b_height in
+  let dist = dim_add line1.b_depth line2.b_height;
   let fac  = ceiling_num ((dist.d_base +/ line_params.line_skip_limit)
-                        // line_params.baseline_skip.d_base) in
+                        // line_params.baseline_skip.d_base);
 
   dim_sub (fixed_dim (fac */ line_params.baseline_skip.d_base)) dist
 };
 
 value leading_TeX line1 line2 line_params = do
 {
-  let dist = dim_add line1.b_depth line2.b_height in
+  let dist = dim_add line1.b_depth line2.b_height;
 
   if line_params.baseline_skip.d_base >=/
      dist.d_base +/ line_params.line_skip_limit then
@@ -141,14 +140,14 @@ value leading_TeX line1 line2 line_params = do
 
 value leading_skyline line1 line2 line_params = do
 {
-  let simple_dist = dim_add line1.b_depth line2.b_height in
+  let simple_dist = dim_add line1.b_depth line2.b_height;
 
   if line_params.baseline_skip.d_base >=/
      simple_dist.d_base +/ line_params.line_skip_limit then
     dim_sub line_params.baseline_skip simple_dist
   else do
   {
-    let dist = skyline_dist line1 line2 in
+    let dist = skyline_dist line1 line2;
 
     if line_params.baseline_skip.d_base >=/ dist.d_base +/ line_params.line_skip_limit then
       dim_sub line_params.baseline_skip simple_dist
@@ -307,8 +306,7 @@ value add_line galley line = do
   | Graphic.SetBgColour _ -> (fg, Some c, alpha)
   | Graphic.SetAlpha    _ -> (fg, bg, Some c)
   | _                     -> gfx
-  ]
-  in
+  ];
 
   (* |make_gfx_cmd_boxes <state>| returns a list of command boxes that sets the right graphics state. *)
 
@@ -326,19 +324,16 @@ value add_line galley line = do
      [ Some c -> [new_command_box (`GfxCmd c)]
      | None   -> []
      ])
-  }
-  in
+  };
 
   let leading = match galley.lines with
                 [ []     -> dim_zero
                 | [b::_] -> galley.current_line_params.leading b line galley.current_line_params
-                ]
-                in
+                ];
   let gfx     = match line.b_contents with
                 [ CompBox bs -> List.fold_left update_gfx_cmds (None, None, None) bs
                 | _          -> (None, None, None)
-                ]
-                in
+                ];
 
   {
     (galley)
@@ -383,8 +378,7 @@ value add_paragraph galley loc items = do
         extract_inserts bs result above below
       }
     ]
-  ]
-  in
+  ];
 
   let lines =
     ParLayout.break_paragraph
@@ -392,8 +386,7 @@ value add_paragraph galley loc items = do
       items
       galley.current_par_params
       galley.current_line_break_params
-      galley.current_hyphen_params
-  in
+      galley.current_hyphen_params;
 
   (* Move this function to ParLayout? *)
 
@@ -401,7 +394,7 @@ value add_paragraph galley loc items = do
   [ []      -> (line_no, ListBuilder.get result)
   | [b::bs] -> do
     {
-      let (body, above, below) = extract_inserts b (ListBuilder.make ()) [] [] in
+      let (body, above, below) = extract_inserts b (ListBuilder.make ()) [] [];
 
       ListBuilder.add result
         (ParLayout.layout_line galley.measure line_no body galley.current_par_params, above, below);
@@ -411,28 +404,24 @@ value add_paragraph galley loc items = do
        (line_no + 1)
        bs
     }
-  ]
-  in
+  ];
 
   let insert_break galley penalty = do
   {
     add_glue galley (new_break_box penalty False [] [] [])
-  }
-  in
+  };
 
   let insert_par_skip galley = do
   {
     add_glue
       (insert_break galley num_zero)
       (new_glue_box dim_zero galley.current_par_params.ParLayout.par_skip True True)
-  }
-  in
+  };
 
   let rec insert_insertion galley boxes = match boxes with
   [ []      -> galley
   | [b::bs] -> insert_insertion (add_glue galley b) bs
-  ]
-  in
+  ];
   let add_line_and_insertions galley line above below = do
   {
     insert_insertion
@@ -440,8 +429,7 @@ value add_paragraph galley loc items = do
         (insert_insertion galley above)
         line)
       below
-  }
-  in
+  };
 
   match box_lines (ListBuilder.make ()) 0 lines with
   [ (_,   [])                           -> galley

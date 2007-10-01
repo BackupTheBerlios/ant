@@ -133,7 +133,7 @@ value math_units_to_points params x = x */ params.quad // num_of_int 18;
 
 value math_dim_to_points params dim = do
 {
-  let mu = params.quad // num_of_int 18 in
+  let mu = params.quad // num_of_int 18;
   {
     d_base           = mu */ dim.d_base;
     d_stretch_factor = mu */ dim.d_stretch_factor;
@@ -149,8 +149,8 @@ value math_dim_to_points params dim = do
 
 value make_glyph_box glyph font = do
 {
-  let gm  = get_glyph_metric font glyph in
-  let box = new_glyph_box glyph font    in
+  let gm  = get_glyph_metric font glyph;
+  let box = new_glyph_box glyph font;
   {
     (box)
 
@@ -172,7 +172,7 @@ value make_char_box char font = do
 value remove_icorr box = match box.b_contents with
 [ CharBox g f -> do
   {
-    let gm = get_glyph_metric f g in
+    let gm = get_glyph_metric f g;
     {
       (box)
 
@@ -201,9 +201,9 @@ value remove_math_box box = match box.b_contents with
 
 value center_on_axis box axis_height = do
 {
-  let b      = remove_math_box box in
-  let height = b.b_height.d_base   in
-  let depth  = b.b_depth.d_base    in
+  let b      = remove_math_box box;
+  let height = b.b_height.d_base;
+  let depth  = b.b_depth.d_base;
 
   if height =/ axis_height && depth =/ axis_height then
     box
@@ -227,129 +227,116 @@ value attach_scripts mbox (lt, lb, vt, vb, rt, rb) style super_shift font_params
       empty_box
     else do
     {
-      let space = math_params.script_space in
+      let space = math_params.script_space;
 
       if dim_is_zero space then
         HBox.make HBox.LR (Compose.box_add_lig_kern script)
       else
         HBox.make HBox.LR (Compose.box_add_lig_kern (script @ [new_glue_box space dim_zero False False]))
     }
-  }
-  in
+  };
 
   if lt = [] && lb = [] && vt = [] && vb = [] && rt = [] && rb = [] then
     mbox
   else do
   {
-    let box           = remove_math_box mbox in
-    let body_params   = get_font_params font_params style             in
-    let script_params = get_font_params font_params (sub_style style) in
-    let lt_script     = make_script lt in
-    let lb_script     = make_script lb in
-    let vt_script     = make_script vt in
-    let vb_script     = make_script vb in
-    let rt_script     = make_script rt in
-    let rb_script     = make_script rb in
-    let super_h_pos   = dim_add box.b_width (fixed_dim super_shift) in
+    let box           = remove_math_box mbox;
+    let body_params   = get_font_params font_params style;
+    let script_params = get_font_params font_params (sub_style style);
+    let lt_script     = make_script lt;
+    let lb_script     = make_script lb;
+    let vt_script     = make_script vt;
+    let vb_script     = make_script vb;
+    let rt_script     = make_script rt;
+    let rb_script     = make_script rb;
+    let super_h_pos   = dim_add box.b_width (fixed_dim super_shift);
     let shift_up_1    = if is_char_box box then
                           num_zero
                         else
-                          box.b_height.d_base -/ script_params.super_drop
-                        in
+                          box.b_height.d_base -/ script_params.super_drop;
     let shift_down_1  = if is_char_box box then
                           num_zero
                         else
-                          box.b_depth.d_base +/ script_params.sub_drop
-                        in
+                          box.b_depth.d_base +/ script_params.sub_drop;
     let shift_up_2    = max_num
                           (max_num
                             shift_up_1
                             (get_super_shift body_params style)
                           )
                           (max_num lt_script.b_depth.d_base rt_script.b_depth.d_base
-                            +/ abs_num body_params.x_height // num_of_int 4)
-                        in
+                            +/ abs_num body_params.x_height // num_of_int 4);
     let shift_down_2  = if lt <> [] || rt <> [] then
                           max_num shift_down_1 body_params.sub_shift_2
                         else
                           max_num
                             (max_num shift_down_1 body_params.sub_shift_1)
                             (max_num lb_script.b_height.d_base rb_script.b_height.d_base
-                              -/ num_of_int 4 */ abs_num body_params.x_height // num_of_int 5)
-                        in
+                              -/ num_of_int 4 */ abs_num body_params.x_height // num_of_int 5);
     let lseparator    = num_of_int 4 */ body_params.rule_thickness +/
                         lt_script.b_depth.d_base -/ shift_up_2  +/
-                        lb_script.b_height.d_base  -/ shift_down_2 in
+                        lb_script.b_height.d_base  -/ shift_down_2;
     let rseparator    = num_of_int 4 */ body_params.rule_thickness +/
                         rt_script.b_depth.d_base -/ shift_up_2  +/
-                        rb_script.b_height.d_base  -/ shift_down_2 in
+                        rb_script.b_height.d_base  -/ shift_down_2;
     let final_lshift  = if lseparator >/ num_zero then
                           min_num
                             num_zero
                             (shift_up_2 -/ lt_script.b_depth.d_base
                                         -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
                         else
-                          num_zero
-                        in
+                          num_zero;
     let final_rshift  = if rseparator >/ num_zero then
                           min_num
                             num_zero
                             (shift_up_2 -/ rt_script.b_depth.d_base
                                         -/ abs_num (num_of_int 4 */ body_params.x_height // num_of_int 5))
                         else
-                          num_zero
-                        in
-    let lt_v_pos      = fixed_dim (shift_up_2 -/ final_lshift) in
-    let rt_v_pos      = fixed_dim (shift_up_2 -/ final_rshift) in
+                          num_zero;
+    let lt_v_pos      = fixed_dim (shift_up_2 -/ final_lshift);
+    let rt_v_pos      = fixed_dim (shift_up_2 -/ final_rshift);
     let lb_v_pos      = if lt <> [] && lseparator >/ num_zero then
                           fixed_dim (minus_num (shift_down_2 +/ lseparator +/ final_lshift))
                         else
-                          fixed_dim (minus_num shift_down_2)
-                        in
+                          fixed_dim (minus_num shift_down_2);
     let rb_v_pos      = if rt <> [] && rseparator >/ num_zero then
                           fixed_dim (minus_num (shift_down_2 +/ rseparator +/ final_rshift))
                         else
-                          fixed_dim (minus_num shift_down_2)
-                        in
+                          fixed_dim (minus_num shift_down_2);
     let vt_shift      = max_num (body_params.big_op_spacing_3 -/ vt_script.b_depth.d_base)
-                                body_params.big_op_spacing_1 in
+                                body_params.big_op_spacing_1;
     let vb_shift      = max_num (body_params.big_op_spacing_4 -/ vb_script.b_height.d_base)
-                                body_params.big_op_spacing_2 in
+                                body_params.big_op_spacing_2;
     let vt_h_pos      = fixed_dim ((box.b_width.d_base -/ vt_script.b_width.d_base +/ super_shift)
-                                   // num_two) in
+                                   // num_two);
     let vb_h_pos      = fixed_dim ((box.b_width.d_base -/ vb_script.b_width.d_base -/ super_shift)
-                                   // num_two) in
-    let vt_v_pos      = fixed_dim (box.b_height.d_base +/ vt_script.b_depth.d_base +/ vt_shift) in
-    let vb_v_pos      = fixed_dim (minus_num (box.b_depth.d_base +/ vb_script.b_height.d_base +/ vb_shift)) in
+                                   // num_two);
+    let vt_v_pos      = fixed_dim (box.b_height.d_base +/ vt_script.b_depth.d_base +/ vt_shift);
+    let vb_v_pos      = fixed_dim (minus_num (box.b_depth.d_base +/ vb_script.b_height.d_base +/ vb_shift));
     let vt_height     = if vt <> [] then
                           vt_script.b_height.d_base +/ vt_script.b_depth.d_base
                            +/ vt_shift +/ body_params.big_op_spacing_5
                         else
-                          num_zero
-                        in
+                          num_zero;
     let vb_height     = if vb <> [] then
                           vb_script.b_height.d_base +/ vb_script.b_depth.d_base
                            +/ vb_shift +/ body_params.big_op_spacing_5
                         else
-                          num_zero
-                        in
+                          num_zero;
     let total_rwidth  = dim_max
                           (dim_max (dim_add box.b_width rb_script.b_width)
                                    (dim_add super_h_pos rt_script.b_width))
                           (dim_max (dim_add vt_h_pos vt_script.b_width)
-                                   (dim_add vb_h_pos vb_script.b_width))
-                        in
+                                   (dim_add vb_h_pos vb_script.b_width));
     let total_lwidth  = dim_max
                           (dim_max lb_script.b_width
                                    (dim_sub lt_script.b_width (fixed_dim super_shift)))
-                          (dim_max (dim_neg vt_h_pos) (dim_neg vb_h_pos))
-                        in
+                          (dim_max (dim_neg vt_h_pos) (dim_neg vb_h_pos));
     let total_height  = dim_max (dim_add box.b_height (fixed_dim vt_height))
                           (dim_max (dim_add lt_v_pos lt_script.b_height)
-                                   (dim_add rt_v_pos rt_script.b_height)) in
+                                   (dim_add rt_v_pos rt_script.b_height));
     let total_depth   = dim_max (dim_add box.b_depth (fixed_dim vb_height))
                           (dim_max (dim_sub lb_script.b_depth lb_v_pos)
-                                   (dim_sub rb_script.b_depth rb_v_pos))  in
+                                   (dim_sub rb_script.b_depth rb_v_pos));
     let formula       = new_compound_box
                           (dim_add total_lwidth total_rwidth)
                           total_height total_depth
@@ -381,8 +368,7 @@ value attach_scripts mbox (lt, lb, vt, vb, rt, rb) style super_shift font_params
                                [Graphic.PutBox (dim_add total_lwidth super_h_pos) rt_v_pos rt_script]
                              else
                                [])
-                          )
-                        in
+                          );
 
     match mbox.b_contents with
     [ MathBox c _ -> new_math_box c formula
@@ -415,12 +401,11 @@ value rec merge_scripts style boxes font_params math_params = match boxes with
   | IndexPosition _ -> merge_scripts style bs font_params math_params
   | _ -> do
     {
-      let box         = remove_math_box base_box in
+      let box         = remove_math_box base_box;
       let super_shift = match box.b_contents with
                         [ CharBox c f -> (get_glyph_metric f c).gm_italic
                         | _           -> num_zero
-                        ]
-                        in
+                        ];
 
       iter RightIndex ([], [], [], [], [], []) bs
 
@@ -471,11 +456,10 @@ value rec merge_scripts style boxes font_params math_params = match boxes with
 value check_bin_ops boxes = do
 {
   let bin_to_ord box =
-    new_math_box Ordinary (remove_math_box box)
-  in
+    new_math_box Ordinary (remove_math_box box);
 
-  let buf    = ListBuilder.make () in
-  let spaces = ListBuilder.make () in
+  let buf    = ListBuilder.make ();
+  let spaces = ListBuilder.make ();
 
   let rec check last boxes = match boxes with
   [ [] -> do
@@ -524,8 +508,7 @@ value check_bin_ops boxes = do
           check last bs
         }
       ]
-  ]
-  in
+  ];
 
   if boxes = [] then
     []
@@ -539,12 +522,12 @@ value check_bin_ops boxes = do
 
 value add_spaces style boxes font_params math_params = do
 {
-  let params      = get_font_params font_params style                      in
-  let thin_skip   = math_dim_to_points params math_params.thin_math_skip   in
-  let med_skip    = math_dim_to_points params math_params.med_math_skip    in
-  let thick_skip  = math_dim_to_points params math_params.thick_math_skip  in
-  let rel_break   = new_break_box math_params.rel_penalty   False [] [] [] in
-  let binop_break = new_break_box math_params.binop_penalty False [] [] [] in
+  let params      = get_font_params font_params style;
+  let thin_skip   = math_dim_to_points params math_params.thin_math_skip;
+  let med_skip    = math_dim_to_points params math_params.med_math_skip;
+  let thick_skip  = math_dim_to_points params math_params.thick_math_skip;
+  let rel_break   = new_break_box math_params.rel_penalty   False [] [] [];
+  let binop_break = new_break_box math_params.binop_penalty False [] [] [];
 
   let code_to_index code = match code with
   [ Ordinary -> 0
@@ -556,8 +539,7 @@ value add_spaces style boxes font_params math_params = do
   | Punct    -> 6
   | Inner    -> 7
   | _        -> 0
-  ]
-  in
+  ];
 
   let spacing_index_table =
   [|
@@ -569,20 +551,17 @@ value add_spaces style boxes font_params math_params = do
     0;  2;  3;  4;  0;  0;  0;  1;  (* Close    *)
     1;  1; -1;  1;  1;  1;  1;  1;  (* Punct    *)
     1;  2;  3;  4;  1;  0;  1;  1   (* Inner    *)
-  |]
-  in
+  |];
 
   let spacing_table = match style with
   [ Display | CrampedDisplay | Text | CrampedText ->
     [| dim_zero; thin_skip;    thin_skip; med_skip;     thick_skip   |]
   | _ ->
     [| dim_zero; dim_zero; thin_skip; dim_zero; dim_zero |]
-  ]
-  in
+  ];
 
   let get_spacing first second =
-    spacing_table.(spacing_index_table.(8 * code_to_index first + code_to_index second))
-  in
+    spacing_table.(spacing_index_table.(8 * code_to_index first + code_to_index second));
 
   let get_break code = match code with
   [ BinOp    -> if math_params.binop_penalty <> num_zero then
@@ -594,11 +573,10 @@ value add_spaces style boxes font_params math_params = do
                 else
                   []
   | _ -> []
-  ]
-  in
+  ];
 
-  let buf    = ListBuilder.make () in
-  let spaces = ListBuilder.make () in
+  let buf    = ListBuilder.make ();
+  let spaces = ListBuilder.make ();
 
   let rec add_spacing boxes = match boxes with
   [ []      -> ListBuilder.get buf
@@ -618,9 +596,9 @@ value add_spaces style boxes font_params math_params = do
         | [next :: bs] -> match next.b_contents with
           [ MathBox next_code _ -> do
             {
-              let last_code = math_box_code last              in
-              let spacing   = get_spacing last_code next_code in
-              let break     = get_break last_code             in
+              let last_code = math_box_code last;
+              let spacing   = get_spacing last_code next_code;
+              let break     = get_break last_code;
 
               if dim_is_zero spacing then do
               {
@@ -652,15 +630,14 @@ value add_spaces style boxes font_params math_params = do
         add_spacing bs
       }
     }
-  ]
-  in
+  ];
 
   let rec add_italic boxes = match boxes with
   [ []        -> []
   | [box::bs] -> match box.b_contents with
     [ MathBox _ { b_contents = CharBox c f } -> do
       {
-        let italic = (get_glyph_metric f c).gm_italic in
+        let italic = (get_glyph_metric f c).gm_italic;
 
         if italic = num_zero then
           [box :: add_italic bs]
@@ -669,8 +646,7 @@ value add_spaces style boxes font_params math_params = do
       }
     | _ -> [box :: add_italic bs]
     ]
-  ]
-  in
+  ];
 
   add_italic (add_spacing (check_bin_ops boxes))
 };
@@ -686,8 +662,7 @@ value layout style boxes font_params math_params = do
   let add_math_box box = match box.b_contents with
   [ CharBox _ _ | CompBox _ -> new_math_box Ordinary box
   | _                       -> box
-  ]
-  in
+  ];
 
   List.map remove_math_box
     (add_spaces
@@ -710,14 +685,13 @@ value construct_delimiter
   (small_char, small_fonts, large_char, large_fonts)
   math_params = do
 {
-  let total_height gm = gm.gm_height +/ gm.gm_depth in
+  let total_height gm = gm.gm_height +/ gm.gm_depth;
 
   let make_delim font glyph = match glyph with
   [ Extendable top mid bot rep ->
          Glyph.vertical_extendable delim_height font top mid bot rep
   | _ -> make_glyph_box glyph font
-  ]
-  in
+  ];
 
   let try_delim glyph fonts = do
   {
@@ -743,8 +717,8 @@ value construct_delimiter
       | Extendable _ _ _ _ -> Some (make_delim f glyph)
       | _                  -> do
         {
-          let gm     = get_glyph_metric f glyph in
-          let height = total_height gm          in
+          let gm     = get_glyph_metric f glyph;
+          let height = total_height gm;
 
           if height >/ best_height then do
           {
@@ -762,8 +736,7 @@ value construct_delimiter
         }
       ]
     }
-  ]
-  in
+  ];
 
   match try_delim small_char small_fonts with
   [ Some box -> box
@@ -776,7 +749,7 @@ value construct_delimiter
 
 value make_delimiter style delim_height delim font_params math_params = do
 {
-  let params = get_font_params font_params style in
+  let params = get_font_params font_params style;
 
   center_on_axis
     (construct_delimiter delim_height delim math_params)
@@ -794,25 +767,23 @@ value simple_attach_delimiters style left_delim right_delim body font_params mat
   let make_delim size code delim =
     new_math_box
       code
-      (make_delimiter style size delim font_params math_params)
-  in
+      (make_delimiter style size delim font_params math_params);
 
   let get_max get_dim boxes =
     List.fold_left
       (fun max_val x -> max_num max_val (get_dim x).d_base)
       num_zero
-      boxes
-  in
+      boxes;
 
-  let layouted_body = layout style body font_params math_params       in
-  let max_height    = get_max (fun b -> b.b_height) layouted_body     in
-  let max_depth     = get_max (fun b -> b.b_depth)  layouted_body     in
-  let axis_height   = (get_font_params font_params style).axis_height in
-  let delta_1       = num_of_int 2 */ max_num (max_depth +/ axis_height) (max_height -/ axis_height) in
-  let delta_2       = math_params.delimiter_factor */ delta_1                      in
-  let size          = max_num delta_2 (delta_1 -/ math_params.delimiter_shortfall) in
-  let left_del      = make_delim size Open  left_delim  in
-  let right_del     = make_delim size Close right_delim in
+  let layouted_body = layout style body font_params math_params;
+  let max_height    = get_max (fun b -> b.b_height) layouted_body;
+  let max_depth     = get_max (fun b -> b.b_depth)  layouted_body;
+  let axis_height   = (get_font_params font_params style).axis_height;
+  let delta_1       = num_of_int 2 */ max_num (max_depth +/ axis_height) (max_height -/ axis_height);
+  let delta_2       = math_params.delimiter_factor */ delta_1;
+  let size          = max_num delta_2 (delta_1 -/ math_params.delimiter_shortfall);
+  let left_del      = make_delim size Open  left_delim;
+  let right_del     = make_delim size Close right_delim;
 
   new_math_box
     Inner
@@ -835,34 +806,30 @@ value attach_delimiters style delims bodies font_params math_params = do
   let make_delim size code delim =
     new_math_box
       code
-      (make_delimiter style size delim font_params math_params)
-  in
+      (make_delimiter style size delim font_params math_params);
 
   let get_max get_dim boxes =
     List.fold_left
       (fun max_val x -> max_num max_val (get_dim x).d_base)
       num_zero
-      boxes
-  in
+      boxes;
 
   let layouted_bodies = List.map
                           (fun b -> layout style b font_params math_params)
-                          bodies
-                        in
+                          bodies;
   let (max_height, max_depth) =
     List.fold_left
       (fun (mh, md) body ->
         (max_num mh (get_max (fun b -> b.b_height) body),
          max_num md (get_max (fun b -> b.b_depth)  body)))
       (num_zero, num_zero)
-      layouted_bodies
-  in
-  let axis_height = (get_font_params font_params style).axis_height in
-  let delta_1     = num_of_int 2 */ max_num (max_depth +/ axis_height) (max_height -/ axis_height) in
-  let delta_2     = math_params.delimiter_factor */ delta_1                      in
-  let size        = max_num delta_2 (delta_1 -/ math_params.delimiter_shortfall) in
+      layouted_bodies;
+  let axis_height = (get_font_params font_params style).axis_height;
+  let delta_1     = num_of_int 2 */ max_num (max_depth +/ axis_height) (max_height -/ axis_height);
+  let delta_2     = math_params.delimiter_factor */ delta_1;
+  let size        = max_num delta_2 (delta_1 -/ math_params.delimiter_shortfall);
 
-  let new_body = ListBuilder.make () in
+  let new_body = ListBuilder.make ();
 
   match delims with
   [ []      -> raise (Invalid_argument "attach_delimiters: empty delimiter list")
@@ -902,8 +869,7 @@ value make_operator style glyph font font_params = do
     new_math_box
       Operator
       (center_on_axis (new_glyph_box glyph font)
-                      (get_font_params font_params style).axis_height)
-  in
+                      (get_font_params font_params style).axis_height);
 
   if is_display style then do
   {
@@ -931,9 +897,9 @@ value attach_overline box clearance thickness = do
 
 value make_overline style boxes font_params math_params = do
 {
-  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
+  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params));
 
-  let thick  = (get_font_params font_params style).rule_thickness in
+  let thick  = (get_font_params font_params style).rule_thickness;
 
   new_math_box
     Ordinary
@@ -942,9 +908,9 @@ value make_overline style boxes font_params math_params = do
 
 value make_underline style boxes font_params math_params = do
 {
-  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params)) in
+  let body = HBox.make HBox.LR (Compose.box_add_lig_kern (layout style boxes font_params math_params));
 
-  let thick  = (get_font_params font_params style).rule_thickness in
+  let thick  = (get_font_params font_params style).rule_thickness;
 
   new_math_box
     Ordinary
@@ -987,31 +953,27 @@ value make_fraction style num denom left_delim right_delim thickness
                :: boxes
                 @ [new_glue_box dim_ss dim_zero False False]]
            )
-  ]
-  in
+  ];
 
-  let params       = get_font_params font_params style in
+  let params       = get_font_params font_params style;
   let thick        = if thickness >= num_zero then
                        thickness
                      else
-                       params.rule_thickness
-                     in
-  let num_boxes    = layout (numerator_style style)   num   font_params math_params in
-  let denom_boxes  = layout (denominator_style style) denom font_params math_params in
-  let num_width    = HBox.calc_width num_boxes   in
-  let denom_width  = HBox.calc_width denom_boxes in
+                       params.rule_thickness;
+  let num_boxes    = layout (numerator_style style)   num   font_params math_params;
+  let denom_boxes  = layout (denominator_style style) denom font_params math_params;
+  let num_width    = HBox.calc_width num_boxes;
+  let denom_width  = HBox.calc_width denom_boxes;
   let num_box      = if num_width.d_base </ denom_width.d_base then
                        rebox denom_width num_boxes
                      else
-                       HBox.make HBox.LR (Compose.box_add_lig_kern num_boxes)
-                     in
+                       HBox.make HBox.LR (Compose.box_add_lig_kern num_boxes);
   let denom_box    = if denom_width.d_base </ num_width.d_base then
                        rebox num_width denom_boxes
                      else
-                       HBox.make HBox.LR (Compose.box_add_lig_kern denom_boxes)
-                     in
-  let shift_up_1   = get_num_shift params style thick in
-  let shift_down_1 = get_denom_shift params style     in
+                       HBox.make HBox.LR (Compose.box_add_lig_kern denom_boxes);
+  let shift_up_1   = get_num_shift params style thick;
+  let shift_down_1 = get_denom_shift params style;
 
   let make_fract shift_up shift_down rule_shift =
     simple_attach_delimiters
@@ -1036,19 +998,17 @@ value make_fraction style num denom left_delim right_delim thickness
            )
          )]
       font_params
-      math_params
-  in
+      math_params;
 
   if thick = num_zero then do
   {
     let clear = match style with
                 [ Display | CrampedDisplay -> num_of_int 7 */ params.rule_thickness
                 | _                        -> num_of_int 3 */ params.rule_thickness
-                ]
-                in
+                ];
     let delta = (clear -/ (shift_up_1   -/ num_box.b_depth.d_base)
                        -/ (shift_down_1 -/ denom_box.b_height.d_base))
-                  // num_of_int 2 in
+                  // num_of_int 2;
 
     make_fract
       (shift_up_1   +/ max_num num_zero delta)
@@ -1060,11 +1020,10 @@ value make_fraction style num denom left_delim right_delim thickness
     let clear      = match style with
                      [ Display | CrampedDisplay -> num_of_int 3 */ thick
                      | _                        -> thick
-                     ]
-                     in
-    let delta      = thick // num_of_int 2 in
-    let delta_up   = clear +/ delta +/ num_box.b_depth.d_base    -/ shift_up_1   +/ params.axis_height in
-    let delta_down = clear +/ delta +/ denom_box.b_height.d_base -/ shift_down_1 -/ params.axis_height in
+                     ];
+    let delta      = thick // num_of_int 2;
+    let delta_up   = clear +/ delta +/ num_box.b_depth.d_base    -/ shift_up_1   +/ params.axis_height;
+    let delta_down = clear +/ delta +/ denom_box.b_height.d_base -/ shift_down_1 -/ params.axis_height;
 
     make_fract
       (shift_up_1   +/ max_num num_zero delta_up)
@@ -1075,24 +1034,21 @@ value make_fraction style num denom left_delim right_delim thickness
 
 value make_root style box delim font_params math_params = do
 {
-  let param        = get_font_params font_params style in
+  let param        = get_font_params font_params style;
   let clearance    = if is_display style then
                        param.rule_thickness +/ abs_num param.axis_height // num_of_int 4
                      else
-                       num_of_int 5 */ param.rule_thickness // num_of_int 4
-                     in
-  let total_height = box.b_height.d_base +/ box.b_depth.d_base +/ clearance in
+                       num_of_int 5 */ param.rule_thickness // num_of_int 4;
+  let total_height = box.b_height.d_base +/ box.b_depth.d_base +/ clearance;
   let root         = construct_delimiter
                        (total_height +/ param.rule_thickness)
                        delim
-                       math_params
-                     in
-  let delta        = root.b_depth.d_base -/ total_height in
+                       math_params;
+  let delta        = root.b_depth.d_base -/ total_height;
   let real_clear   = if delta >/ num_zero then
                        clearance +/ delta // num_of_int 2
                      else
-                       clearance
-                     in
+                       clearance;
 
   HBox.make HBox.LR
     (Compose.box_add_lig_kern
@@ -1103,15 +1059,15 @@ value make_root style box delim font_params math_params = do
 
 value make_accent style char font boxes font_params math_params = do
 {
-  let body   = HBox.make HBox.LR (Compose.box_add_lig_kern (layout (cramped_style style) boxes font_params math_params)) in
-  let width  = body.b_width.d_base  in
-  let height = body.b_height.d_base in
+  let body   = HBox.make HBox.LR (Compose.box_add_lig_kern (layout (cramped_style style) boxes font_params math_params));
+  let width  = body.b_width.d_base;
+  let height = body.b_height.d_base;
 
   let get_skew () = match boxes with
   [ [b] -> match (remove_math_box b).b_contents with
     [ CharBox c f -> do
       {
-        let sg = f.parameter.skew_glyph in
+        let sg = f.parameter.skew_glyph;
 
         if sg <> Undef then
           match get_lig_kern f c sg with
@@ -1124,8 +1080,7 @@ value make_accent style char font boxes font_params math_params = do
     | _ -> num_zero
     ]
   | _ -> num_zero
-  ]
-  in
+  ];
 
   let find_char char = do
   {
@@ -1135,7 +1090,7 @@ value make_accent style char font boxes font_params math_params = do
     [ Undef -> char
     | next  -> do
       {
-        let new_gm = get_glyph_metric font next in
+        let new_gm = get_glyph_metric font next;
 
         if new_gm.gm_width <=/ width then
           iter next
@@ -1143,13 +1098,12 @@ value make_accent style char font boxes font_params math_params = do
           char
       }
     ]
-  }
-  in
+  };
 
-  let x_height = font.parameter.x_height                       in
-  let delta    = min_num height x_height                       in
-  let accent   = make_glyph_box (find_char (Simple char)) font in
-  let skew     = get_skew () in
+  let x_height = font.parameter.x_height;
+  let delta    = min_num height x_height;
+  let accent   = make_glyph_box (find_char (Simple char)) font;
+  let skew     = get_skew ();
   let box      = new_compound_box
                    (fixed_dim width)
                    (fixed_dim (height +/ accent.b_depth.d_base +/ accent.b_height.d_base -/ delta))
@@ -1158,8 +1112,7 @@ value make_accent style char font boxes font_params math_params = do
                       (fixed_dim (skew +/ (width -/ accent.b_width.d_base) // num_of_int 2))
                       (fixed_dim (height +/ accent.b_depth.d_base -/ delta))
                       accent;
-                    Graphic.PutBox dim_zero dim_zero body]
-                 in
+                    Graphic.PutBox dim_zero dim_zero body];
 
   new_math_box
     (match boxes with

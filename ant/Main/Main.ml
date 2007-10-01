@@ -14,6 +14,7 @@ value print_help () = do
   print_string "--src-specials    enables the generation of source specials\n";
   print_string "--debug=<flags>   where <flags> may contain the following letters:\n";
   print_string "                    a   al commands\n";
+  print_string "                    b   al bytecode\n";
   print_string "                    e   engine\n";
   print_string "                    i   input\n";
   print_string "                    l   line breaks\n";
@@ -35,7 +36,7 @@ value rec process_options ((fmt, src_spec, file) as opt) args = match args with
   ]
 | [arg::args] -> do
   {
-    let len = String.length arg in
+    let len = String.length arg;
 
     if len = 0 then
       process_options opt args
@@ -44,9 +45,8 @@ value rec process_options ((fmt, src_spec, file) as opt) args = match args with
       let v = if arg.[1] = '-' then
                 String.sub arg 2 (len - 2)
               else
-                String.sub arg 1 (len - 1)
-              in
-      let len = String.length v in
+                String.sub arg 1 (len - 1);
+      let len = String.length v;
 
       if v = "help" then do
       {
@@ -94,6 +94,7 @@ value rec process_options ((fmt, src_spec, file) as opt) args = match args with
           {
             match v.[i] with
             [ 'a' -> !Markup.ALParseState.tracing_al_commands    := True
+            | 'b' -> !VM.Machine.tracing_bytecode                := True
             | 'e' -> !Engine.Evaluate.tracing_engine             := True
             | 'i' -> !ParseState.tracing_input                   := True
             | 'l' -> !Typesetting.ParLayout.tracing_line_breaks  := True
@@ -152,13 +153,13 @@ value main () = do
         }
       ];
 
-      let job = Job.create file fmt src_spec in
+      let job = Job.create file fmt src_spec;
 
       Run.initialise job;
 
-      let (ast, ps) = Run.parse_file job job.Job.input_file in
+      let (ast, ps) = Run.parse_file job job.Job.input_file;
 
-      let pages     = Engine.Evaluate.evaluate ast in
+      let pages     = Engine.Evaluate.evaluate ast;
 
       ALParseState.call_at_exit ps;
 

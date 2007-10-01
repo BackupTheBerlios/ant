@@ -6,35 +6,30 @@ open ALCoding;
 
 (* opaque type for dimensions *)
 
-value apply_dim dim x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Symbol s -> do
-    {
-      if s = sym_Base then
-        ref (Types.Number dim.Dim.d_base)
-      else if s = sym_Stretch       then
-        ref (Types.Tuple [|ref (Types.Number dim.Dim.d_stretch_factor);
-                           ref (Types.Number (num_of_int dim.Dim.d_stretch_order))|])
-      else if s = sym_StretchFactor then
-        ref (Types.Number dim.Dim.d_stretch_factor)
-      else if s = sym_StretchOrder  then
-        ref (Types.Number (num_of_int dim.Dim.d_stretch_order))
-      else if s = sym_Shrink        then
-        ref (Types.Tuple [|ref (Types.Number dim.Dim.d_shrink_factor);
-                           ref (Types.Number (num_of_int dim.Dim.d_shrink_order))|])
-      else if s = sym_ShrinkFactor  then
-        ref (Types.Number dim.Dim.d_shrink_factor)
-      else if s = sym_ShrinkOrder   then
-        ref (Types.Number (num_of_int dim.Dim.d_shrink_order))
-      else
-        Types.runtime_error "invalid argument"
-    }
-  | _ -> Types.runtime_error "invalid argument"
-  ]
-};
+value apply_dim dim x = match !x with
+[ Types.Symbol s -> do
+  {
+    if s = sym_Base then
+      ref (Types.Number dim.Dim.d_base)
+    else if s = sym_Stretch       then
+      ref (Types.Tuple [|ref (Types.Number dim.Dim.d_stretch_factor);
+                         ref (Types.Number (num_of_int dim.Dim.d_stretch_order))|])
+    else if s = sym_StretchFactor then
+      ref (Types.Number dim.Dim.d_stretch_factor)
+    else if s = sym_StretchOrder  then
+      ref (Types.Number (num_of_int dim.Dim.d_stretch_order))
+    else if s = sym_Shrink        then
+      ref (Types.Tuple [|ref (Types.Number dim.Dim.d_shrink_factor);
+                         ref (Types.Number (num_of_int dim.Dim.d_shrink_order))|])
+    else if s = sym_ShrinkFactor  then
+      ref (Types.Number dim.Dim.d_shrink_factor)
+    else if s = sym_ShrinkOrder   then
+      ref (Types.Number (num_of_int dim.Dim.d_shrink_order))
+    else
+      Types.runtime_error "invalid argument"
+  }
+| _ -> Types.runtime_error "invalid argument"
+];
 
 value cmp_dim = Dim.dim_equal;
 
@@ -46,33 +41,32 @@ value unwrap_dim = decode_opaque "dimension" dim_unwrapper;
 
 (* primitives *)
 
-value prim_make_dim res args = match args with
+value prim_make_dim args = match args with
 [ [base; st; st_ord; sh; sh_ord] -> do
   {
-    let a = Machine.decode_num "make_dim" base   in
-    let b = Machine.decode_num "make_dim" st     in
-    let c = decode_int         "make_dim" st_ord in
-    let d = Machine.decode_num "make_dim" sh     in
-    let e = decode_int         "make_dim" sh_ord in
+    let a = Machine.decode_num "make_dim" base;
+    let b = Machine.decode_num "make_dim" st;
+    let c = decode_int         "make_dim" st_ord;
+    let d = Machine.decode_num "make_dim" sh;
+    let e = decode_int         "make_dim" sh_ord;
 
-    !res :=
-      wrap_dim
-        {
-          Dim.d_base           = a;
-          Dim.d_stretch_factor = b;
-          Dim.d_stretch_order  = c;
-          Dim.d_shrink_factor  = d;
-          Dim.d_shrink_order   = e
-        }
+    wrap_dim
+      {
+        Dim.d_base           = a;
+        Dim.d_stretch_factor = b;
+        Dim.d_stretch_order  = c;
+        Dim.d_shrink_factor  = d;
+        Dim.d_shrink_order   = e
+      }
   }
 | _ -> assert False
 ];
 
-value prim_fixed_dim res base = do
+value prim_fixed_dim base = do
 {
-  let x = Machine.decode_num "fixed_dim" base in
+  let x = Machine.decode_num "fixed_dim" base;
 
-  !res := wrap_dim (Dim.fixed_dim x)
+  wrap_dim (Dim.fixed_dim x)
 };
 
 value prim_dim_zero   = wrap_dim Dim.dim_zero;
@@ -83,186 +77,177 @@ value prim_dim_fill   = wrap_dim Dim.dim_fill;
 value prim_dim_ss     = wrap_dim Dim.dim_ss;
 value prim_dim_filneg = wrap_dim Dim.dim_filneg;
 
-value prim_dim_equal res dim0 dim1 = do
+value prim_dim_equal dim0 dim1 = do
 {
-  let d0 = unwrap_dim "dim_equal" dim0 in
-  let d1 = unwrap_dim "dim_equal" dim1 in
+  let d0 = unwrap_dim "dim_equal" dim0;
+  let d1 = unwrap_dim "dim_equal" dim1;
 
-  !res := Types.Bool (Dim.dim_equal d0 d1)
+  Types.Bool (Dim.dim_equal d0 d1)
 };
 
-value prim_dim_add res dim0 dim1 = do
+value prim_dim_add dim0 dim1 = do
 {
-  let d0 = unwrap_dim "dim_add" dim0 in
-  let d1 = unwrap_dim "dim_add" dim1 in
+  let d0 = unwrap_dim "dim_add" dim0;
+  let d1 = unwrap_dim "dim_add" dim1;
 
-  !res := wrap_dim (Dim.dim_add d0 d1)
+  wrap_dim (Dim.dim_add d0 d1)
 };
 
-value prim_dim_neg res dim = do
+value prim_dim_neg dim = do
 {
-  let d = unwrap_dim "dim_neg" dim in
+  let d = unwrap_dim "dim_neg" dim;
 
-  !res := wrap_dim (Dim.dim_neg d)
+  wrap_dim (Dim.dim_neg d)
 };
 
-value prim_dim_sub res dim0 dim1 = do
+value prim_dim_sub dim0 dim1 = do
 {
-  let d0 = unwrap_dim "dim_sub" dim0 in
-  let d1 = unwrap_dim "dim_sub" dim1 in
+  let d0 = unwrap_dim "dim_sub" dim0;
+  let d1 = unwrap_dim "dim_sub" dim1;
 
-  !res := wrap_dim (Dim.dim_sub d0 d1)
+  wrap_dim (Dim.dim_sub d0 d1)
 };
 
-value prim_dim_mult res x dim = do
+value prim_dim_mult x dim = do
 {
-  let a = Machine.decode_num "dim_mult" x   in
-  let d = unwrap_dim         "dim_mult" dim in
+  let a = Machine.decode_num "dim_mult" x;
+  let d = unwrap_dim         "dim_mult" dim;
 
-  !res := wrap_dim (Dim.dim_mult a d)
+  wrap_dim (Dim.dim_mult a d)
 };
 
-value prim_dim_max res dim0 dim1 = do
+value prim_dim_max dim0 dim1 = do
 {
-  let d0 = unwrap_dim "dim_max" dim0 in
-  let d1 = unwrap_dim "dim_max" dim1 in
+  let d0 = unwrap_dim "dim_max" dim0;
+  let d1 = unwrap_dim "dim_max" dim1;
 
-  !res := wrap_dim (Dim.dim_max d0 d1)
+  wrap_dim (Dim.dim_max d0 d1)
 };
 
-value prim_dim_min res dim0 dim1 = do
+value prim_dim_min dim0 dim1 = do
 {
-  let d0 = unwrap_dim "dim_min" dim0 in
-  let d1 = unwrap_dim "dim_min" dim1 in
+  let d0 = unwrap_dim "dim_min" dim0;
+  let d1 = unwrap_dim "dim_min" dim1;
 
-  !res := wrap_dim (Dim.dim_min d0 d1)
+  wrap_dim (Dim.dim_min d0 d1)
 };
 
-value prim_dim_max_stretch res dim = do
+value prim_dim_max_stretch dim = do
 {
-  let d = unwrap_dim "dim_max_stretch" dim in
+  let d = unwrap_dim "dim_max_stretch" dim;
 
-  !res := Types.Number (Dim.dim_max_stretch d)
+  Types.Number (Dim.dim_max_stretch d)
 };
 
-value prim_dim_max_shrink res dim = do
+value prim_dim_max_shrink dim = do
 {
-  let d = unwrap_dim "dim_max_shrink" dim in
+  let d = unwrap_dim "dim_max_shrink" dim;
 
-  !res := Types.Number (Dim.dim_max_shrink d)
+  Types.Number (Dim.dim_max_shrink d)
 };
 
-value prim_dim_max_value res dim = do
+value prim_dim_max_value dim = do
 {
-  let d = unwrap_dim "dim_max_value" dim in
+  let d = unwrap_dim "dim_max_value" dim;
 
-  !res := Types.Number (Dim.dim_max_value d)
+  Types.Number (Dim.dim_max_value d)
 };
 
-value prim_dim_min_value res dim = do
+value prim_dim_min_value dim = do
 {
-  let d = unwrap_dim "dim_min_value" dim in
+  let d = unwrap_dim "dim_min_value" dim;
 
-  !res := Types.Number (Dim.dim_min_value d)
+  Types.Number (Dim.dim_min_value d)
 };
 
-value prim_dim_shift_base res dim x = do
+value prim_dim_shift_base dim x = do
 {
-  let d = unwrap_dim           "dim_shift_base" dim in
-  let y = Machine.decode_num "dim_shift_base" x   in
+  let d = unwrap_dim         "dim_shift_base" dim;
+  let y = Machine.decode_num "dim_shift_base" x;
 
-  !res := wrap_dim (Dim.dim_shift_base d y)
+  wrap_dim (Dim.dim_shift_base d y)
 };
 
-value prim_dim_shift_base_upto res dim x = do
+value prim_dim_shift_base_upto dim x = do
 {
-  let d = unwrap_dim           "dim_shift_base_upto" dim in
-  let y = Machine.decode_num "dim_shift_base_upto" x   in
+  let d = unwrap_dim         "dim_shift_base_upto" dim;
+  let y = Machine.decode_num "dim_shift_base_upto" x;
 
-  !res := wrap_dim (Dim.dim_shift_base_upto d y)
+  wrap_dim (Dim.dim_shift_base_upto d y)
 };
 
-value prim_dim_inc_upto res dim x = do
+value prim_dim_inc_upto dim x = do
 {
-  let d = unwrap_dim           "dim_inc_upto" dim in
-  let y = Machine.decode_num "dim_inc_upto" x   in
+  let d = unwrap_dim         "dim_inc_upto" dim;
+  let y = Machine.decode_num "dim_inc_upto" x;
 
-  !res := wrap_dim (Dim.dim_inc_upto d y)
+  wrap_dim (Dim.dim_inc_upto d y)
 };
 
-value prim_dim_dec_upto res dim x = do
+value prim_dim_dec_upto dim x = do
 {
-  let d = unwrap_dim           "dim_dec_upto" dim in
-  let y = Machine.decode_num "dim_dec_upto" x   in
+  let d = unwrap_dim         "dim_dec_upto" dim;
+  let y = Machine.decode_num "dim_dec_upto" x;
 
-  !res := wrap_dim (Dim.dim_dec_upto d y)
+  wrap_dim (Dim.dim_dec_upto d y)
 };
 
-value prim_dim_resize_upto res dim x = do
+value prim_dim_resize_upto dim x = do
 {
-  let d = unwrap_dim           "dim_resize_upto" dim in
-  let y = Machine.decode_num "dim_resize_upto" x   in
+  let d = unwrap_dim         "dim_resize_upto" dim;
+  let y = Machine.decode_num "dim_resize_upto" x;
 
-  !res := wrap_dim (Dim.dim_resize_upto d y)
+  wrap_dim (Dim.dim_resize_upto d y)
 };
 
-value prim_adjustment_ratio res dim x = do
+value prim_adjustment_ratio dim x = do
 {
-  let d = unwrap_dim           "dim_adjustment_ratio" dim in
-  let y = Machine.decode_num "dim_adjustment_ratio" x   in
+  let d = unwrap_dim         "dim_adjustment_ratio" dim;
+  let y = Machine.decode_num "dim_adjustment_ratio" x;
 
-  let (a,b) = Dim.adjustment_ratio d y in
+  let (a,b) = Dim.adjustment_ratio d y;
 
-  !res := Types.Tuple [|ref (Types.Number a); ref (Types.Number (num_of_int b))|]
+  Types.Tuple [|ref (Types.Number a); ref (Types.Number (num_of_int b))|]
 };
 
-value prim_dim_scale_badness res ratio = do
+value prim_dim_scale_badness ratio = match !ratio with
+[ Types.Tuple [|x; y|] -> do
+  {
+    let a = Machine.decode_num "dim_scale_badness" x;
+    let b = decode_int         "dim_scale_badness" y;
+
+    Types.Number (Dim.dim_scale_badness (a,b))
+  }
+| _ -> Types.runtime_error "dim_scale_badness: invalid argument"
+];
+
+value prim_dim_scale dim ratio = do
 {
-  Machine.evaluate ratio;
-
-  match !ratio with
-  [ Types.Tuple [|x; y|] -> do
-    {
-      let a = Machine.decode_num "dim_scale_badness" x in
-      let b = decode_int           "dim_scale_badness" y in
-
-      !res := Types.Number (Dim.dim_scale_badness (a,b))
-    }
-  | _ -> Types.runtime_error "dim_scale_badness: invalid argument"
-  ]
-};
-
-value prim_dim_scale res dim ratio = do
-{
-  let d = unwrap_dim "dim_scale" dim in
-
-  Machine.evaluate ratio;
+  let d = unwrap_dim "dim_scale" dim;
 
   match !ratio with
   [ Types.Tuple [|y; z|] -> do
     {
-      let a = Machine.decode_num "dim_scale" y in
-      let b = decode_int           "dim_scale" z in
+      let a = Machine.decode_num "dim_scale" y;
+      let b = decode_int         "dim_scale" z;
 
-      !res := wrap_dim (Dim.dim_scale d (a,b))
+      wrap_dim (Dim.dim_scale d (a,b))
     }
   | _ -> Types.runtime_error "dim_scale: invalid argument"
   ]
 };
 
-value prim_dim_scale_upto res dim ratio = do
+value prim_dim_scale_upto dim ratio = do
 {
-  let d = unwrap_dim "dim_scale_upto" dim in
-
-  Machine.evaluate ratio;
+  let d = unwrap_dim "dim_scale_upto" dim;
 
   match !ratio with
   [ Types.Tuple [|y; z|] -> do
     {
-      let a = Machine.decode_num "dim_scale_upto" y in
-      let b = decode_int           "dim_scale_upto" z in
+      let a = Machine.decode_num "dim_scale_upto" y;
+      let b = decode_int         "dim_scale_upto" z;
 
-      !res := wrap_dim (Dim.dim_scale_upto d (a,b))
+      wrap_dim (Dim.dim_scale_upto d (a,b))
     }
   | _ -> Types.runtime_error "dim_scale_upto: invalid argument"
   ]

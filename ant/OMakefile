@@ -1,8 +1,5 @@
 # Configuration:
 
-# Use two processes for omake:
-OMakeFlags(-j2)
-
 # Packages to be compiled into ant:
 PACKAGES_USED[]   = #german advi
 

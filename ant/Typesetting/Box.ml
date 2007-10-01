@@ -120,8 +120,7 @@ value rec long_dump_box box = do
     log_string " + ";
     log_dim box.b_depth;
     log_string ")"
-  }
-  in
+  };
 
   match box.b_contents with
   [ CharBox c _ -> do
@@ -238,7 +237,7 @@ value is_real_box box = match box.b_contents with
 
 value new_glyph_box glyph font = do
 {
-  let gm = FontMetric.get_glyph_metric font glyph in
+  let gm = FontMetric.get_glyph_metric font glyph;
   {
     b_width    = fixed_dim gm.gm_width;
     b_height   = fixed_dim gm.gm_height;
@@ -359,8 +358,7 @@ value rec scale_box_horiz box ratio = do
   let scale_graphics cmd = match cmd with
   [ PutBox x y b -> PutBox (dim_scale x ratio) y (scale_box_horiz b ratio)
   | _            -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -378,8 +376,7 @@ value rec scale_box_horiz_upto box ratio = do
   let scale_graphics cmd = match cmd with
   [ PutBox x y b -> PutBox (dim_scale_upto x ratio) y (scale_box_horiz_upto b ratio)
   | _            -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -397,8 +394,7 @@ value rec scale_box_vert box ratio = do
   let scale_graphics cmd = match cmd with
   [ PutBox x y b -> PutBox x (dim_scale y ratio) (scale_box_vert b ratio)
   | _            -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -423,8 +419,7 @@ value rec scale_box_vert_upto box ratio = do
   let scale_graphics cmd = match cmd with
   [ PutBox x y b -> PutBox x (dim_scale_upto y ratio) (scale_box_vert_upto b ratio)
   | _            -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -446,14 +441,13 @@ value rec scale_box_vert_upto box ratio = do
 
 value rec resize_box_horiz box width = do
 {
-  let ratio     = adjustment_ratio box.b_width width in
-  let new_width = (dim_shift_base box.b_width (width -/ box.b_width.d_base)) in
+  let ratio     = adjustment_ratio box.b_width width;
+  let new_width = (dim_shift_base box.b_width (width -/ box.b_width.d_base));
 
   let scale_graphics cmd = match cmd with
   [ PutBox x y b -> PutBox (dim_scale x ratio) y (scale_box_horiz b ratio)
   | _            -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -468,10 +462,10 @@ value rec resize_box_horiz box width = do
 
 value rec resize_box_vert box height depth = do
 {
-  let height_ratio = adjustment_ratio box.b_height height in
-  let depth_ratio  = adjustment_ratio box.b_depth  depth  in
-  let new_height   = (dim_shift_base box.b_height (height -/ box.b_height.d_base)) in
-  let new_depth    = (dim_shift_base box.b_depth  (depth  -/ box.b_depth.d_base))  in
+  let height_ratio = adjustment_ratio box.b_height height;
+  let depth_ratio  = adjustment_ratio box.b_depth  depth;
+  let new_height   = (dim_shift_base box.b_height (height -/ box.b_height.d_base));
+  let new_depth    = (dim_shift_base box.b_depth  (depth  -/ box.b_depth.d_base));
 
   let scale_graphics cmd = match cmd with
   [ PutBox x y b ->
@@ -507,8 +501,7 @@ value rec resize_box_vert box height depth = do
                    (dim_scale b.b_height height_ratio).d_base
                    (dim_scale b.b_depth  depth_ratio).d_base)
   | _ -> cmd
-  ]
-  in
+  ];
 
   match box.b_contents with
   [ CompBox contents ->
@@ -545,13 +538,12 @@ value rec resize_box_vert_upto box height depth = do
 value shift_compound_vert box amount = match box.b_contents with
 [ CompBox contents -> do
   {
-    let shift = fixed_dim amount in
+    let shift = fixed_dim amount;
 
     let shift_gfx cmd = match cmd with
     [ PutBox x y b -> PutBox x (dim_add y shift) b
     | _            -> cmd
-    ]
-    in
+    ];
 
     new_compound_box
       box.b_width
@@ -732,8 +724,7 @@ value rec draw_box page_info x y box = match box.b_contents with
                                     (box.b_height.d_base +/ box.b_depth.d_base))
                                ]
     | [_ :: cs]             -> get_bg_colour cs
-    ]
-    in
+    ];
 
     Group
       (get_bg_colour cmds
@@ -821,7 +812,7 @@ value rec discard_glue boxes = do
 
 value remove_breaks boxes = do
 {
-  let result = ListBuilder.make () in
+  let result = ListBuilder.make ();
 
   iter boxes
 

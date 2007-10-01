@@ -13,20 +13,15 @@ module SymbolMap = Unicode.SymbolTable.SymbolMap;
 
 (* Opaque type for environments *)
 
-value apply_env env x = do
-{
-  Machine.evaluate x;
-
-  match !x with
-  [ Types.Symbol s -> do
-    {
-(*      if s = sym_ then
-      else *)
-        Types.runtime_error "invalid argument"
-    }
-  | _ -> Types.runtime_error "invalid argument"
-  ]
-};
+value apply_env env x = match !x with
+[ Types.Symbol s -> do
+  {
+(*    if s = sym_ then
+    else *)
+      Types.runtime_error "invalid argument"
+  }
+| _ -> Types.runtime_error "invalid argument"
+];
 
 value cmp_env e1 e2 = e1 == e2;
 
@@ -36,15 +31,15 @@ value wrap_env env = Types.Opaque (env_wrapper env);
 
 value unwrap_env = decode_opaque "environment" env_unwrapper;
 
-value wrap_env_cmd name f res loc env = do
+value wrap_env_cmd name f loc env = do
 {
-  !res := wrap_env (f (decode_location name loc) (unwrap_env name env))
+  wrap_env (f (decode_location name loc) (unwrap_env name env))
 };
 
 value decode_env_cmd name f loc env = do
 {
   try
-    unwrap_env name (Machine.decode_function name f [ref (encode_location loc); ref (wrap_env env)])
+    unwrap_env name (Machine.evaluate_function f [ref (encode_location loc); ref (wrap_env env)])
   with
   [ VM.Types.Syntax_error loc msg -> do { log_warn loc (UString.to_string (Array.to_list msg)); env }
   | VM.Types.Runtime_error msg    -> do { log_warn loc (UString.to_string (Array.to_list msg)); env }
@@ -57,117 +52,105 @@ value encode_env_cmd name cmd = Types.Primitive2 (wrap_env_cmd name cmd);
 
 value encode_skip_arg s = do
 {
-  let f res e = do
+  let f e = do
   {
-    let env = unwrap_env "<unnamed>" e in
+    let env = unwrap_env "<unnamed>" e;
 
-    !res := Types.Number (s env)
-  }
-  in
+    Types.Number (s env)
+  };
 
   Types.Primitive1 f
 };
 
-value decode_skip_arg name s = do
-{
-  Machine.evaluate s;
+value decode_skip_arg name s = match !s with
+[ Types.Number a -> (fun _ -> a)
+| _ -> do
+  {
+    let f = Machine.evaluate_function s;
 
-  match !s with
-  [ Types.Number a -> (fun _ -> a)
-  | _ -> do
-    {
-      let f = decode_function name s in
+    (fun env -> do
+      {
+        let x = f [ref (wrap_env env)];
 
-      (fun env -> do
-        {
-          let x = f [ref (wrap_env env)] in
-
-          Machine.decode_num name x
-        })
-    }
-  ]
-};
+        Machine.decode_num name x
+      })
+  }
+];
 
 (* dim args *)
 
 value encode_dim_arg d = do
 {
-  let f res e = do
+  let f e = do
   {
-    let env = unwrap_env "<unnamed>" e in
+    let env = unwrap_env "<unnamed>" e;
 
-    !res := wrap_dim (d env)
-  }
-  in
+    wrap_dim (d env)
+  };
 
   Types.Primitive1 f
 };
 
-value decode_dim_arg name d = do
-{
-  Machine.evaluate d;
+value decode_dim_arg name d = match !d with
+[ Types.Number a -> (fun _ -> Dim.fixed_dim a)
+| _ -> do
+  {
+    let f = Machine.evaluate_function d;
 
-  match !d with
-  [ Types.Number a -> (fun _ -> Dim.fixed_dim a)
-  | _ -> do
-    {
-      let f = decode_function name d in
+    (fun env -> do
+      {
+        let x = f [ref (wrap_env env)];
 
-      (fun env -> do
-        {
-          let x = f [ref (wrap_env env)] in
+        match !x with
+        [ Types.Number a -> Dim.fixed_dim a
+        | _              -> unwrap_dim name x
+        ]
+      })
+  }
+];
 
-          match !x with
-          [ Types.Number a -> Dim.fixed_dim a
-          | _              -> unwrap_dim name x
-          ]
-        })
-    }
-  ]
-};
-
-value lookup_skip   name dict key = lookup (decode_skip_arg name) dict key;
-value lookup_dim    name dict key = lookup (decode_dim_arg  name) dict key;
+value lookup_skip name dict key = lookup (decode_skip_arg name) dict key;
+value lookup_dim  name dict key = lookup (decode_dim_arg  name) dict key;
 
 (* primitives *)
 
-value env_quad res x env = do
+value env_quad x env = do
 {
-  let e = unwrap_env "env_quad" env         in
-  let s = Machine.decode_num "env_quad" x in
+  let e = unwrap_env "env_quad" env;
+  let s = Machine.decode_num "env_quad" x;
 
-  !res := Types.Number (Evaluate.const_em s e)
+  Types.Number (Evaluate.const_em s e)
 };
 
-value env_x_height res x env = do
+value env_x_height x env = do
 {
-  let e = unwrap_env "env_x_height" env         in
-  let s = Machine.decode_num "env_x_height" x in
+  let e = unwrap_env "env_x_height" env;
+  let s = Machine.decode_num "env_x_height" x;
 
-  !res := Types.Number (Evaluate.const_ex s e)
+  Types.Number (Evaluate.const_ex s e)
 };
 
-value env_math_unit res x env = do
+value env_math_unit x env = do
 {
-  let e = unwrap_env "env_math_unit" env         in
-  let s = Machine.decode_num "env_math_unit" x in
+  let e = unwrap_env "env_math_unit" env;
+  let s = Machine.decode_num "env_math_unit" x;
 
-  !res := Types.Number (Evaluate.const_mu s e)
+  Types.Number (Evaluate.const_mu s e)
 };
 
-value prim_new_galley res name width = do
+value prim_new_galley name width = do
 {
-  let n = decode_uc_string     "new_galley" name  in
-  let w = Machine.decode_num "new_galley" width in
+  let n = decode_uc_string     "new_galley" name;
+  let w = Machine.decode_num "new_galley" width;
 
-  !res := encode_env_cmd "new_galley" (Environment.new_galley n w)
+  encode_env_cmd "new_galley" (Environment.new_galley n w)
 };
 
-value prim_select_galley res name = do
+value prim_select_galley name = do
 {
-  let n = decode_uc_string "select_galley" name in
+  let n = decode_uc_string "select_galley" name;
 
-  !res := encode_env_cmd "select_galley" (Environment.select_galley n)
+  encode_env_cmd "select_galley" (Environment.select_galley n)
 };
 (*
 value prim_set_galley         : Galley.galley box_cmd -> env_cmd;
@@ -180,8 +163,7 @@ value prim_set_par_shape res shape = do
     let result = Machine.decode_function
                    "<par-shape>"
                    shape
-                   [ref (wrap_env env); ref (Types.Number (num_of_int line))]
-                 in
+                   [ref (wrap_env env); ref (Types.Number (num_of_int line))];
 
     Machine.evaluate result;
 
@@ -190,8 +172,7 @@ value prim_set_par_shape res shape = do
                                Machine.decode_num "<par-shape>" r)
     | _ -> Types.runtime_error ("<par-shape>: pair expected but got " ^ Types.type_name !result)
     ]
-  }
-  in
+  };
 
   !res := encode_env_cmd "galley_set_par_shape"
             (Environment.set_par_params
@@ -201,34 +182,34 @@ value prim_set_par_shape res shape = do
 value prim_galley_set_post_process_line : (environment -> list box -> list box) -> env_cmd;
 *)
 
-value prim_set_colour res col = do
+value prim_set_colour col = do
 {
-  let c = decode_colour "set_colour" col in
+  let c = decode_colour "set_colour" col;
 
-  !res := encode_env_cmd "set_colour" (Environment.set_colour c)
+  encode_env_cmd "set_colour" (Environment.set_colour c)
 };
 
 (*
 value prim_adjust_graphics_state : environment -> environment -> list box;
 *)
 
-value prim_new_page_layout res args = match args with
+value prim_new_page_layout args = match args with
 [ [name; width; height] -> do
   {
-    let n = decode_uc_string     "new_page_layout" name   in
-    let w = Machine.decode_num "new_page_layout" width  in
-    let h = Machine.decode_num "new_page_layout" height in
+    let n = decode_uc_string   "new_page_layout" name;
+    let w = Machine.decode_num "new_page_layout" width;
+    let h = Machine.decode_num "new_page_layout" height;
 
-    !res := encode_env_cmd "new_page_layout" (Environment.new_page_layout n w h)
+    encode_env_cmd "new_page_layout" (Environment.new_page_layout n w h)
   }
 | _ -> assert False
 ];
 
-value prim_select_page_layout res name = do
+value prim_select_page_layout name = do
 {
-  let n = decode_uc_string "select_page_layout" name in
+  let n = decode_uc_string "select_page_layout" name;
 
-  !res := encode_env_cmd "select_page_layout" (Environment.select_page_layout n)
+  encode_env_cmd "select_page_layout" (Environment.select_page_layout n)
 };
 
 (*
@@ -244,10 +225,10 @@ value prim_set_font def = do
   match !def with
   [ Types.Tuple [|family; series; shape; size; script_lang|] -> do
     {
-      let fam = decode_option "set_font" decode_uc_string     family      in
-      let ser = decode_option "set_font" decode_uc_string     series      in
-      let sha = decode_option "set_font" decode_uc_string     shape       in
-      let siz = decode_option "set_font" Machine.decode_num size        in
+      let fam = decode_option "set_font" decode_uc_string     family;
+      let ser = decode_option "set_font" decode_uc_string     series;
+      let sha = decode_option "set_font" decode_uc_string     shape;
+      let siz = decode_option "set_font" Machine.decode_num size;
 
       encode_env_cmd "set_font" (Environment.set_font (fam, ser, sha, siz))
     }
@@ -260,9 +241,9 @@ value prim_set_font def = do
 value prim_get_math_font args = match args with
 [ [env; style; family] -> do
   {
-    let e = unwrap_env        "get_math_font" env    in
-    let s = decode_math_style "get_math_font" style  in
-    let f = decode_int        "get_math_font" family in
+    let e = unwrap_env        "get_math_font" env;
+    let s = decode_math_style "get_math_font" style;
+    let f = decode_int        "get_math_font" family;
 
     (* FIX *)
     encode_font_metric (Environment.get_math_font e s f)
@@ -271,60 +252,50 @@ value prim_get_math_font args = match args with
 ];
 *)
 
-value prim_set_math_font res def = do
-{
-  Machine.evaluate def;
+value prim_set_math_font def = match !def with
+[ Types.Tuple [|math_family; family; series; shape; text_size; script_size; script2_size|] -> do
+  {
+    let mf  = decode_option "set_math_font" decode_int           math_family;
+    let fam = decode_option "set_math_font" decode_uc_string     family;
+    let ser = decode_option "set_math_font" decode_uc_string     series;
+    let sha = decode_option "set_math_font" decode_uc_string     shape;
+    let ts  = decode_option "set_math_font" Machine.decode_num text_size;
+    let ss  = decode_option "set_math_font" Machine.decode_num script_size;
+    let s2s = decode_option "set_math_font" Machine.decode_num script2_size;
 
-  match !def with
-  [ Types.Tuple [|math_family; family; series; shape; text_size; script_size; script2_size|] -> do
-    {
-      let mf  = decode_option "set_math_font" decode_int           math_family  in
-      let fam = decode_option "set_math_font" decode_uc_string     family       in
-      let ser = decode_option "set_math_font" decode_uc_string     series       in
-      let sha = decode_option "set_math_font" decode_uc_string     shape        in
-      let ts  = decode_option "set_math_font" Machine.decode_num text_size    in
-      let ss  = decode_option "set_math_font" Machine.decode_num script_size  in
-      let s2s = decode_option "set_math_font" Machine.decode_num script2_size in
-
-      !res := encode_env_cmd "set_math_font" (Environment.set_math_font (mf, fam, ser, sha, ts, ss, s2s))
-    }
-  | _ -> Types.runtime_error "set_math_font: invalid argument"
-  ]
-};
+    encode_env_cmd "set_math_font" (Environment.set_math_font (mf, fam, ser, sha, ts, ss, s2s))
+  }
+| _ -> Types.runtime_error "set_math_font: invalid argument"
+];
 
 value prim_adapt_fonts_to_math_style =
   encode_env_cmd "adapt_fonts_to_math_style" Environment.adapt_fonts_to_math_style;
 
-value decode_par_params name params = do
-{
-  Machine.evaluate params;
+value decode_par_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_num name d sym_Measure,
+   lookup_dim name d sym_ParIndent,
+   lookup_dim name d sym_ParFillSkip,
+   lookup_dim name d sym_LeftSkip,
+   lookup_dim name d sym_RightSkip,
+   None, (* FIX: lookup_ name d sym_ParShape  *)
+   lookup_dim name d sym_ParSkip,
+   None, (* FIX: lookup_ name d sym_PreBreak  *)
+   None, (* FIX: lookup_ name d sym_PostBreak *)
+   None) (* FIX: lookup_ name d sym_PostProcessLine *)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
 
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_num name d sym_Measure,
-     lookup_dim name d sym_ParIndent,
-     lookup_dim name d sym_ParFillSkip,
-     lookup_dim name d sym_LeftSkip,
-     lookup_dim name d sym_RightSkip,
-     None, (* FIX: lookup_ name d sym_ParShape  *)
-     lookup_dim name d sym_ParSkip,
-     None, (* FIX: lookup_ name d sym_PreBreak  *)
-     None, (* FIX: lookup_ name d sym_PostBreak *)
-     None) (* FIX: lookup_ name d sym_PostProcessLine *)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
+value prim_set_par_params params = do
+{
+  encode_env_cmd "set_par_params"
+    (Environment.set_par_params (decode_par_params "set_par_params" params))
 };
 
-value prim_set_par_params res params = do
+value prim_set_current_par_params params = do
 {
-  !res := encode_env_cmd "set_par_params"
-            (Environment.set_par_params (decode_par_params "set_par_params" params))
-};
-
-value prim_set_current_par_params res params = do
-{
-  !res := encode_env_cmd "set_current_par_params"
-            (Environment.set_current_par_params (decode_par_params "set_current_par_params" params))
+  encode_env_cmd "set_current_par_params"
+    (Environment.set_current_par_params (decode_par_params "set_current_par_params" params))
 };
 
 value leading_map =
@@ -335,7 +306,7 @@ value leading_map =
     SymbolMap.empty)));
 
 value decode_leading name leading = match leading with
-[ None -> None
+[ None     -> None
 | Some sym -> do
   {
     try
@@ -351,164 +322,139 @@ value decode_leading name leading = match leading with
   }
 ];
 
-value decode_line_params name params = do
-{
-  Machine.evaluate params;
+value decode_line_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_dim     name d sym_BaselineSkip,
+   lookup_skip    name d sym_LineSkipLimit,
+   lookup_dim     name d sym_LineSkip,
+   decode_leading name (lookup_symbol name d sym_Leading),
+   None)  (* FIX: lookup_ name d sym_ClubWidowPenalty *)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
 
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_dim     name d sym_BaselineSkip,
-     lookup_skip    name d sym_LineSkipLimit,
-     lookup_dim     name d sym_LineSkip,
-     decode_leading name (lookup_symbol name d sym_Leading),
-     None)  (* FIX: lookup_ name d sym_ClubWidowPenalty *)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
+value prim_set_line_params params = do
+{
+  encode_env_cmd "set_line_params"
+    (Environment.set_line_params (decode_line_params "set_line_params" params))
 };
 
-value prim_set_line_params res params = do
+value prim_set_current_line_params params = do
 {
-  !res := encode_env_cmd "set_line_params"
-            (Environment.set_line_params (decode_line_params "set_line_params" params))
+  encode_env_cmd "set_current_line_params"
+    (Environment.set_current_line_params (decode_line_params "set_current_line_params" params))
 };
 
-value prim_set_current_line_params res params = do
+value decode_line_break_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_num  name d sym_PreTolerance,
+   lookup_num  name d sym_Tolerance,
+   lookup_int  name d sym_Looseness,
+   lookup_num  name d sym_LinePenalty,
+   lookup_num  name d sym_AdjDemerits,
+   lookup_num  name d sym_DoubleHyphenDemerits,
+   lookup_num  name d sym_FinalHyphenDemerits,
+   lookup_skip name d sym_EmergencyStretch,
+   lookup_num  name d sym_RiverDemerits,
+   lookup_skip name d sym_RiverThreshold,
+   lookup_bool name d sym_SimpleBreaking)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
+
+value prim_set_line_break_params params = do
 {
-  !res := encode_env_cmd "set_current_line_params"
-            (Environment.set_current_line_params (decode_line_params "set_current_line_params" params))
+  encode_env_cmd "set_line_break_params"
+    (Environment.set_line_break_params (decode_line_break_params "set_line_break_params" params))
 };
 
-value decode_line_break_params name params = do
+value prim_set_current_line_break_params params = do
 {
-  Machine.evaluate params;
-
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_num  name d sym_PreTolerance,
-     lookup_num  name d sym_Tolerance,
-     lookup_int  name d sym_Looseness,
-     lookup_num  name d sym_LinePenalty,
-     lookup_num  name d sym_AdjDemerits,
-     lookup_num  name d sym_DoubleHyphenDemerits,
-     lookup_num  name d sym_FinalHyphenDemerits,
-     lookup_skip name d sym_EmergencyStretch,
-     lookup_num  name d sym_RiverDemerits,
-     lookup_skip name d sym_RiverThreshold,
-     lookup_bool name d sym_SimpleBreaking)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
+  encode_env_cmd "set_current_line_break_params"
+    (Environment.set_current_line_break_params (decode_line_break_params "set_current_line_break_params" params))
 };
 
-value prim_set_line_break_params res params = do
+value decode_hyphen_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_string name d sym_HyphenTable,
+   lookup_num    name d sym_HyphenPenalty,
+   lookup_num    name d sym_ExHyphenPenalty,
+   lookup_int    name d sym_LeftHyphenMin,
+   lookup_int    name d sym_RightHyphenMin,
+   lookup_string name d sym_ScriptLang)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
+
+value prim_set_hyphen_params params = do
 {
-  !res := encode_env_cmd "set_line_break_params"
-            (Environment.set_line_break_params (decode_line_break_params "set_line_break_params" params))
+  encode_env_cmd "set_hyphen_params"
+    (Environment.set_hyphen_params (decode_hyphen_params "set_hyphen_params" params))
 };
 
-value prim_set_current_line_break_params res params = do
+value prim_set_current_hyphen_params params = do
 {
-  !res := encode_env_cmd "set_current_line_break_params"
-            (Environment.set_current_line_break_params (decode_line_break_params "set_current_line_break_params" params))
+  encode_env_cmd "set_current_hyphen_params"
+    (Environment.set_current_hyphen_params (decode_hyphen_params "set_current_hyphen_params" params))
 };
 
-value decode_hyphen_params name params = do
-{
-  Machine.evaluate params;
+value decode_space_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_num  name d sym_SpaceFactor,
+   lookup_dim  name d sym_SpaceSkip,
+   lookup_dim  name d sym_XSpaceSkip,
+   lookup_bool name d sym_VictorianSpacing)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
 
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_string name d sym_HyphenTable,
-     lookup_num    name d sym_HyphenPenalty,
-     lookup_num    name d sym_ExHyphenPenalty,
-     lookup_int    name d sym_LeftHyphenMin,
-     lookup_int    name d sym_RightHyphenMin,
-     lookup_string name d sym_ScriptLang)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
+value prim_set_space_params params = do
+{
+  encode_env_cmd "set_space_params"
+    (Environment.set_space_params (decode_space_params "set_space_params" params))
 };
 
-value prim_set_hyphen_params res params = do
+value prim_set_current_space_params params = do
 {
-  !res := encode_env_cmd "set_hyphen_params"
-            (Environment.set_hyphen_params (decode_hyphen_params "set_hyphen_params" params))
+  encode_env_cmd "set_current_space_params"
+    (Environment.set_current_space_params (decode_space_params "set_current_space_params" params))
 };
 
-value prim_set_current_hyphen_params res params = do
+value decode_math_params name params = match !params with
+[ Types.Dictionary d ->
+  (lookup_dim  name d sym_ThinMathSkip,
+   lookup_dim  name d sym_MedMathSkip,
+   lookup_dim  name d sym_ThickMathSkip,
+   lookup_dim  name d sym_ScriptSpace,
+   lookup_num  name d sym_RelPenalty,
+   lookup_num  name d sym_BinOpPenalty,
+   lookup_num  name d sym_DelimiterFactor,
+   lookup_skip name d sym_DelimiterShortfall,
+   lookup_dim  name d sym_NullDelimiterSpace)
+| _ -> Types.runtime_error (name ^ ": invalid argument")
+];
+
+value prim_set_math_params params = do
 {
-  !res := encode_env_cmd "set_current_hyphen_params"
-            (Environment.set_current_hyphen_params (decode_hyphen_params "set_current_hyphen_params" params))
+  encode_env_cmd "set_math_params"
+    (Environment.set_math_params (decode_math_params "set_math_params" params))
 };
 
-value decode_space_params name params = do
+value prim_set_current_math_params params = do
 {
-  Machine.evaluate params;
-
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_num  name d sym_SpaceFactor,
-     lookup_dim  name d sym_SpaceSkip,
-     lookup_dim  name d sym_XSpaceSkip,
-     lookup_bool name d sym_VictorianSpacing)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
-};
-
-value prim_set_space_params res params = do
-{
-  !res := encode_env_cmd "set_space_params"
-            (Environment.set_space_params (decode_space_params "set_space_params" params))
-};
-
-value prim_set_current_space_params res params = do
-{
-  !res := encode_env_cmd "set_current_space_params"
-            (Environment.set_current_space_params (decode_space_params "set_current_space_params" params))
-};
-
-value decode_math_params name params = do
-{
-  Machine.evaluate params;
-
-  match !params with
-  [ Types.Dictionary d ->
-    (lookup_dim  name d sym_ThinMathSkip,
-     lookup_dim  name d sym_MedMathSkip,
-     lookup_dim  name d sym_ThickMathSkip,
-     lookup_dim  name d sym_ScriptSpace,
-     lookup_num  name d sym_RelPenalty,
-     lookup_num  name d sym_BinOpPenalty,
-     lookup_num  name d sym_DelimiterFactor,
-     lookup_skip name d sym_DelimiterShortfall,
-     lookup_dim  name d sym_NullDelimiterSpace)
-  | _ -> Types.runtime_error (name ^ ": invalid argument")
-  ]
-};
-
-value prim_set_math_params res params = do
-{
-  !res := encode_env_cmd "set_math_params"
-            (Environment.set_math_params (decode_math_params "set_math_params" params))
-};
-
-value prim_set_current_math_params res params = do
-{
-  !res := encode_env_cmd "set_current_math_params"
-            (Environment.set_current_math_params (decode_math_params "set_current_math_params" params))
+  encode_env_cmd "set_current_math_params"
+    (Environment.set_current_math_params (decode_math_params "set_current_math_params" params))
 };
 
 
-value prim_get_space_factor res env char = do
+value prim_get_space_factor env char = do
 {
-  let e = unwrap_env  "get_space_factor" env  in
-  let c = decode_char "get_space_factor" char in
+  let e = unwrap_env  "get_space_factor" env;
+  let c = decode_char "get_space_factor" char;
 
-  !res := Types.Number (Environment.get_space_factor e c)
+  Types.Number (Environment.get_space_factor e c)
 };
 
-value prim_adjust_space_factor res char = do
+value prim_adjust_space_factor char = do
 {
-  let x = decode_char "adjust_space_factor" char in
+  let x = decode_char "adjust_space_factor" char;
 
-  !res := encode_env_cmd "adjust_space_factor" (Environment.adjust_space_factor x)
+  encode_env_cmd "adjust_space_factor" (Environment.adjust_space_factor x)
 };
 

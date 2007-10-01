@@ -51,15 +51,14 @@ value select_image state file = do
 
 value new_font state font = do
 {
-  let n  = List.length state.fonts in
+  let n  = List.length state.fonts;
   let fd =
     {
       font              = font;
       first_glyph_index = font.first_glyph;
       used_glyphs       = 0;
       glyph_map         = Array.make (font.last_glyph - font.first_glyph + 1) (-1)
-    }
-  in
+    };
 
   state.fonts := state.fonts @ [fd];
 
@@ -68,7 +67,7 @@ value new_font state font = do
 
 value get_glyph_index font_def char = do
 {
-  let i = font_def.glyph_map.(char - font_def.first_glyph_index) in
+  let i = font_def.glyph_map.(char - font_def.first_glyph_index);
 
   if i >= 0 then
     i
@@ -94,7 +93,7 @@ value load_font state font char = do
     }
   | [] -> do
     {
-      let (i, fd) = new_font state font in
+      let (i, fd) = new_font state font;
 
       (i, get_glyph_index fd char)
     }
@@ -113,17 +112,17 @@ value write_bitmap cs bm = do
 
 value bitmap_to_type3_glyph state fm g = do
 {
-  let gm = fm.glyph_metric.(g - fm.first_glyph) in
-  let g  = fm.get_glyph_bitmap fm g             in
+  let gm = fm.glyph_metric.(g - fm.first_glyph);
+  let g  = fm.get_glyph_bitmap fm g;
 
-  let cs = IO.make_buffer_stream 0x100 in
+  let cs = IO.make_buffer_stream 0x100;
 
-  let hdpi  = 72.27 /. 72.0 *. g.Glyph.g_hdpp      in
-  let vdpi  = 72.27 /. 72.0 *. g.Glyph.g_vdpp      in
-  let min_x = float_of_int g.Glyph.g_min_x /. hdpi in
-  let min_y = float_of_int g.Glyph.g_min_y /. vdpi in
-  let max_x = float_of_int g.Glyph.g_max_x /. hdpi in
-  let max_y = float_of_int g.Glyph.g_max_y /. vdpi in
+  let hdpi  = 72.27 /. 72.0 *. g.Glyph.g_hdpp;
+  let vdpi  = 72.27 /. 72.0 *. g.Glyph.g_vdpp;
+  let min_x = float_of_int g.Glyph.g_min_x /. hdpi;
+  let min_y = float_of_int g.Glyph.g_min_y /. vdpi;
+  let max_x = float_of_int g.Glyph.g_max_x /. hdpi;
+  let max_y = float_of_int g.Glyph.g_max_y /. vdpi;
 
   IO.printf cs "%f 0 %f %f %f %f d1 "
     (pt_to_bp gm.gm_width) min_x min_y max_x max_y;
@@ -133,7 +132,7 @@ value bitmap_to_type3_glyph state fm g = do
     (float_of_int (g.Glyph.g_max_y - g.Glyph.g_min_y + 1) /. vdpi);
   write_bitmap cs g.Glyph.g_bitmap;
 
-  let contents = PDF.alloc_object state.pdf in
+  let contents = PDF.alloc_object state.pdf;
 
   PDF.set_object state.pdf contents (PDF.Stream [] cs);
 
@@ -159,8 +158,8 @@ value font_encoding fm encoding = do
 
 value new_type3_font state font_name fm encoding = do
 {
-  let obj   = PDF.alloc_object state.pdf       in
-  let scale = pt_to_bp (num_one // fm.at_size) in
+  let obj   = PDF.alloc_object state.pdf;
+  let scale = pt_to_bp (num_one // fm.at_size);
 
   let width_array = Array.map
     (fun gm -> PDF.Float (pt_to_bp gm.gm_width))
@@ -173,7 +172,7 @@ value new_type3_font state font_name fm encoding = do
       (bounds, dict)
     else do
     {
-      let ((x1, y1, x2, y2), bitmap) = bitmap_to_type3_glyph state fm g in
+      let ((x1, y1, x2, y2), bitmap) = bitmap_to_type3_glyph state fm g;
 
       calc_glyph_data
         (g + 1)
@@ -190,8 +189,8 @@ value new_type3_font state font_name fm encoding = do
 
 value new_type1_font state font_name fm encoding = do
 {
-  let obj   = PDF.alloc_object state.pdf                   in
-  let scale x = float_of_num (x */ num_of_int 1000 // fm.at_size) in
+  let obj   = PDF.alloc_object state.pdf;
+  let scale x = float_of_num (x */ num_of_int 1000 // fm.at_size);
 
   let width_array = Array.map
     (fun gm -> PDF.Float (scale gm.gm_width))
@@ -208,11 +207,11 @@ value new_type1_font state font_name fm encoding = do
       fm.glyph_metric
   in
 
-  let fd = PDF.alloc_object state.pdf in
-  let ff = PDF.alloc_object state.pdf in
+  let fd = PDF.alloc_object state.pdf;
+  let ff = PDF.alloc_object state.pdf;
 
-  let file      = IO.make_in_stream fm.file_name in
-  let font_data = IO.to_buffer file in
+  let file      = IO.make_in_stream fm.file_name;
+  let font_data = IO.to_buffer file;
 
   IO.free file;
 
@@ -258,8 +257,8 @@ value new_type1_font state font_name fm encoding = do
 
 value new_truetype_font state font_name fm encoding = do
 {
-  let obj     = PDF.alloc_object state.pdf                        in
-  let scale x = float_of_num (x */ num_of_int 1000 // fm.at_size) in
+  let obj     = PDF.alloc_object state.pdf;
+  let scale x = float_of_num (x */ num_of_int 1000 // fm.at_size);
 
   let width_array = Array.map
     (fun gm -> PDF.Float (scale gm.gm_width))
@@ -276,11 +275,11 @@ value new_truetype_font state font_name fm encoding = do
       fm.glyph_metric
   in
 
-  let fd = PDF.alloc_object state.pdf in
-  let ff = PDF.alloc_object state.pdf in
+  let fd = PDF.alloc_object state.pdf;
+  let ff = PDF.alloc_object state.pdf;
 
-  let file      = IO.make_in_stream fm.file_name in
-  let font_data = IO.to_buffer file in
+  let file      = IO.make_in_stream fm.file_name;
+  let font_data = IO.to_buffer file;
 
   IO.free file;
 
@@ -337,7 +336,7 @@ value make_font_obj state font_number font_def = do
       objs
     else do
     {
-      let encoding = Array.make (min 0x100 (font_def.used_glyphs - i)) (-1) in
+      let encoding = Array.make (min 0x100 (font_def.used_glyphs - i)) (-1);
 
       (* select all glyphs mapped to numbers between i * 0x100 and i * 0x100 + 0xff *)
 
@@ -360,7 +359,7 @@ value make_font_obj state font_number font_def = do
       ]
       in
 
-      let obj = new_font state (Printf.sprintf "F%d.%d" font_number i) font_def.font encoding in
+      let obj = new_font state (Printf.sprintf "F%d.%d" font_number i) font_def.font encoding;
 
       iter (i + 0x100) [obj :: objs]
     }
@@ -388,8 +387,8 @@ value new_image state file = do
   in
   let get_colourmap x = do
   {
-    let cs = IO.make_buffer_stream 0x100 in
-    let cm = x.CamlImages.Index8.colormap in
+    let cs = IO.make_buffer_stream 0x100;
+    let cm = x.CamlImages.Index8.colormap;
 
     for i = 0 to cm.CamlImages.Color.max do
     {
@@ -428,27 +427,27 @@ value new_image state file = do
   in
   let image_data scan conv img = do
   {
-    let (w, h) = CamlImages.Images.size img in
-    let cs     = IO.make_buffer_stream (w * h / 8) in
+    let (w, h) = CamlImages.Images.size img;
+    let cs     = IO.make_buffer_stream (w * h / 8);
 
 
     for i = 0 to h - 1 do
     {
-      let s = scan i in
+      let s = scan i;
 
       conv cs s
     };
     cs
   }
   in
-  let obj = PDF.alloc_object state.pdf in
-  let n   = List.length state.images   in
+  let obj = PDF.alloc_object state.pdf;
+  let n   = List.length state.images;
 
   state.images := state.images @ [(file, obj)];
 
-  let img             = CamlImages.Images.load file [] in
-  let (width, height) = CamlImages.Images.size img     in
-  let (colsp, bits, scan, conv) = image_info img       in
+  let img             = CamlImages.Images.load file [];
+  let (width, height) = CamlImages.Images.size img;
+  let (colsp, bits, scan, conv) = image_info img;
 
   PDF.set_object state.pdf obj
     (PDF.Stream
@@ -484,7 +483,7 @@ value load_image state file = do
 
 value select_image state file = do
 {
-  let n = load_image state file in
+  let n = load_image state file;
 
   IO.printf state.os " /G%d " n
 };
@@ -498,9 +497,9 @@ value create_pdf state pages = do
   ]
   in
 
-  let root_obj  = PDF.alloc_object state.pdf in
-  let pages_obj = PDF.alloc_object state.pdf in
-  let page_refs = List.map (create_page state pages_obj) pages in
+  let root_obj  = PDF.alloc_object state.pdf;
+  let pages_obj = PDF.alloc_object state.pdf;
+  let page_refs = List.map (create_page state pages_obj) pages;
 
   state.pdf.PDF.root := PDF.Reference root_obj 0;
 
@@ -558,9 +557,9 @@ value write_bitmap state bmap = do
 
 value write_glyph_bitmap state fm glyph = do
 {
-  let g       = fm.get_glyph_bitmap fm glyph      in
-  let h_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_hdpp) in
-  let v_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_vdpp) in
+  let g       = fm.get_glyph_bitmap fm glyph;
+  let h_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_hdpp);
+  let v_scale = 72.0 /. (72.27 *. g.GlyphBitmap.g_vdpp);
 
   IO.printf state.os "<g transform=\"scale(%f,%f)\"><g transform=\"translate(%d,%d)\">"
     h_scale v_scale g.GlyphBitmap.g_min_x g.GlyphBitmap.g_min_y;
@@ -636,7 +635,7 @@ and write_rule state x y width height = do
 }
 and write_char state x y c f = do
 {
-  let (fn, cn) = load_font state f c in
+  let (fn, cn) = load_font state f c;
 
   IO.printf state.os "<text x=\"%fpt\" y=\"%fpt\" font-family=\"F%d\" font-size=\"%fpt\">"
     (pt_to_bp x) (pt_to_bp y) fn (pt_to_bp f.at_size);
@@ -673,8 +672,7 @@ and write_path state path_cmd path = do
 
       draw_path dx dy ps
     }
-  ]
-  in
+  ];
 
   match path_cmd with
   [ Graphic.Stroke
@@ -707,59 +705,53 @@ and write_group state x y gfx_cmds = do
   let set_colour col = match col with
   [ Graphic.Grey x       -> do
     {
-      let s = int_of_num (round_num (num_of_int 255 */ x)) in
+      let s = int_of_num (round_num (num_of_int 255 */ x));
 
       IO.printf state.os "<g color=\"%02x%02x%02x\">" s s s
     }
   | Graphic.RGB r g b    -> do
     {
-      let rr = int_of_num (round_num (num_of_int 255 */ r)) in
-      let gg = int_of_num (round_num (num_of_int 255 */ g)) in
-      let bb = int_of_num (round_num (num_of_int 255 */ b)) in
+      let rr = int_of_num (round_num (num_of_int 255 */ r));
+      let gg = int_of_num (round_num (num_of_int 255 */ g));
+      let bb = int_of_num (round_num (num_of_int 255 */ b));
 
       IO.printf state.os "<g color=\"%02x%02x%02x\">" rr gg bb
     }
   | Graphic.CMYK c m y k -> do
     {
-      let r  = num_one -/ c -/ k in
-      let g  = num_one -/ m -/ k in
-      let b  = num_one -/ y -/ k in
-      let rr = int_of_num (round_num (num_of_int 255 */ r)) in
-      let gg = int_of_num (round_num (num_of_int 255 */ g)) in
-      let bb = int_of_num (round_num (num_of_int 255 */ b)) in
+      let r  = num_one -/ c -/ k;
+      let g  = num_one -/ m -/ k;
+      let b  = num_one -/ y -/ k;
+      let rr = int_of_num (round_num (num_of_int 255 */ r));
+      let gg = int_of_num (round_num (num_of_int 255 */ g));
+      let bb = int_of_num (round_num (num_of_int 255 */ b));
 
       IO.printf state.os "<g color=\"%02x%02x%02x\">" rr gg bb
     }
-  ]
-  in
+  ];
   let set_alpha a = do
   {
     (* FIX *)
     ()
-  }
-  in
+  };
   let set_line_width w = do
   {
     IO.printf state.os "<g stroke-width=\"%fpt\">" (pt_to_bp w)
-  }
-  in
+  };
   let set_line_cap c = match c with
   [ Graphic.Butt   -> IO.write_string state.os "<g stroke-linecap=\"butt\">"
   | Graphic.Circle -> IO.write_string state.os "<g stroke-linecap=\"round\">"
   | Graphic.Square -> IO.write_string state.os "<g stroke-linecap=\"square\">"
-  ]
-  in
+  ];
   let set_line_join j =  match j with
   [ Graphic.Miter -> IO.write_string state.os "<g stroke-linejoin=\"miter\">"
   | Graphic.Round -> IO.write_string state.os "<g stroke-linejoin=\"round\">"
   | Graphic.Bevel -> IO.write_string state.os "<g stroke-linejoin=\"bevel\">"
-  ]
-  in
+  ];
   let set_miter_limit l = do
   {
     IO.printf state.os "<g stroke-miterlinit=\"%fpt\">" (pt_to_bp l)
-  }
-  in
+  };
 
   let write_gfx nest cmd = match cmd with
   [ Graphic.PutBox dx dy b  -> do { write_box state (x +/ dx) (y +/ dy) b; nest }
@@ -784,10 +776,9 @@ and write_group state x y gfx_cmds = do
   | Graphic.SetLineCap    c -> do { set_line_cap    c; nest + 1 }
   | Graphic.SetLineJoin   j -> do { set_line_join   j; nest + 1 }
   | Graphic.SetMiterLimit l -> do { set_miter_limit l; nest + 1 }
-  ]
-  in
+  ];
 
-  let nest = List.fold_left write_gfx 0 gfx_cmds in
+  let nest = List.fold_left write_gfx 0 gfx_cmds;
 
   for i = 1 to nest do
   {
@@ -830,7 +821,7 @@ value write_postamble state = do
 
 value write_svg_file name comment pages = do
 {
-  let state = new_state name in
+  let state = new_state name;
 
   write_preamble state comment;
 

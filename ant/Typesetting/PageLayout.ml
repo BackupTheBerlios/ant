@@ -33,7 +33,7 @@ and area_finaliser = page -> page
 and page_state =                                    (* state while filling areas *)
 {
   ps_page_no        : int;
-  ps_old_marks      : DynUCTrie.t uc_string;      (* marks in previous pages   *)
+  ps_old_marks      : DynUCTrie.t uc_string;        (* marks in previous pages   *)
   ps_new_marks      : list (uc_string * uc_string); (* marks in the current page *)
   ps_galleys        : DynUCTrie.t (list box * Galley.galley);
   ps_layouts        : DynUCTrie.t page_layout;
@@ -139,8 +139,7 @@ value page_no rs = rs.rs_page_no;
 value new_page_run_state page_no float_demerits galleys layouts = do
 {
   let last_break = [new_glue_box dim_zero dim_fil True True;
-                    new_break_box (minus_num infinite) False [] [] []]
-  in
+                    new_break_box (minus_num infinite) False [] [] []];
 
   {
     rs_page_no     = page_no;
@@ -167,8 +166,7 @@ value get_galley_table page_run_state = do
   where rec remove_last x y z = match z with
   [ []      -> []
   | [u::us] -> [x :: remove_last y u us]
-  ]
-  in
+  ];
 
   DynUCTrie.map store_lines page_run_state.rs_galleys
 };
@@ -192,16 +190,14 @@ value layout_page_with_floats page_layout floats state = do
   }
   else ();
 
-  let page = new_page page_layout.pl_width page_layout.pl_height in
+  let page = new_page page_layout.pl_width page_layout.pl_height;
 
   let float_array = Array.make
                       (Array.length page_layout.pl_areas)
-                      []
-                    in
+                      [];
   let finalisers  = Array.make
                       (Array.length page_layout.pl_areas)
-                      (fun p -> p)
-                    in
+                      (fun p -> p);
 
   (* collect the floats for each area *)
 
@@ -221,7 +217,7 @@ value layout_page_with_floats page_layout floats state = do
     {
       (* finalise all areas *)
 
-      let p = Array.fold_left (fun p f -> f p) page finalisers in
+      let p = Array.fold_left (fun p f -> f p) page finalisers;
 
       if !tracing_page_layout then do
       {
@@ -329,11 +325,11 @@ value collect_floats run_state page_state = do
 
 value build_page run_state (page, state, num_floats) = do
 {
-  let remaining_floats = XList.drop num_floats (collect_floats run_state state) in
+  let remaining_floats = XList.drop num_floats (collect_floats run_state state);
 
   if !tracing_page_layout then do
   {
-    let n = List.length remaining_floats in
+    let n = List.length remaining_floats;
 
     if n = 0 then
       log_string "\n#P: Choosing layout with all floats."
@@ -354,8 +350,7 @@ value build_page run_state (page, state, num_floats) = do
          Graphic.PutBox
            x (y -/ page.p_height)
            (draw_box (get_page_info page state) x y b))
-      page.p_boxes
-  in
+      page.p_boxes;
 
   run_state.rs_page_no     := run_state.rs_page_no + 1;
   run_state.rs_floats      := List.map (fun (i, f) -> (i+1, f)) remaining_floats;
@@ -386,8 +381,7 @@ value choose_best_layout misplacement_demerits num_old_floats results = do
     misplacement_demerits
       */ num_of_int (List.length page_state.ps_new_floats + num_old_floats - num_floats)
     +/ page_state.ps_badness
-  }
-  in
+  };
 
   match results with
   [ []      -> assert False
@@ -408,7 +402,7 @@ value choose_best_layout misplacement_demerits num_old_floats results = do
     }
   | [r::rs] -> do
     {
-      let d = demerits r in
+      let d = demerits r;
 
       if d </ best_demerits then
         find_best d r rs
@@ -431,10 +425,9 @@ value break_page layout run_state = do
     ps_new_floats  = [];
     ps_badness     = num_zero;
     ps_finished    = run_state.rs_finished
-  }
-  in
+  };
 
-  let current_layout = run_state.rs_next_layout in
+  let current_layout = run_state.rs_next_layout;
 
   (* layout without any floats to collect a list of new floats*)
 
@@ -442,8 +435,8 @@ value break_page layout run_state = do
   [ None        -> None
   | Some (p, s) -> do
     {
-      let num_old_floats = List.length run_state.rs_floats in
-      let floats         = collect_floats run_state s      in
+      let num_old_floats = List.length run_state.rs_floats;
+      let floats         = collect_floats run_state s;
 
       (* FIX: collect also floats referenced in <floats> *)
 
@@ -459,7 +452,7 @@ value break_page layout run_state = do
         {
           (* layout the page with the floats of <floats_on_page> *)
 
-          let new_floats = [f :: floats_on_page] in
+          let new_floats = [f :: floats_on_page];
 
           match
             layout_page_with_floats
@@ -472,7 +465,7 @@ value break_page layout run_state = do
           [ None       -> results
           | Some (p,s) -> do
             {
-              let num_new_floats = List.length s.ps_new_floats in
+              let num_new_floats = List.length s.ps_new_floats;
 
               if num_floats > num_old_floats + num_new_floats then
                 results           (* we placed a float before its reference *)
@@ -507,10 +500,9 @@ value layout_run_of_pages layout abort page_run_state = do
     rs_finished    = page_run_state.rs_finished;
     rs_float_misplacement_demerits = page_run_state.rs_float_misplacement_demerits;
     rs_floats      = page_run_state.rs_floats
-  }
-  in
+  };
 
-  let pages = ListBuilder.make () in
+  let pages = ListBuilder.make ();
 
   page_run_state.rs_next_layout := layout page_run_state.rs_page_no;
 
