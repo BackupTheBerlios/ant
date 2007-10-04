@@ -565,18 +565,20 @@ value write_references ps name = do
 {
   let oc = open_out_bin name;
 
+  output_string oc "\\ALcommand{do\n";
+
   let print_ref name str = do
   {
-    output_string oc "\\addreference{";
+    output_string oc "  ps_add_reference \"";
     output_string oc (UString.to_string (Array.to_list name));
-    output_string oc "}{";
+    output_string oc "\" \"";
     output_string oc (UString.to_string (Array.to_list str));
-    output_string oc "}\n"
+    output_string oc "\";\n"
   };
 
   iter_references ps print_ref;
 
-  output_string oc "\\ALcommand{ps_store_old_references}\n";
+  output_string oc "  ps_store_old_references;\nend}\n";
 
   close_out oc
 };

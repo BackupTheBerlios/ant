@@ -53,19 +53,70 @@ value prim_error msg = do
 };
 
 
+(* types *)
+
+value prim_is_unbound x = match !x with
+[ Unbound
+| Constraint _
+| LinForm _    -> Bool True
+| _            -> Bool False
+];
+
+value prim_is_bool x = match !x with
+[ Bool _ -> Bool True
+| _      -> Bool False
+];
+
+value prim_is_number x = match !x with
+[ Number _ -> Bool True
+| _        -> Bool False
+];
+
+value prim_is_char x = match !x with
+[ Char _ -> Bool True
+| _      -> Bool False
+];
+
+value prim_is_symbol x = match !x with
+[ Symbol _ -> Bool True
+| _        -> Bool False
+];
+
+value prim_is_function x = match !x with
+[ Primitive1 _
+| Primitive2 _
+| PrimitiveN _ _
+| Function _ _ _
+| Chain _
+| Application _ _ _
+| Dictionary _ -> Bool True
+| _            -> Bool False
+];
+
+value prim_is_list x = match !x with
+[ Nil
+| List _ _ -> Bool True
+| _        -> Bool False
+];
+
+value prim_is_tuple x = match !x with
+[ Tuple _ -> Bool True
+| _       -> Bool False
+];
+
 (* logic *)
 
-value rec prim_or x y = match (!x, !y) with
+value prim_or x y = match (!x, !y) with
 [ (Bool a, Bool b) -> Bool (a || b)
 | _                -> runtime_error "||: invalid argument"
 ];
 
-value rec prim_and x y = match (!x, !y) with
+value prim_and x y = match (!x, !y) with
 [ (Bool a, Bool b) -> Bool (a && b)
 | _                -> runtime_error "&&: invalid argument"
 ];
 
-value rec prim_not x = match !x with
+value prim_not x = match !x with
 [ Bool a -> Bool (not a)
 | _      -> runtime_error "not: invalid argument"
 ];
@@ -855,52 +906,64 @@ value rec output_format_string fmt args = do
 {
   let rec add_string tail str = match str with
   [ []      -> tail
-  | [c::cs] -> List (ref (Char c)) (ref (add_string tail cs))
+  | [c::cs] -> do
+    {
+      let x = ref Unbound;
+
+      !tail := List (ref (Char c)) x;
+
+      add_string x cs
+    }
   ];
-  let rec add_aligned_string align pad len str = do
+  let rec add_aligned_string tail align pad len str = do
   {
-    let rec add_padding pad str n = do
+    let rec add_padding tail pad n = do
     {
       if n <= 0 then
-        str
-      else
-        List (ref (Char pad))
-             (ref (add_padding pad str (n-1)))
+        tail
+      else do
+      {
+        let x = ref Unbound;
+
+        !tail := List (ref (Char pad)) x;
+
+        add_padding x pad (n-1)
+      }
     };
 
     if len <= 0 then
-      add_string Nil str
+      add_string tail str
     else do
     {
       let l = List.length str;
 
       if align then
         add_padding
+          (add_string tail str)
           pad
-          (add_string Nil str)
-          (l - len)
+          (len - l)
       else
         add_string
-          (add_padding pad Nil (l - len))
+          (add_padding tail pad (len - l))
           str
     }
   };
-  let rec format_argument var fmt arg = match fmt with
+  let rec format_argument tail fmt arg = match fmt with
   [ FS_Literal str -> do
     {
-      add_string var str
+      add_string tail str
     }
   | FS_String align len -> do
     {
       match !arg with
-      [ Char c   -> add_aligned_string align 32 len [c]
-      | Symbol s -> add_aligned_string align 32 len (Array.to_list (symbol_to_string s))
-      | Nil      -> add_aligned_string align 32 len []
+      [ Char c   -> add_aligned_string tail align 32 len [c]
+      | Symbol s -> add_aligned_string tail align 32 len (Array.to_list (symbol_to_string s))
+      | Nil      -> add_aligned_string tail align 32 len []
       | List _ _ -> do
         {
           let str = evaluate_char_list "format_string" arg;
 
-          add_aligned_string align 32 len str
+          add_aligned_string tail align 32 len str
         }
       | _ -> runtime_error "format_string: invalid argument for %s"
       ]
@@ -910,19 +973,19 @@ value rec output_format_string fmt args = do
       let lst = Evaluate.evaluate_list "format_string" arg;
 
       match lst with
-      [ []      -> var
+      [ []      -> tail
       | [x::xs] -> do
         {
-          let r = format_argument var spec x;
+          let r = format_argument tail spec x;
 
           iter r xs
 
-          where rec iter var lst = match lst with
-          [ []      -> var
+          where rec iter tail lst = match lst with
+          [ []      -> tail
           | [x::xs] -> do
             {
               iter
-                (format_argument (add_string var sep) spec x)
+                (format_argument (add_string tail sep) spec x)
                 xs
             }
           ]
@@ -933,18 +996,24 @@ value rec output_format_string fmt args = do
     {
       let n = Evaluate.evaluate_num "format_string" arg;
 
-      add_aligned_string align 32 len
+      add_aligned_string tail align 32 len
         (number_to_string sign len2 nf n)
     }
   ];
 
-  iter Nil fmt args
+  let result = ref Unbound;
 
-  where rec iter res fmt args = match fmt with
-  [ []                     -> res
-  | [FS_Literal str :: fs] -> iter (add_string res str) fs args
+  iter result fmt args
+
+  where rec iter tail fmt args = match fmt with
+  [ [] -> do
+    {
+      !tail := Nil;
+      !result
+    }
+  | [FS_Literal str :: fs] -> iter (add_string tail str) fs args
   | [f :: fs] -> match args with
-                 [ [b::bs] -> iter (format_argument res f b) fs bs
+                 [ [b::bs] -> iter (format_argument tail f b) fs bs
                  | _       -> assert False
                  ]
   ]
@@ -956,7 +1025,10 @@ value prim_format_string fmt_string = do
 
   let (f, n) = parse_format_string fmt;
 
-  PrimitiveN n (output_format_string f)
+  if n = 0 then
+    !fmt_string  (* FIX: map %% to % in fmt_string *)
+  else
+    PrimitiveN n (output_format_string f)
 };
 
 value prim_to_tuple x = do
@@ -1254,6 +1326,17 @@ value initial_scope () = do
 
   add1 "error"    prim_error;
 
+  (* types *)
+
+  add1 "is_unbound"  prim_is_unbound;
+  add1 "is_bool"     prim_is_bool;
+  add1 "is_number"   prim_is_number;
+  add1 "is_char"     prim_is_char;
+  add1 "is_symbol"   prim_is_symbol;
+  add1 "is_function" prim_is_function;
+  add1 "is_list"     prim_is_list;
+  add1 "is_tuple"    prim_is_tuple;
+
   (* logical operators *)
 
   add2 "||"       prim_or;
@@ -1336,19 +1419,19 @@ value initial_scope () = do
 
   (* characters *)
 
-  add1 "is_letter"     prim_is_letter;
-  add1 "is_mark"       prim_is_mark;
-  add1 "is_number"     prim_is_number;
-  add1 "is_punct"      prim_is_punct;
-  add1 "is_symbol"     prim_is_symbol;
-  add1 "is_separator"  prim_is_separator;
-  add1 "is_control"    prim_is_control;
-  add1 "is_space"      prim_is_space;
-  add1 "to_upper"      prim_to_upper;
-  add1 "to_lower"      prim_to_lower;
-  add1 "to_title"      prim_to_title;
-  add1 "char_name"     prim_char_name;
-  add1 "char_category" prim_char_category;
+  add1 "char_is_letter"     prim_is_letter;
+  add1 "char_is_mark"       prim_is_mark;
+  add1 "char_is_number"     prim_is_number;
+  add1 "char_is_punct"      prim_is_punct;
+  add1 "char_is_symbol"     prim_is_symbol;
+  add1 "char_is_separator"  prim_is_separator;
+  add1 "char_is_control"    prim_is_control;
+  add1 "char_is_space"      prim_is_space;
+  add1 "to_upper"           prim_to_upper;
+  add1 "to_lower"           prim_to_lower;
+  add1 "to_title"           prim_to_title;
+  add1 "char_name"          prim_char_name;
+  add1 "char_category"      prim_char_category;
 
   (* symbols *)
 

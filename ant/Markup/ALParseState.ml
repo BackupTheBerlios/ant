@@ -109,6 +109,26 @@ value ps_set_global args = match args with
 | _ -> assert False
 ];
 
+(* two helper functions *)
+
+value set_num_global ps sym n = do
+{
+  ps.global_variables :=
+    SymbolTable.SymbolMap.add
+      (SymbolTable.string_to_symbol sym)
+      (Types.Number n)
+      ps.global_variables
+};
+
+value set_string_global ps sym str = do
+{
+  ps.global_variables :=
+    SymbolTable.SymbolMap.add
+      (SymbolTable.string_to_symbol sym)
+      (Machine.uc_string_to_char_list str)
+      ps.global_variables
+};
+
 (* stream commands *)
 
 value ps_next_char c parse_command = do
@@ -162,6 +182,17 @@ value ps_location loc parse_command = do
     (fun ps -> do
       {
         Machine.set_unknown loc (encode_location (location ps))
+      })
+};
+
+value ps_read_arg arg parse_command = do
+{
+  ps_cmd "ps_read_arg" parse_command
+    (fun ps -> do
+      {
+        let str = Parser.read_argument ps.input_stream;
+
+        Machine.set_unknown arg (Machine.uc_list_to_char_list str)
       })
 };
 
@@ -931,18 +962,18 @@ value ps_new_area args = match args with
               List.iter
                 (fun (m,v) -> do
                   {
-                    add_reference current_ps
-                      (UString.of_ascii "old mark: " @ Array.to_list m)
+                    set_string_global current_ps
+                      (Array.of_list (UString.of_ascii "OldMark" @ Array.to_list m))
                       v;
-                    add_reference current_ps
-                      (UString.of_ascii "new mark: " @ Array.to_list m)
+                    set_string_global current_ps
+                      (Array.of_list (UString.of_ascii "NewMark" @ Array.to_list m))
                       v
                   })
                 (List.rev pi.Box.pi_old_marks);
               List.iter
                 (fun (m,v) ->
-                    add_reference current_ps
-                      (UString.of_ascii "new mark: " @ Array.to_list m)
+                    set_string_global current_ps
+                      (Array.of_list (UString.of_ascii "NewMark" @ Array.to_list m))
                       v
                 )
                 (List.rev pi.Box.pi_new_marks);

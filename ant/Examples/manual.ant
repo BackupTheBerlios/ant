@@ -3,7 +3,6 @@
 
 % font definitions
 
-%\include{FontSite.ant}
 \include{LatinModern.ant}
 \definecommand\FontFamilySans{Latin Modern Sans Serif}
 \definecommand\FontFamilyTypewriter{Latin Modern Typewriter}
@@ -230,13 +229,21 @@ then the contents is taken from the galley specified by the dictionary \csarg{pa
 
 If \csarg{type} is \cs{direct} then \csarg{parameters} contains \ant\ code for the contents of the area.
 When this code is evaluated it can access the number of the current page via the counter \cs{page}.
-The marks from previous pages are given as references where the name is prefixed with \cs{old}~\cs{mark:},
-i.e., a mark named \cs{foo} can be accessed by the command
+The marks from previous pages are given as global AL variables where the name is prefixed with \cs{OldMark},
+i.e., a mark named \cs{Foo} can be accessed by the command
 \begin{code}
   \blue
-  \cs{\lookupreference}\texttt\textlbrace\cs{old} \cs{mark:} \cs{foo}\texttt\textrbrace.
+  \cs{local x;}
+
+  \cs{do}
+
+  \quad\cs{ps_get_global x OldMarkFoo;}
+
+  \quad\cs{ps_insert_string x;}
+
+  \cs{end}
 \end{code}
-Similarly, marks found in the current page get the prefix \cs{new}~\cs{mark:}.
+Similarly, marks found in the current page get the prefix \cs{NewMark}.
 
 If \csarg{type} is \cs{float} then the area is used to display floats.
 The dictionary \csarg{parameters} contains the following entries\?:
@@ -664,19 +671,19 @@ These counters can be modified to create entries spanning several columns or row
 \subsection{Fonts}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\begin{code}
-\cs{\declarefont} \csarg{file} \csarg{family} \csarg{series} \csarg{weight}
-  \csarg{size} \csarg{params}
-\end{code}
-Declares a new font. \csarg{size} can be a range. The parameters are\?:
-\begin{longdescription}
-\item{\cs{hyphen}\quad (integer, default $45$)}
-  the hyphen character.
-\item{\cs{skew}\quad (integer, default $-1$)}
-  the skew character.
-\item{\cs{scale}\quad (number, default $1.0$)}
-  a factor to scale the font.
-\end{longdescription}
+%\begin{code}
+%\cs{\declarefont} \csarg{file} \csarg{family} \csarg{series} \csarg{weight}
+%  \csarg{size} \csarg{params}
+%\end{code}
+%Declares a new font. \csarg{size} can be a range. The parameters are\?:
+%\begin{longdescription}
+%\item{\cs{hyphen}\quad (integer, default $45$)}
+%  the hyphen character.
+%\item{\cs{skew}\quad (integer, default $-1$)}
+%  the skew character.
+%\item{\cs{scale}\quad (number, default $1.0$)}
+%  a factor to scale the font.
+%\end{longdescription}
 The text font is changed with the command
 \begin{code}
   \cs{\setparameter{font}} \csarg{font-specification}
@@ -1424,6 +1431,15 @@ The function
 \end{display}
 can be used to abort the computation with a given error message.
 
+\paragraph{Types}
+To test the type of a value the following functions can be used\?:
+\begin{displaytable}
+  \cs{is_unbound} \nterm{x} & \cs{is_symbol} \nterm{x} \ntr
+  \cs{is_bool} \nterm{x}    & \cs{is_function} \nterm{x} \ntr
+  \cs{is_number} \nterm{x}  & \cs{is_list} \nterm{x} \ntr
+  \cs{is_char} \nterm{x}    & \cs{is_tuple} \nterm{x}
+\end{displaytable}
+
 \paragraph{Logical operations}
 The operators for disjunction, conjunction, and negation are
 \begin{display}
@@ -1623,10 +1639,10 @@ It returns the new dictionary.
 \paragraph{Characters}
 To test the category of a character the following functions can be used\?:
 \begin{displaytable}
-  \cs{is_letter} \nterm{c} & \cs{is_symbol} \nterm{c} \ntr
-  \cs{is_mark} \nterm{c}   & \cs{is_separator} \nterm{c} \ntr
-  \cs{is_number} \nterm{c} & \cs{is_control} \nterm{c} \ntr
-  \cs{is_punct} \nterm{c}  & \cs{is_space} \nterm{c}
+  \cs{char_is_letter} \nterm{c} & \cs{char_is_symbol} \nterm{c} \ntr
+  \cs{char_is_mark} \nterm{c}   & \cs{char_is_separator} \nterm{c} \ntr
+  \cs{char_is_number} \nterm{c} & \cs{char_is_control} \nterm{c} \ntr
+  \cs{char_is_punct} \nterm{c}  & \cs{char_is_space} \nterm{c}
 \end{displaytable}
 \cs{is_space} is a short hand for the disjunction of \cs{is_separator} and \cs{is_control}.
 The \textsc{unicode} category of a character can be looked up with the function

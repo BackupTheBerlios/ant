@@ -1650,18 +1650,18 @@ value new_area ps = do
       List.iter
         (fun (m,v) -> do
           {
-            ParseState.add_reference current_ps
-              (UString.of_ascii "old mark: " @ Array.to_list m)
+            ALParseState.set_string_global current_ps
+              (Array.of_list (UString.of_ascii "OldMark" @ Array.to_list m))
               v;
-            ParseState.add_reference current_ps
-              (UString.of_ascii "new mark: " @ Array.to_list m)
+            ALParseState.set_string_global current_ps
+              (Array.of_list (UString.of_ascii "NewMark" @ Array.to_list m))
               v
           })
         (List.rev pi.Box.pi_old_marks);
       List.iter
         (fun (m,v) ->
-            ParseState.add_reference current_ps
-              (UString.of_ascii "new mark: " @ Array.to_list m)
+            ALParseState.set_string_global current_ps
+              (Array.of_list (UString.of_ascii "NewMark" @ Array.to_list m))
               v
         )
         (List.rev pi.Box.pi_new_marks);
@@ -2090,6 +2090,7 @@ value end_input ps = do
   UCStream.clear ps.input_stream
 };
 
+(*
 value declare_font ps = do
 {
   let make_int x default = match x with
@@ -2152,6 +2153,7 @@ value declare_font ps = do
           FontMetric.flp_skew_glyph   = get_glyph skew
         }))
 };
+*)
 
 (* references *)
 
@@ -2839,7 +2841,6 @@ value initialise ps = do
   def_unexpandable_cmd "\\include"             include_file;
   def_unexpandable_cmd "\\endinput"            end_input;
   def_macro            "\\jobname"             ps.job.Job.jobname;
-  def_unexpandable_cmd "\\declarefont"         declare_font;
   def_unexpandable_cmd "\\beginALdeclarations" al_declarations;
   def_expandable_cmd   "\\ALmacro"             al_macro expand_al_macro;
   def_unexpandable_cmd "\\ALcommand"           al_command;

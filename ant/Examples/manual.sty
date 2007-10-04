@@ -49,10 +49,10 @@
 %  \measureposition{\GetUniqueId}%
 %  \SelectFirstOfThree{\lookupreference{\GetUniqueId}}}
 
-\definecommand\saveposition[m]{%
-  \NewUniqueId
-  \measureposition{\GetUniqueId}%
-  \defineexpanded{#1}{\lookupreference{\GetUniqueId}}}
+%\definecommand\saveposition[m]{%
+%  \NewUniqueId
+%  \measureposition{\GetUniqueId}%
+%  \defineexpanded{#1}{\lookupreference{\GetUniqueId}}}
 
 % table of contents
 
@@ -87,12 +87,12 @@
 \definecommand\section[m]{%
   \addtocounter{section}{1}%
   \vskip{12pt plus 72pt}\penalty{-100}\vskip{0pt plus -60pt}%
-  \setmark{section}{\thesection. #1}%
+  \setmark{Section}{\thesection. #1}%
   \begingroup
     \setparameter{paragraph}{par-indent = 0pt}%
     {\large\sffamily\hskip{0pt}\red{}\thesection. #1\saveposition{\SectionPosition}\par}%
     \begin{tocentry}\medskip\end{tocentry}%
-    \addtotoc{\thesection. #1}{\SelectFirstOfThree{\SectionPosition}}%
+    \addtotoc{\thesection. #1}{\SectionPosition}%
     \begin{tocentry}\smallskip\end{tocentry}%
   \endgroup
   \penalty{10000}\vskip{12pt}%
@@ -100,11 +100,11 @@
 \definecommand\subsection[m]{%
   \addtocounter{subsection}{1}%
   \vskip{12pt plus 72pt}\penalty{-100}\vskip{0pt plus -60pt}%
-  \setmark{subsection}{\thesubsection. #1}%
+  \setmark{SubSection}{\thesubsection. #1}%
   \begingroup
     \setparameter{paragraph}{par-indent = 0pt}%
     {\sffamily\hskip{0pt}\red{}\thesubsection. #1\saveposition{\SubSectionPosition}\par}%
-    \addtotoc{\thesubsection. #1}{\SelectFirstOfThree{\SubSectionPosition}}%
+    \addtotoc{\thesubsection. #1}{\SubSectionPosition}%
   \endgroup
   \penalty{10000}\vskip{12pt}%
   \setparameter{this-paragraph}{ par-indent = 0pt }}
@@ -118,9 +118,17 @@
 
 \include{page-layout.ant}
 
-\definecommand\therhead{\small\sffamily\red ant \version\hfil\lookupreference{new mark: section}}
+\definecommand\getglobal[m]{%
+  \ALcommand{
+    local m;
+    do
+      ps_get_global m #1;
+      ps_insert_string m
+    end
+  }}
+\definecommand\therhead{\small\sffamily\red ant \version\hfil\getglobal{NewMarkSection}}
 \definecommand\therfoot{\hfil\sffamily\red --- \getcounter{1}{page} ---\hfil}
-\definecommand\thelhead{\small\sffamily\red\lookupreference{new mark: section}\hfil ant \version}
+\definecommand\thelhead{\small\sffamily\red\getglobal{NewMarkSection}\hfil ant \version}
 \definecommand\thelfoot{\hfil\sffamily\red --- \getcounter{1}{page} ---\hfil}
 
 \definecommand\paperwidth{210mm}

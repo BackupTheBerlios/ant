@@ -19,6 +19,7 @@ value add_primitives job scope = do
       ("ps_remove_chars",         Primitive2 ps_remove_chars);
       ("ps_insert_string",        Primitive2 ps_insert_string);
       ("ps_location",             Primitive2 ps_location);
+      ("ps_read_arg",             Primitive2 ps_read_arg);
       ("ps_arg_expanded",         Primitive2 ps_arg_expanded);
       ("ps_arg_execute",          PrimitiveN 3 ps_arg_execute);
       ("ps_arg_num",              Primitive2 ps_arg_num);

@@ -1,5 +1,6 @@
 
 open XNum;
+open Unicode.Types;
 open Runtime;
 open VM;
 open Types;
@@ -14,6 +15,9 @@ value decode_command             : string -> unknown -> unknown -> command;
 
 value call_at_exit               : parse_state -> unit;
 
+value set_num_global             : parse_state -> uc_string -> num -> unit;
+value set_string_global          : parse_state -> uc_string -> uc_string -> unit;
+
 value ps_get_global              : list unknown -> partial_value;
 value ps_set_global              : list unknown -> partial_value;
 value ps_next_char               : unknown -> unknown -> partial_value;
@@ -21,6 +25,7 @@ value ps_get_char                : list unknown -> partial_value;
 value ps_remove_chars            : unknown -> unknown -> partial_value;
 value ps_insert_string           : unknown -> unknown -> partial_value;
 value ps_location                : unknown -> unknown -> partial_value;
+value ps_read_arg                : unknown -> unknown -> partial_value;
 value ps_arg_expanded            : unknown -> unknown -> partial_value;
 value ps_arg_execute             : list unknown -> partial_value;
 value ps_arg_num                 : unknown -> unknown -> partial_value;

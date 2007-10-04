@@ -71,8 +71,46 @@ ps_restore_persistent_globals file_name :=
     iter _               ps := ps;
   end;
 
-ps_at_exit ps :=
-  ps_store_persistent_globals (ps_job_name + ".gdb") ps;
+ps_at_exit :=
+  local refs;
+  do
+    ps_get_global refs NewReferences;
+    ps_set_global References refs;
+    ps_store_persistent_globals (ps_job_name + ".gdb");
+  end;
+
+ps_new_add_reference key val :=
+  local refs;
+  do
+    ps_get_global refs NewReferences;
+    ps_set_global NewReferences (insert key val refs)
+
+    where
+      insert key val []                := [(key, val)];
+      insert key val [kv = (k,_) : rs] := if k == key then
+                                            [(key, val) : rs]
+                                          else
+                                            [kv : insert key val rs]
+                                          end
+    end
+  end;
+
+ps_new_lookup_reference val key :=
+  local refs;
+  do
+    ps_warning ("ps_lookup_reference " + key);
+    ps_get_global refs References;
+    val = find key refs
+
+    where
+      find key []           := _;
+      find key [(k,v) : rs] := if k == key then
+                                 v
+                               else
+                                 find key rs
+                               end
+    end
+  end;
 
 \endALdeclarations
 
@@ -81,11 +119,36 @@ ps_at_exit ps :=
 \ALcommand{
   do
     ps_set_global PersistentGlobals [];
+    ps_declare_persistent_global References;
     ps_restore_persistent_globals (ps_job_name + ".gdb");
+    ps_set_global NewReferences []
   end
 }
 
-% page numbers
+\definecommand\addreference{
+  \ALcommand{
+    local k v;
+    do
+      ps_arg_expanded k;
+      ps_arg_expanded v;
+      ps_add_reference k v
+    end
+  }}
+%\definecommand\lookupreference{%
+%  \ALcommand{
+%    local k v;
+%    do
+%      ps_arg_expanded k;
+%      ps_lookup_reference v k;
+%      if is_unbound v then
+%        ps_warning (format_string "undefined reference \"%s\"" k)
+%      else
+%        ps_insert_string v
+%      end
+%    end
+%  }}
+
+% page numbers and current coordinates
 
 \beginALdeclarations
 
@@ -94,8 +157,16 @@ ps_get_current_page page :=
   do
     ps_gen_unique_ref sym;
     ps_declare_persistent_global sym;
-;;    ps_set_global sym 0;
     ps_page_command { pi _ := ps_set_global sym (pi PageNo) };
+    ps_get_global page sym;
+  end;
+
+ps_get_current_position page :=
+  local sym;
+  do
+    ps_gen_unique_ref sym;
+    ps_declare_persistent_global sym;
+    ps_page_command { pi (x,y) := ps_set_global sym (pi PageNo, x, y) };
     ps_get_global page sym;
   end;
 
@@ -108,17 +179,30 @@ ps_get_current_page page :=
     local page;
     do
       ps_get_current_page page;
-      ps_insert_string (format_string "%d" page);
+      if is_unbound v then
+        ps_insert_string "??"
+      else
+        ps_insert_string (format_string "%d" page)
+      end
     end
   }}
-\definecommand\saveposition[m]{%
+\definecommand\saveposition{%
   \ALcommand{
-    local page;
+    local cmd page;
     do
+      ps_read_arg cmd;
       ps_get_current_page page;
-      ps_define_command "#1"
-        (ps_insert_string (format_string "%d" page))
-        { res str := res = format_string "%d" page + str };
+      if is_unbound page then
+        ps_define_command cmd
+          (ps_insert_string "??")
+          None
+;;          { res str := do res = "??" + str end }
+      else
+        ps_define_command cmd
+          (ps_insert_string (format_string "%d" page))
+          None
+;;          { res str := do res = format_string "%d" page + str end }
+      end
     end
   }}
 
