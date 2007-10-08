@@ -3,56 +3,56 @@
 \include{defines.ant}
 \include{references.ant}
 
-% expansion
-
-\definecommand\defineexpanded[mx]{\definecommand{#1}{#2}}
-
-% references
-
-% Commands to generate unique identifiers for use as command names or references.
-% Each call to |\GetUniqueId| must be preceded by a call to |\NewUniqeId|, and it
-% must be expanded before the next call to |\NewUniqueId|. Thus, the usage pattern
-% should be:
-%
-%  \NewUniqueId
-%  \definecommand{\GetUniqueId}{...}
-%
-% or
-%
-%  \NewUniqueId
-%  \measureposition{\GetUniqueId}\lookupreference{\GetUniqueId}
-%
-\newcounter{unique id}
-\definecommand\NewUniqueId{\addtocounter{unique id}{1}}
-\definecommand\GetUniqueId{UId\getcounter{I}{unique id}}
-
-% Accessing components of a tuple.
-
-\definecommand\SelFirstOfTwo[mm]{#1}
-\definecommand\SelSecondOfTwo[mm]{#2}
-\definecommand\SelFirstOfThree[mmm]{#1}
-\definecommand\SelSecondOfThree[mmm]{#2}
-\definecommand\SelThirdOfThree[mmm]{#3}
-
-% The additional empty groups are needed in the case that the argument is no tuple
-% of the required size.
-\definecommand\SelectFirstOfTwo[x]{\SelFirstOfTwo #1{}{}}
-\definecommand\SelectSecondOfTwo[x]{\SelSecodOfTwo #1{}{}}
-\definecommand\SelectFirstOfThree[x]{\SelFirstOfThree #1{}{}{}}
-\definecommand\SelectSecondOfThree[x]{\SelSecodOfThree #1{}{}{}}
-\definecommand\SelectThirdOfThree[x]{\SelThirdOfThree #1{}{}{}}
-
-% |\currentpage| returns the current page number as arabic number.
-
-%\definecommand\currentpage{%
-%  \NewUniqueId
-%  \measureposition{\GetUniqueId}%
-%  \SelectFirstOfThree{\lookupreference{\GetUniqueId}}}
-
-%\definecommand\saveposition[m]{%
-%  \NewUniqueId
-%  \measureposition{\GetUniqueId}%
-%  \defineexpanded{#1}{\lookupreference{\GetUniqueId}}}
+% % expansion
+% 
+% \definecommand\defineexpanded[mx]{\definecommand{#1}{#2}}
+% 
+% % references (has been replaced by an AL implementation)
+% 
+% % Commands to generate unique identifiers for use as command names or references.
+% % Each call to |\GetUniqueId| must be preceded by a call to |\NewUniqeId|, and it
+% % must be expanded before the next call to |\NewUniqueId|. Thus, the usage pattern
+% % should be:
+% %
+% %  \NewUniqueId
+% %  \definecommand{\GetUniqueId}{...}
+% %
+% % or
+% %
+% %  \NewUniqueId
+% %  \measureposition{\GetUniqueId}\lookupreference{\GetUniqueId}
+% %
+% \newcounter{unique id}
+% \definecommand\NewUniqueId{\addtocounter{unique id}{1}}
+% \definecommand\GetUniqueId{UId\getcounter{I}{unique id}}
+% 
+% % Accessing components of a tuple.
+% 
+% \definecommand\SelFirstOfTwo[mm]{#1}
+% \definecommand\SelSecondOfTwo[mm]{#2}
+% \definecommand\SelFirstOfThree[mmm]{#1}
+% \definecommand\SelSecondOfThree[mmm]{#2}
+% \definecommand\SelThirdOfThree[mmm]{#3}
+% 
+% % The additional empty groups are needed in the case that the argument is no tuple
+% % of the required size.
+% \definecommand\SelectFirstOfTwo[x]{\SelFirstOfTwo #1{}{}}
+% \definecommand\SelectSecondOfTwo[x]{\SelSecodOfTwo #1{}{}}
+% \definecommand\SelectFirstOfThree[x]{\SelFirstOfThree #1{}{}{}}
+% \definecommand\SelectSecondOfThree[x]{\SelSecodOfThree #1{}{}{}}
+% \definecommand\SelectThirdOfThree[x]{\SelThirdOfThree #1{}{}{}}
+% 
+% % |\currentpage| returns the current page number as arabic number.
+% 
+% \definecommand\currentpage{%
+%   \NewUniqueId
+%   \measureposition{\GetUniqueId}%
+%   \SelectFirstOfThree{\lookupreference{\GetUniqueId}}}
+% 
+% \definecommand\saveposition[m]{%
+%   \NewUniqueId
+%   \measureposition{\GetUniqueId}%
+%   \defineexpanded{#1}{\lookupreference{\GetUniqueId}}}
 
 % table of contents
 
@@ -137,107 +137,120 @@
 \definecommand\setuppagelayout{
   \ALcommand{
     local begin
-      (paper_width, paper_height) := get_page_size A_4;
-      column_sep    := 1cm;
+      (paper_width, paper_height) := get_page_size A_5;
       column_height := 7/9paper_height;
-      column_width  := _;
+      column_width  := 9/12paper_width;
       main_galley_params :=
         { Name       := "main"
         | TopSkip    := 1em
         | BottomSkip := 1em
         | MinSize    := 5em
         | GridSize   := 12pt
-        }
+        };
+      toc_galley_params :=
+        { Name       := "toc"
+        | TopSkip    := 1em
+        | BottomSkip := 1em
+        | MinSize    := 5em
+        | GridSize   := 12pt
+        };
     end
-    begin
-      2column_width + column_sep = 9/12paper_width,
+    do
+      ps_new_galley "toc"  column_width;
+      ps_new_galley "main" column_width;
 
-         ps_new_galley "toc" 70mm
-      >> ps_new_galley "main" column_width
+      ps_new_page_layout "right" paper_width paper_height;
 
-      >> ps_new_page_layout "right" paper_width paper_height
+      ps_new_area "float"
+        (1/12paper_width) (1/9paper_height)
+        (9/12paper_width) column_height 10pt 3pt
+        Float
+        { Alignment  := Top
+        | TopSkip    := 1em
+        | BottomSkip := 1em
+        | FloatSep   := 1em
+        };
+      ps_new_area "footnotes"
+        (1/6paper_width) (1/9paper_height)
+        (9/12paper_width) column_height 10pt 3pt
+        Footnote
+        { TopSkip    := 1em
+        | BottomSkip := 1em
+        | GridSize   := 10pt
+        };
+      ps_new_area "text block"
+        (1/12paper_width) (1/9paper_height)
+        column_width column_height 10pt 3pt
+        Galley main_galley_params;
+      ps_new_area "head"
+        (1/12paper_width) (2/27paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\therhead}" paper_width);
+      ps_new_area "foot"
+        (1/12paper_width) (17/18paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\therfoot}" paper_width);
 
-      >> ps_new_area "float"
-           (1/12paper_width) (1/9paper_height)
-           (9/12paper_width) column_height 10pt 3pt
-           Float
-           { Alignment  := Top
-           | TopSkip    := 1em
-           | BottomSkip := 1em
-           | FloatSep   := 1em
-           }
-      >> ps_new_area "footnotes"
-           (1/6paper_width) (1/9paper_height)
-           (9/12paper_width) column_height 10pt 3pt
-           Footnote
-           { TopSkip    := 1em
-           | BottomSkip := 1em
-           | GridSize   := 10pt
-           }
-      >> ps_new_area "left column"
-           (1/12paper_width) (1/9paper_height)
-           column_width column_height 10pt 3pt
-           Galley main_galley_params
-      >> ps_new_area "right column"
-           (1/12paper_width + column_width + column_sep) (1/9paper_height)
-           column_width column_height 10pt 3pt
-           Galley main_galley_params
-      >> ps_new_area "head"
-           (1/12paper_width) (2/27paper_height)
-           (9/12paper_width) 0pt 10pt 4pt
-           Direct
-           "\\hbox to (9/12*210mm){\\therhead}"
-      >> ps_new_area "foot"
-           (1/12paper_width) (17/18paper_height)
-           (9/12paper_width) 0pt 10pt 4pt
-           Direct
-           "\\hbox to (9/12*210mm){\\therfoot}"
+      ps_new_page_layout "left" paper_width paper_height;
 
-      >> ps_new_page_layout "left" paper_width paper_height
+      ps_new_area "float"
+        (1/6paper_width) (1/9paper_height)
+        (9/12paper_width) column_height 10pt 3pt
+        Float
+        { Alignment  := Top
+        | TopSkip    := 1em
+        | BottomSkip := 1em
+        | FloatSep   := 1em
+        };
+      ps_new_area "footnotes"
+        (1/6paper_width) (1/9paper_height)
+        (9/12paper_width) column_height 10pt 3pt
+        Footnote
+        { TopSkip    := 1em
+        | BottomSkip := 1em
+        | GridSize   := 10pt
+        };
+      ps_new_area "text block"
+        (1/6paper_width) (1/9paper_height)
+        column_width column_height 10pt 3pt
+        Galley main_galley_params;
+      ps_new_area "head"
+        (1/6paper_width) (2/27paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\thelhead}" paper_width);
+      ps_new_area "foot"
+        (1/6paper_width) (17/18paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\thelfoot}" paper_width);
 
-      >> ps_new_area "float"
-           (1/6paper_width) (1/9paper_height)
-           (9/12paper_width) column_height 10pt 3pt
-           Float
-           { Alignment  := Top
-           | TopSkip    := 1em
-           | BottomSkip := 1em
-           | FloatSep   := 1em
-           }
-      >> ps_new_area "footnotes"
-           (1/6paper_width) (1/9paper_height)
-           (9/12paper_width) column_height 10pt 3pt
-           Footnote
-           { TopSkip    := 1em
-           | BottomSkip := 1em
-           | GridSize   := 10pt
-           }
-      >> ps_new_area "left column"
-           (1/6paper_width) (1/9paper_height)
-           column_width column_height 10pt 3pt
-           Galley main_galley_params
-      >> ps_new_area "right column"
-           (1/6paper_width + column_width + column_sep) (1/9paper_height)
-           column_width column_height 10pt 3pt
-           Galley main_galley_params
-      >> ps_new_area "head"
-           (1/6paper_width) (2/27paper_height)
-           (9/12paper_width) 0pt 10pt 4pt
-           Direct
-           "\\hbox to (9/12*210mm){\\thelhead}"
-      >> ps_new_area "foot"
-           (1/6paper_width) (17/18paper_height)
-           (9/12paper_width) 0pt 10pt 4pt
-           Direct
-           "\\hbox to (9/12*210mm){\\thelfoot}"
+      ps_new_page_layout "toc-right" paper_width paper_height;
+
+      ps_new_area "toc"
+        (1/12paper_width) (1/9paper_height)
+        column_width column_height 10pt 3pt
+        Galley toc_galley_params;
+      ps_new_area "foot"
+        (1/12paper_width) (17/18paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\therfoot}" paper_width);
+
+      ps_new_page_layout "toc-left" paper_width paper_height;
+
+      ps_new_area "toc"
+        (1/6paper_width) (1/9paper_height)
+        column_width column_height 10pt 3pt
+        Galley toc_galley_params;
+      ps_new_area "foot"
+        (1/6paper_width) (17/18paper_height)
+        (9/12paper_width) 0pt 10pt 4pt
+        Direct
+        (format_string "\\hbox to (9/12*%dpt){\\thelfoot}" paper_width);
     end}%
-%
-  \newpagelayout{toc-right}{\paperwidth}{\paperheight}
-  \newpagearea{toc}{54mm}{30mm}{70mm}{648pt}{10pt}{3pt}{galley}{ name = toc}
-  \newpagearea{foot}{34mm}{268mm}{110mm}{0pt}{10pt}{4pt}{direct}{\hbox to 110mm{\therfoot}}
-  \newpagelayout{toc-left}{\paperwidth}{\paperheight}
-  \newpagearea{toc}{86mm}{30mm}{70mm}{648pt}{10pt}{3pt}{galley}{ name = toc}
-  \newpagearea{foot}{66mm}{268mm}{110mm}{0pt}{10pt}{4pt}{direct}{\hbox to 110mm{\thelfoot}}
 }
 
 % paragraphs
@@ -262,8 +275,10 @@
   \begingalley{main}%
 }{\endgalley
   \ALcommand{
-    ps_shipout_pages 0 "toc-left" "toc-right" >>
-    ps_shipout_pages 0 "left"     "right"}%
+    do
+      ps_shipout_pages 0 "toc-left" "toc-right";
+      ps_shipout_pages 0 "left"     "right"
+    end}%
   \endinput}
 
 % simple lists

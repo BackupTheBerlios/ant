@@ -147,7 +147,7 @@ Currently, the following options are supported\?:
 \begin{longdescription}
 \item{\cs{--help}}prints a help message.
 \item{\cs{--format=}\csarg{format}}selects the output format.
-  Supported are \cs{dvi}, \cs{pdf} (default), \cs{ps}, and \cs{svg}.
+  Supported are \cs{dvi}, \cs{xdvi}, \cs{pdf} (default), \cs{ps}, and \cs{svg}.
   The latter two are only partially implemented.
 \item{\cs{--src-specials}}enables the generation of source specials.
 \item{\cs{--debug=}\csarg{flags}}enables debug messages.
@@ -155,7 +155,9 @@ Currently, the following options are supported\?:
 
   \noindent
   \begin{table}
-    \quad\cs{e}\quad& the engine &
+    \quad\cs{a}\quad& AL commands &
+    \quad\cs{b}\quad& AL bytecode\hfill\ntr
+    \quad\cs{e}\quad& the typesetting engine &
     \quad\cs{m}\quad& macro expansion\hfill\ntr
     \quad\cs{g}\quad& galley breaking &
     \quad\cs{p}\quad& page layout\hfill\ntr
@@ -187,6 +189,358 @@ to specify skips or dimensions\?:
 \end{code}
 
 In the remainder of this section we list all primitive commands that are defined in \ant.
+
+
+\section{AL -- the ant language}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+The requirements on a markup language for authors are quite different from those
+on a programming language for implementing those markup commands.
+For instance, the \TeX\ macro language serves rather well as a markup language
+but it is quite unsuited for the implementation of packages.
+Besides the markup language \ant\ therefore also provides a scripting language
+called AL.
+Syntactically AL resembles (a subset of) the Haskell programming language.
+But there are two notable semantic differences\?: (i) evaluation in AL is strict, not lazy
+and (ii) AL includes a solver for linear equations and, therefore, supports variables whose value
+is not yet determined.
+
+
+\subsection{Lexical conventions}
+
+
+We distinguish six classes of characters according to their \textsc{unicode} category\?:
+
+\medskip
+\begin{description}
+\item{\textit{White space} (\nterm{ws})\?:} Mn, Mc, Me, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn
+\item{\textit{Lowercase letters} (\nterm{lc})\?:} Ll, Lm, Lo
+\item{\textit{Uppercase letters} (\nterm{uc})\?:} Lu, Lt
+\item{\textit{Digits} (\nterm{dd})\?:} Nd, Nl, No
+\item{\textit{Symbols} (\nterm{sy})\?:} Pc, Pd, Ps, Pe, Pi, Pf, Po, Sm, Sc, Sk, So
+\item{\textit{Special characters} (\nterm{sp})\?:} \cs{"} \cs{'} \cs{,} \cs{;} \cs{_} \cs{(} \cs{)}
+  \cs{[} \cs{]} {\blue\texttt\textlbrace\ \texttt\textrbrace}
+\end{description}
+
+\paragraph{Comments}
+A line comment starts with \cs{;;} and extends to the end of the line, and block comments
+are delimited by \cs{[;}~and~\cs{;]}.
+
+\paragraph{Identifiers}
+There are three types of identifiers\?: lowercase and symbolic identifiers represent variables
+while uppercase identifiers are used for symbols.
+
+\begin{display}\small
+  $\nterm{lid} ::= \nterm{lc}\;(\nterm{lc} \mvert \nterm{uc})^*\, \text{\nterm{tail}}^*$
+
+  \medskip
+  $\nterm{uid} ::= \nterm{uc}\;(\nterm{lc} \mvert \nterm{uc})^*\, \text{\nterm{tail}}^*$
+
+  \medskip
+  $\nterm{tail} ::= \cs{_}\;(\nterm{lc} \mvert \nterm{uc})^+
+                 \mvert \cs{_}\;\nterm{dd}^+
+                 \mvert \cs{_}\;\text{\nterm{sy}}^+$
+
+  \medskip
+  $\nterm{symbol} ::= \text{\nterm{sy}}^+$
+\end{display}
+Examples\?:
+\begin{display}\small
+  \cs{lowercase_Identifier_2}\quad\cs{op_+}
+
+  \medskip
+  \cs{Uppercase_12_*&/_45}
+
+  \medskip
+  \cs{<<|:}\quad\cs{**}\quad\cs{+/-}
+\end{display}
+The following symbols and keywords are reserved\?:
+
+\begin{display}
+\hskip{0pt}%
+  \begin{table}
+  \cs{begin}  & \quad\cs{local} & \quad\cs{declare_infix_left}  \ntr
+  \cs{do}     & \quad\cs{match} & \quad\cs{declare_infix_non}   \ntr
+  \cs{else}   & \quad\cs{then}  & \quad\cs{declare_infix_right} \ntr
+  \cs{elseif} & \quad\cs{where} & \quad\cs{declare_prefix}      \ntr
+  \cs{end}    & \quad\cs{with}  & \quad\cs{declare_postfix}     \ntr
+  \cs{if}     &
+  \end{table}
+
+\medskip
+  \cs{=}\qquad \cs{:=}\qquad \cs{|}\qquad \cs{.}\qquad \cs{:}\qquad \cs{;}
+\end{display}
+
+\subsection{Literals}
+
+\paragraph{Numbers}
+Numerical constants can be written either using decimal notation or as fraction. Supported bases
+are 2,~8, 10, and~16. A sequence of digits may be interleaved
+with arbitrary many underscores~\cs{_}.
+\begin{display}\small
+  $\nterm{number} ::= \nterm{decimal}\; \mvert \nterm{fraction}$
+
+  \medskip
+  $\nterm{decimal} ::= \nterm{natural}\; [\,\cs{.}\; \nterm{natural}]$
+
+  \medskip
+  $\nterm{fraction} ::= \nterm{natural}\; \cs{/}\; \nterm{natural}$
+
+  \medskip
+  $\nterm{natural} ::= \nterm{bin} \mvert \nterm{oct} \mvert \nterm{dec} \mvert \nterm{hex}$
+
+  \medskip
+  $\nterm{bin} ::= \cs{0b}\; \nterm{bd}\; [(\cs{_} \mvert \nterm{bd})^*\, \nterm{bd}]$
+
+  $\nterm{oct} ::= \cs{0o}\; \nterm{od}\; [(\cs{_} \mvert \nterm{od})^*\, \nterm{od}]$
+
+  $\nterm{dec} ::= \nterm{dd}\; [(\cs{_} \mvert \nterm{dd})^*\, \nterm{dd}]$
+
+  $\nterm{hex} ::= \cs{0x}\; \nterm{hd}\; [(\cs{_} \mvert \nterm{hd})^*\, \nterm{hd}]$
+
+  \medskip
+  $\nterm{bd} ::= \cs{0} \mvert \cs{1}$
+
+  $\nterm{od} ::= \cs{0} \mvert \cdots\; \mvert \cs{7}$
+
+  $\nterm{dd} ::= \cs{0} \mvert \cdots\; \mvert \cs{9}$
+
+  $\nterm{hd} ::= \nterm{dd} \mvert \cs{a} \mvert \cdots\; \mvert \cs{f} \mvert
+                                    \cs{A} \mvert \cdots\; \mvert \cs{F}$
+\end{display}
+Examples\?:
+\begin{display}\small
+  \cs{3.4}\quad\cs{3/4}\quad\cs{0xfa.4}\quad\cs{0o64/0b101}\quad\cs{1_000_000}
+\end{display}
+
+\paragraph{Strings and characters}
+Character constants are enclosed in apostrophes~\cs{'}, string constants are deliminated by
+double quotes~\cs{"}. A string constant is just an abbreviation for a list of characters.
+The following escape sequences are recognised\?:
+
+\begin{displaytable}
+  \cs{\'} & {\small U0027} & apostrophe \ntr
+  \cs{\"} & {\small U0022} & double quote \ntr
+  \cs{\\} & {\small U005C} & backslash \ntr
+  \cs{\b} & {\small U0007} & bell \ntr
+  \cs{\e} & {\small U001B} & \textsc{esc} \ntr
+  \cs{\f} & {\small U000C} & form feed \ntr
+  \cs{\n} & {\small U000A} & newline \ntr
+  \cs{\r} & {\small U000D} & carriage return \ntr
+  \cs{\t} & {\small U0009} & tabulator \ntr
+  \cs{\}\nterm{ddd}   & --- & character with 8~bit \textsc{unicode} \ntr
+                      &     & \nterm{ddd} in decimal\ntr
+  \cs{\x}\nterm{hh}   & --- & character with 8~bit \textsc{unicode} \ntr
+                      &     & \nterm{hh} in hexadecimal \ntr
+  \cs{\u}\nterm{hhhh} & --- & character with 16~bit \textsc{unicode} \ntr
+                      &     & \nterm{hhhh} in hexadecimal
+\end{displaytable}
+
+\paragraph{Symbols}
+Symbols are uppercase identifiers. The symbols \cs{True} and \cs{False} are used as boolean values.
+
+\subsection{Expressions}
+
+Expressions consist of simple expressions combined by operators.
+Where we distinguish between binary, prefix, and postfix operators.
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{expr} ::= {}$ & $\nterm{expr}\; \nterm{post-op} $ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\nterm{expr}\; \nterm{bin-op}\; \nterm{expr} $ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\nterm{simple-expr}^+$ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\nterm{number}\; \nterm{simple-expr}^+$ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\cs{local}\; \nterm{lid}^+\; \cs{;}\; \nterm{expr} $ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\cs{local}\; \nterm{decl}\; \cs{;}\; \nterm{expr} $ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\cs{local}\; \cs{begin}\; \nterm{decl-list}\; \cs{end}\; \nterm{expr} $ \ntr
+  \quad\hfill        ${} \mvert {}$ & $\nterm{expr}\; \cs{where}\; \nterm{decl-list}\; \cs{end} $ \ntr
+  \quad                             & \ldots
+  \end{table}
+\end{display}
+Function application is written without parenthesis or commas\?:
+\begin{display}
+  \cs{foldl} \cs{(+)} \cs{0} \cs{[0,1,2,3,4,5]}
+\end{display}
+If a list of simple expressions starts with a number then the symbol \cs{*} is inserted between
+the number and the following terms, i.e.,
+\begin{display}
+  \cs{4} \cs{sind} \cs{45} \quad is equivalent to\quad \cs{4} \cs{*} \cs{sind} \cs{45}.
+\end{display}
+The \cs{local} and \cs{where} constructs allow local definitions of functions and variables where
+\cs{local} $x_1$ \ldots\ $x_n$ is an abbreviation for
+\begin{display}
+  \cs{local begin} $x_1$ \cs{:=} \cs{_;} \ldots $x_n$ \cs{:=} \cs{_;} \cs{end}
+\end{display}
+The following table lists all predefined operators in order of increasing priority\?:
+\begin{displaytable}
+  priority & assoc.  & operators \ntr\ntr
+\hfil 0    & right   & \cs{$} \ntr
+\hfil 1    & left    & \cs{>>} \ntr
+\hfil 2    & right   & \cs{||} \ntr
+\hfil 3    & right   & \cs{&&} \ntr
+\hfil 4    & non     & \cs{==} \cs{<>} \cs{>} \cs{<} \cs{>=} \cs{<=} \ntr
+\hfil 5    & left    & \cs{land} \cs{lor} \cs{lxor} \cs{lsr} \cs{lsl} \ntr
+\hfil 5    & right   & \cs{++} \ntr
+\hfil 6    & left    & \cs{+} \cs{-} \ntr
+\hfil 7    & left    & \cs{*} \cs{/} \cs{mod} \ntr
+\hfil 8    & left    & \cs{^} \ntr
+\hfil 9    & right   & \cs{o} \ntr
+\hfil 9    & left    & \cs{!!} \ntr
+           &         & function application \ntr
+           & prefix  & prefix operators\?: \cs{~} \ntr
+           & postfix & postfix operators
+\end{displaytable}
+
+\paragraph{Simple expressions}
+Simple expressions are either literals, variables, or complex expressions enclosed in parenthesis.
+We discuss the various cases separately.
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{simple-expr} ::= {}$ & \nterm{lid}    & ${} \mvert \nterm{symbol}$ \ntr
+  \quad              \hfill ${} \mvert {}$ & \nterm{number} & ${} \mvert \nterm{character}$ \ntr
+  \quad              \hfill ${} \mvert {}$ & \nterm{string} & ${} \mvert \cs{_}$ \ntr
+  \quad              \hfill ${} \mvert {}$ & \ldots
+  \end{table}
+\end{display}
+The symbol \cs{_} indicates an unnamed variable without value. It is an abbreviation for the expression
+\begin{display}
+  \cs{(local} \cs{x} \cs{;} \cs{x)}
+\end{display}
+
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{simple-expr} ::= {}$ & \ldots \ntr
+  \quad\hfill ${} \mvert {}$ & $\nterm{pre-op}\; \nterm{simple-expr} $ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; \cs{)} $ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{bin-op}\; \nterm{expr} \cs{)}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; \nterm{bin-op}\; \cs{)}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{bin-op}\; \cs{)}$ \ntr
+  \quad                      & \ldots
+  \end{table}
+\end{display}
+Partial application of binary operators are written in parenthesis. So \cs{(+)} denotes the function
+$(x,y) \mapsto x + y$ and \cs{(+}~\cs{1)} is the function $x \mapsto x + 1$.
+
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{simple-expr} ::= {}$ & \ldots \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^+\; \cs{)}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{[}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^+\; \cs{]}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{[}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^*\; \cs{:}\; \nterm{expr} \cs{]}$
+  \quad                        \ntr
+  \quad                      & \ldots
+  \end{table}
+\end{display}
+Tuples are written with parenthesis and commas, lists are set in square brackets. The tail of a list is
+separated by a colon~\cs{:}. Examples\?:
+\begin{display}\small
+  \cs{(1,} \cs{0,} \cs{0)}\qquad
+  \cs{[0,1,2,3]}\qquad
+  \cs{[x:xs]}
+\end{display}
+The following control constructs are available\?:
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{simple-expr} ::= {}$\hskip{-2em} &\hskip{2em}\ldots \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{begin}\; \nterm{stmt-list-expr}\; \cs{end} $ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{if}\; \nterm{expr}\; \cs{then}\; \nterm{stmt-list-expr} $ \ntr
+  \quad                      & $(\cs{elseif}\; \nterm{expr}\; \cs{then}\; \nterm{stmt-list-expr})^* $ \ntr
+  \quad                      & $\cs{else}\; \nterm{stmt-list-expr}\; \cs{end} $ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{match}\; \nterm{expr}\; \cs{with}\;
+                           \text{\blue\texttt\textlbrace}\; \nterm{match-body}\;
+                           \text{\blue\texttt\textrbrace}$ \ntr
+  \quad\hfill $\nterm{match-body} ::= {}$\hskip{-2em}
+    &\hskip{2em} $\nterm{match-clause}\; (\cs{|}\; \nterm{match-clause})^*$ \ntr
+  \quad\hfill $\nterm{match-clause} ::= {}$\hskip{-2em}
+    &\hskip{2em} $\nterm{pattern}\; [\cs{&}\; \nterm{expr}]\; \cs{:=}\; \nterm{stmt-list-expr}$ \ntr
+  \quad\hfill $\nterm{stmt-list-expr} ::= {}$\hskip{-2em}
+    &\hskip{2em} $(\nterm{stmt}\; \cs{,})^* \nterm{expr}$
+  \end{table}
+\end{display}
+
+Lambda expressions, i.e., unnamed functions, are written as list of patterns and corresponding
+expressions similarly to \cs{match} constructs\?:
+\begin{display}\small
+  \begin{table}
+  \quad\hfill       $\nterm{expr} ::= {}$ & \ldots\ ${} \mvert {}$
+             {\blue\texttt\textlbrace} \nterm{fun-body} {\blue\texttt\textrbrace} \ntr
+  \quad\hfill   $\nterm{fun-body} ::= {}$ & $\nterm{fun-clause}\; (\cs{|}\; \nterm{fun-clause})^*$ \ntr
+  \quad\hfill $\nterm{fun-clause} ::= {}$ & $\nterm{pattern}^+\; [\cs{&}\; \nterm{expr}]\;
+                                            \cs{:=}\; \nterm{stmt-list-expr}$
+  \end{table}
+\end{display}
+For example\?:
+\begin{display}\small\blue
+  \texttt\textlbrace\ \cs{[]} \cs{:=} \cs{0}
+    \cs{|} \cs{[x]} \cs{:=} \cs{x}
+    \cs{|} \cs{[x,} \cs{y} \cs{:} \cs{_]} \cs{:=} \cs{x} \cs{+} \cs{y} \texttt\textrbrace
+
+\medskip
+  \texttt\textlbrace\ \cs{x} \cs{&} \cs{x} \cs{>}\phantom{\cs{=}} \cs{0} \cs{:=} \cs{1}
+
+  \cs{|} \cs{x} \cs{&} \cs{x} \cs{==} \cs{0} \cs{:=} \cs{0}
+
+  \cs{|} \cs{x} \cs{&} \cs{x} \cs{<}\phantom{\cs{=}} \cs{0} \cs{:=} \cs{~1} \texttt\textrbrace
+\end{display}
+
+\subsection{Statements}
+
+A statement is an equation or an \cs{if} statement of equations. Note that, for statements, the
+\cs{else} part of an \cs{if} statement may be omitted.
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{stmt} ::= {}$ & \cs{expr} \cs{=} \cs{expr} \ntr
+  \quad\hfill        ${} \mvert {}$ & $\cs{if}\; \nterm{expr}\; \cs{then}\; \nterm{stmt} $ \ntr
+  \quad                             & $(\cs{elseif}\; \nterm{expr}\; \cs{then}\; \nterm{stmt})^* $ \ntr
+  \quad                             & $[\cs{else}\; \nterm{stmt}]\; \cs{end} $ \ntr
+  \end{table}
+\end{display}
+
+\subsection{Patterns}
+
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{pattern} ::= {}$ & \cs{_} \ntr
+  \quad\hfill ${} \mvert {}$ & \nterm{lid} \ntr
+  \quad\hfill ${} \mvert {}$ & \nterm{number} \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{pattern}\; \cs{)}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{(}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^+\; \cs{)}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{[}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^+\; \cs{]}$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{[}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^*\; \cs{:}\;
+                               \nterm{pattern} \cs{]}$ \ntr
+  \quad\hfill ${} \mvert {}$ & \nterm{lid} \cs{=} \nterm{pattern} \ntr
+  \quad\hfill ${} \mvert {}$ & \nterm{pattern} \cs{=} \nterm{lid}
+  \end{table}
+\end{display}
+
+\subsection{Declarations}
+
+\begin{display}\small
+  \begin{table}
+  \quad\hfill $\nterm{decl} ::= {}$ & $\nterm{lid}\; \nterm{pattern}^*\; [\cs{&}\; \nterm{expr}]\;
+                                       \cs{:=}\; \nterm{stmt-list-expr}$ \ntr
+  \quad\hfill ${} \mvert {}$ & \nterm{pattern} \nterm{bin-op} \nterm{pattern} [\cs{&} \nterm{expr}] \cs{:=} \ntr
+                             & \qquad \nterm{stmt-list-expr} \ntr
+  \quad\hfill ${} \mvert {}$ & $\text{\nterm{lid}}^+$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{declare_infix_left}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{declare_infix_non}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{declare_infix_right}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{declare_prefix}\; \text{\nterm{lid}}^+$ \ntr
+  \quad\hfill ${} \mvert {}$ & $\cs{declare_postfix}\; \text{\nterm{lid}}^+$
+  \end{table}
+\end{display}
+The first two cases are used to declare functions. A list of identifiers \cs{x_0} \ldots\ \cs{x_n}
+is an abbreviation for the declarations
+\begin{display}
+  \cs{x_0} \cs{:=} \cs{_;} \ldots\ \cs{x_n} \cs{:=} \cs{_}\,.
+\end{display}
+The \cs{declare_}\ldots\ statements can be used to declare the priority and associativity of operators.
+
+
+\section{Typesetting commands}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+This section contains a description of all typesetting commands. The commands are grouped by topic
+and each section contains both markup commands and AL commands.
 
 
 \subsection{Page layout}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -311,6 +665,16 @@ put the command inside a \cs{\vadjust} command\?:
   \cs{\vadjust{\nextpagelayout{foo}}}
 \end{code}
 
+The corresponding AL commands are
+\begin{code}
+  \cs{ps_shipout_pages} \nterm{number} \nterm{even} \nterm{odd} \nterm{ps}
+
+  \cs{ps_new_page_layout} \nterm{name} \nterm{width} \nterm{height} \nterm{ps}
+
+  \cs{ps_new_area} \nterm{name} \nterm{pos-x} \nterm{pos-y} \nterm{width} \nterm{height}
+    \nterm{max-top} \nterm{max-bot} \nterm{type} \nterm{param} \nterm{ps}
+\end{code}
+
 
 \subsection{Galleys and paragraphs}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -322,6 +686,10 @@ length. In the second step, parts of these galleys are used to assemble the actu
 To create a new galley of width \csarg{measure} one uses the command
 \begin{code}
   \cs{\newgalley} \csarg{name} \csarg{measure}
+\end{code}
+The corresponding AL command is
+\begin{code}
+  \cs{ps_new_galley} \nterm{name} \nterm{measure} \nterm{ps}
 \end{code}
 
 All material between the commands
@@ -451,6 +819,11 @@ Inserts the given image. The \csopt{options} dictionary may contain the followin
 \item{\cs{height}\quad (skip)} the height of the image.
 \item{\cs{dpi}\quad (number)}  the resolution of the image.
 \end{longdescription}
+
+\dvi\ specials can be created with the AL command
+\begin{code}
+  \cs{ps_dvi_special} \nterm{string} \nterm{ps}
+\end{code}
 
 
 \subsection{Parameters}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -822,8 +1195,46 @@ Change the font size.
 \end{code}
 Restores the normal font.
 
+To make fonts available to \ant\ you have to declare them. The AL command
+\begin{code}
+  \cs{ps_declare_font} \nterm{font-file} \nterm{family} \nterm{series} \nterm{shape} \nterm{sizes} \nterm{parameters}
+\end{code}
+tells \ant\ that the file \nterm{font-file} contains a font in the given \nterm{family}. The \nterm{parameters}
+take the form of a dictionary containing the following entries. Each of them is optional.
+\begin{longdescription}
+\item{\cs{Encoding}\quad}
+  the encoding vector of the form.
+\item{\cs{HyphenGlyph}\quad}
+  the index of the hyphen glyph.
+\item{\cs{SkewGlyph}\quad}
+  the index of the skew glyph.
+\item{\cs{Scale}\quad}
+  an optional scaling factor for the font.
+\item{\cs{LetterSpacing}\quad}
+  amount of additional letter spacing.
+\item{\cs{Adjustments}\quad}
+  additional kerning and ligature commands.
+\item{\cs{AutoLigatures}\quad}
+  boolean to enable automatic creation of ligatures.
+\item{\cs{BorderKern}\quad}
+  list of tuples containing kerning values for margin kerning.
+\end{longdescription}
 
-\subsection{Colour}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To define mathematical symbols one can use the following commands.
+\begin{code}
+  \cs{ps_define_math_symbol} \nterm{name} \nterm{math-code} \nterm{font} \nterm{glyph} \nterm{ps}
+
+  \cs{ps_define_root_symbol} \nterm{name} \nterm{small-font} \nterm{small-glyph}
+     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+
+  \cs{ps_define_math_accent} \nterm{name} \nterm{font} \nterm{glyph} \nterm{ps}
+
+  \cs{ps_set_math_code} \nterm{char} \nterm{math-code} \nterm{small-font} \nterm{small-glyph}
+     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+\end{code}
+
+
+\subsection{Colour and graphics}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \begin{code}
@@ -834,6 +1245,33 @@ Restores the normal font.
   \cs{\setcmykcolour} \csarg{cyan} \csarg{magenta} \csarg{yellow} \csarg{black}
 \end{code}
 Sets the current colour. These commands take effect until the end of the current box.
+
+The corresponding AL commands are
+\begin{code}
+  \cs{ps_set_colour} \nterm{colour} \nterm{ps}
+
+  \cs{ps_set_bg_colour} \nterm{colour} \nterm{ps}
+
+  \cs{ps_set_alpha} \nterm{alpha} \nterm{ps}
+\end{code}
+
+The following AL commands can be used to
+draw lines or filled shapes.
+\begin{code}
+  \cs{ps_stroke} \nterm{path} \nterm{ps}
+
+  \cs{ps_fill} \nterm{path} \nterm{ps}
+
+  \cs{ps_clip} \nterm{path} \nterm{ps}
+
+  \cs{ps_set_line_width} \nterm{width} \nterm{ps}
+
+  \cs{ps_set_line_cap} \nterm{line-cap} \nterm{ps}
+
+  \cs{ps_set_line_join} \nterm{line-join} \nterm{ps}
+
+  \cs{ps_set_miter_limit} \nterm{limit} \nterm{ps}
+\end{code}
 
 
 
@@ -1031,8 +1469,71 @@ inserts the result --~which should be a string~-- at the current position into t
 \cs{\ALcommand} is a more powerful version of \cs{\ALmacro}. Its argument is an \AL-expression
 of type
 \begin{display}
-  \textsf{parse-command $\rightarrow$ parse-command}.
+  \textsf{parse-state $\rightarrow$ parse-state}.
 \end{display}
+
+\medskip
+\noindent
+Example\?:
+\begin{code}
+  \cs{\beginALdeclarations}
+
+  \cs{mirror} \cs{:=}
+
+  \qquad \cs{local} \cs{arg;}
+
+  \qquad \cs{do}
+
+  \qquad\qquad \cs{ps_arg_expanded} \cs{arg;}
+
+  \qquad\qquad \cs{ps_insert_string} \cs{(reverse} \cs{arg);}
+
+  \qquad \cs{end}
+
+  \cs{\endALdeclarations}
+
+  \cs{\definecommand\mirror{\ALcommand{mirror}}}
+\end{code}
+defines a command \cs{\mirror} that reverses its argument.
+
+The corresponding AL commands are\?:
+\begin{code}
+  \cs{ps_set_default_char_cmd} \nterm{execute} \nterm{expand} \nterm{ps}
+
+  \cs{ps_define_command} \nterm{name} \nterm{execute} \nterm{expand} \nterm{ps}
+
+  \cs{ps_define_pattern} \nterm{pattern} \nterm{execute} \nterm{expand} \nterm{ps}
+
+  \cs{ps_save_command} \nterm{name} \nterm{ps}
+
+  \cs{ps_restore_command} \nterm{name} \nterm{ps}
+
+  \cs{ps_save_pattern} \nterm{pattern} \nterm{ps}
+
+  \cs{ps_restore_pattern} \nterm{pattern} \nterm{ps}
+
+  \cs{ps_lookup_command} \nterm{result} \nterm{name} \nterm{ps}
+
+  \cs{ps_push_env} \nterm{name} \nterm{arguments} \nterm{ps}
+
+  \cs{ps_pop_env} \nterm{arguments} \nterm{name} \nterm{ps}
+
+  \cs{ps_set_env_args} \nterm{arguments} \nterm{ps}
+
+  \cs{ps_top_env} \nterm{name} \nterm{arguments} \nterm{ps}
+
+  \cs{ps_lookup_env} \nterm{result} \nterm{name} \nterm{ps}
+
+  \cs{ps_define_env} \nterm{name} \nterm{execute-begin} \nterm{expand-begin} \nterm{execute-end}
+    \nterm{expand-end} \nterm{ps}
+\end{code}
+
+To output error messages you can use the following AL commands\?:
+\begin{code}
+  \cs{ps_warning} \nterm{message}
+
+  \cs{ps_error} \nterm{message}
+\end{code}
 
 
 \subsection{Counters and references}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1047,7 +1548,7 @@ of type
 
 \cs{\getcounter} \csarg{format} \csarg{name}
 \end{code}
-Manipulate counters. If \csarg{super-counter} is given the new counter is reset everytime the
+Manipulate counters. If \csarg{super-counter} is given the new counter is reset every time the
 value of the super-counter changes. The format can be one of the following letters\?:
 \begin{display}\setparameter{paragraph}{ left-skip = 0pt }\begin{table}
   \hfil\cs{1} & arabic number               \ntr
@@ -1067,6 +1568,24 @@ The following counters are predefined\?:
 \item{\cs{day-of-week}}day of the week (0 means Sunday)
 \end{description}
 
+The equivalent AL commands are\?:
+\begin{code}
+  \cs{ps_new_counter} \nterm{name} \nterm{value} \nterm{super} \nterm{ps}
+
+  \cs{ps_get_counter} \nterm{value} \nterm{name} \nterm{ps}
+
+  \cs{ps_set_counter} \nterm{name} \nterm{value} \nterm{ps}
+\end{code}
+
+In addition to counters there are also global variables that can be accessed
+only via AL commands.
+\begin{code}
+  \cs{ps_get_global} \nterm{result} \nterm{name} \nterm{ps}
+
+  \cs{ps_set_global} \nterm{name} \nterm{value} \nterm{ps}
+\end{code}
+
+
 \begin{code}
   \cs{\addreference} \csarg{name} \csarg{value}
 
@@ -1077,6 +1596,23 @@ Between runs of ant the references are stored in a file called \csarg{jobname}\t
 They can be loaded with the command
 \begin{code}
   \cs{\include{\jobname.refdb}}
+\end{code}
+
+In AL one can manipulate references via the following commands.
+\begin{code}
+  \cs{ps_add_reference} \nterm{label} \nterm{value} \nterm{ps}
+
+  \cs{ps_reference_exists} \nterm{bool} \nterm{label} \nterm{ps}
+
+  \cs{ps_lookup_reference} \nterm{value} \nterm{label} \nterm{ps}
+
+  \cs{ps_fold_references} \nterm{result} \nterm{fun} \nterm{init} \nterm{ps}
+
+  \cs{ps_store_old_references} \nterm{ps}
+
+  \cs{ps_compare_references} \nterm{bool} \nterm{ps}
+
+  \cs{ps_write_references} \nterm{file} \nterm{ps}
 \end{code}
 
 \begin{code}
@@ -1096,333 +1632,218 @@ position relative to the upper left corner of the area.
 creates a reference \csarg{name} whose value is the current line number,
 counted from the beginning of the paragraph.
 
+\subsection{Parsing}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{AL -- the ant language}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To read the next argument one can use the following AL commands\?:
+\begin{code}
+  \cs{ps_next_char} \nterm{char} \nterm{ps}
 
-\subsection{Lexical conventions}
+  \cs{ps_get_char} \nterm{char} \nterm{pos} \nterm{ps}
 
-We distinguish six classes of characters according to their \textsc{unicode} category\?:
+  \cs{ps_remove_chars} \nterm{num} \nterm{ps}
 
-\medskip
-\begin{description}
-\item{\textit{White space} (\nterm{ws})\?:} Mn, Mc, Me, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn
-\item{\textit{Lowercase letters} (\nterm{lc})\?:} Ll, Lm, Lo
-\item{\textit{Uppercase letters} (\nterm{uc})\?:} Lu, Lt
-\item{\textit{Digits} (\nterm{dd})\?:} Nd, Nl, No
-\item{\textit{Symbols} (\nterm{sy})\?:} Pc, Pd, Ps, Pe, Pi, Pf, Po, Sm, Sc, Sk, So
-\item{\textit{Special characters} (\nterm{sp})\?:} \cs{"} \cs{'} \cs{,} \cs{;} \cs{_} \cs{(} \cs{)}
-  \cs{[} \cs{]} {\blue\texttt\textlbrace\ \texttt\textrbrace}
-\end{description}
+  \cs{ps_insert_string} \nterm{str} \nterm{ps}
 
-\paragraph{Comments}
-A line comment starts with \cs{;;} and extends to the end of the line, and block comments
-are delimited by \cs{[;}~and~\cs{;]}.
+  \cs{ps_location} \nterm{loc} \nterm{ps}
 
-\paragraph{Identifiers}
-There are three types of identifiers\?: lowercase and symbolic identifiers represent variables
-while uppercase identifiers are used for symbols.
+  \cs{ps_arg_expanded} \nterm{arg} \nterm{ps}
 
-\begin{display}\small
-  $\nterm{lid} ::= \nterm{lc}\;(\nterm{lc} \mvert \nterm{uc})^*\, \text{\nterm{tail}}^*$
+  \cs{ps_arg_execute} \nterm{arg} \nterm{mode} \nterm{ps}
 
-  \medskip
-  $\nterm{uid} ::= \nterm{uc}\;(\nterm{lc} \mvert \nterm{uc})^*\, \text{\nterm{tail}}^*$
+  \cs{ps_arg_num} \nterm{arg} \nterm{ps}
 
-  \medskip
-  $\nterm{tail} ::= \cs{_}\;(\nterm{lc} \mvert \nterm{uc})^+
-                 \mvert \cs{_}\;\nterm{dd}^+
-                 \mvert \cs{_}\;\text{\nterm{sy}}^+$
+  \cs{ps_arg_int} \nterm{arg} \nterm{ps}
 
-  \medskip
-  $\nterm{symbol} ::= \text{\nterm{sy}}^+$
-\end{display}
-Examples\?:
-\begin{display}\small
-  \cs{lowercase_Identifier_2}\quad\cs{op_+}
+  \cs{ps_arg_skip} \nterm{arg} \nterm{ps}
 
-  \medskip
-  \cs{Uppercase_12_*&/_45}
+  \cs{ps_arg_dim} \nterm{arg} \nterm{ps}
 
-  \medskip
-  \cs{<<|:}\quad\cs{**}\quad\cs{+/-}
-\end{display}
-The following symbols and keywords are reserved\?:
+  \cs{ps_arg_key_val} \nterm{arg} \nterm{ps}
 
-\begin{display}
-\hskip{0pt}%
-  \begin{table}
-  \cs{begin}  & \quad\cs{local} & \quad\cs{declare_infix_left}  \ntr
-  \cs{do}     & \quad\cs{match} & \quad\cs{declare_infix_non}   \ntr
-  \cs{else}   & \quad\cs{then}  & \quad\cs{declare_infix_right} \ntr
-  \cs{elseif} & \quad\cs{where} & \quad\cs{declare_prefix}      \ntr
-  \cs{end}    & \quad\cs{with}  & \quad\cs{declare_postfix}     \ntr
-  \cs{if}     &
-  \end{table}
+  \cs{ps_opt_expanded} \nterm{arg} \nterm{default} \nterm{ps}
 
-\medskip
-  \cs{=}\qquad \cs{:=}\qquad \cs{|}\qquad \cs{.}\qquad \cs{:}\qquad \cs{;}
-\end{display}
+  \cs{ps_opt_key_val_int} \nterm{arg} \nterm{ps}
 
-\subsection{Literals}
+  \cs{ps_opt_int} \nterm{arg} \nterm{default} \nterm{ps}
 
-\paragraph{Numbers}
-Numerical constants can be written either using decimal notation or as fraction. Supported bases
-are 2,~8, 10, and~16. A sequence of digits may be interleaved
-with arbitrary many underscores~\cs{_}.
-\begin{display}\small
-  $\nterm{number} ::= \nterm{decimal}\; \mvert \nterm{fraction}$
+  \cs{ps_arg_TeX_dim} \nterm{arg} \nterm{ps}
+\end{code}
 
-  \medskip
-  $\nterm{decimal} ::= \nterm{natural}\; [\,\cs{.}\; \nterm{natural}]$
+The following commands run the parser on various inputs\?:
+\begin{code}
+  \cs{ps_execute_next_char} \nterm{finished} \nterm{ps}
 
-  \medskip
-  $\nterm{fraction} ::= \nterm{natural}\; \cs{/}\; \nterm{natural}$
+  \cs{ps_execute_stream} \nterm{string} \nterm{ps}
 
-  \medskip
-  $\nterm{natural} ::= \nterm{bin} \mvert \nterm{oct} \mvert \nterm{dec} \mvert \nterm{hex}$
+  \cs{ps_execute_argument} \nterm{ps}
 
-  \medskip
-  $\nterm{bin} ::= \cs{0b}\; \nterm{bd}\; [(\cs{_} \mvert \nterm{bd})^*\, \nterm{bd}]$
+  \cs{ps_run_parser} \nterm{result} \nterm{mode} \nterm{ps}
+\end{code}
 
-  $\nterm{oct} ::= \cs{0o}\; \nterm{od}\; [(\cs{_} \mvert \nterm{od})^*\, \nterm{od}]$
 
-  $\nterm{dec} ::= \nterm{dd}\; [(\cs{_} \mvert \nterm{dd})^*\, \nterm{dd}]$
+\subsection{Nodes}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  $\nterm{hex} ::= \cs{0x}\; \nterm{hd}\; [(\cs{_} \mvert \nterm{hd})^*\, \nterm{hd}]$
 
-  \medskip
-  $\nterm{bd} ::= \cs{0} \mvert \cs{1}$
+The following commands provide lowlevel access to the interface to the typesetting engine.
+\begin{code}
+  \cs{ps_current_mode} \nterm{mode} \nterm{ps}
 
-  $\nterm{od} ::= \cs{0} \mvert \cdots\; \mvert \cs{7}$
+  \cs{ps_open_node_list} \nterm{mode} \nterm{ps}
 
-  $\nterm{dd} ::= \cs{0} \mvert \cdots\; \mvert \cs{9}$
+  \cs{ps_close_node_list} \nterm{nodes} \nterm{mode} \nterm{ps}
 
-  $\nterm{hd} ::= \nterm{dd} \mvert \cs{a} \mvert \cdots\; \mvert \cs{f} \mvert
-                                    \cs{A} \mvert \cdots\; \mvert \cs{F}$
-\end{display}
-Examples\?:
-\begin{display}\small
-  \cs{3.4}\quad\cs{3/4}\quad\cs{0xfa.4}\quad\cs{0o64/0b101}\quad\cs{1_000_000}
-\end{display}
+  \cs{ps_add_node} \nterm{node} \nterm{ps}
+\end{code}
 
-\paragraph{Strings and characters}
-Character constants are enclosed in apostrophes~\cs{'}, string constants are deliminated by
-double quotes~\cs{"}. A string constant is just an abbreviation for a list of characters.
-The following escape sequences are recognised\?:
 
+\subsection{Environment commands}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Most of the functions below return environment commands, i.e., functions of type
+\textit{location $\rightarrow$ environment $\rightarrow$ environment.}
+
+Font parameters\?:
+\begin{code}
+  \cs{em} \nterm{env}
+
+  \cs{ex} \nterm{env}
+
+  \cs{mu} \nterm{env}
+\end{code}
+Galleys\?:
+\begin{code}
+  \cs{new_galley} \nterm{name} \nterm{measure}
+
+  \cs{select_galley} \nterm{name}
+\end{code}
+Galley parameters\?:
+\begin{code}
+  \cs{set_par_params} \nterm{params}
+
+  \cs{set_line_params} \nterm{params}
+
+  \cs{set_line_break_params} \nterm{params}
+
+  \cs{set_hyphen_params} \nterm{params}
+
+  \cs{set_space_params} \nterm{params}
+
+  \cs{set_math_params} \nterm{params}
+
+  \cs{set_current_par_params} \nterm{params}
+
+  \cs{set_current_line_params} \nterm{params}
+
+  \cs{set_current_line_break_params} \nterm{params}
+
+  \cs{set_current_hyphen_params} \nterm{params}
+
+  \cs{set_current_space_params} \nterm{params}
+
+  \cs{set_current_math_params} \nterm{params}
+
+  \cs{set_par_shape} \nterm{shape}
+
+  \cs{set_colour} \nterm{colour}
+\end{code}
+Page layout\?:
+\begin{code}
+  \cs{new_page_layout} \nterm{name} \nterm{page-width} \nterm{page-height}
+
+  \cs{select_page_layout} \nterm{name}
+\end{code}
+Fonts\?:
+\begin{code}
+%  \cs{set_font} \nterm{definition}
+%
+%  \cs{get_math_font} \nterm{env} \nterm{style} \nterm{family}
+%
+  \cs{set_math_font} \nterm{definition}
+
+  \cs{adapt_fonts_to_math_style}
+\end{code}
+Space factor\?:
+\begin{code}
+  \cs{get_space_factor} \nterm{env} \nterm{char}
+
+  \cs{adjust_space_factor} \nterm{char}
+\end{code}
+
+
+\subsection{Dimensions}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The following constants are defined\?:
 \begin{displaytable}
-  \cs{\'} & {\small U0027} & apostrophe \ntr
-  \cs{\"} & {\small U0022} & double quote \ntr
-  \cs{\\} & {\small U005C} & backslash \ntr
-  \cs{\b} & {\small U0007} & bell \ntr
-  \cs{\e} & {\small U001B} & \textsc{esc} \ntr
-  \cs{\f} & {\small U000C} & form feed \ntr
-  \cs{\n} & {\small U000A} & newline \ntr
-  \cs{\r} & {\small U000D} & carriage return \ntr
-  \cs{\t} & {\small U0009} & tabulator \ntr
-  \cs{\}\nterm{ddd}   & --- & character with 8~bit \textsc{unicode} \ntr
-                      &     & \nterm{ddd} in decimal\ntr
-  \cs{\x}\nterm{hh}   & --- & character with 8~bit \textsc{unicode} \ntr
-                      &     & \nterm{hh} in hexadecimal \ntr
-  \cs{\u}\nterm{hhhh} & --- & character with 16~bit \textsc{unicode} \ntr
-                      &     & \nterm{hhhh} in hexadecimal
+  \cs{pt} = 1          &\qquad \cs{pc} = 12\,pt \ntr
+  \cs{in} = 72.27\,pt  &\qquad \cs{sp} = 1/65536\,pt \ntr
+  \cs{bp} = 1/72\,in   &\qquad \cs{dd} = 1238/1157\,pt \ntr
+  \cs{cm} = 1/2.54\,in &\qquad \cs{cc} = 12\,dd \ntr
+  \cs{mm} = 0.1\,cm
 \end{displaytable}
 
-\paragraph{Symbols}
-Symbols are uppercase identifiers. The symbols \cs{True} and \cs{False} are used as boolean values.
+A dimension consists of a base value together with two values that specify how much it can be stretched and shrunk.
+\begin{code}
+  \cs{make_dim} \nterm{base} \nterm{stretch} \nterm{stretch-order} \nterm{shrink} \nterm{shrink-order}
 
-\subsection{Expressions}
+  \cs{fixed_dim} \nterm{base}
 
-Expressions consist of simple expressions combined by operators.
-Where we distinguish between binary, prefix, and postfix operators.
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{expr} ::= {}$ & $\nterm{expr}\; \nterm{post-op} $ \ntr
-  \hfill        ${} \mvert {}$ & $\nterm{expr}\; \nterm{bin-op}\; \nterm{expr} $ \ntr
-  \hfill        ${} \mvert {}$ & $\nterm{simple-expr}^+$ \ntr
-  \hfill        ${} \mvert {}$ & $\nterm{number}\; \nterm{simple-expr}^+$ \ntr
-  \hfill        ${} \mvert {}$ & $\cs{local}\; \nterm{decl}\; \cs{;}\; \nterm{expr} $ \ntr
-  \hfill        ${} \mvert {}$ & $\cs{local}\; \cs{begin}\; \nterm{decl-list}\; \cs{end}\; \nterm{expr} $ \ntr
-  \hfill        ${} \mvert {}$ & $\nterm{expr}\; \cs{where}\; \nterm{decl-list}\; \cs{end} $ \ntr
-                               & \ldots
-  \end{table}
-\end{display}
-Function application is written without parenthesis or commas\?:
-\begin{display}
-  \cs{foldl} \cs{(+)} \cs{0} \cs{[0,1,2,3,4,5]}
-\end{display}
-If a list of simple expressions starts with a number then the symbol \cs{*} is inserted between
-the number and the following terms, i.e.,
-\begin{display}
-  \cs{4} \cs{sind} \cs{45} \quad is equivalent to\quad \cs{4} \cs{*} \cs{sind} \cs{45}.
-\end{display}
-The \cs{local} and \cs{where} constructs allow local definitions of functions and variables.
-The following table lists all predefined operators in order of increasing priority\?:
-\begin{displaytable}
-  priority & assoc.  & operators \ntr\ntr
-\hfil 0    & right   & \cs{$} \ntr
-\hfil 1    & left    & \cs{>>} \ntr
-\hfil 2    & right   & \cs{||} \ntr
-\hfil 3    & right   & \cs{&&} \ntr
-\hfil 4    & non     & \cs{==} \cs{<>} \cs{>} \cs{<} \cs{>=} \cs{<=} \ntr
-\hfil 5    & left    & \cs{land} \cs{lor} \cs{lxor} \cs{lsr} \cs{lsl} \ntr
-\hfil 5    & right   & \cs{++} \ntr
-\hfil 6    & left    & \cs{+} \cs{-} \ntr
-\hfil 7    & left    & \cs{*} \cs{/} \cs{mod} \ntr
-\hfil 8    & left    & \cs{^} \ntr
-\hfil 9    & right   & \cs{o} \ntr
-\hfil 9    & left    & \cs{!!} \ntr
-           &         & function application \ntr
-           & prefix  & prefix operators\?: \cs{~} \ntr
-           & postfix & postfix operators
-\end{displaytable}
+  \cs{dim_zero}
 
-\paragraph{Simple expressions}
-Simple expressions are either literals, variables, or complex expressions enclosed in parenthesis.
-We discuss the various cases separately.
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{simple-expr} ::= {}$ & \nterm{lid}    & ${} \mvert \nterm{symbol}$ \ntr
-                \hfill ${} \mvert {}$ & \nterm{number} & ${} \mvert \nterm{character}$ \ntr
-                \hfill ${} \mvert {}$ & \nterm{string} & ${} \mvert \cs{_}$ \ntr
-                \hfill ${} \mvert {}$ & \ldots
-  \end{table}
-\end{display}
-The symbol \cs{_} indicates an unnamed variable without value. It is an abbreviation for the expression
-\begin{display}
-  \cs{(local} \cs{x} \cs{;} \cs{x)}
-\end{display}
+  \cs{dim_1pt}
 
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{simple-expr} ::= {}$ & \ldots \ntr
-  \hfill ${} \mvert {}$ & $\nterm{pre-op}\; \nterm{simple-expr} $ \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; \cs{)} $ \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{bin-op}\; \nterm{expr} \cs{)}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; \nterm{bin-op}\; \cs{)}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{bin-op}\; \cs{)}$ \ntr
-                        & \ldots
-  \end{table}
-\end{display}
-Partial application of binary operators are written in parenthesis. So \cs{(+)} denotes the function
-$(x,y) \mapsto x + y$ and \cs{(+}~\cs{1)} is the function $x \mapsto x + 1$.
+  \cs{dim_12pt}
 
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{simple-expr} ::= {}$ & \ldots \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^+\; \cs{)}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{[}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^+\; \cs{]}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{[}\; \nterm{expr}\; (\cs{,}\; \nterm{expr})^*\; \cs{:}\; \nterm{expr} \cs{]}$
-                          \ntr
-                        & \ldots
-  \end{table}
-\end{display}
-Tuples are written with parenthesis and commas, lists are set in square brackets. The tail of a list is
-separated by a colon~\cs{:}. Examples\?:
-\begin{display}\small
-  \cs{(1,} \cs{0,} \cs{0)}\qquad
-  \cs{[0,1,2,3]}\qquad
-  \cs{[x:xs]}
-\end{display}
-The following control constructs are available\?:
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{simple-expr} ::= {}$\hskip{-2em} &\hskip{2em}\ldots \ntr
-  \hfill ${} \mvert {}$ & $\cs{begin}\; \nterm{stmt-list-expr}\; \cs{end} $ \ntr
-  \hfill ${} \mvert {}$ & $\cs{if}\; \nterm{expr}\; \cs{then}\; \nterm{stmt-list-expr} $ \ntr
-                        & $(\cs{elseif}\; \nterm{expr}\; \cs{then}\; \nterm{stmt-list-expr})^* $ \ntr
-                        & $\cs{else}\; \nterm{stmt-list-expr}\; \cs{end} $ \ntr
-  \hfill ${} \mvert {}$ & $\cs{match}\; \nterm{expr}\; \cs{with}\;
-                           \text{\blue\texttt\textlbrace}\; \nterm{match-body}\;
-                           \text{\blue\texttt\textrbrace}$ \ntr
-  \hfill $\nterm{match-body} ::= {}$\hskip{-2em}
-    &\hskip{2em} $\nterm{match-clause}\; (\cs{|}\; \nterm{match-clause})^*$ \ntr
-  \hfill $\nterm{match-clause} ::= {}$\hskip{-2em}
-    &\hskip{2em} $\nterm{pattern}\; [\cs{&}\; \nterm{expr}]\; \cs{:=}\; \nterm{stmt-list-expr}$ \ntr
-  \hfill $\nterm{stmt-list-expr} ::= {}$\hskip{-2em}
-    &\hskip{2em} $(\nterm{stmt}\; \cs{,})^* \nterm{expr}$
-  \end{table}
-\end{display}
+  \cs{dim_fil}
 
-Lambda expressions, i.e., unnamed functions, are written as list of patterns and corresponding
-expressions similarly to \cs{match} constructs\?:
-\begin{display}\small
-  \begin{table}
-  \hfill       $\nterm{expr} ::= {}$ & \ldots\ ${} \mvert {}$ 
-             {\blue\texttt\textlbrace} \nterm{fun-body} {\blue\texttt\textrbrace} \ntr
-  \hfill   $\nterm{fun-body} ::= {}$ & $\nterm{fun-clause}\; (\cs{|}\; \nterm{fun-clause})^*$ \ntr
-  \hfill $\nterm{fun-clause} ::= {}$ & $\nterm{pattern}^+\; [\cs{&}\; \nterm{expr}]\;
-                                        \cs{:=}\; \nterm{stmt-list-expr}$
-  \end{table}
-\end{display}
-For example\?:
-\begin{display}\small\blue
-  \texttt\textlbrace\ \cs{[]} \cs{:=} \cs{0}
-    \cs{|} \cs{[x]} \cs{:=} \cs{x}
-    \cs{|} \cs{[x,} \cs{y} \cs{:} \cs{_]} \cs{:=} \cs{x} \cs{+} \cs{y} \texttt\textrbrace
+  \cs{dim_fill}
 
-\medskip
-  \texttt\textlbrace\ \cs{x} \cs{&} \cs{x} \cs{>}\phantom{\cs{=}} \cs{0} \cs{:=} \cs{1}
+  \cs{dim_ss}
 
-  \cs{|} \cs{x} \cs{&} \cs{x} \cs{==} \cs{0} \cs{:=} \cs{0}
+  \cs{dim_filneg}
 
-  \cs{|} \cs{x} \cs{&} \cs{x} \cs{<}\phantom{\cs{=}} \cs{0} \cs{:=} \cs{~1} \texttt\textrbrace
-\end{display}
+  \cs{dim_equal} \nterm{dim} \nterm{dim}
 
-\subsection{Statements}
+  \cs{dim_add} \nterm{dim} \nterm{dim}
 
-A statement is an equation or an \cs{if} statement of equations. Note that, for statements, the
-\cs{else} part of an \cs{if} statement may be omitted.
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{stmt} ::= {}$ & \cs{expr} \cs{=} \cs{expr} \ntr
-  \hfill        ${} \mvert {}$ & $\cs{if}\; \nterm{expr}\; \cs{then}\; \nterm{stmt} $ \ntr
-                               & $(\cs{elseif}\; \nterm{expr}\; \cs{then}\; \nterm{stmt})^* $ \ntr
-                               & $[\cs{else}\; \nterm{stmt}]\; \cs{end} $ \ntr
-  \end{table}
-\end{display}
+  \cs{dim_neg} \nterm{dim}
 
-\subsection{Patterns}
+  \cs{dim_sub} \nterm{dim} \nterm{dim}
 
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{pattern} ::= {}$ & \cs{_} \ntr
-  \hfill ${} \mvert {}$ & \nterm{lid} \ntr
-  \hfill ${} \mvert {}$ & \nterm{number} \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{pattern}\; \cs{)}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{(}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^+\; \cs{)}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{[}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^+\; \cs{]}$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{[}\; \nterm{pattern}\; (\cs{,}\; \nterm{pattern})^*\; \cs{:}\;
-                          \nterm{pattern} \cs{]}$ \ntr
-  \hfill ${} \mvert {}$ & \nterm{lid} \cs{=} \nterm{pattern} \ntr
-  \hfill ${} \mvert {}$ & \nterm{pattern} \cs{=} \nterm{lid}
-  \end{table}
-\end{display}
+  \cs{dim_mult} \nterm{num} \nterm{dim}
 
-\subsection{Declarations}
+  \cs{dim_max} \nterm{dim} \nterm{dim}
 
-\begin{display}\small
-  \begin{table}
-  \hfill $\nterm{decl} ::= {}$ & $\nterm{lid}\; \nterm{pattern}^*\; [\cs{&}\; \nterm{expr}]\;
-                                  \cs{:=}\; \nterm{stmt-list-expr}$ \ntr
-  \hfill ${} \mvert {}$ & \nterm{pattern} \nterm{bin-op} \nterm{pattern} [\cs{&} \nterm{expr}] \cs{:=} \ntr
-                        & \qquad \nterm{stmt-list-expr} \ntr
-  \hfill ${} \mvert {}$ & $\text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_left}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_non}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_infix_right}\; \nterm{num}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_prefix}\; \text{\nterm{lid}}^+$ \ntr
-  \hfill ${} \mvert {}$ & $\cs{declare_postfix}\; \text{\nterm{lid}}^+$
-  \end{table}
-\end{display}
-The first two cases are used to declare functions. A list of identifiers \cs{x_0} \ldots\ \cs{x_n}
-is an abbreviation for the declarations
-\begin{display}
-  \cs{x_0} \cs{:=} \cs{_;} \ldots\ \cs{x_n} \cs{:=} \cs{_}\,.
-\end{display}
-The \cs{declare_}\ldots\ statements can be used to declare the priority and associativity of operators.
+  \cs{dim_min} \nterm{dim} \nterm{dim}
 
-\subsection{Predefined functions}
+  \cs{dim_max_stretch} \nterm{dim}
+
+  \cs{dim_max_shrink} \nterm{dim}
+
+  \cs{dim_max_value} \nterm{dim}
+
+  \cs{dim_min_value} \nterm{dim}
+
+  \cs{dim_shift_base} \nterm{dim} \nterm{delta}
+
+  \cs{dim_shift_base_upto} \nterm{dim} \nterm{delta}
+
+  \cs{dim_inc_upto} \nterm{dim} \nterm{delta}
+
+  \cs{dim_dec_upto} \nterm{dim} \nterm{delta}
+
+  \cs{dim_resize_upto} \nterm{dim} \nterm{delta}
+
+  \cs{adjustment_ratio} \nterm{dim} \nterm{size}
+
+  \cs{dim_scale_badness} \nterm{ratio}
+
+  \cs{dim_scale} \nterm{dim} \nterm{ratio}
+
+  \cs{dim_scale_upto} \nterm{dim} \nterm{ratio}
+\end{code}
+
+
+\subsection{Predefined AL commands}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \paragraph{Control constructs}
 The function
@@ -1587,17 +2008,18 @@ In contrast to other functions on numbers, the following ones are of limited pre
 \paragraph{Lists and tuples}
 Lists and tuples are treated like functions mapping indices to values. That is, to access the
 $n$th element of a list or tuple one can apply the list to the integer~$n$. Note that indices start
-at~$0$. For example,
-\begin{display}\small\blue
-  \cs{fib} \cs{:=} \cs{[1,} \cs{1} \cs{:} \cs{iter} \cs{2]}
-
-  \cs{where}
-
-    \cs{iter} \cs{i} \cs{:=} \cs{[fib} \cs{(i-1)} \cs{+} \cs{fib} \cs{(i-2)} \cs{:} \cs{iter} \cs{(i+1)]}
-
-  \cs{end;}
-\end{display}
-defines the list of all Fibonacci numbers.
+at~$0$.
+%For example,
+%\begin{display}\small\blue
+%  \cs{fib} \cs{:=} \cs{[1,} \cs{1} \cs{:} \cs{iter} \cs{2]}
+%
+%  \cs{where}
+%
+%    \cs{iter} \cs{i} \cs{:=} \cs{[fib} \cs{(i-1)} \cs{+} \cs{fib} \cs{(i-2)} \cs{:} \cs{iter} \cs{(i+1)]}
+%
+%  \cs{end;}
+%\end{display}
+%defines the list of all Fibonacci numbers.
 
 The length of a list or tuple can be obtained by the function
 \begin{display}
@@ -1703,334 +2125,7 @@ To read the value from a file you can use the command
   \cs{unserialise} \nterm{file name}\,.
 \end{display}
 
-\paragraph{Dimensions}
-The following constants are defined\?:
-\begin{displaytable}
-  \cs{pt} = 1          &\qquad \cs{pc} = 12\,pt \ntr
-  \cs{in} = 72.27\,pt  &\qquad \cs{sp} = 1/65536\,pt \ntr
-  \cs{bp} = 1/72\,in   &\qquad \cs{dd} = 1238/1157\,pt \ntr
-  \cs{cm} = 1/2.54\,in &\qquad \cs{cc} = 12\,dd \ntr
-  \cs{mm} = 0.1\,cm
-\end{displaytable}
 
-\paragraph{Parse-commands}
-The following parse-\penalty{0}commands are defined. Generally, each expects as last argument
-the old parse-command and the return value is the new parse-command. If the functions return an additional
-value, like \cs{ps_arg_expanded}, it is bound to the first argument.
-
-\medskip
-\noindent
-Input commands\?:
-\begin{code}
-  \cs{ps_next_char} \nterm{char} \nterm{ps}
-
-  \cs{ps_get_char} \nterm{char} \nterm{pos} \nterm{ps}
-
-  \cs{ps_remove_chars} \nterm{num} \nterm{ps}
-
-  \cs{ps_insert_string} \nterm{str} \nterm{ps}
-
-  \cs{ps_location} \nterm{loc} \nterm{ps}
-
-  \cs{ps_arg_expanded} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_execute} \nterm{arg} \nterm{mode} \nterm{ps}
-
-  \cs{ps_arg_num} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_int} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_skip} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_dim} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_key_val} \nterm{arg} \nterm{ps}
-
-  \cs{ps_opt_expanded} \nterm{arg} \nterm{default} \nterm{ps}
-
-  \cs{ps_opt_key_val_int} \nterm{arg} \nterm{ps}
-
-  \cs{ps_opt_int} \nterm{arg} \nterm{default} \nterm{ps}
-
-  \cs{ps_arg_TeX_dim} \nterm{arg} \nterm{ps}
-\end{code}
-Modes and nodes\?:
-\begin{code}
-  \cs{ps_current_mode} \nterm{mode} \nterm{ps}
-
-  \cs{ps_open_node_list} \nterm{mode} \nterm{ps}
-
-  \cs{ps_close_node_list} \nterm{nodes} \nterm{mode} \nterm{ps}
-
-  \cs{ps_add_node} \nterm{node} \nterm{ps}
-\end{code}
-Commands and environments\?:
-\begin{code}
-  \cs{ps_set_default_char_cmd} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_define_command} \nterm{name} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_define_pattern} \nterm{pattern} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_save_command} \nterm{name} \nterm{ps}
-
-  \cs{ps_restore_command} \nterm{name} \nterm{ps}
-
-  \cs{ps_save_pattern} \nterm{pattern} \nterm{ps}
-
-  \cs{ps_restore_pattern} \nterm{pattern} \nterm{ps}
-
-  \cs{ps_lookup_command} \nterm{result} \nterm{name} \nterm{ps}
-
-  \cs{ps_push_env} \nterm{name} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_pop_env} \nterm{arguments} \nterm{name} \nterm{ps}
-
-  \cs{ps_set_env_args} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_top_env} \nterm{name} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_lookup_env} \nterm{result} \nterm{name} \nterm{ps}
-
-  \cs{ps_define_env} \nterm{name} \nterm{execute-begin} \nterm{expand-begin} \nterm{execute-end}
-    \nterm{expand-end} \nterm{ps}
-\end{code}
-Page layout\?:
-\begin{code}
-  \cs{ps_shipout_pages} \nterm{number} \nterm{even} \nterm{odd} \nterm{ps}
-
-  \cs{ps_new_page_layout} \nterm{name} \nterm{width} \nterm{height} \nterm{ps}
-
-  \cs{ps_new_galley} \nterm{name} \nterm{measure} \nterm{ps}
-
-  \cs{ps_new_area} \nterm{name} \nterm{pos-x} \nterm{pos-y} \nterm{width} \nterm{height}
-    \nterm{max-top} \nterm{max-bot} \nterm{type} \nterm{param} \nterm{ps}
-\end{code}
-Math symbols\?:
-\begin{code}
-  \cs{ps_define_math_symbol} \nterm{name} \nterm{math-code} \nterm{font} \nterm{glyph} \nterm{ps}
-
-  \cs{ps_define_root_symbol} \nterm{name} \nterm{small-font} \nterm{small-glyph}
-     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
-
-  \cs{ps_define_math_accent} \nterm{name} \nterm{font} \nterm{glyph} \nterm{ps}
-
-  \cs{ps_set_math_code} \nterm{char} \nterm{math-code} \nterm{small-font} \nterm{small-glyph}
-     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
-\end{code}
-Graphics\?:
-\begin{code}
-  \cs{ps_set_colour} \nterm{colour} \nterm{ps}
-
-  \cs{ps_set_bg_colour} \nterm{colour} \nterm{ps}
-
-  \cs{ps_set_alpha} \nterm{alpha} \nterm{ps}
-
-  \cs{ps_stroke} \nterm{path} \nterm{ps}
-
-  \cs{ps_fill} \nterm{path} \nterm{ps}
-
-  \cs{ps_clip} \nterm{path} \nterm{ps}
-
-  \cs{ps_set_line_width} \nterm{width} \nterm{ps}
-
-  \cs{ps_set_line_cap} \nterm{line-cap} \nterm{ps}
-
-  \cs{ps_set_line_join} \nterm{line-join} \nterm{ps}
-
-  \cs{ps_set_miter_limit} \nterm{limit} \nterm{ps}
-\end{code}
-Counters\?:
-\begin{code}
-  \cs{ps_new_counter} \nterm{name} \nterm{value} \nterm{super} \nterm{ps}
-
-  \cs{ps_get_counter} \nterm{value} \nterm{name} \nterm{ps}
-
-  \cs{ps_set_counter} \nterm{name} \nterm{value} \nterm{ps}
-\end{code}
-Global variables\?:
-\begin{code}
-  \cs{ps_get_global} \nterm{result} \nterm{name} \nterm{ps}
-
-  \cs{ps_get_global} \nterm{name} \nterm{value} \nterm{ps}
-\end{code}
-References\?:
-\begin{code}
-  \cs{ps_add_reference} \nterm{label} \nterm{value} \nterm{ps}
-
-  \cs{ps_reference_exists} \nterm{bool} \nterm{label} \nterm{ps}
-
-  \cs{ps_lookup_reference} \nterm{value} \nterm{label} \nterm{ps}
-
-  \cs{ps_fold_references} \nterm{result} \nterm{fun} \nterm{init} \nterm{ps}
-
-  \cs{ps_store_old_references} \nterm{ps}
-
-  \cs{ps_compare_references} \nterm{bool} \nterm{ps}
-
-  \cs{ps_write_references} \nterm{file} \nterm{ps}
-\end{code}
-Miscellaneous\?:
-\begin{code}
-  \cs{ps_dvi_special} \nterm{string} \nterm{ps}
-
-  \cs{ps_warning} \nterm{message}
-
-  \cs{ps_error} \nterm{message}
-\end{code}
-Running the parser\?:
-\begin{code}
-  \cs{ps_execute_next_char} \nterm{finished} \nterm{ps}
-
-  \cs{ps_execute_stream} \nterm{string} \nterm{ps}
-
-  \cs{ps_execute_argument} \nterm{ps}
-
-  \cs{ps_run_parser} \nterm{result} \nterm{mode} \nterm{ps}
-\end{code}
-Example\?:
-\begin{code}
-  \cs{mirror} \cs{:=}
-
-  \qquad \cs{local} \cs{arg} \cs{;}
-
-  \qquad \cs{ps_arg_expanded} \cs{arg} \cs{>>}
-
-  \qquad \cs{ps_insert_string} \cs{(reverse} \cs{arg);}
-\end{code}
-
-\paragraph{The environment}
-Most of the functions below return environment commands, i.e., functions of type
-\textit{location $\rightarrow$ environment $\rightarrow$ environment.}
-
-Font parameters\?:
-\begin{code}
-  \cs{em} \nterm{env}
-
-  \cs{ex} \nterm{env}
-
-  \cs{mu} \nterm{env}
-\end{code}
-Galleys\?:
-\begin{code}
-  \cs{new_galley} \nterm{name} \nterm{measure}
-
-  \cs{select_galley} \nterm{name}
-\end{code}
-Galley parameters\?:
-\begin{code}
-  \cs{set_par_params} \nterm{params}
-
-  \cs{set_line_params} \nterm{params}
-
-  \cs{set_line_break_params} \nterm{params}
-
-  \cs{set_hyphen_params} \nterm{params}
-
-  \cs{set_space_params} \nterm{params}
-
-  \cs{set_math_params} \nterm{params}
-
-  \cs{set_current_par_params} \nterm{params}
-
-  \cs{set_current_line_params} \nterm{params}
-
-  \cs{set_current_line_break_params} \nterm{params}
-
-  \cs{set_current_hyphen_params} \nterm{params}
-
-  \cs{set_current_space_params} \nterm{params}
-
-  \cs{set_current_math_params} \nterm{params}
-
-  \cs{set_par_shape} \nterm{shape}
-
-  \cs{set_colour} \nterm{colour}
-\end{code}
-Page layout\?:
-\begin{code}
-  \cs{new_page_layout} \nterm{name} \nterm{page-width} \nterm{page-height}
-
-  \cs{select_page_layout} \nterm{name}
-\end{code}
-Fonts\?:
-\begin{code}
-%  \cs{set_font} \nterm{definition}
-%
-%  \cs{get_math_font} \nterm{env} \nterm{style} \nterm{family}
-%
-  \cs{set_math_font} \nterm{definition}
-
-  \cs{adapt_fonts_to_math_style}
-\end{code}
-Space factor\?:
-\begin{code}
-  \cs{get_space_factor} \nterm{env} \nterm{char}
-
-  \cs{adjust_space_factor} \nterm{char}
-\end{code}
-
-\paragraph{Dimensions}
-
-\begin{code}
-  \cs{make_dim} \nterm{base} \nterm{stretch} \nterm{stretch-order} \nterm{shrink} \nterm{shrink-order}
-
-  \cs{fixed_dim} \nterm{base}
-
-  \cs{dim_zero}
-
-  \cs{dim_1pt}
-
-  \cs{dim_12pt}
-
-  \cs{dim_fil}
-
-  \cs{dim_fill}
-
-  \cs{dim_ss}
-
-  \cs{dim_filneg}
-
-  \cs{dim_equal} \nterm{dim} \nterm{dim}
-
-  \cs{dim_add} \nterm{dim} \nterm{dim}
-
-  \cs{dim_neg} \nterm{dim}
-
-  \cs{dim_sub} \nterm{dim} \nterm{dim}
-
-  \cs{dim_mult} \nterm{num} \nterm{dim}
-
-  \cs{dim_max} \nterm{dim} \nterm{dim}
-
-  \cs{dim_min} \nterm{dim} \nterm{dim}
-
-  \cs{dim_max_stretch} \nterm{dim}
-
-  \cs{dim_max_shrink} \nterm{dim}
-
-  \cs{dim_max_value} \nterm{dim}
-
-  \cs{dim_min_value} \nterm{dim}
-
-  \cs{dim_shift_base} \nterm{dim} \nterm{delta}
-
-  \cs{dim_shift_base_upto} \nterm{dim} \nterm{delta}
-
-  \cs{dim_inc_upto} \nterm{dim} \nterm{delta}
-
-  \cs{dim_dec_upto} \nterm{dim} \nterm{delta}
-
-  \cs{dim_resize_upto} \nterm{dim} \nterm{delta}
-
-  \cs{adjustment_ratio} \nterm{dim} \nterm{size}
-
-  \cs{dim_scale_badness} \nterm{ratio}
-
-  \cs{dim_scale} \nterm{dim} \nterm{ratio}
-
-  \cs{dim_scale_upto} \nterm{dim} \nterm{ratio}
-\end{code}
 
 
 \section{Overview over the source code}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2043,7 +2138,7 @@ Space factor\?:
 \item{(2)}The \emph{typesetting library} consists of the actual layout routines.
 \item{(3)}The \emph{layout engine} is an interpreter for a simple typesetting language.
 \item{(4)}The \emph{parser} translates the markup language into this internal language.
-\item{(5)}Finally, there is a \emph{virtual machine} for a scripting language.
+\item{(5)}Finally, there is a \emph{virtual machine} for the scripting language.
 \end{list}
 
 \subsection{The runtime library}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2276,7 +2371,7 @@ The parser consists of the following modules\?:
 \item{\textsf{\red ALNodes}}%
   AL-wrapper for nodes.
 \item{\textsf{\red ALParseState}}%
-  AL-wrapper for parse-commands.
+  AL-wrapper for the parse-state.
 \item{\textsf{\red Primitives}}%
   implementation of all primitive \ant\ commands.
 \item{\textsf{\red Run}}%

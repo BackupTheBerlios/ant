@@ -140,7 +140,7 @@ value env_math_unit x env = do
 
 value prim_new_galley name width = do
 {
-  let n = decode_uc_string     "new_galley" name;
+  let n = decode_uc_string   "new_galley" name;
   let w = Machine.decode_num "new_galley" width;
 
   encode_env_cmd "new_galley" (Environment.new_galley n w)

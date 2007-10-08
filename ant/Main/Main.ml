@@ -17,9 +17,10 @@ value print_help () = do
   print_string "                    b   al bytecode\n";
   print_string "                    e   engine\n";
   print_string "                    i   input\n";
-  print_string "                    l   line breaks\n";
+  print_string "                    g   galley breaking\n";
+  print_string "                    l   line breaking\n";
   print_string "                    m   macro expansion\n";
-  print_string "                    p   page breaks\n";
+  print_string "                    p   page breaking\n";
   print_string "                    s   various stacks\n";
   print_string "--help            print this message and exists\n"
 };
