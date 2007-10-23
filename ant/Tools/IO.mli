@@ -36,7 +36,7 @@ value append : io [> io_w ] -> io [> io_r ] -> unit;
 
 value to_channel : io [> io_r ] -> out_channel -> unit;
 
-value to_string   : io [> io_r ] -> string;
+value to_string   : io [> io_rs ] -> string;
 value from_string : string -> iorstream;
 value to_buffer   : io [> io_r ] -> iorstream;
 

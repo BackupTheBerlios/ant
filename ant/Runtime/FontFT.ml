@@ -18,7 +18,7 @@ value ft_kerning face scale c1 c2 = do
     NoLigKern
 };
 
-value make_glyph_metric params scale glyph_idx glyph = do
+value make_glyph_metric params extra_kern scale glyph_idx glyph = do
 {
   let (width, height, h_off, v_off, adv) = glyph_metrics glyph;
 
@@ -29,7 +29,7 @@ value make_glyph_metric params scale glyph_idx glyph = do
   let r = scale */ num_of_int right_bound;
 
   let user_kern_info = try
-    let ki = List.assoc glyph_idx params.flp_extra_kern;
+    let ki = List.assoc glyph_idx extra_kern;
     {
       ki_after_space    = params.flp_size */ ki.ki_after_space;
       ki_before_space   = params.flp_size */ ki.ki_before_space;
@@ -61,7 +61,7 @@ value make_glyph_metric params scale glyph_idx glyph = do
   }
 };
 
-value get_glyph_metric params scale face = do
+value get_glyph_metric params extra_kern scale face = do
 {
   let (em, _asc, _desc, _height, _ul_pos, _ul_thick) =
     face_metrics face;
@@ -72,7 +72,7 @@ value get_glyph_metric params scale face = do
   {
     ft_load_glyph face i (ft_load_no_hinting + ft_load_no_scale + ft_load_linear_design);
 
-    gm.(i - 1) := make_glyph_metric params scale i (face_glyph face)
+    gm.(i - 1) := make_glyph_metric params extra_kern scale i (face_glyph face)
   };
 
   gm
@@ -674,13 +674,53 @@ value read_ft file name params = do
   }
   else ();
 
+  let last_glyph = face_num_glyphs face - 1;
+
   let (em, asc, desc, _height, _ul_pos, _ul_thick) =
     face_metrics face;
+
+  let (enc,dec) = match params.flp_encoding with
+  [ [| |] -> (builtin_encoding face,
+              builtin_decoding face)
+  | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
+              Encodings.array_decoding m)
+  ];
+  let lookup_char x = match enc x with
+  [ Simple g -> g
+  | _        -> (-1)
+  ];
+  let lookup_name x = do
+  {
+    if ft_has_ps_glyph_names face then do
+    {
+      iter 1
+
+      where rec iter i = do
+      {
+        if i > face_num_glyphs face then
+          (-1)
+        else if ft_get_glyph_name face i = x then
+          i - 1
+        else
+          iter (i+1)
+      }
+    }
+    else
+      (-1)
+  };
 
   let size         = params.flp_size;
   let scale        = size // num_of_int em;
   let design_size  = scale */ num_of_int (asc - desc);
-  let glyph_metric = get_glyph_metric params scale face;
+
+  let extra_kern =
+    List.map
+      (fun (g,k) ->
+        (glyph_spec_to_index lookup_char lookup_name g, k))
+      params.flp_extra_kern;
+
+  let glyph_metric = get_glyph_metric params extra_kern scale face;
+
   let space_glyph  = ft_get_char_index face 32;
   let x_glyph      = ft_get_char_index face 102;
   let m_glyph      = ft_get_char_index face 77;
@@ -700,15 +740,6 @@ value read_ft file name params = do
                      [ Undef -> builtin_encoding face 45
                      | h     -> h
                      ];
-
-  let (enc,dec) = match params.flp_encoding with
-  [ [| |] -> (builtin_encoding face,
-              builtin_decoding face)
-  | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
-              Encodings.array_decoding m)
-  ];
-
-  let last_glyph = face_num_glyphs face - 1;
 
   let get_border_glyph b = match b with
   [ Margin  -> Simple (last_glyph + 1)
@@ -749,18 +780,28 @@ value read_ft file name params = do
       else
         Other;
 
+    let extra_pos =
+      if GlyphSpecTrie.is_empty params.flp_extra_pos then
+        []
+      else
+        [ adjustment_spec_to_table lookup_char lookup_name params.flp_extra_pos ];
+    let extra_subst =
+      if GlyphSpecTrie.is_empty params.flp_extra_subst then
+        []
+      else
+        [ adjustment_spec_to_table lookup_char lookup_name params.flp_extra_subst ];
     let user_pos =
       add_border_kern
         (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
         params.flp_size
-        params.flp_extra_kern
-        params.flp_extra_pos;
+        extra_kern
+        extra_pos;
     let pos_adj =
       if Array.length pos.OTF_Pos_Subst.t_lookups = 0 then
         Composer.make_simple_adjustment_table face scale user_pos
       else
         Composer.make_adjustment_table pos scale user_pos;
-    let subst_adj = Composer.make_adjustment_table subst scale params.flp_extra_subst;
+    let subst_adj = Composer.make_adjustment_table subst scale extra_subst;
 
     (font_type, (pos_adj, subst_adj))
   };

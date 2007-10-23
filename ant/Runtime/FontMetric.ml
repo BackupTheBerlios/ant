@@ -91,16 +91,29 @@ and simple_cmd =
 [= `DVI_Special of string
 ];
 
+type glyph_spec =
+[ GlyphIndex of int
+| GlyphChar of uc_char
+| GlyphName of string
+];
+
+type adjustment_spec =
+[ AdjKern of num
+| AdjLig  of glyph_spec
+];
+
+module GlyphSpecTrie = DynamicTrie.Make(struct type t = glyph_spec; value compare = compare; end);
+
 type font_load_params =
 {
-  flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing : num;                         (* additional letter spacing   *)
-  flp_extra_pos      : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_subst    : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size           : num;                                (* scale font to this size     *)
+  flp_encoding       : array uc_string;                    (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                         (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                         (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                                (* additional letter spacing   *)
+  flp_extra_pos      : GlyphSpecTrie.t adjustment_spec;    (* additional kerning pairs and ligatures *)
+  flp_extra_subst    : GlyphSpecTrie.t adjustment_spec;    (* additional kerning pairs and ligatures *)
+  flp_extra_kern     : list (glyph_spec * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)
@@ -131,6 +144,16 @@ value glyph_exists font glyph = do
 {
   (glyph <= font.last_glyph && glyph >= font.first_glyph)
 };
+
+(* |glyph_spec_to_index <lookup-char> <lookup-name> <spec>| translates a |glyph_spec|
+   into the corresponding glyph index.
+*)
+
+value glyph_spec_to_index lookup_char lookup_name spec = match spec with
+[ GlyphIndex x -> x
+| GlyphChar  x -> lookup_char x
+| GlyphName  x -> lookup_name x
+];
 
 (*
   |index_to_glyph <font> <index>| checks whether <font> contains a glyph of the given index and returns
@@ -383,6 +406,31 @@ value add_border_kern margin_glyph space_glyph foreign_glyph size border_kern ad
   ]
 };
 
+value adjustment_spec_to_table lookup_char lookup_name adj = do
+{
+  let lookup g = glyph_spec_to_index lookup_char lookup_name g;
+
+  DirectLookup (translate adj)
+
+  where translate adj =
+    GlyphSpecTrie.fold
+      (fun key val table -> do
+       {
+         let k = Array.map lookup key;
+         let v = match val with
+         [ AdjKern x -> (Substitute.simple_pair_kerning_cmd x,
+                         1)
+         | AdjLig  x -> (Substitute.replace_with_single_glyph_cmd 2
+                           (Substitute.Simple (lookup x)),
+                         0)
+         ];
+
+         DynUCTrie.add_string k v table
+       })
+      adj
+      DynUCTrie.empty
+};
+
 (* Default value for |draw_simple_glyph|. *)
 
 value draw_simple_glyph font glyph = SimpleGlyph glyph font;
@@ -547,8 +595,8 @@ value empty_load_params =
   flp_hyphen_glyph   = Undef;
   flp_skew_glyph     = Undef;
   flp_letter_spacing = num_zero;
-  flp_extra_pos      = [];
-  flp_extra_subst    = [];
+  flp_extra_pos      = GlyphSpecTrie.empty;
+  flp_extra_subst    = GlyphSpecTrie.empty;
   flp_extra_kern     = []
 };
 

@@ -45,6 +45,7 @@ value ps_add_node                : unknown -> unknown -> partial_value;
 value ps_set_default_char_cmd    : list unknown -> partial_value;
 value ps_define_command          : list unknown -> partial_value;
 value ps_define_pattern          : list unknown -> partial_value;
+value ps_define_macro            : list unknown -> partial_value;
 value ps_save_command            : unknown -> unknown -> partial_value;
 value ps_restore_command         : unknown -> unknown -> partial_value;
 value ps_save_pattern            : unknown -> unknown -> partial_value;

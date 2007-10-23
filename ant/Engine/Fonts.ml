@@ -76,39 +76,6 @@ value load_font fd size = do
 
   let font = LoadFont.load_font (UString.to_string (Array.to_list fd.fd_name)) params;
 
-(*
-  let fm = match fd.fd_encoding with
-  [ [|79; 84; 49|]   -> font (*FontMetric.set_encoding font                       (* OT1 *)
-                         (Encodings.charmap_encoding Encodings.uc_to_ot1)
-                         (Encodings.array_decoding   Encodings.ot1_to_uc)*)
-  | [|84; 49|]       -> FontMetric.set_encoding font                       (* T1  *)
-                         (Encodings.charmap_encoding Encodings.uc_to_t1)
-                         (Encodings.array_decoding   Encodings.t1_to_uc)
-  | [|79; 84; 84|]   -> FontMetric.set_encoding font                       (* OTT *)
-                         (Encodings.charmap_encoding Encodings.uc_to_ott)
-                         (Encodings.array_decoding   Encodings.ott_to_uc)
-  | [|79; 77; 83|]   -> FontMetric.set_encoding font                       (* OMS *)
-                         (Encodings.charmap_encoding Encodings.uc_to_oms)
-                         (Encodings.array_decoding   Encodings.oms_to_uc)
-  | [|79; 77; 76|]   -> FontMetric.set_encoding font                       (* OML *)
-                         (Encodings.charmap_encoding Encodings.uc_to_oml)
-                         (Encodings.array_decoding   Encodings.oml_to_uc)
-  | [|114; 97; 119|] -> font (*FontMetric.set_encoding font                       (* raw *)
-                         Encodings.raw_encoding
-                         Encodings.raw_decoding*)
-  | [|98; 117; 105; 108; 116; 105; 110|] -> font                           (* builtin *)
-  | _ -> do
-    {
-      log_warn ("",0,0) "Unknown font encoding `";
-      log_uc_string fd.fd_encoding;
-      log_string "' specified for font ";
-      log_uc_string fd.fd_name;
-      log_string ".\n";
-      font
-    }
-  ];
-*)
-
   fd.fd_loaded_sizes := add fd.fd_loaded_sizes
 
   where rec add sizes = match sizes with
@@ -155,7 +122,7 @@ value get_font font_table family series shape size = do
     try
       Some (load_font fd size)
     with
-    [ Not_found -> do
+    [ _ -> do
       {
         log_warn ("",0,0) "Cannot load font file `";
         log_uc_string fd.fd_name;

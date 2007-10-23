@@ -618,6 +618,7 @@ value to_string is = do
 {
   let buf = Buffer.create 0x1000;
 
+  seek is 0;
   consume_stream is (Buffer.add_string buf);
 
   Buffer.contents buf

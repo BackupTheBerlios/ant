@@ -3,7 +3,12 @@ open Runtime;
 open Unicode.Types;
 open ParseState;
 
-type arg_specifier;
+type arg_specifier =
+[ Arg
+| Expand
+| Opt of uc_list
+| Bool
+];
 
 value parse_arg_template : UCStream.location -> uc_list -> list arg_specifier;
 value substitute         : list uc_list -> uc_list -> uc_list;

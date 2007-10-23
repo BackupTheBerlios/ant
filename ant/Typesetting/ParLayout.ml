@@ -1348,7 +1348,8 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
           graph.bg_par_params.par_shape b.bp_line_no;
         let goal_width = graph.bg_par_params.measure -/ right_indent -/ left_indent;
 
-        if xdim_min_value (xdim_add partial_line.pl_width graph.bg_left_right_skip) >/ goal_width then
+        if goal_width </ xdim_min_value (xdim_add partial_line.pl_width graph.bg_left_right_skip) &&
+           previous + 1 < current then
           (* Abort early since the line is too long. *)
           iter b.bp_line_no new_breaks bs
         else do
@@ -1378,8 +1379,16 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
               (xdim_add line_width graph.bg_left_right_skip);
           let adj_ratio = adjustment_ratio total_width goal_width;
           let badness   = dim_scale_badness adj_ratio;
+          let badness2  = if badness >/ graph.bg_threshold
+                          && total_width.d_base >/ goal_width
+                          && previous + 1 = current then
+                            (* If already the first break point is too far away there is no proper line-breaking
+                               solution. To get some reasonable output we simply allow the break. *)
+                            num_zero
+                          else
+                            badness;
 
-          if badness >/ graph.bg_threshold then
+          if badness2 >/ graph.bg_threshold then
             (* break not possible *)
             iter b.bp_line_no new_breaks bs
           else do
@@ -1389,7 +1398,7 @@ value update_breaks graph previous_breaks partial_line previous current breaks =
               make_break_point
                 graph b line rivers total_width
                 (current = Array.length graph.bg_breaks - 1)
-                forced_break hyph adj_ratio badness penalty;
+                forced_break hyph adj_ratio badness2 penalty;
 
             iter b.bp_line_no (insert_break_point graph new_breaks new_bp) bs
           }
@@ -1547,7 +1556,7 @@ value break_lines loc items par_params line_break_params hyphen_params = do
                      True
               with
               [ Some bp -> get_lines bp
-              | None    -> [] (* FIX: assert False *)
+              | None    -> assert False
               ]
             }
             else do

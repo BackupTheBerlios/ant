@@ -251,7 +251,7 @@ value make_lig_kern kern (x1,x2,x3,x4) = do
     LigKern.KernCmd x1 x2 kern.(0x100 * (x3 - 128) + x4)
 };
 
-value make_glyph_metric glyph_idx params size width height depth italic lig exten (w,x1,x2,r) = do
+value make_glyph_metric glyph_idx letter_spacing extra_kern size width height depth italic lig exten (w,x1,x2,r) = do
 {
   let h  = x1 lsr 4;
   let d  = x1 land 0xf;
@@ -259,7 +259,7 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
   let t  = x2 land 0x3;
 
   let user_kern_info = try
-    let ki = List.assoc glyph_idx params.flp_extra_kern;
+    let ki = List.assoc glyph_idx extra_kern;
     {
       ki_after_space    = size */ ki.ki_after_space;
       ki_before_space   = size */ ki.ki_before_space;
@@ -294,7 +294,7 @@ value make_glyph_metric glyph_idx params size width height depth italic lig exte
   ];
 
   {
-    gm_width      = width.(w) +/ num_two */ size */ params.flp_letter_spacing;
+    gm_width      = width.(w) +/ num_two */ size */ letter_spacing;
     gm_height     = height.(h);
     gm_depth      = depth.(d);
     gm_italic     = italic.(i);
@@ -353,29 +353,52 @@ value read_tfm file name params = do
   let param     = read_array ic read_fix param_table_len;
 
   let lig_cmds  = Array.map (fun x -> make_lig_kern kern x) lig;
-  let gm_table  = Array.mapi
-                    (fun i gm -> make_glyph_metric (i + first_glyph)
-                                   params size width height depth italic
-                                   lig_cmds ext gm)
-                    glyph_metric;
-
-  let (p,s)       = get_adjustment_tables lig_cmds gm_table first_glyph last_glyph;
-  let pos_table   = add_border_kern
-                      (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
-                      size
-                      params.flp_extra_kern
-                      (params.flp_extra_pos @ p);
-  let subst_table = params.flp_extra_subst @ s;
-
-  let hyphen_glyph = match params.flp_hyphen_glyph with
-  [ Undef -> Simple 45
-  | h     -> h
-  ];
 
   let (enc,dec) = match params.flp_encoding with
   [ [| |] -> (Encodings.raw_encoding,    Encodings.raw_decoding)
   | m     -> (Encodings.charmap_encoding (Encodings.fake_encoding m),
               Encodings.array_decoding m)
+  ];
+
+  let lookup_char x = match enc x with
+  [ Simple g -> g
+  | _        -> (-1)
+  ];
+  let lookup_name x = (-1); (* FIX *)
+
+  let extra_kern =
+    List.map
+      (fun (g,k) ->
+        (glyph_spec_to_index lookup_char lookup_name g, k))
+      params.flp_extra_kern;
+
+  let gm_table  = Array.mapi
+                    (fun i gm -> make_glyph_metric (i + first_glyph)
+                                   params.flp_letter_spacing extra_kern
+                                   size width height depth italic
+                                   lig_cmds ext gm)
+                    glyph_metric;
+  let (p,s) = get_adjustment_tables lig_cmds gm_table first_glyph last_glyph;
+  let extra_pos =
+    if GlyphSpecTrie.is_empty params.flp_extra_pos then
+      p
+    else
+      [ adjustment_spec_to_table lookup_char lookup_name params.flp_extra_pos :: p];
+  let pos_table =
+    add_border_kern
+      (last_glyph + 1) (last_glyph + 2) (last_glyph + 3)
+      size
+      extra_kern
+      extra_pos;
+  let subst_table =
+    if GlyphSpecTrie.is_empty params.flp_extra_subst then
+      s
+    else
+      [ adjustment_spec_to_table lookup_char lookup_name params.flp_extra_subst :: s];
+
+  let hyphen_glyph = match params.flp_hyphen_glyph with
+  [ Undef -> Simple 45
+  | h     -> h
   ];
 
   let composer x y = tfm_composer pos_table subst_table x y;

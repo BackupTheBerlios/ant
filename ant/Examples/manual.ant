@@ -156,14 +156,14 @@ Currently, the following options are supported\?:
   \noindent
   \begin{table}
     \quad\cs{a}\quad& AL commands &
-    \quad\cs{b}\quad& AL bytecode\hfill\ntr
-    \quad\cs{e}\quad& the typesetting engine &
-    \quad\cs{m}\quad& macro expansion\hfill\ntr
-    \quad\cs{g}\quad& galley breaking &
-    \quad\cs{p}\quad& page layout\hfill\ntr
-    \quad\cs{i}\quad& the current input &
-    \quad\cs{s}\quad& various stacks\hfill\ntr
     \quad\cs{l}\quad& line breaking\hfill\ntr
+    \quad\cs{b}\quad& AL bytecode &
+    \quad\cs{m}\quad& macro expansion\hfill\ntr
+    \quad\cs{e}\quad& the typesetting engine &
+    \quad\cs{p}\quad& page layout\hfill\ntr
+    \quad\cs{g}\quad& galley breaking &
+    \quad\cs{s}\quad& various stacks\hfill\ntr
+    \quad\cs{i}\quad& the current input\hfill\ntr
   \end{table}
   \vskip{1ex}%
 \end{longdescription}

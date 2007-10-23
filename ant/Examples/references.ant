@@ -193,15 +193,9 @@ ps_get_current_position page :=
       ps_read_arg cmd;
       ps_get_current_page page;
       if is_unbound page then
-        ps_define_command cmd
-          (ps_insert_string "??")
-          None
-;;          { res str := do res = "??" + str end }
+        ps_define_macro cmd [] "??"
       else
-        ps_define_command cmd
-          (ps_insert_string (format_string "%d" page))
-          None
-;;          { res str := do res = format_string "%d" page + str end }
+        ps_define_macro cmd [] (format_string "%d" page)
       end
     end
   }}

@@ -91,18 +91,31 @@ and simple_cmd =
 [= `DVI_Special of string
 ];
 
+type glyph_spec =
+[ GlyphIndex of int
+| GlyphChar of uc_char
+| GlyphName of string
+];
+
+type adjustment_spec =
+[ AdjKern of num
+| AdjLig  of glyph_spec
+];
+
+module GlyphSpecTrie : DynamicTrie.S with type elt = glyph_spec;
+
 (* User specified modifications of font parameters. *)
 
 type font_load_params =
 {
-  flp_size           : num;                         (* scale font to this size     *)
-  flp_encoding       : array uc_string;             (* overrides built in encoding *)
-  flp_hyphen_glyph   : glyph_desc;                  (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
-  flp_skew_glyph     : glyph_desc;                  (* specifies the skew glyph    *)  (* a complete font_parameter *)
-  flp_letter_spacing : num;                         (* additional letter spacing   *)
-  flp_extra_pos      : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_subst    : list adjustment_table;       (* additional kerning pairs and ligatures *)
-  flp_extra_kern     : list (int * extra_kern_info) (* kerning with border glyphs  *)
+  flp_size           : num;                                (* scale font to this size     *)
+  flp_encoding       : array uc_string;                    (* overrides built in encoding *)
+  flp_hyphen_glyph   : glyph_desc;                         (* specifies the hyphen glyph  *)  (* FIX: replace these two by *)
+  flp_skew_glyph     : glyph_desc;                         (* specifies the skew glyph    *)  (* a complete font_parameter *)
+  flp_letter_spacing : num;                                (* additional letter spacing   *)
+  flp_extra_pos      : GlyphSpecTrie.t adjustment_spec;    (* additional kerning pairs and ligatures *)
+  flp_extra_subst    : GlyphSpecTrie.t adjustment_spec;    (* additional kerning pairs and ligatures *)
+  flp_extra_kern     : list (glyph_spec * extra_kern_info) (* kerning with border glyphs  *)
 };
 
 (* pages *)
@@ -123,6 +136,8 @@ value get_unicode      : font_metric -> glyph_desc -> uc_string;
 value index_to_glyph   : font_metric -> int -> glyph_desc;
 value glyph_exists     : font_metric -> int -> bool;
 
+value glyph_spec_to_index : (uc_char -> int) -> (string -> int) -> glyph_spec -> int;
+
 value simple_ligature_substitution : font_metric -> substitution font_metric 'box 'cmd;
 value simple_composer              : font_metric
                                        -> substitution font_metric 'box 'cmd
@@ -133,6 +148,8 @@ value two_phase_composer           : font_metric
                                        -> glyph_composer font_metric 'box 'cmd;
 value add_border_kern              : int -> int -> int -> num -> list (int * extra_kern_info)
                                        -> list adjustment_table -> list adjustment_table;
+value adjustment_spec_to_table     : (uc_char -> int) -> (string -> int)
+                                       -> GlyphSpecTrie.t adjustment_spec -> adjustment_table;
 
 value get_glyph_metric            : font_metric -> glyph_desc -> glyph_metric;
 value next_glyph                  : font_metric -> glyph_desc -> glyph_desc;

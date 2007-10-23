@@ -552,6 +552,61 @@ value ps_define_pattern args = match args with
 | _ -> assert False
 ];
 
+value decode_arg_templ name args = do
+{
+  iter (Machine.decode_list name args)
+
+  where rec iter args = match args with
+  [ []      -> []
+  | [a::aa] -> match !a with
+    [ Types.Symbol s -> do
+      {
+        if s = sym_Mandantory then
+          [ Macro.Arg :: iter aa ]
+        else if s = sym_Optional then
+          [ Macro.Opt (UString.of_ascii "\\NoValue") :: iter aa ]
+        else if s = sym_Bool then
+          [ Macro.Bool :: iter aa ]
+        else
+          Types.runtime_error ("unknown argument specifier " ^ UString.to_string (Array.to_list (SymbolTable.symbol_to_string s)))
+      }
+    | Types.Tuple x -> match x with
+      [ [| y; z |] -> match !y with
+          [ Types.Symbol s -> do
+            {
+              if s = sym_Optional then
+                [ Macro.Opt (Machine.decode_string name z) :: iter aa ]
+              else
+                Types.runtime_error (name ^ ": unknown argument specifier "
+                                          ^ UString.to_string (Array.to_list (SymbolTable.symbol_to_string s)))
+            }
+          | _ -> Types.runtime_error (name ^ ": symbol expected but got " ^ Types.type_name !y)
+          ]
+      | _ -> Types.runtime_error (name ^ ": pair expected")
+      ]
+    | _ -> Types.runtime_error (name ^ ": symbol expected but got " ^ Types.type_name !a)
+    ]
+  ]
+};
+
+value ps_define_macro args = match args with
+[ [name; arg_template; body; parse_command] -> do
+  {
+    ps_cmd "ps_define_macro" parse_command
+      (fun ps -> do
+        {
+          let name = Machine.decode_string "ps_define_macro" name;
+          let body = Machine.decode_string "ps_define_macro" body;
+          let args = decode_arg_templ "ps_define_macro" arg_template;
+
+          define_command ps name
+            { execute = Macro.execute_macro args body;
+              expand  = Macro.expand_macro  args body }
+            })
+  }
+| _ -> assert False
+];
+
 value ps_save_command name parse_command = do
 {
   ps_cmd "ps_save_command" parse_command
@@ -1035,6 +1090,13 @@ value ps_new_galley args = match args with
 
 (* fonts *)
 
+value decode_glyph_spec name g = match !g with
+[ Types.Number _ -> FontMetric.GlyphIndex (decode_int name g)
+| Types.Char c   -> FontMetric.GlyphChar c
+| Types.List _ _ -> FontMetric.GlyphName (UString.to_string (Array.to_list (decode_uc_string name g)))
+| _              -> Types.runtime_error (name ^ ": invalid glyph specification")
+];
+
 value decode_extra_kern name k = do
 {
   let x = decode_tuple name k;
@@ -1043,7 +1105,7 @@ value decode_extra_kern name k = do
   if n < 2 || n > 7 then
     Types.runtime_error (name ^ ": invalid border kern data")
   else
-    (decode_int name x.(0),
+    (decode_glyph_spec name x.(0),
      {
        GlyphMetric.ki_after_margin   = if n < 2 then num_zero else Machine.decode_num name x.(1);
        GlyphMetric.ki_before_margin  = if n < 3 then num_zero else Machine.decode_num name x.(2);
@@ -1086,14 +1148,14 @@ value decode_font_load_params name params = do
       let rec lookup_glyph i char = do
       {
         if i >= Array.length encoding then
-          -1
+          FontMetric.GlyphIndex (-1)
         else if encoding.(i) = [|char|] then
-          i
+          FontMetric.GlyphIndex i
         else
           lookup_glyph (i+1) char
       };
 
-      iter 0 DynUCTrie.empty
+      iter 0 FontMetric.GlyphSpecTrie.empty
 
       where rec iter i l = do
       {
@@ -1104,9 +1166,10 @@ value decode_font_load_params name params = do
           let n = Array.length encoding.(i);
 
           if n > 1 then
-            iter (i+1) (DynUCTrie.add_string
+            iter (i+1) (FontMetric.GlyphSpecTrie.add_array
                          (Array.map (lookup_glyph 0) encoding.(i))
-                         (Substitute.replace_with_single_glyph_cmd n (Substitute.Simple i), 0)
+                         (FontMetric.AdjLig (FontMetric.GlyphIndex i))
+(*                         (Substitute.replace_with_single_glyph_cmd n (Substitute.Simple i), 0) *)
                          l)
           else
             iter (i+1) l
@@ -1114,9 +1177,9 @@ value decode_font_load_params name params = do
       }
     }
     else
-      DynUCTrie.empty;
+      FontMetric.GlyphSpecTrie.empty;
 
-  iter DynUCTrie.empty ligs adjustments
+  iter FontMetric.GlyphSpecTrie.empty ligs adjustments
 
   where rec iter extra_pos extra_subst adjustments = match adjustments with
   [ [] -> {
@@ -1126,37 +1189,39 @@ value decode_font_load_params name params = do
             FontMetric.flp_hyphen_glyph   = get_glyph hyphen;
             FontMetric.flp_skew_glyph     = get_glyph skew;
             FontMetric.flp_extra_kern     = extra_kern;
-            FontMetric.flp_extra_pos      = if DynUCTrie.is_empty extra_pos then
-                                              []
-                                            else
-                                              [Substitute.DirectLookup extra_pos];
-            FontMetric.flp_extra_subst    = if DynUCTrie.is_empty extra_subst then
-                                              []
-                                            else
-                                              [Substitute.DirectLookup extra_subst]
+            FontMetric.flp_extra_pos      = extra_pos;
+            FontMetric.flp_extra_subst    = extra_subst
           }
   | [a::adjs] -> match decode_tuple name a with
     [ [| glyphs; sym; val |] -> do
       {
         let gs = List.map
-                   (decode_int name)
+                   (decode_glyph_spec name)
                    (Machine.decode_list name glyphs);
         let s  = decode_symbol name sym;
 
         if s = sym_Kern then do
         {
           let v = Machine.decode_num name val;
-          let c = Substitute.simple_pair_kerning_cmd v;
+          iter
+            (FontMetric.GlyphSpecTrie.add_list gs (FontMetric.AdjKern v) extra_pos)
+            extra_subst
+            adjs
+(*          let c = Substitute.simple_pair_kerning_cmd v;
 
-          iter (DynUCTrie.add_list gs (c, 1) extra_pos) extra_subst adjs
+          iter (DynUCTrie.add_list gs (c, 1) extra_pos) extra_subst adjs *)
         }
         else if s = sym_Ligature then do
         {
-          let v = decode_int name val;
-          let c = Substitute.replace_with_single_glyph_cmd
+          let v = decode_glyph_spec name val;
+          iter
+            extra_pos
+            (FontMetric.GlyphSpecTrie.add_list gs (FontMetric.AdjLig v) extra_pos)
+            adjs
+(*          let c = Substitute.replace_with_single_glyph_cmd
                     2 (Substitute.Simple v);
 
-          iter extra_pos (DynUCTrie.add_list gs (c, 0) extra_subst) adjs
+          iter extra_pos (DynUCTrie.add_list gs (c, 0) extra_subst) adjs*)
         }
         else
           Types.runtime_error (name ^ ": unknown adjustment command, Kern or Ligature expected")
@@ -1247,7 +1312,7 @@ value ps_define_math_accent args = match args with
 
           define_command ps name
             { execute = (fun ps -> add_node ps
-                                                (Node.MathAccent (location ps) f g (ParseArgs.arg_execute ps `Math)));
+                                     (Node.MathAccent (location ps) f g (ParseArgs.arg_execute ps `Math)));
               expand  = Macro.noexpand }
         })
   }

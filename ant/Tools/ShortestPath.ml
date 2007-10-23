@@ -27,7 +27,7 @@ type compute_path    'graph 'solution 'result = 'graph -> array (list 'solution)
 
   |compute_path <graph> <solutions>| computes the resulting shortest
   path from the array of partial solutions. Usually, it will select
-  one element of the list |solutions.(num-vertices-1)|.
+  one element of the list |solutions.(num-vertices - 1)|.
 
   <initial-solution> is the data associated to the path from the first
   vertex to itself.

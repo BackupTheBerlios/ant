@@ -41,6 +41,7 @@ value add_primitives job scope = do
       ("ps_set_default_char_cmd", PrimitiveN 3 ps_set_default_char_cmd);
       ("ps_define_command",       PrimitiveN 4 ps_define_command);
       ("ps_define_pattern",       PrimitiveN 4 ps_define_pattern);
+      ("ps_define_macro",         PrimitiveN 4 ps_define_macro);
       ("ps_save_command",         Primitive2 ps_save_command);
       ("ps_restore_command",      Primitive2 ps_restore_command);
       ("ps_save_pattern",         Primitive2 ps_save_pattern);
