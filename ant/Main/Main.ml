@@ -164,13 +164,13 @@ value main () = do
 
       ALParseState.call_at_exit ps;
 
-      if ParseState.compare_references ps then do
+(*      if ParseState.compare_references ps then do
       {
         log_string "\nSome references have changed.\nYou might need to rerun ant to get a correct output.\n"
       }
       else ();
 
-      ParseState.write_references ps (job.Job.jobname ^ ".refdb");
+      ParseState.write_references ps (job.Job.jobname ^ ".refdb");*)
 
       Engine.Output.output_pages job pages
     }

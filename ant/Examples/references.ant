@@ -71,15 +71,7 @@ ps_restore_persistent_globals file_name :=
     iter _               ps := ps;
   end;
 
-ps_at_exit :=
-  local refs;
-  do
-    ps_get_global refs NewReferences;
-    ps_set_global References refs;
-    ps_store_persistent_globals (ps_job_name + ".gdb");
-  end;
-
-ps_new_add_reference key val :=
+ps_add_reference key val :=
   local refs;
   do
     ps_get_global refs NewReferences;
@@ -95,10 +87,9 @@ ps_new_add_reference key val :=
     end
   end;
 
-ps_new_lookup_reference val key :=
+ps_lookup_reference val key :=
   local refs;
   do
-    ps_warning ("ps_lookup_reference " + key);
     ps_get_global refs References;
     val = find key refs
 
@@ -110,6 +101,42 @@ ps_new_lookup_reference val key :=
                                  find key rs
                                end
     end
+  end;
+
+ps_store_references :=
+  local new_refs old_refs;
+  do
+    ps_get_global new_refs NewReferences;
+    ps_get_global old_refs References;
+    ps_set_global References new_refs;
+
+    ;; check whether references have changed and output a message
+    compare old_refs new_refs;
+    compare new_refs old_refs
+  end
+  where
+    compare old []           ps := ps;
+    compare old [(k,v) : rs] ps :=
+      if changed k v old then
+        ps_warning "Some references have changed.\nYou might need to rerun ant to get a correct output.\n" ps
+      else
+        compare old rs ps
+      end;
+
+    changed key val []           := True;
+    changed key val [(k,v) : rs] :=
+      if k == key then
+        v <> val
+      else
+        changed key val rs
+      end;
+  end;
+
+ps_at_exit :=
+  local new_refs old_refs;
+  do
+    ps_store_references;
+    ps_store_persistent_globals (ps_job_name + ".gdb");
   end;
 
 \endALdeclarations
@@ -134,19 +161,19 @@ ps_new_lookup_reference val key :=
       ps_add_reference k v
     end
   }}
-%\definecommand\lookupreference{%
-%  \ALcommand{
-%    local k v;
-%    do
-%      ps_arg_expanded k;
-%      ps_lookup_reference v k;
-%      if is_unbound v then
-%        ps_warning (format_string "undefined reference \"%s\"" k)
-%      else
-%        ps_insert_string v
-%      end
-%    end
-%  }}
+\definecommand\lookupreference{%
+  \ALcommand{
+    local k v;
+    do
+      ps_arg_expanded k;
+      ps_lookup_reference v k;
+      if is_unbound v then
+        ps_warning (format_string "undefined reference \"%s\"" k)
+      else
+        ps_insert_string v
+      end
+    end
+  }}
 
 % page numbers and current coordinates
 

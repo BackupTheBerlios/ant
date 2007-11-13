@@ -1585,18 +1585,18 @@ only via AL commands.
   \cs{ps_set_global} \nterm{name} \nterm{value} \nterm{ps}
 \end{code}
 
-
 \begin{code}
   \cs{\addreference} \csarg{name} \csarg{value}
 
   \cs{\lookupreference} \csarg{name}
 \end{code}
 The command \cs{\addreference} creates a reference and \cs{\lookupreference} returns its value.
-Between runs of ant the references are stored in a file called \csarg{jobname}\texttt{\blue.refdb}.
-They can be loaded with the command
-\begin{code}
-  \cs{\include{\jobname.refdb}}
-\end{code}
+These two commands are defined in the file \cs{references.ant}.
+%Between runs of ant the references are stored in a file called \csarg{jobname}\texttt{\blue.refdb}.
+%They can be loaded with the command
+%\begin{code}
+%  \cs{\include{\jobname.refdb}}
+%\end{code}
 
 In AL one can manipulate references via the following commands.
 \begin{code}
