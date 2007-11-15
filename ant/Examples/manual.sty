@@ -286,12 +286,12 @@
 \definecommand\begindisplay{%
   \begingroup
   \par
-  \ensurevskip{\bigskipamount}%
+  \ensurevskip{\medskipamount}%
   \setparameter{paragraph}{par-indent = 0pt; left-skip = 1em}}
 \definecommand\enddisplay{%
   \par
   \endgroup
-  \vskip{\bigskipamount}
+  \vskip{\medskipamount}
 %  \ensurevskip{\bigskipamount}  wait until tables are fixed
   \noindent}
 \defineenvironment{display}{\begindisplay }{\enddisplay }
@@ -299,12 +299,12 @@
 \definecommand\begincode{%
   \begingroup
   \par
-  \ensurevskip{\bigskipamount}%
+  \ensurevskip{\medskipamount}%
   \setparameter{paragraph}{ left-skip = 3em; right-skip = 0pt plus 1fil; par-indent = -2em}}
 \definecommand\endcode{%
   \par
   \endgroup
-  \vskip{\bigskipamount}
+  \vskip{\medskipamount}
 %  \ensurevskip{\bigskipamount}  wait until tables are fixed
   \noindent}
 \defineenvironment{code}{\begincode }{\endcode }
@@ -334,15 +334,15 @@
   \endgroup
   \noindent}
 
-\defineenvironment{longdescription}{%
+\defineenvironment{longdescription}[O{1.7em}]{%
   \par
   \noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
   \penalty{10000}%
   \vskip{-2em}\hskip{0pt}\par%
   \begingroup
-  \setparameter{paragraph}{ left-skip = 1.7em; par-indent = 0em; par-skip = 1ex }%
+  \setparameter{paragraph}{ left-skip = #1; par-indent = 0em; par-skip = 1ex }%
   \savecommand\item
-  \definecommand\item[m]{\par\ensurevskip{\medskipamount}\hskip{-1.7em}{##1}\par }%
+  \definecommand\item[m]{\par\ensurevskip{\medskipamount}\hskip{-#1}{##1}\quad }%
 }{%
   \par
   \restorecommand\item

@@ -319,8 +319,8 @@ square r := line ( r, r) (~r, r) +
 path []     := [];
 path [z:zs] := build_path (start_path z) zs
 where
-  start_path (Point,(x,y)) := make_path x y;
-  start_path _             := error "path specification must start with a point!";
+  start_path (Point,p) := make_path p;
+  start_path _         := error "path specification must start with a point!";
 
   build_path spec []                  := close_path False spec;
   build_path spec [Cycle]             := close_path True  spec;
@@ -330,8 +330,8 @@ where
   build_path spec [(OutDir, a)  : zs] := build_path (path_add_out_dir     a spec) zs;
   build_path spec [(OutCurl, c) : zs] := build_path (path_add_out_curl    c spec) zs;
   build_path spec [(OutTens, t) : zs] := build_path (path_add_out_tension t spec) zs;
-  build_path spec [(Point, (x, y))                   : zs] := build_path (path_add_point x y spec) zs;
-  build_path spec [(Control, (x_1, y_1), (x_2, y_2)) : zs] := build_path (path_add_control_points x_1 y_1 x_2 y_2 spec) zs;
+  build_path spec [(Point, p)          : zs] := build_path (path_add_point p spec) zs;
+  build_path spec [(Control, p_1, p_2) : zs] := build_path (path_add_control_points p_1 p_2 spec) zs;
 end;
 
 \endALdeclarations
