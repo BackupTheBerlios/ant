@@ -7,7 +7,6 @@ open ParseState;
 
 type arg_specifier =
 [ Arg
-| Expand
 | Opt of uc_list
 | Bool
 ];
@@ -146,7 +145,6 @@ value parse_arg_template loc template = do
       }
     }
   | [115 :: ts] -> [ Bool   :: iter ts ]
-  | [120 :: ts] -> [ Expand :: iter ts ]
   | [ _  :: ts] -> iter ts
   ]
 };
@@ -166,8 +164,6 @@ value rec parse_args ps stream template = match template with
                        [ UString.of_ascii "\\True"  :: parse_args ps stream ts ]
                      else
                        [ UString.of_ascii "\\False" :: parse_args ps stream ts ]
-| [ Expand :: ts] -> let arg = Parser.read_argument stream in
-                     [expand_string ps arg :: parse_args ps stream ts ]
 ];
 
 (* |execute_macro <args> <body> <parse-state>| executes the given macro. *)

@@ -2090,129 +2090,6 @@ value end_input ps = do
   UCStream.clear ps.input_stream
 };
 
-(*
-value declare_font ps = do
-{
-  let make_int x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Parser.str_to_int z
-    ]
-  ];
-  let make_num x default = match x with
-  [ None   -> default
-  | Some y -> match y with
-    [ None   -> default
-    | Some z -> Parser.str_to_num z
-    ]
-  ];
-
-  let name     = Array.of_list (arg_expanded ps);
-  let family   = Array.of_list (arg_expanded ps);
-  let series   = Array.of_list (arg_expanded ps);
-  let shape    = Array.of_list (arg_expanded ps);
-  let sizes    = arg_expanded ps;
-  let params   = arg_key_val  ps;
-
-  let hyphen = make_int (DynUCTrie.lookup_string str_hyphen params) (-1);
-  let skew   = make_int (DynUCTrie.lookup_string str_skew   params) (-1);
-  let scale  = make_num (DynUCTrie.lookup_string str_scale  params) num_one;
-
-  DynUCTrie.iter
-    (fun k _ ->
-      if k <> str_hyphen && k <> str_skew && k <> str_scale then do
-      {
-        log_warn (location ps) "unknown key `";
-        log_uc_string k;
-        log_string "'!"
-      }
-      else ())
-    params;
-
-  let get_glyph g = if g < 0 then
-                      Runtime.Substitute.Undef
-                    else
-                      Runtime.Substitute.Simple g;
-
-  add_node ps
-    (Node.Command (location ps)
-      (Environment.declare_font
-        name
-        family
-        series
-        shape
-        (Parser.read_range (UCStream.of_list sizes))
-        {
-          (FontMetric.empty_load_params)
-
-          with
-
-          FontMetric.flp_size         = scale;
-          FontMetric.flp_hyphen_glyph = get_glyph hyphen;
-          FontMetric.flp_skew_glyph   = get_glyph skew
-        }))
-};
-*)
-
-(* references *)
-
-value add_ref ps = do
-{
-  let name = arg_expanded ps;
-  let str  = Array.of_list (arg_expanded ps);
-
-  add_reference ps name str
-};
-
-value get_ref ps = do
-{
-  let name = arg_expanded ps;
-
-  UCStream.insert_string ps.input_stream (lookup_reference ps name)
-};
-
-value expand_get_ref ps _ = do
-{
-  let name = arg_expanded ps;
-
-  UCStream.insert_string ps.input_stream (lookup_reference ps name);
-
-  Macro.expand ps
-};
-
-value measure_position ps = do
-{
-  let name = arg_expanded ps;
-
-  let f pi (x,y) = do
-  {
-    let str   = Printf.sprintf "{%i}{%f}{%f}"
-                  pi.Box.pi_page_no
-                  (float_of_num x)
-                  (float_of_num (pi.Box.pi_height -/ y))
-                  (* right handed -> left handed coordinate system *);
-
-    add_reference ps name (Array.of_list (UString.of_string str))
-  };
-
-  add_node ps (Node.CommandBox (location ps) (`PageCmd (Box.CallPageFunction f)))
-};
-
-value measure_line ps = do
-{
-  let name = arg_expanded ps;
-
-  let f line = do
-  {
-    let str = Printf.sprintf "%i" line;
-
-    add_reference ps name (Array.of_list (UString.of_string str))
-  };
-
-  add_node ps (Node.CommandBox (location ps) (`ParCmd (Box.CallParFunction f)))
-};
-
 (* colours *)
 
 value set_grey_colour ps = do
@@ -2221,7 +2098,7 @@ value set_grey_colour ps = do
   {
     if x </ num_zero then do
     {
-      log_warn (location ps) "negativ colour value set to 0!";
+      log_warn (location ps) "negative colour value set to 0!";
       num_zero
     }
     else if x >/ num_one then do
@@ -2244,7 +2121,7 @@ value set_rgb_colour ps = do
   {
     if x </ num_zero then do
     {
-      log_warn (location ps) "negativ colour value set to 0!";
+      log_warn (location ps) "negative colour value set to 0!";
       num_zero
     }
     else if x >/ num_one then do
@@ -2269,7 +2146,7 @@ value set_cmyk_colour ps = do
   {
     if x </ num_zero then do
     {
-      log_warn (location ps) "negativ colour value set to 0!";
+      log_warn (location ps) "negative colour value set to 0!";
       num_zero
     }
     else if x >/ num_one then do
@@ -3009,13 +2886,6 @@ value initialise ps = do
   def_macro_arg "\\H"         "\\accent{125}{#1}";
   def_macro_arg "\\~"         "\\accent{126}{#1}";
   def_macro_arg "\\\""        "\\accent{127}{#1}";
-
-  (* references *)
-
-  def_unexpandable_cmd "\\addreference"       add_ref;
-  def_expandable_cmd   "\\lookupreference"    get_ref expand_get_ref;
-  def_unexpandable_cmd "\\measureposition"    measure_position;
-  def_unexpandable_cmd "\\measureline"        measure_line;
 
   (* math *)
 

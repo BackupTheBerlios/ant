@@ -78,18 +78,11 @@ value add_primitives job scope = do
       ("ps_set_miter_limit",      Primitive2 ps_set_miter_limit);
 
       ("ps_page_command",         Primitive2 ps_page_command);
+      ("ps_par_command",          Primitive2 ps_par_command);
 
       ("ps_new_counter",          PrimitiveN 4 ps_new_counter);
       ("ps_get_counter",          PrimitiveN 3 ps_get_counter);
       ("ps_set_counter",          PrimitiveN 3 ps_set_counter);
-
-      ("ps_add_reference",        PrimitiveN 3 ps_add_reference);
-      ("ps_reference_exists",     PrimitiveN 3 ps_reference_exists);
-      ("ps_lookup_reference",     PrimitiveN 3 ps_lookup_reference);
-      ("ps_fold_references",      PrimitiveN 4 ps_fold_references);
-      ("ps_store_old_references", Primitive1 ps_store_old_references);
-      ("ps_compare_references",   Primitive2 ps_compare_references);
-      ("ps_write_references",     Primitive2 ps_write_references);
 
       ("ps_dvi_special",          Primitive2 ps_dvi_special);
       ("ps_warning",              Primitive2 ps_warning);

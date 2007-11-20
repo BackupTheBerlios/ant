@@ -1488,6 +1488,23 @@ value ps_page_command cmd parse_command = do
       })
 };
 
+value ps_par_command cmd parse_command = do
+{
+  ps_cmd "ps_par_command" parse_command
+    (fun ps -> do
+      {
+        let f line = do
+        {
+          execute_ps_command_unknown "ps_par_command"
+            (ref (Types.Application !cmd 1 [ref (Types.Number (num_of_int line))]))
+            ps
+        };
+
+        add_node ps
+          (Node.CommandBox (location ps) (`ParCmd (Box.CallParFunction f)))
+      })
+};
+
 value ps_dvi_special special parse_command = do
 {
   ps_cmd "ps_dvi_special" parse_command
@@ -1548,105 +1565,6 @@ value ps_set_counter args = match args with
   }
 | _ -> assert False
 ];
-
-(* references *)
-
-value ps_add_reference args = match args with
-[ [name; val; parse_command] -> do
-  {
-    ps_cmd "ps_add_reference" parse_command
-      (fun ps -> do
-        {
-          let n = Machine.decode_string "ps_add_reference" name;
-          let v = decode_uc_string      "ps_add_reference" val;
-
-          add_reference ps n v
-        })
-  }
-| _ -> assert False
-];
-
-value ps_reference_exists args = match args with
-[ [ret; name; parse_command] -> do
-  {
-    ps_cmd "ps_reference_exists" parse_command
-      (fun ps -> do
-        {
-          let n = Machine.decode_string "ps_reference_exists" name;
-
-          Machine.set_unknown ret (Types.Bool (reference_exists ps n))
-        })
-  }
-| _ -> assert False
-];
-
-value ps_lookup_reference args = match args with
-[ [ret; name; parse_command] -> do
-  {
-    ps_cmd "ps_lookup_reference" parse_command
-      (fun ps -> do
-        {
-          let n = Machine.decode_string "ps_lookup_reference" name;
-
-          Machine.set_unknown ret (Machine.uc_string_to_char_list (lookup_reference ps n))
-        })
-  }
-| _ -> assert False
-];
-
-value ps_fold_references args = match args with
-[ [ret; f; e; parse_command] -> do
-  {
-    ps_cmd "ps_fold_references" parse_command
-      (fun ps -> do
-        {
-          let accum = ref e;
-
-          iter_references ps fold_fun
-
-          where rec fold_fun name val = do
-          {
-            let new_val = Machine.evaluate_function f
-                           [!accum;
-                            ref (Machine.uc_string_to_char_list name);
-                            ref (Machine.uc_string_to_char_list val)];
-            !accum := new_val
-          };
-
-          Machine.set_unknown ret !(!accum)
-        })
-  }
-| _ -> assert False
-];
-
-value ps_store_old_references parse_command = do
-{
-  ps_cmd "ps_store_old_references" parse_command
-    (fun ps -> do
-      {
-        store_old_references ps
-      })
-};
-
-value ps_compare_references ret parse_command = do
-{
-  ps_cmd "ps_compare_references" parse_command
-    (fun ps -> do
-      {
-        Machine.set_unknown ret (Types.Bool (compare_references ps))
-      })
-};
-
-value ps_write_references file parse_command = do
-{
-  ps_cmd "ps_write_references" parse_command
-    (fun ps -> do
-      {
-        let f  = Machine.decode_string "ps_write_references" file;
-
-        write_references ps (UString.to_string f)
-      })
-};
 
 (* misc *)
 

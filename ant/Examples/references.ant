@@ -193,8 +193,18 @@ ps_get_current_position page :=
   do
     ps_gen_unique_ref sym;
     ps_declare_persistent_global sym;
-    ps_page_command { pi (x,y) := ps_set_global sym (pi PageNo, x, y) };
+    ps_page_command
+      { pi (x,y) := ps_set_global sym (pi PageNo, x, pi Height - y) };
     ps_get_global page sym;
+  end;
+
+ps_get_current_line line :=
+  local sym;
+  do
+    ps_gen_unique_ref sym;
+    ps_declare_persistent_global sym;
+    ps_par_command { l := ps_set_global sym l };
+    ps_get_global line sym;
   end;
 
 \endALdeclarations

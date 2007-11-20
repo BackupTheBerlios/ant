@@ -5,7 +5,6 @@ open ParseState;
 
 type arg_specifier =
 [ Arg
-| Expand
 | Opt of uc_list
 | Bool
 ];

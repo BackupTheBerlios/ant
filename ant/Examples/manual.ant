@@ -49,9 +49,9 @@
 % \joinpars{13em}{13em}%
 
 \begin{document}
-\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
+\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 10000 }
 \begingalley{toc}
-\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 1 }
+\setparameter{line-break}{ simple-breaking = false; }%river-demerits = 10000 }
 
 \begingroup
 \setparameter{paragraph}{ par-indent = 0pt }
@@ -2050,23 +2050,18 @@ The file \cs{references.ant} also provides the following two commands
 The first command expands to the number of the current page,
 the second one defines a new macro \cs{command} that expands to
 this number. (You need two runs of \ant\ until these values are available.)
+These commands are based on the \AL-commands
 
 \begin{code}
-  \cs{\measureposition} \csarg{name}
+  \cs{ps_get_current_page} \nterm{page}
+
+  \cs{ps_get_current_position} \nterm{page}
+
+  \cs{ps_get_current_line} \nterm{line}
 \end{code}
-creates a reference \csarg{name} with value
-\begin{code}
-  {\blue\texttt\textlbrace\csarg{page-no}\texttt\textrbrace%
-  \texttt\textlbrace\csarg{x-pos}\texttt\textrbrace%
-  \texttt\textlbrace\csarg{y-pos}\texttt\textrbrace},
-\end{code}
-where \csarg{x-pos} and \csarg{y-pos} are the current
-position relative to the upper left corner of the area.
-\begin{code}
-  \cs{\measureline} \csarg{name}
-\end{code}
-creates a reference \csarg{name} whose value is the current line number,
-counted from the beginning of the paragraph.
+The first command stores the number of the current page in \nterm{page}.
+the second one stores a triple consisting of the current page number and the
+current coordinates. The last command returns the number of the current line.
 
 
 \subsection{Nodes}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
