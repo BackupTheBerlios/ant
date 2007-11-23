@@ -360,12 +360,11 @@ value fold f trie e = do
 
   where rec iter str trie e = do
   {
-    let x = DynamicCharMap.fold (fun c t y -> iter [c :: str] t y) trie.children e;
-
-    match trie.data with
-    [ Some y -> f (XList.rev_to_array str) y x
-    | None   -> x
-    ]
+    let x = match trie.data with
+    [ Some y -> f (XList.rev_to_array str) y e
+    | None   -> e
+    ];
+    DynamicCharMap.fold (fun c t y -> iter [c :: str] t y) trie.children x;
   }
 };
 

@@ -372,7 +372,7 @@ The \cs{local} and \cs{where} constructs allow local definitions of functions an
 \end{display}
 The following table lists all predefined operators in order of increasing priority\?:
 \begin{displaytable}
-\cs{}priority\quad&assoc.\quad&operators\ntr\ntr
+priority\quad&assoc.\quad&operators\ntr\ntr
 \hfil 0    & right   & \cs{$} \ntr
 \hfil 1    & left    & \cs{>>} \ntr
 \hfil 2    & right   & \cs{||} \ntr

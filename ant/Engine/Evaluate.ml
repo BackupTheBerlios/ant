@@ -372,7 +372,7 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                  | `Direct f ->
                      (fun page area _ ps -> do
                       {
-                        let (b, get) = Builder.simple_builder ();
+                        let (b, get) = Builder.simple_builder (); (* FIX: set font for builder *)
                         let _        = eval_node_list env b
                                          (f (PageLayout.get_page_info page ps)
                                             (area.Page.as_pos_x,
@@ -508,7 +508,7 @@ and ev_add_to_galley env builder loc galley nodes = do
     }
   | [n :: ns] -> do
     {
-      let (b, get) = Builder.simple_builder ();
+      let (b, get) = Builder.simple_builder (); (* FIX: set font for builder ?? *)
       let e        = eval_node env b n;
       let g        = List.fold_left
                        Galley.add_glue
@@ -1019,13 +1019,16 @@ and ev_table_entry env _builder loc = do
 
 and ev_table env builder _loc nodes = do
 {
-  let (sb, get) = Builder.simple_builder ();
-
   let rec eval_entries env nodes = match nodes with
   [ [] -> (env, [])
   | [Node.TableEntry _loc l r t bl b c :: ns] -> do
     {
-      let e1        = eval_grouped_list env sb c;
+      let (compose, get) =
+        Compose.ligature_builder
+          (current_font_metric env)
+          (current_composer    env)
+          (Galley.hyphen_params (current_galley env));
+      let e1        = eval_grouped_list env compose c;
       let boxes     = get ();
       let (e2, tes) = eval_entries e1 ns;
 

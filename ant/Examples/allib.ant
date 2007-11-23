@@ -295,6 +295,39 @@ flip f x y := f y x;
 until p f x & p x := x;
 until p f x       := until p f (f x);
 
+;; sorting
+
+;; a generic lexicographic order suitable for most languages
+sort_order :=
+ [".",
+  "0123456789",
+  "AaÁáÀàÃãÄäÂâĀāĂă",
+  "Bb",
+  "CcÇçČčĆć",
+  "Dd",
+  "EeÉéÈèËëÊêĚěĒē",
+  "Ff",
+  "Gg",
+  "Hh",
+  "IiÍíÌìĨĩÏïÎîĪī",
+  "Jj",
+  "Kk",
+  "Ll",
+  "Mm",
+  "NnÑñ",
+  "OoÓóÒòÕõÖöÔôŌōŐőØø",
+  "Pp",
+  "Qq",
+  "Rr",
+  "SsßŞş",
+  "Tt",
+  "UuÚúÙùŨũÜüÛûŪūŰű",
+  "Vv",
+  "Ww",
+  "Xx",
+  "YyÝýŸÿ",
+  "ZzŹź"];
+
 ;; paths
 
 ;; path : [path-spec] -> path

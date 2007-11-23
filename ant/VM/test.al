@@ -304,7 +304,7 @@ f $ x := f x;
 f o g  := { x := f (g x) };
 f >> g := { x := g (f x) };
 
-(>>) f g x := g (f x);
+;; (>>) f g x := g (f x);
 
 flip f x y := f y x;
 

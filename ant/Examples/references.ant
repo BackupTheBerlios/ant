@@ -111,8 +111,14 @@ ps_store_references :=
     ps_set_global References new_refs;
 
     ;; check whether references have changed and output a message
-    compare old_refs new_refs;
-    compare new_refs old_refs
+    if is_unbound old_refs then
+      compare [] new_refs
+    else
+      do
+        compare old_refs new_refs;
+        compare new_refs old_refs
+      end
+    end
   end
   where
     compare old []           ps := ps;

@@ -1031,6 +1031,89 @@ value prim_format_string fmt_string = do
     PrimitiveN n (output_format_string f)
 };
 
+value prim_sort_strings cmp key_val = do
+{
+  (* parse <key-val> *)
+  let kv      = Evaluate.evaluate_list "sort_strings" key_val;
+
+  (* parse <cmp> *)
+  let classes =
+    List.map
+      (evaluate_char_list "sort_strings")
+      (Evaluate.evaluate_list "sort_strings" cmp);
+  let class_map =
+    snd
+      (List.fold_left
+        (fun (n,map) cls ->
+          (n+1,
+           List.fold_left
+             (fun m c -> DynamicCharMap.add c n m)
+             map
+             cls))
+        (0, DynamicCharMap.empty)
+        classes);
+  let default_class = try
+    DynamicCharMap.find 46 class_map  (* . *)
+  with [ Not_found -> 0 ];
+
+  let char_class c = try
+    DynamicCharMap.find c class_map
+  with [ Not_found -> default_class ];
+
+  (* sort *)
+
+  iter DynUCTrie.empty kv
+
+  where rec iter trie kv = match kv with
+  [ [] -> do
+    {
+      (* construct result *)
+      let result = ref Unbound;
+
+      let tail =
+        DynUCTrie.fold
+          (fun _ vals res -> do
+            {
+              let group =
+                List.fold_left
+                  (fun l v -> List v (ref l))
+                  Nil
+                  vals;
+              let new_res = ref Unbound;
+              !res := List (ref group) new_res;
+              new_res
+            })
+          trie
+          result;
+
+      !tail := Nil;
+
+      !result
+    }
+  | [ x :: xs ] -> match !x with
+      [ Tuple arr -> do
+        {
+          if Array.length arr <> 2 then
+            runtime_error ("sort_strings: pair expected but got tuple of length " ^ string_of_int (Array.length arr))
+          else do
+          {
+            (* add current element to <trie> *)
+            let k  = evaluate_char_list "sort_strings" arr.(0);
+            let v  = arr.(1);
+            let kc = List.map char_class k;
+
+            let old = try
+              DynUCTrie.find_list kc trie
+            with [ Not_found -> [] ];
+
+            iter (DynUCTrie.add_list kc [v :: old] trie) xs
+          }
+        }
+      | _ -> runtime_error ("sort_strings: pair expected but got " ^ type_name !x)
+      ]
+  ]
+};
+
 value prim_to_tuple x = do
 {
   Tuple (Array.of_list (Evaluate.evaluate_list "to_tuple" x))
@@ -1410,6 +1493,7 @@ value initial_scope () = do
   add1 "length"        prim_length;
   add1 "to_string"     prim_to_string;
   add1 "format_string" prim_format_string;
+  add2 "sort_strings"  prim_sort_strings;
   add1 "to_list"       prim_to_list;
   add1 "to_tuple"      prim_to_tuple;
   add1 "dir"           prim_dir;
