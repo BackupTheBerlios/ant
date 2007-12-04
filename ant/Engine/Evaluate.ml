@@ -349,7 +349,9 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                        {
                          Footnote.separator = do
                            {
-                             let (b, get) = Builder.simple_builder ();
+                             let (b, get) = Builder.simple_builder
+                                              (current_font_metric env)
+                                              (current_composer    env);
                              let _        = eval_node_list env b sep;
                              VBox.make (get ())
                            };
@@ -372,7 +374,9 @@ and ev_new_area env _builder loc name x y width height max_top max_bot contents 
                  | `Direct f ->
                      (fun page area _ ps -> do
                       {
-                        let (b, get) = Builder.simple_builder (); (* FIX: set font for builder *)
+                        let (b, get) = Builder.simple_builder
+                                         (current_font_metric env)
+                                         (current_composer    env);
                         let _        = eval_node_list env b
                                          (f (PageLayout.get_page_info page ps)
                                             (area.Page.as_pos_x,
@@ -508,7 +512,9 @@ and ev_add_to_galley env builder loc galley nodes = do
     }
   | [n :: ns] -> do
     {
-      let (b, get) = Builder.simple_builder (); (* FIX: set font for builder ?? *)
+      let (b, get) = Builder.simple_builder
+                       (current_font_metric env)
+                       (current_composer    env);
       let e        = eval_node env b n;
       let g        = List.fold_left
                        Galley.add_glue
@@ -776,7 +782,9 @@ and ev_accent env builder loc acc chr = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b chr;
   let bs       = get ();
   let font     = current_font_metric env;
@@ -891,7 +899,9 @@ and ev_vbox env builder _loc boxes = do
     log_string "\n#E: vbox"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b boxes;
   let bs       = get ();
 
@@ -910,7 +920,9 @@ and ev_vbox_to env builder _loc height boxes = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b boxes;
   let bs       = get ();
 
@@ -929,7 +941,9 @@ and ev_vbox_spread env builder _loc amount boxes = do
   }
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b boxes;
   let bs       = get ();
 
@@ -1001,7 +1015,9 @@ and ev_hleaders env builder _loc width nodes = do
 
 and ev_vinsert env builder _loc below nodes = do
 {
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b nodes;
   let boxes    = get ();
 
@@ -1072,7 +1088,9 @@ and ev_math env builder _loc nodes = do
     log_string "\n#E: math"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_node_list
                    (set_math_style env MathLayout.Text)
                    b nodes;
@@ -1100,7 +1118,9 @@ and ev_math_code env builder _loc code nodes = do
   | _   -> HBox.make HBox.LR (Compose.box_add_lig_kern body)
   ];
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_node_list env b nodes;
   let body     = get ();
 
@@ -1153,7 +1173,9 @@ and ev_sub_script env builder _loc nodes = do
     log_string "\n#E: sub-script"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list
                    (set_math_style env  (MathLayout.sub_style (current_math_style env)))
                    b
@@ -1182,7 +1204,9 @@ and ev_super_script env builder _loc nodes = do
     log_string "\n#E: super-script"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_node_list
                    (set_math_style env (MathLayout.super_style (current_math_style env)))
                    b
@@ -1211,7 +1235,9 @@ and ev_underline env builder _loc nodes = do
     log_string "\n#E: underline"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list env b nodes;
   let body     = get ();
 
@@ -1232,7 +1258,9 @@ and ev_overline env builder _loc nodes = do
   else ();
 
   let style    = MathLayout.cramped_style (current_math_style env);
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list (set_math_style env style) b nodes;
   let body     = get ();
 
@@ -1252,7 +1280,9 @@ and ev_math_accent env builder _loc family char nodes = do
   else ();
 
   let style    = MathLayout.cramped_style (current_math_style env);
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e        = eval_grouped_list (set_math_style env style) b nodes;
   let body     = get ();
   let font     = get_math_font env style family;
@@ -1308,7 +1338,9 @@ and ev_root env builder _loc small_fam small_chr large_fam large_chr nodes = do
   let small_fonts = family_to_fonts env (current_math_style env) small_fam;
   let large_fonts = family_to_fonts env (current_math_style env) large_fam;
 
-  let (b, get)    = Builder.simple_builder ();
+  let (b, get)    = Builder.simple_builder
+                      (current_font_metric env)
+                      (current_composer    env);
   let e           = eval_grouped_list (set_math_style env style) b nodes;
   let body        = get ();
 
@@ -1402,7 +1434,9 @@ and ev_left_right env builder loc nodes = do
     {
       ListBuilder.add delims (get_delim d);
 
-      let (b, get) = Builder.simple_builder ();
+      let (b, get) = Builder.simple_builder
+                       (current_font_metric env)
+                       (current_composer    env);
       let e        = eval_grouped_list env b n;
       let bs       = get ();
 
@@ -1419,7 +1453,9 @@ and ev_fraction env builder loc num_nodes denom_nodes left right thick = do
     log_string "\n#E: fraction"
   else ();
 
-  let (b, get) = Builder.simple_builder ();
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
   let e1       = eval_grouped_list
                    (set_math_style env
                      (MathLayout.numerator_style   (current_math_style env)))

@@ -304,7 +304,9 @@ value parse_annotation ps left_annotation right_annotation = do
     let left  = execute_string_in_mode new_ps left_annotation  `HBox;
     let right = execute_string_in_mode new_ps right_annotation `HBox;
 
-    let (b, get) = Builder.simple_builder ();
+    let (b, get) = Builder.simple_builder
+                     (Environment.current_font_metric env)
+                     (Environment.current_composer    env);
 
     let _ = Evaluate.eval_node_list env b left;
 

@@ -96,13 +96,13 @@ value sb_get sb () = do
   ListBuilder.get sb.boxes
 };
 
-value simple_builder () = do
+value simple_builder font composer = do
 {
   let b =
     {
       boxes    = ListBuilder.make ();
-      font     = FontMetric.empty_font;
-      composer = fun x -> x
+      font     = font; (* FontMetric.empty_font; *)
+      composer = composer (* fun x -> x *)
     };
 
   ({

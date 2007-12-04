@@ -38,5 +38,5 @@ value add_box_list      : builder_interface -> list box -> unit;
 value add_cmd_list      : builder_interface -> list box -> unit;
 
 value void_builder      : builder_interface;
-value simple_builder    : unit -> builder (list box);
+value simple_builder    : font_metric -> glyph_composer -> builder (list box);
 
