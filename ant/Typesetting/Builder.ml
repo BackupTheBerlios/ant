@@ -71,6 +71,8 @@ value sb_add_break sb p h pre post no = do
       (Array.to_list (Array.map extended_item_to_box (JustHyph.convert_to_glyphs sb.font sb.composer pre)))
       (Array.to_list (Array.map extended_item_to_box (JustHyph.convert_to_glyphs sb.font sb.composer post)))
       (Array.to_list (Array.map extended_item_to_box (JustHyph.convert_to_glyphs sb.font sb.composer no))))
+  (* FIX: Do you really want to apply an arbitrary composer here,
+     or should we take the identity function? *)
 };
 
 value sb_add_kern sb x y = do
@@ -86,7 +88,7 @@ value sb_add_box sb box = do
 value sb_set_font sb font composer = do
 {
   sb.font     := font;
-  sb.composer := composer
+  sb.composer := composer   (* FIX: Should we allow changing the composer? *)
 };
 
 value sb_set_hyphen_params _ = ();
@@ -101,8 +103,8 @@ value simple_builder font composer = do
   let b =
     {
       boxes    = ListBuilder.make ();
-      font     = font; (* FontMetric.empty_font; *)
-      composer = composer (* fun x -> x *)
+      font     = font;
+      composer = composer (* FIX: should we fix this to  fun x -> x  ? *)
     };
 
   ({

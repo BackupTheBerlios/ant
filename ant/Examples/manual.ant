@@ -195,7 +195,7 @@ to specify skips or dimensions\?:
 
 
 The requirements on a markup language for authors are quite different from those
-on a programming language for implementing those markup commands.
+on a programming language for implementing these markup commands.
 For instance, the \TeX\ macro language serves rather well as a markup language
 but it is quite unsuited for the implementation of packages.
 Besides the markup language \ant\ therefore also provides a scripting language
@@ -268,7 +268,7 @@ The following symbols and keywords are reserved\?:
   \end{table}
 
 \medskip
-  \cs{=}\qquad \cs{:=}\qquad \cs{|}\qquad \cs{.}\qquad \cs{:}\qquad \cs{;}
+  \cs{=}\qquad \cs{:=}\qquad \cs{|}\qquad \cs{.}\qquad \cs{:}
 \end{display}
 
 \subsection{Literals}
@@ -281,13 +281,16 @@ with arbitrary many underscores~\cs{_}.
   $\nterm{number} ::= \nterm{decimal}\; \mvert \nterm{fraction}$
 
   \medskip
-  $\nterm{decimal} ::= \nterm{natural}\; [\,\cs{.}\; \nterm{natural}]$
-
-  \medskip
   $\nterm{fraction} ::= \nterm{natural}\; \cs{/}\; \nterm{natural}$
 
   \medskip
-  $\nterm{natural} ::= \nterm{bin} \mvert \nterm{oct} \mvert \nterm{dec} \mvert \nterm{hex}$
+  $\nterm{natural} ::= \cs{0b}\; \nterm{bin} \mvert \cs{0o}\; \nterm{oct} \mvert \nterm{dec} \mvert \cs{0x}\; \nterm{hex}$
+
+  \medskip
+  $\nterm{decimal} ::= \cs{0b}\; \nterm{bin}\; [\,\cs{.}\; \nterm{bin}]
+                \;\mvert\; \cs{0o}\; \nterm{oct}\; [\,\cs{.}\; \nterm{oct}]
+                \;\mvert\; \nterm{dec}\; [\,\cs{.}\; \nterm{dec}]
+                \;\mvert\; \cs{0x}\; \nterm{hex}\; [\,\cs{.}\; \nterm{hex}]$
 
   \medskip
   $\nterm{bin} ::= \cs{0b}\; \nterm{bd}\; [(\cs{_} \mvert \nterm{bd})^*\, \nterm{bd}]$
@@ -368,9 +371,11 @@ the number and the following terms, i.e.,
 The \cs{local} and \cs{where} constructs allow local definitions of functions and variables where
 \cs{local} $x_1$ \ldots\ $x_n$ is an abbreviation for
 \begin{display}
-  \cs{local begin} $x_1$ \cs{:=} \cs{_;} \ldots $x_n$ \cs{:=} \cs{_;} \cs{end}
+  \cs{local begin} $x_1$ \cs{:=} \cs{_;} \ldots\ $x_n$ \cs{:=} \cs{_;} \cs{end}
 \end{display}
 The following table lists all predefined operators in order of increasing priority\?:
+
+\noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
 \begin{displaytable}
 priority\quad&assoc.\quad&operators\ntr\ntr
 \hfil 0    & right   & \cs{$} \ntr
@@ -389,17 +394,16 @@ priority\quad&assoc.\quad&operators\ntr\ntr
 \hfil      & prefix  & prefix operators\?: \cs{~} \ntr
 \hfil      & postfix & postfix operators \ntr
 \end{displaytable}
+\noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
 
 \paragraph{Simple expressions}
 Simple expressions are either literals, variables, or complex expressions enclosed in parenthesis.
 We discuss the various cases separately.
 \begin{display}\small
-  \begin{table}
-  \quad\hfill $\nterm{simple-expr} ::= {}$ & \nterm{lid}    & ${} \mvert \nterm{symbol}$ \ntr
-  \quad              \hfill ${} \mvert {}$ & \nterm{number} & ${} \mvert \nterm{character}$ \ntr
-  \quad              \hfill ${} \mvert {}$ & \nterm{string} & ${} \mvert \cs{_}$ \ntr
-  \quad              \hfill ${} \mvert {}$ & \ldots
-  \end{table}
+  $\nterm{simple-expr} ::= \nterm{lid} \mvert \nterm{symbol}
+   \mvert \nterm{number} \mvert \nterm{character}
+   \mvert \nterm{string} \mvert \cs{_}
+   \mvert \ldots$
 \end{display}
 The symbol \cs{_} indicates an unnamed variable without value. It is an abbreviation for the expression
 \begin{display}
@@ -516,6 +520,10 @@ A statement is an equation or an \cs{if} statement of equations. Note that, for 
   \quad\hfill ${} \mvert {}$ & \nterm{pattern} \cs{=} \nterm{lid}
   \end{table}
 \end{display}
+Pattern can be used to check the structure of values and to access their components.
+For instance, the pattern \cs{(0, x)} can be matched with a pair
+whose first component is the number~$0$
+and whose second component will be bound to the variable \cs{x}.
 
 \subsection{Declarations}
 
@@ -589,66 +597,46 @@ are supported.
 Addition~\cs{+} is defined for numbers, tuples, and lists\?:
 \begin{display}
   $\textit{num}_0 \mathbin{\cs{+}} \textit{num}_1$
-
-\smallskip
-  \qquad $\Rightarrow$ $\textit{num}_0 + \textit{num}_1$
+  $\Rightarrow$ $\textit{num}_0 + \textit{num}_1$
 
 \medskip
   $(x_0,\ldots, x_n) \mathbin{\cs{+}} (y_0,\ldots, y_n)$
-
-\smallskip
-  \qquad $\Rightarrow$ $(x_0 + y_0,\ldots, x_n + y_n)$
+  $\Rightarrow$ $(x_0 + y_0,\ldots, x_n + y_n)$
 
 \medskip
   $[x_0,\ldots, x_n] \mathbin{\cs{+}} [y_0,\ldots, y_m]$
-
-\smallskip
-  \qquad $\Rightarrow$ $[x_0,\ldots, x_n, y_0,\ldots, y_m]$
+  $\Rightarrow$ $[x_0,\ldots, x_n, y_0,\ldots, y_m]$
 \end{display}
 Subtraction~\cs{-} and the unary minus~\cs{~} can be used for numbers and tuples.
 Multiplication~\cs{*} and division~\cs{/} are defined for the following types\?:
 \begin{display}
   $\textit{num}_0 \mathbin{\cs{*}} \textit{num}_1$
-
-\smallskip
-  \qquad $\Rightarrow$ $\textit{num}_0 \cdot \textit{num}_1$
+  $\Rightarrow$ $\textit{num}_0 \cdot \textit{num}_1$
 
 \medskip
   $\textit{num} \mathbin{\cs{*}} (x_0,\ldots, x_n)$
-
-\smallskip
-  \qquad $\Rightarrow$ $(\textit{num} \mathbin{\cs{*}} x_0,\ldots, \textit{num} \mathbin{\cs{*}} x_n)$
+  $\Rightarrow$ $(\textit{num} \mathbin{\cs{*}} x_0,\ldots, \textit{num} \mathbin{\cs{*}} x_n)$
 
 \medskip
   $(x_0,\ldots, x_n) \mathbin{\cs{*}} \textit{num}$
-
-\smallskip
-  \qquad $\Rightarrow$ $(x_0 \mathbin{\cs{*}} \textit{num},\ldots, x_n \mathbin{\cs{*}} \textit{num})$
+  $\Rightarrow$ $(x_0 \mathbin{\cs{*}} \textit{num},\ldots, x_n \mathbin{\cs{*}} \textit{num})$
 
 \medskip
   $(x_0,\ldots, x_n) \mathbin{\cs{*}} (y_0,\ldots, y_n)$
-
-\smallskip
-  \qquad $\Rightarrow$ $x_0 \mathbin{\cs{*}} y_0 +\cdots+ x_n \mathbin{\cs{*}} y_n$
+  $\Rightarrow$ $x_0 \mathbin{\cs{*}} y_0 +\cdots+ x_n \mathbin{\cs{*}} y_n$
 
 \medskip
   $t \mathbin{\cs{*}} [x_0,\ldots, x_n]$
-
-\smallskip
-  \qquad $\Rightarrow$
+  $\Rightarrow$
   $\displaystyle\sum\indexposition{vert}_{k = 0}^n \genfrac{(}{)}{0pt}{n}{k} (1-t)^{n-k}t^k x_k$
 
 \medskip
   $\textit{num}_0 \mathbin{\cs{/}} \textit{num}_1$
-
-\smallskip
-  \qquad $\Rightarrow$ $\textit{num}_0 \mathbin/ \textit{num}_1$
+  $\Rightarrow$ $\textit{num}_0 \mathbin/ \textit{num}_1$
 
 \medskip
   $(x_0,\ldots, x_n) \mathbin{\cs{/}} \textit{num}$
-
-\smallskip
-  \qquad $\Rightarrow$ $(x_0 \mathbin{\cs{/}} \textit{num},\ldots, x_n \mathbin{\cs{/}} \textit{num})$
+  $\Rightarrow$ $(x_0 \mathbin{\cs{/}} \textit{num},\ldots, x_n \mathbin{\cs{/}} \textit{num})$
 \end{display}
 \cs{abs}~\nterm{x} evaluates to
 $\mathopen|x\mathclose|$ if \nterm{x}~is a number and to
@@ -729,7 +717,23 @@ The function
 \begin{display}
   \cs{to_string} \nterm{x}
 \end{display}
-converts its argument into a string, and the functions
+converts its argument into a string.
+A more general printf-like alternative is given by the function
+\begin{display}
+  \cs{format_string} \nterm{format} $\nterm{arg}_1$ \ldots\ $\nterm{arg}_n$
+\end{display}
+It supports the following conversion specifications\?:
+\begin{displaytable}
+  \cs{s}\quad & string \ntr
+  \cs{d}\quad & decimal numeral \ntr
+  \cs{x}\quad & lower case hexadecimal numeral \ntr
+  \cs{X}\quad & upper case hexadecimal numeral \ntr
+  \cs{r}\quad & lower case roman numeral \ntr
+  \cs{R}\quad & upper case roman numeral \ntr
+  \cs{a}\quad & lower case alphabetic numeral \ntr
+  \cs{A}\quad & upper case alphabetic numeral \ntr
+\end{displaytable}
+The functions
 \begin{display}
   \cs{to_list} \nterm{x}
 
@@ -765,7 +769,7 @@ To test the category of a character the following functions can be used\?:
   \cs{char_is_number} \nterm{c} & \cs{char_is_control} \nterm{c} \ntr
   \cs{char_is_punct} \nterm{c}  & \cs{char_is_space} \nterm{c}
 \end{displaytable}
-\cs{is_space} is a short hand for the disjunction of \cs{is_separator} and \cs{is_control}.
+\cs{char_is_space} is a short hand for the disjunction of \cs{char_is_separator} and \cs{char_is_control}.
 The \textsc{unicode} category of a character can be looked up with the function
 \begin{display}
   \cs{char_category} \nterm{c}
@@ -903,152 +907,6 @@ To output error messages you can use the following \AL-commands\?:
 \end{code}
 
 
-\subsection{Parsing}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-To read the next argument one can use the following \AL-commands\?:
-\begin{code}
-  \cs{ps_next_char} \nterm{char} \nterm{ps}
-
-  \cs{ps_get_char} \nterm{char} \nterm{pos} \nterm{ps}
-
-  \cs{ps_remove_chars} \nterm{num} \nterm{ps}
-
-  \cs{ps_insert_string} \nterm{str} \nterm{ps}
-
-  \cs{ps_location} \nterm{loc} \nterm{ps}
-
-  \cs{ps_arg_expanded} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_execute} \nterm{arg} \nterm{mode} \nterm{ps}
-
-  \cs{ps_arg_num} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_int} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_skip} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_dim} \nterm{arg} \nterm{ps}
-
-  \cs{ps_arg_key_val} \nterm{arg} \nterm{ps}
-
-  \cs{ps_opt_expanded} \nterm{arg} \nterm{default} \nterm{ps}
-
-  \cs{ps_opt_key_val_int} \nterm{arg} \nterm{ps}
-
-  \cs{ps_opt_int} \nterm{arg} \nterm{default} \nterm{ps}
-
-  \cs{ps_arg_TeX_dim} \nterm{arg} \nterm{ps}
-\end{code}
-
-The following commands run the parser on various inputs\?:
-\begin{code}
-  \cs{ps_execute_next_char} \nterm{finished} \nterm{ps}
-
-  \cs{ps_execute_stream} \nterm{string} \nterm{ps}
-
-  \cs{ps_execute_argument} \nterm{ps}
-
-  \cs{ps_run_parser} \nterm{result} \nterm{mode} \nterm{ps}
-\end{code}
-
-
-\subsection{Macros and environments}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\begin{code}
-\cs{\definecommand} \csarg{name} \csopt{arguments} \csarg{body}
-
-\cs{\definepattern} \csarg{name} \csopt{arguments} \csarg{body}
-\end{code}
-define a new command. For \cs{\definecommand} \csarg{name} has to be a command sequence in the
-sense of \TeX, while in the case of \cs{\definepattern} it can be any sequence of symbols.
-Furthermore, expanding a command works the same way as in \TeX. The next symbol after the
-command cannot be a letter and the following white space is deleted. For patterns, these restrictions
-do not hold. The parameter \csarg{arguments} consists of a list of letters specifying the type of the
-arguments\?:
-
-\begin{description}
-\item{\cs{m}}mandatory argument
-\item{\cs{s}}optional~\cs{*}
-\item{\cs{o}}optional argument with empty default
-\item{\blue\cs{O}\texttt\textlbrace\csarg{default}\texttt\textrbrace}%
-optional argument with default value
-\end{description}
-
-\begin{code}
-  \cs{\savecommand} \csarg{name}
-
-  \cs{\restorecommand} \csarg{name}
-
-  \cs{\savepattern} \csarg{name}
-
-  \cs{\restorepattern} \csarg{name}
-\end{code}
-These commands can be used to define commands and patterns locally\?:
-
-\begin{code}
-  \cs{\definecommand{\foo}{old}}
-
-  \cs{\foo}
-
-  \cs{\savecommand\foo}
-
-  \cs{\definecommand{\foo}{new}}
-
-  \cs{\foo}
-
-  \cs{\restorecommand\foo}
-
-  \cs{\foo}
-\end{code}
-produces the output \cs{old} \cs{new} \cs{old}.
-
-\begin{code}
-  \cs{\defineenvironment} \csarg{name} \csopt{arguments} \csarg{begin-body} \csarg{end-body}
-\end{code}
-creates a new environment. Note that the arguments can be used in both bodies.
-
-\begin{code}
-  \cs{\begin} \csarg{name}
-
-  \cs{\end} \csarg{name}
-\end{code}
-starts and ends an environment.
-
-The corresponding \AL-commands are\?:
-\begin{code}
-  \cs{ps_set_default_char_cmd} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_define_command} \nterm{name} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_define_pattern} \nterm{pattern} \nterm{execute} \nterm{expand} \nterm{ps}
-
-  \cs{ps_save_command} \nterm{name} \nterm{ps}
-
-  \cs{ps_restore_command} \nterm{name} \nterm{ps}
-
-  \cs{ps_save_pattern} \nterm{pattern} \nterm{ps}
-
-  \cs{ps_restore_pattern} \nterm{pattern} \nterm{ps}
-
-  \cs{ps_lookup_command} \nterm{result} \nterm{name} \nterm{ps}
-
-  \cs{ps_push_env} \nterm{name} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_pop_env} \nterm{arguments} \nterm{name} \nterm{ps}
-
-  \cs{ps_set_env_args} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_top_env} \nterm{name} \nterm{arguments} \nterm{ps}
-
-  \cs{ps_lookup_env} \nterm{result} \nterm{name} \nterm{ps}
-
-  \cs{ps_define_env} \nterm{name} \nterm{execute-begin} \nterm{expand-begin} \nterm{execute-end}
-    \nterm{expand-end} \nterm{ps}
-\end{code}
-
-
 \subsection{Page layout}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -1173,13 +1031,41 @@ put the command inside a \cs{\vadjust} command\?:
 
 The corresponding \AL-commands are
 \begin{code}
-  \cs{ps_shipout_pages} \nterm{number} \nterm{even} \nterm{odd} \nterm{ps}
+  \cs{ps_shipout_pages} \nterm{number} \nterm{even} \nterm{odd}
 
-  \cs{ps_new_page_layout} \nterm{name} \nterm{width} \nterm{height} \nterm{ps}
+  \cs{ps_new_page_layout} \nterm{name} \nterm{width} \nterm{height}
 
   \cs{ps_new_area} \nterm{name} \nterm{pos-x} \nterm{pos-y} \nterm{width} \nterm{height}
-    \nterm{max-top} \nterm{max-bot} \nterm{type} \nterm{param} \nterm{ps}
+    \nterm{max-top} \nterm{max-bot} \nterm{type} \nterm{param}
 \end{code}
+
+The file \cs{page-layout.ant} contains two predefined page layouts and a
+helper function returning the dimensions of common paper formats.
+\begin{code}
+  \cs{get_page_size} \nterm{format}
+\end{code}
+returns a pair consisting of the dimensions of the paper format.
+Supported formats are
+\begin{code}
+  \cs{A_3}\quad \cs{A_4}\quad \cs{A_5}\quad \cs{A_6}
+
+  \cs{B_3}\quad \cs{B_4}\quad \cs{B_5}\quad \cs{B_6}
+
+  \cs{Letter}\quad \cs{Legal}\quad \cs{Executive}
+\end{code}
+The predefined page layouts can be used with the routines
+\begin{code}
+  \cs{simple_page_layout} \nterm{page-size} \nterm{division} \nterm{baseline}
+
+  \cs{two_column_page_layout} \nterm{page-size} \nterm{division} \nterm{baseline}
+\end{code}
+The first one creates a galley named \cs{main} and two page layouts
+\cs{left} and \cs{right}, each consisting of a single text block
+with headers and footers.
+The second one does the same, except that the text block consists of
+two columns. The parameter \nterm{page-size} contains the paper size,
+\nterm{division} determines the margins (a good value is~$9$),
+and \cs{baseline} is the font height (including leading).
 
 
 \subsection{Galleys and paragraphs}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1195,7 +1081,7 @@ To create a new galley of width \csarg{measure} one uses the command
 \end{code}
 The corresponding \AL-command is
 \begin{code}
-  \cs{ps_new_galley} \nterm{name} \nterm{measure} \nterm{ps}
+  \cs{ps_new_galley} \nterm{name} \nterm{measure}
 \end{code}
 
 All material between the commands
@@ -1298,7 +1184,7 @@ create a vertical box around \csarg{body}.
 
 \cs{\vphantom} \csarg{body}
 \end{code}
-create an empty box of the same width and/or height of \csarg{body}.
+create an empty box of the same width and/or height as that of \csarg{body}.
 
 \begin{code}
 \cs{\hleaders} \csarg{width} \csarg{body}
@@ -1319,7 +1205,7 @@ creates a rule of the given dimensions.
 \begin{code}
   \cs{\image} \csopt{options} \csarg{file name}
 \end{code}
-inserts the given image. The \csopt{options} dictionary may contain the following options\?:
+inserts the given image. The \csarg{options} dictionary may contain the following options\?:
 \begin{longdescription}
 \item{\cs{width}\quad (skip)}  the width of the image.
 \item{\cs{height}\quad (skip)} the height of the image.
@@ -1328,7 +1214,7 @@ inserts the given image. The \csopt{options} dictionary may contain the followin
 
 \dvi\ specials can be created with the \AL-command
 \begin{code}
-  \cs{ps_dvi_special} \nterm{string} \nterm{ps}
+  \cs{ps_dvi_special} \nterm{string}
 \end{code}
 
 
@@ -1347,36 +1233,26 @@ A dictionary consists of entries of the form
 \end{code}
 separated by semicolons or commas.
 
+To modify parameters locally one can surround the corresponding
+section by the commands
+\begin{code}
+  \cs{\begingroup}
+
+  \cs{\endgroup}
+\end{code}
+
 Most parameter dictionaries come in two versions\?: those with the prefix \cs{this-}
 refer only to the following paragraph while those without effect all paragraphs.
 Currently the following parameter dictionaries are defined\?:
-\begin{code}
-  \cs{font}
-
-  \cs{paragraph}
-
-  \cs{line}
-
-  \cs{line-break}
-
-  \cs{hyphenation}
-
-  \cs{space}
-
-  \cs{math}
-
-  \cs{this-paragraph}
-
-  \cs{this-line}
-
-  \cs{this-line-break}
-
-  \cs{this-hyphenation}
-
-  \cs{this-space}
-
-  \cs{this-math}
-\end{code}
+\begin{displaytable}
+  \cs{font} \ntr
+  \cs{paragraph}   & \quad\cs{this-paragraph} \ntr
+  \cs{line}        & \quad\cs{this-line} \ntr
+  \cs{line-break}  & \quad\cs{this-line-break} \ntr
+  \cs{hyphenation} & \quad\cs{this-hyphenation} \ntr
+  \cs{space}       & \quad\cs{this-space} \ntr
+  \cs{math}        & \quad\cs{this-math} \ntr
+\end{displaytable}
 The \cs{font} dictionary contains the following entries\?:
 \begin{longdescription}
 \item{\cs{family}\quad (string)}
@@ -1410,11 +1286,11 @@ The \cs{paragraph} and \cs{this-paragraph} dictionaries contain the following en
   similar to \cs{left-par-shape} but for the right side.
 \item{\cs{par-skip}\quad (dimension)}
   the whitespace between paragraphs.
-\item{\cs{left-annotation} (\ant\ code)}
+\item{\cs{left-annotation}\quad (\ant\ code)}
   This value specifies material that is added to the left of every line
   (useful, e.g., for line numbering, adding a vertical bar, etc.).
   The code should evaluate to a box of width zero.
-\item{\cs{right-annotation} (\ant\ code)}
+\item{\cs{right-annotation}\quad (\ant\ code)}
   This value specifies material that is added to the right of every line.
   The code should evaluate to a box of width zero.
 \item{\cs{post-process-line}\quad (not implemented)}
@@ -1512,40 +1388,6 @@ The \cs{math} and \cs{this-math} dictionaries contain the following entries\?:
 \item{\cs{delimiter-shortfall}\quad (skip)}
 \item{\cs{null-delimiter-space}\quad (dimension)}
 \end{longdescription}
-
-To modify parameters locally one can surround the corresponding
-section by the commands
-\begin{code}
-  \cs{\begingroup}
-
-  \cs{\endgroup}
-\end{code}
-
-
-\subsection{Tables}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55555
-
-
-The commands
-\begin{code}
-  \cs{\begintable}
-
-  \cs{\endtable}
-
-  \cs{\newtableentry}
-
-  \cs{\newtablerow}
-\end{code}
-can be used to typeset a table. The entries of a row are separated by \cs{\newtableentry} commands, and the rows
-by \cs{\newtablerow} commands. The position of a table entry is stored in five counters\?:
-
-\begin{description}
-\item{\cs{table-entry:left}}the first column
-\item{\cs{table-entry:right}}the last column
-\item{\cs{table-entry:top}}the first row
-\item{\cs{table-entry:baseline}}the row of the baseline of the entry
-\item{\cs{table-entry:bottom}}the last row
-\end{description}
-These counters can be modified to create entries spanning several columns or rows.
 
 
 \subsection{Fonts}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1742,16 +1584,42 @@ Example\?:
 
 To define mathematical symbols one can use the following commands.
 \begin{code}
-  \cs{ps_define_math_symbol} \nterm{name} \nterm{math-code} \nterm{font} \nterm{glyph} \nterm{ps}
+  \cs{ps_define_math_symbol} \nterm{name} \nterm{math-code} \nterm{font} \nterm{glyph}
 
   \cs{ps_define_root_symbol} \nterm{name} \nterm{small-font} \nterm{small-glyph}
-     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+     \nterm{large-font} \nterm{large-glyph}
 
-  \cs{ps_define_math_accent} \nterm{name} \nterm{font} \nterm{glyph} \nterm{ps}
+  \cs{ps_define_math_accent} \nterm{name} \nterm{font} \nterm{glyph}
 
   \cs{ps_set_math_code} \nterm{char} \nterm{math-code} \nterm{small-font} \nterm{small-glyph}
-     \nterm{large-font} \nterm{large-glyph} \nterm{ps}
+     \nterm{large-font} \nterm{large-glyph}
 \end{code}
+
+
+\subsection{Tables}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55555
+
+
+The commands
+\begin{code}
+  \cs{\begintable}
+
+  \cs{\endtable}
+
+  \cs{\newtableentry}
+
+  \cs{\newtablerow}
+\end{code}
+can be used to typeset a table. The entries of a row are separated by \cs{\newtableentry} commands, and the rows
+by \cs{\newtablerow} commands. The position of a table entry is stored in five counters\?:
+
+\begin{description}
+\item{\cs{table-entry:left}}the first column
+\item{\cs{table-entry:right}}the last column
+\item{\cs{table-entry:top}}the first row
+\item{\cs{table-entry:baseline}}the row of the baseline of the entry
+\item{\cs{table-entry:bottom}}the last row
+\end{description}
+These counters can be modified to create entries spanning several columns or rows.
 
 
 \subsection{Colour and graphics}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1768,29 +1636,37 @@ You can change the colour with the commands
 They take effect until the end of the current box.
 The corresponding \AL-commands are
 \begin{code}
-  \cs{ps_set_colour} \nterm{colour} \nterm{ps}
+  \cs{ps_set_colour} \nterm{colour}
 
-  \cs{ps_set_bg_colour} \nterm{colour} \nterm{ps}
+  \cs{ps_set_bg_colour} \nterm{colour}
 
-  \cs{ps_set_alpha} \nterm{alpha} \nterm{ps}
+  \cs{ps_set_alpha} \nterm{alpha}
+\end{code}
+Colours can be specified in one of three formats\?:
+\begin{code}
+  \cs{(Grey,} \nterm{x}\cs{)}
+
+  \cs{(RGB,} \nterm{red}\cs{,} \nterm{green}\cs{,} \nterm{blue}\cs{)}
+
+  \cs{(CMYK,} \nterm{cyan}\cs{,} \nterm{magenta}\cs{,} \nterm{yellow}\cs{,} \nterm{black}\cs{)}
 \end{code}
 
 The following \AL-commands can be used to
 draw lines or filled shapes.
 \begin{code}
-  \cs{ps_stroke} \nterm{path} \nterm{ps}
+  \cs{ps_stroke} \nterm{path}
 
-  \cs{ps_fill} \nterm{path} \nterm{ps}
+  \cs{ps_fill} \nterm{path}
 
-  \cs{ps_clip} \nterm{path} \nterm{ps}
+  \cs{ps_clip} \nterm{path}
 
-  \cs{ps_set_line_width} \nterm{width} \nterm{ps}
+  \cs{ps_set_line_width} \nterm{width}
 
-  \cs{ps_set_line_cap} \nterm{line-cap} \nterm{ps}
+  \cs{ps_set_line_cap} \nterm{line-cap}
 
-  \cs{ps_set_line_join} \nterm{line-join} \nterm{ps}
+  \cs{ps_set_line_join} \nterm{line-join}
 
-  \cs{ps_set_miter_limit} \nterm{limit} \nterm{ps}
+  \cs{ps_set_miter_limit} \nterm{limit}
 \end{code}
 
 To construct paths \ant\ provides the following \AL-commands\?:
@@ -1955,6 +1831,102 @@ produces the output
 In addition, all the usual mathematical symbols are defined\?: \cs{\alpha}, \cs{\sim},$\ldots$
 
 
+\subsection{Macros and environments}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{code}
+\cs{\definecommand} \csarg{name} \csopt{arguments} \csarg{body}
+
+\cs{\definepattern} \csarg{name} \csopt{arguments} \csarg{body}
+\end{code}
+define a new command. For \cs{\definecommand} \csarg{name} has to be a command sequence in the
+sense of \TeX, while in the case of \cs{\definepattern} it can be any sequence of symbols.
+Furthermore, expanding a command works the same way as in \TeX. The next symbol after the
+command cannot be a letter and the following white space is deleted. For patterns, these restrictions
+do not hold. The parameter \csarg{arguments} consists of a list of letters specifying the type of the
+arguments\?:
+
+\begin{description}
+\item{\cs{m}}mandatory argument
+\item{\cs{s}}optional~\cs{*}
+\item{\cs{o}}optional argument with empty default
+\item{\blue\cs{O}\texttt\textlbrace\csarg{default}\texttt\textrbrace}%
+optional argument with default value
+\end{description}
+
+\begin{code}
+  \cs{\savecommand} \csarg{name}
+
+  \cs{\restorecommand} \csarg{name}
+
+  \cs{\savepattern} \csarg{name}
+
+  \cs{\restorepattern} \csarg{name}
+\end{code}
+These commands can be used to define commands and patterns locally\?:
+
+\begin{code}
+  \cs{\definecommand{\foo}{old}}
+
+  \cs{\foo}
+
+  \cs{\savecommand\foo}
+
+  \cs{\definecommand{\foo}{new}}
+
+  \cs{\foo}
+
+  \cs{\restorecommand\foo}
+
+  \cs{\foo}
+\end{code}
+produces the output \cs{old} \cs{new} \cs{old}.
+
+\begin{code}
+  \cs{\defineenvironment} \csarg{name} \csopt{arguments} \csarg{begin-body} \csarg{end-body}
+\end{code}
+creates a new environment. Note that the arguments can be used in both bodies.
+
+\begin{code}
+  \cs{\begin} \csarg{name}
+
+  \cs{\end} \csarg{name}
+\end{code}
+starts and ends an environment.
+
+The corresponding \AL-commands are\?:
+\begin{code}
+  \cs{ps_set_default_char_cmd} \nterm{execute} \nterm{expand}
+
+  \cs{ps_define_command} \nterm{name} \nterm{execute} \nterm{expand}
+
+  \cs{ps_define_pattern} \nterm{pattern} \nterm{execute} \nterm{expand}
+
+  \cs{ps_save_command} \nterm{name}
+
+  \cs{ps_restore_command} \nterm{name}
+
+  \cs{ps_save_pattern} \nterm{pattern}
+
+  \cs{ps_restore_pattern} \nterm{pattern}
+
+  \cs{ps_lookup_command} \nterm{result} \nterm{name}
+
+  \cs{ps_push_env} \nterm{name} \nterm{arguments}
+
+  \cs{ps_pop_env} \nterm{arguments} \nterm{name}
+
+  \cs{ps_set_env_args} \nterm{arguments}
+
+  \cs{ps_top_env} \nterm{name} \nterm{arguments}
+
+  \cs{ps_lookup_env} \nterm{result} \nterm{name}
+
+  \cs{ps_define_env} \nterm{name} \nterm{execute-begin} \nterm{expand-begin} \nterm{execute-end}
+    \nterm{expand-end}
+\end{code}
+
+
 \subsection{Counters and references}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -1990,19 +1962,19 @@ Some counters are predefined\?:
 
 The equivalent \AL-commands are\?:
 \begin{code}
-  \cs{ps_new_counter} \nterm{name} \nterm{value} \nterm{super} \nterm{ps}
+  \cs{ps_new_counter} \nterm{name} \nterm{value} \nterm{super}
 
-  \cs{ps_get_counter} \nterm{value} \nterm{name} \nterm{ps}
+  \cs{ps_get_counter} \nterm{value} \nterm{name}
 
-  \cs{ps_set_counter} \nterm{name} \nterm{value} \nterm{ps}
+  \cs{ps_set_counter} \nterm{name} \nterm{value}
 \end{code}
 
 In addition to counters there are also global variables that can be accessed
 only via \AL-commands.
 \begin{code}
-  \cs{ps_get_global} \nterm{result} \nterm{name} \nterm{ps}
+  \cs{ps_get_global} \nterm{result} \nterm{name}
 
-  \cs{ps_set_global} \nterm{name} \nterm{value} \nterm{ps}
+  \cs{ps_set_global} \nterm{name} \nterm{value}
 \end{code}
 These can be used to hold \AL-values that are globally needed.
 Each global variable is referenced by a symbol. Example\?:
@@ -2048,7 +2020,7 @@ The file \cs{references.ant} also provides the following two commands
   \cs{\saveposition} \csarg{command}
 \end{code}
 The first command expands to the number of the current page,
-the second one defines a new macro \cs{command} that expands to
+the second one defines a new macro \csarg{command} that expands to
 this number. (You need two runs of \ant\ until these values are available.)
 These commands are based on the \AL-commands
 
@@ -2060,8 +2032,57 @@ These commands are based on the \AL-commands
   \cs{ps_get_current_line} \nterm{line}
 \end{code}
 The first command stores the number of the current page in \nterm{page}.
-the second one stores a triple consisting of the current page number and the
+The second one stores a triple consisting of the current page number and the
 current coordinates. The last command returns the number of the current line.
+
+
+\subsection{Parsing}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+To read the next argument one can use the following \AL-commands\?:
+\begin{code}
+  \cs{ps_next_char} \nterm{char}
+
+  \cs{ps_get_char} \nterm{char} \nterm{pos}
+
+  \cs{ps_remove_chars} \nterm{num}
+
+  \cs{ps_insert_string} \nterm{str}
+
+  \cs{ps_location} \nterm{loc}
+
+  \cs{ps_arg_expanded} \nterm{arg}
+
+  \cs{ps_arg_execute} \nterm{arg} \nterm{mode}
+
+  \cs{ps_arg_num} \nterm{arg}
+
+  \cs{ps_arg_int} \nterm{arg}
+
+  \cs{ps_arg_skip} \nterm{arg}
+
+  \cs{ps_arg_dim} \nterm{arg}
+
+  \cs{ps_arg_key_val} \nterm{arg}
+
+  \cs{ps_opt_expanded} \nterm{arg} \nterm{default}
+
+  \cs{ps_opt_key_val_int} \nterm{arg}
+
+  \cs{ps_opt_int} \nterm{arg} \nterm{default}
+
+  \cs{ps_arg_TeX_dim} \nterm{arg}
+\end{code}
+The following commands run the parser on various inputs\?:
+\begin{code}
+  \cs{ps_execute_next_char} \nterm{finished}
+
+  \cs{ps_execute_stream} \nterm{string}
+
+  \cs{ps_execute_argument}
+
+  \cs{ps_run_parser} \nterm{result} \nterm{mode}
+\end{code}
 
 
 \subsection{Nodes}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2069,13 +2090,13 @@ current coordinates. The last command returns the number of the current line.
 
 The following commands provide low-level access to the interface of the typesetting engine.
 \begin{code}
-  \cs{ps_current_mode} \nterm{mode} \nterm{ps}
+  \cs{ps_current_mode} \nterm{mode}
 
-  \cs{ps_open_node_list} \nterm{mode} \nterm{ps}
+  \cs{ps_open_node_list} \nterm{mode}
 
-  \cs{ps_close_node_list} \nterm{nodes} \nterm{mode} \nterm{ps}
+  \cs{ps_close_node_list} \nterm{nodes} \nterm{mode}
 
-  \cs{ps_add_node} \nterm{node} \nterm{ps}
+  \cs{ps_add_node} \nterm{node}
 \end{code}
 
 
@@ -2244,7 +2265,7 @@ A dimension consists of a base value together with two values that specify how m
 
 \subsection{The runtime library}   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The runtime library contains three groups of modules. There are modules defining datatypes and algorithms.
+The runtime library contains four groups of modules. There are modules defining datatypes and algorithms.
 \begin{description}
 \setparameter{paragraph}{ right-skip = 0pt plus 1fil }%
 \item{\textsf{\red Bitmap}}%

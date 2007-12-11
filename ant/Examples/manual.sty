@@ -123,16 +123,15 @@
     local m;
     do
       ps_get_global m #1;
-      ps_insert_string m
+      if not (is_unbound m) then
+        ps_insert_string m
+      end
     end
   }}
 \definecommand\therhead{\small\sffamily\red ant \version\hfil\getglobal{NewMarkSection}}
 \definecommand\therfoot{\hfil\sffamily\red --- \getcounter{1}{page} ---\hfil}
 \definecommand\thelhead{\small\sffamily\red\getglobal{NewMarkSection}\hfil ant \version}
 \definecommand\thelfoot{\hfil\sffamily\red --- \getcounter{1}{page} ---\hfil}
-
-\definecommand\paperwidth{210mm}
-\definecommand\paperheight{297mm}
 
 \definecommand\setuppagelayout{
   \ALcommand{
@@ -156,14 +155,14 @@
         };
     end
     do
-      ps_new_galley "toc"  column_width;
+      ps_new_galley "toc"  (3/4column_width);
       ps_new_galley "main" column_width;
 
       ps_new_page_layout "right" paper_width paper_height;
 
       ps_new_area "float"
         (1/12paper_width) (1/9paper_height)
-        (9/12paper_width) column_height 10pt 3pt
+        column_width column_height 10pt 3pt
         Float
         { Alignment  := Top
         | TopSkip    := 1em
@@ -172,7 +171,7 @@
         };
       ps_new_area "footnotes"
         (1/6paper_width) (1/9paper_height)
-        (9/12paper_width) column_height 10pt 3pt
+        column_width column_height 10pt 3pt
         Footnote
         { TopSkip    := 1em
         | BottomSkip := 1em
@@ -184,20 +183,20 @@
         Galley main_galley_params;
       ps_new_area "head"
         (1/12paper_width) (2/27paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        column_width 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\therhead}" paper_width);
+        (format_string "\\hbox to %dpt{\\therhead}" column_width);
       ps_new_area "foot"
         (1/12paper_width) (17/18paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        column_width 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\therfoot}" paper_width);
+        (format_string "\\hbox to %dpt{\\therfoot}" column_width);
 
       ps_new_page_layout "left" paper_width paper_height;
 
       ps_new_area "float"
         (1/6paper_width) (1/9paper_height)
-        (9/12paper_width) column_height 10pt 3pt
+        column_width column_height 10pt 3pt
         Float
         { Alignment  := Top
         | TopSkip    := 1em
@@ -206,7 +205,7 @@
         };
       ps_new_area "footnotes"
         (1/6paper_width) (1/9paper_height)
-        (9/12paper_width) column_height 10pt 3pt
+        column_width column_height 10pt 3pt
         Footnote
         { TopSkip    := 1em
         | BottomSkip := 1em
@@ -218,38 +217,38 @@
         Galley main_galley_params;
       ps_new_area "head"
         (1/6paper_width) (2/27paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        column_width 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\thelhead}" paper_width);
+        (format_string "\\hbox to %dpt{\\thelhead}" column_width);
       ps_new_area "foot"
         (1/6paper_width) (17/18paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        column_width 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\thelfoot}" paper_width);
+        (format_string "\\hbox to %dpt{\\thelfoot}" column_width);
 
       ps_new_page_layout "toc-right" paper_width paper_height;
 
       ps_new_area "toc"
-        (1/12paper_width) (1/9paper_height)
-        column_width column_height 10pt 3pt
+        (1/12paper_width + 1/8column_width) (1/9paper_height)
+        (3/4*column_width) column_height 10pt 3pt
         Galley toc_galley_params;
       ps_new_area "foot"
-        (1/12paper_width) (17/18paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        (1/12paper_width + 1/8column_width) (17/18paper_height)
+        (3/4*column_width) 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\therfoot}" paper_width);
+        (format_string "\\hbox to (3/4*%dpt){\\therfoot}" column_width);
 
       ps_new_page_layout "toc-left" paper_width paper_height;
 
       ps_new_area "toc"
-        (1/6paper_width) (1/9paper_height)
-        column_width column_height 10pt 3pt
+        (1/6paper_width + 1/8column_width) (1/9paper_height)
+        (3/4*column_width) column_height 10pt 3pt
         Galley toc_galley_params;
       ps_new_area "foot"
-        (1/6paper_width) (17/18paper_height)
-        (9/12paper_width) 0pt 10pt 4pt
+        (1/6paper_width + 1/8column_width) (17/18paper_height)
+        (3/4*column_width) 0pt 10pt 4pt
         Direct
-        (format_string "\\hbox to (9/12*%dpt){\\thelfoot}" paper_width);
+        (format_string "\\hbox to (3/4*%dpt){\\thelfoot}" column_width);
     end}%
 }
 
@@ -340,9 +339,9 @@
   \penalty{10000}%
   \vskip{-2em}\hskip{0pt}\par%
   \begingroup
-  \setparameter{paragraph}{ left-skip = #1; par-indent = 0em; par-skip = 1ex }%
+  \setparameter{paragraph}{ left-skip = #1; par-indent = 0em; par-skip = 0.5ex }%
   \savecommand\item
-  \definecommand\item[m]{\par\ensurevskip{\medskipamount}\hskip{-#1}{##1}\quad }%
+  \definecommand\item[m]{\par\ensurevskip{\smallskipamount}\hskip{-#1}{##1}\quad }%
 }{%
   \par
   \restorecommand\item
