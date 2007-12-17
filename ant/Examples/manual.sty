@@ -282,6 +282,12 @@
 
 % simple lists
 
+\definecommand\redrule{%
+  \noindent
+  {\setparameter{line}{baseline-skip = 0pt}%
+   \red
+   \rule{0pt plus 1fill}{0.6pt}{0pt}%
+   \par}}
 \definecommand\begindisplay{%
   \begingroup
   \par
@@ -294,6 +300,26 @@
 %  \ensurevskip{\bigskipamount}  wait until tables are fixed
   \noindent}
 \defineenvironment{display}{\begindisplay }{\enddisplay }
+
+\definecommand\beginruleddisplay{%
+  \begingroup
+  \par
+  \ensurevskip{\smallskipamount}%
+  \redrule
+  \penalty{10000}%
+  \setparameter{paragraph}{par-indent = 0pt; left-skip = 1em}}
+\definecommand\endruleddisplay{%
+  \penalty{10000}%
+  \par
+  \penalty{10000}%
+  \endgroup
+  \penalty{10000}%
+  \vskip{\smallskipamount}
+  \redrule
+  \vskip{\smallskipamount}
+%  \ensurevskip{\bigskipamount}  wait until tables are fixed
+  \noindent}
+\defineenvironment{ruleddisplay}{\beginruleddisplay }{\endruleddisplay }
 
 \definecommand\begincode{%
   \begingroup
@@ -335,7 +361,8 @@
 
 \defineenvironment{longdescription}[O{1.7em}]{%
   \par
-  \noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
+  \ensurevskip{\smallskipamount}%
+  \redrule
   \penalty{10000}%
   \vskip{-2em}\hskip{0pt}\par%
   \begingroup
@@ -346,8 +373,8 @@
   \par
   \restorecommand\item
   \endgroup
-  \noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
-  \vskip{\medskipamount}%
+  \redrule
+  \vskip{\smallskipamount}%
   \noindent}
 
 \defineenvironment{itemise}[m]{%
@@ -366,6 +393,7 @@
 
 \defineenvironment{table}{\begintable}{\hfil\endtable}
 \defineenvironment{displaytable}{\begin{display}\hskip{0pt}\begin{table}}{\end{table}\end{display}}
+\defineenvironment{ruleddisplaytable}{\begin{ruleddisplay}\hskip{0pt}\begin{table}}{\end{table}\end{ruleddisplay}}
 \definepattern{&}{\hfil\newtableentry }
 \definecommand\ntr{\hfill\newtablerow }
 

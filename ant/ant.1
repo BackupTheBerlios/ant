@@ -60,20 +60,28 @@ writes a help message to standard error.
 .TP
 .BI \-\-format= format
 selects the output format. Supported are
-.BR dvi " (default),
-.BR pdf ,
+.BR dvi ,
+.BR xdvi ,
+.BR pdf " (default),
 .BR ps " (PostScript),
 and
 .BR svg .
 The latter two are only partially implemented.
+.TP
+.BI \-\-src\-specials
+enables the generation of source specials.
 .TP
 .BI \-\-debug= flags
 enables debug messages.
 .I flags
 is a combination of the following letters:
 .RS
+.IP a
+AL commands;
+.IP b
+AL bytecode;
 .IP e
-the engine;
+the typesetting engine;
 .IP g
 galley breaking;
 .IP i

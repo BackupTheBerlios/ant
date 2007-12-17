@@ -321,23 +321,24 @@ Character constants are enclosed in apostrophes~\cs{'}, string constants are del
 double quotes~\cs{"}. A string constant is just an abbreviation for a list of characters.
 The following escape sequences are recognised\?:
 
-\begin{displaytable}
-  \cs{\'} & {\small U0027} & apostrophe \ntr
-  \cs{\"} & {\small U0022} & double quote \ntr
-  \cs{\\} & {\small U005C} & backslash \ntr
-  \cs{\b} & {\small U0007} & bell \ntr
-  \cs{\e} & {\small U001B} & \textsc{esc} \ntr
-  \cs{\f} & {\small U000C} & form feed \ntr
-  \cs{\n} & {\small U000A} & newline \ntr
-  \cs{\r} & {\small U000D} & carriage return \ntr
-  \cs{\t} & {\small U0009} & tabulator \ntr
+{\small
+\begin{ruleddisplaytable}
+  \cs{\'}  &\quad{\small U0027}\quad& apostrophe &\quad
+  \cs{\t}  &\quad{\small U0009}\quad& tabulator \ntr
+  \cs{\"}  &\quad{\small U0022}\quad& double quote &\quad
   \cs{\}\nterm{ddd}   & --- & character with 8~bit \textsc{unicode} \ntr
+  \cs{\\}  &\quad{\small U005C}\quad& backslash &\quad
                       &     & \nterm{ddd} in decimal\ntr
+  \cs{\b}  &\quad{\small U0007}\quad& bell &\quad
   \cs{\x}\nterm{hh}   & --- & character with 8~bit \textsc{unicode} \ntr
+  \cs{\e}  &\quad{\small U001B}\quad& \textsc{esc} &\quad
                       &     & \nterm{hh} in hexadecimal \ntr
+  \cs{\f}  &\quad{\small U000C}\quad& form feed &\quad
   \cs{\u}\nterm{hhhh} & --- & character with 16~bit \textsc{unicode} \ntr
-                      &     & \nterm{hhhh} in hexadecimal
-\end{displaytable}
+  \cs{\n}  &\quad{\small U000A}\quad& newline &\quad
+                      &     & \nterm{hhhh} in hexadecimal \ntr
+  \cs{\r}  &\quad{\small U000D}\quad& carriage return
+\end{ruleddisplaytable}}%
 
 \paragraph{Symbols}
 Symbols are uppercase identifiers. The symbols \cs{True} and \cs{False} are used as boolean values.
@@ -375,26 +376,26 @@ The \cs{local} and \cs{where} constructs allow local definitions of functions an
 \end{display}
 The following table lists all predefined operators in order of increasing priority\?:
 
-\noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
-\begin{displaytable}
+{\small
+\begin{ruleddisplaytable}
+priority\quad&assoc.\quad&operators&
 priority\quad&assoc.\quad&operators\ntr\ntr
-\hfil 0    & right   & \cs{$} \ntr
-\hfil 1    & left    & \cs{>>} \ntr
-\hfil 2    & right   & \cs{||} \ntr
-\hfil 3    & right   & \cs{&&} \ntr
-\hfil 4    & non     & \cs{==} \cs{<>} \cs{>} \cs{<} \cs{>=} \cs{<=} \ntr
-\hfil 5    & left    & \cs{land} \cs{lor} \cs{lxor} \cs{lsr} \cs{lsl} \ntr
-\hfil 5    & right   & \cs{++} \ntr
-\hfil 6    & left    & \cs{+} \cs{-} \ntr
+\hfil 0    & right   & \cs{$} &
 \hfil 7    & left    & \cs{*} \cs{/} \cs{mod} \ntr
+\hfil 1    & left    & \cs{>>} &
 \hfil 8    & left    & \cs{^} \ntr
+\hfil 2    & right   & \cs{||} &
 \hfil 9    & right   & \cs{o} \ntr
+\hfil 3    & right   & \cs{&&} &
 \hfil 9    & left    & \cs{!!} \ntr
+\hfil 4    & non     & \cs{==} \cs{<>} \cs{>} \cs{<} \cs{>=} \cs{<=} &
 \hfil      &         & function application \ntr
+\hfil 5    & left    & \cs{land} \cs{lor} \cs{lxor} \cs{lsr} \cs{lsl} &
 \hfil      & prefix  & prefix operators\?: \cs{~} \ntr
+\hfil 5    & right   & \cs{++} &
 \hfil      & postfix & postfix operators \ntr
-\end{displaytable}
-\noindent{\red\rule{0pt plus 1fill}{0.6pt}{0pt}}\par
+\hfil 6    & left    & \cs{+} \cs{-}
+\end{ruleddisplaytable}}%
 
 \paragraph{Simple expressions}
 Simple expressions are either literals, variables, or complex expressions enclosed in parenthesis.
