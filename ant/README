@@ -9,7 +9,7 @@
 In order to compile ant you need:
 
  o OCaml version 3.10,
- o OMake version 0.9.8.1,
+ o OMake version 0.9.8.5-3,
  o kpathsea version 3.2,
  o FreeType version 2,
  o CamlImages version 2.2,
