@@ -771,6 +771,12 @@ To test the category of a character the following functions can be used\?:
   \cs{char_is_punct} \nterm{c}  & \cs{char_is_space} \nterm{c}
 \end{displaytable}
 \cs{char_is_space} is a short hand for the disjunction of \cs{char_is_separator} and \cs{char_is_control}.
+To convert between a character and its \textsc{unicode} value you can use the functions
+\begin{display}
+  \cs{char_to_unicode} \nterm{char}
+
+  \cs{unicode_to_char} \nterm{code}
+\end{display}
 The \textsc{unicode} category of a character can be looked up with the function
 \begin{display}
   \cs{char_category} \nterm{c}

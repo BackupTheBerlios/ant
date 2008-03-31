@@ -509,9 +509,7 @@ value prim_max x y = do
 value rec unary_number_prim f name x = match !x with
 [ Number n    -> do
   {
-    try
-      Number (f n)
-    with
+    try f n with
     [ _ -> runtime_error (name ^ ": invalid argument") ]
   }
 | LinForm l   -> do
@@ -521,9 +519,7 @@ value rec unary_number_prim f name x = match !x with
     match !x with
     [ Number n -> do
       {
-        try
-          Number (f n)
-        with
+        try f n with
         [ _ -> runtime_error (name ^ ": invalid argument") ]
       }
     | _ -> runtime_error (name ^ ": invalid argument")
@@ -531,6 +527,8 @@ value rec unary_number_prim f name x = match !x with
   }
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
+
+value rec unary_number_function f name x = unary_number_prim (fun n -> Number (f n)) name x;
 
 value rec binary_number_prim f name x y = match (!x, !y) with
 [ (Number m, Number n) -> do
@@ -587,15 +585,15 @@ value rec prim_negate x = match !x with
 
 (* integer arithmetic *)
 
-value prim_round    = unary_number_prim round_num   "round";
-value prim_truncate = unary_number_prim integer_num "trunacate";
-value prim_ceiling  = unary_number_prim ceiling_num "ceiling";
-value prim_floor    = unary_number_prim floor_num   "floor";
+value prim_round    = unary_number_function round_num   "round";
+value prim_truncate = unary_number_function integer_num "trunacate";
+value prim_ceiling  = unary_number_function ceiling_num "ceiling";
+value prim_floor    = unary_number_function floor_num   "floor";
 
 value prim_land = binary_number_prim land_num "land";
 value prim_lor  = binary_number_prim lor_num  "lor";
 value prim_lxor = binary_number_prim lxor_num "lxor";
-value prim_lneg = unary_number_prim  lneg_num "lneg";
+value prim_lneg = unary_number_function  lneg_num "lneg";
 
 value num_two = num_of_int 2;
 
@@ -621,27 +619,27 @@ value arcsinh x = log (x +. sqrt(x *. x +. 1.0));
 value arccosh x = log (x +. sqrt(x *. x -. 1.0));
 value arctanh x = 0.5 *. (log (1.0 +. x) -. log (1.0 -. x));
 
-value prim_sqrt    = unary_number_prim (float_wrapper sqrt)    "sqrt";
-value prim_exp     = unary_number_prim (float_wrapper exp)     "exp";
-value prim_log     = unary_number_prim (float_wrapper log)     "log";
-value prim_sin     = unary_number_prim (float_wrapper sin)     "sin";
-value prim_cos     = unary_number_prim (float_wrapper cos)     "cos";
-value prim_tan     = unary_number_prim (float_wrapper tan)     "tan";
-value prim_arcsin  = unary_number_prim (float_wrapper asin)    "arcsin";
-value prim_arccos  = unary_number_prim (float_wrapper acos)    "arccos";
-value prim_arctan  = unary_number_prim (float_wrapper atan)    "arctan";
-value prim_sind    = unary_number_prim sind                    "sind";
-value prim_cosd    = unary_number_prim cosd                    "cosd";
-value prim_tand    = unary_number_prim tand                    "tand";
-value prim_arcsind = unary_number_prim arcsind                 "arcsind";
-value prim_arccosd = unary_number_prim arcsind                 "arccosd";
-value prim_arctand = unary_number_prim arcsind                 "arctand";
-value prim_sinh    = unary_number_prim (float_wrapper sinh)    "sinh";
-value prim_cosh    = unary_number_prim (float_wrapper cosh)    "cosh";
-value prim_tanh    = unary_number_prim (float_wrapper tanh)    "tanh";
-value prim_arcsinh = unary_number_prim (float_wrapper arcsinh) "arcsinh";
-value prim_arccosh = unary_number_prim (float_wrapper arccosh) "arccosh";
-value prim_arctanh = unary_number_prim (float_wrapper arctanh) "arctanh";
+value prim_sqrt    = unary_number_function (float_wrapper sqrt)    "sqrt";
+value prim_exp     = unary_number_function (float_wrapper exp)     "exp";
+value prim_log     = unary_number_function (float_wrapper log)     "log";
+value prim_sin     = unary_number_function (float_wrapper sin)     "sin";
+value prim_cos     = unary_number_function (float_wrapper cos)     "cos";
+value prim_tan     = unary_number_function (float_wrapper tan)     "tan";
+value prim_arcsin  = unary_number_function (float_wrapper asin)    "arcsin";
+value prim_arccos  = unary_number_function (float_wrapper acos)    "arccos";
+value prim_arctan  = unary_number_function (float_wrapper atan)    "arctan";
+value prim_sind    = unary_number_function sind                    "sind";
+value prim_cosd    = unary_number_function cosd                    "cosd";
+value prim_tand    = unary_number_function tand                    "tand";
+value prim_arcsind = unary_number_function arcsind                 "arcsind";
+value prim_arccosd = unary_number_function arcsind                 "arccosd";
+value prim_arctand = unary_number_function arcsind                 "arctand";
+value prim_sinh    = unary_number_function (float_wrapper sinh)    "sinh";
+value prim_cosh    = unary_number_function (float_wrapper cosh)    "cosh";
+value prim_tanh    = unary_number_function (float_wrapper tanh)    "tanh";
+value prim_arcsinh = unary_number_function (float_wrapper arcsinh) "arcsinh";
+value prim_arccosh = unary_number_function (float_wrapper arccosh) "arccosh";
+value prim_arctanh = unary_number_function (float_wrapper arctanh) "arctanh";
 
 value rec prim_abs x = match !x with
 [ Number n    -> Number (abs_num n)
@@ -1234,6 +1232,21 @@ value prim_to_lower     = unary_char_prim (fun c -> Char (UChar.to_lower c))    
 value prim_to_title     = unary_char_prim (fun c -> Char (UChar.to_title c))     "to_title";
 value prim_char_name    = unary_char_prim (fun c -> ascii_to_char_list (UChar.name c))  "char_name";
 
+value prim_char_to_unicode = unary_char_prim (fun c -> Number (num_of_int c)) "char_to_unicode";
+
+value prim_unicode_to_char = unary_number_prim
+  (fun n -> do
+   {
+     if is_integer_num n then
+       if n >=/ num_zero then
+         Char (int_of_num n)
+       else
+         runtime_error "unicode_to_char: negative number"
+     else
+       runtime_error "unicode_to_char: integer expected"
+   })
+  "unicode_to_char";
+
 value symbol_Lu = Symbol (string_to_symbol (UString.uc_string_of_ascii "Lu"));
 value symbol_Ll = Symbol (string_to_symbol (UString.uc_string_of_ascii "Ll"));
 value symbol_Lt = Symbol (string_to_symbol (UString.uc_string_of_ascii "Lt"));
@@ -1516,6 +1529,8 @@ value initial_scope () = do
   add1 "to_title"           prim_to_title;
   add1 "char_name"          prim_char_name;
   add1 "char_category"      prim_char_category;
+  add1 "char_to_unicode"    prim_char_to_unicode;
+  add1 "unicode_to_char"    prim_unicode_to_char;
 
   (* symbols *)
 
