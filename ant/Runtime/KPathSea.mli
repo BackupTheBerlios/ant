@@ -4,6 +4,7 @@ type file_type =
 |  `Source
 |  `TeX
 |  `TFM
+|  `AFM
 |  `Type1
 |  `TrueType
 |  `OpenType

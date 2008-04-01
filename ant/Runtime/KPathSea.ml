@@ -6,6 +6,7 @@ type file_type =
 |  `Source
 |  `TeX
 |  `TFM
+|  `AFM
 |  `Type1
 |  `TrueType
 |  `OpenType
@@ -37,6 +38,7 @@ value init progname dpi mode = do
 value find_file name file_type must_exists = match file_type with
 [ `PK       -> kpse_find_file name pk_format       must_exists
 | `TFM      -> kpse_find_file name tfm_format      must_exists
+| `AFM      -> kpse_find_file name afm_format      must_exists
 | `TeX      -> kpse_find_file name tex_format      must_exists
 | `Type1    -> kpse_find_file name type1_format    must_exists
 | `TrueType -> kpse_find_file name truetype_format must_exists

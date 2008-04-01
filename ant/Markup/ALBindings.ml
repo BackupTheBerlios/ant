@@ -85,6 +85,7 @@ value add_primitives job scope = do
       ("ps_set_counter",          PrimitiveN 3 ps_set_counter);
 
       ("ps_dvi_special",          Primitive2 ps_dvi_special);
+      ("ps_message",              Primitive2 ps_message);
       ("ps_warning",              Primitive2 ps_warning);
       ("ps_error",                Primitive2 ps_error);
 
@@ -94,6 +95,9 @@ value add_primitives job scope = do
       ("ps_run_parser",           PrimitiveN 3 ps_run_parser);
 
       ("ps_job_name",             (ascii_to_char_list job.Engine.Job.jobname));
+
+      ("kpse_find_file",          PrimitiveN 3 ALKPathSea.find_file);
+      ("kpse_find_glyph",         Primitive2 ALKPathSea.find_glyph);
 
       ("new_page_layout",         PrimitiveN 3 prim_new_page_layout);
       ("select_page_layout",      Primitive1 prim_select_page_layout);

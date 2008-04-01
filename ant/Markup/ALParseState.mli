@@ -80,6 +80,7 @@ value ps_new_counter             : list unknown -> partial_value;
 value ps_get_counter             : list unknown -> partial_value;
 value ps_set_counter             : list unknown -> partial_value;
 value ps_dvi_special             : unknown -> unknown -> partial_value;
+value ps_message                 : unknown -> unknown -> partial_value;
 value ps_warning                 : unknown -> unknown -> partial_value;
 value ps_error                   : unknown -> unknown -> partial_value;
 value ps_execute_next_char       : unknown -> unknown -> partial_value;

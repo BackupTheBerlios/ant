@@ -1568,6 +1568,17 @@ value ps_set_counter args = match args with
 
 (* misc *)
 
+value ps_message msg parse_command = do
+{
+  ps_cmd "ps_message" parse_command
+    (fun _ -> do
+      {
+        let s = Machine.decode_string "ps_message" msg;
+
+        log_uc_list s
+      })
+};
+
 value ps_warning msg parse_command = do
 {
   ps_cmd "ps_warning" parse_command

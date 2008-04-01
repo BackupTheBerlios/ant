@@ -906,8 +906,22 @@ The command
   \cs{\jobname}
 \end{code}
 expands to the basename of the input file.
+You can look up file names in the file database with the commands
+\begin{code}
+  \cs{kpse_find_file} \nterm{file-name} \nterm{file-type} \nterm{must-exist}
+
+  \cs{kpse_find_glyph} \nterm{font-name} \nterm{dpi}
+\end{code}
+Possible file types are
+\begin{displaytable}
+  \cs{OpenType} & \cs{TFM} & \cs{TeX}    \ntr
+  \cs{TrueType} & \cs{AFM} & \cs{Source} \ntr
+  \cs{Type_1}   & \cs{PK}  &
+\end{displaytable}
 To output error messages you can use the following \AL-commands\?:
 \begin{code}
+  \cs{ps_message} \nterm{message}
+
   \cs{ps_warning} \nterm{message}
 
   \cs{ps_error} \nterm{message}

@@ -13,6 +13,7 @@ MODULES[] =
   ALEnvironment
   ALGraphics
   ALNodes
+  ALKPathSea
   ALParseState
   ALBindings
   Primitives
