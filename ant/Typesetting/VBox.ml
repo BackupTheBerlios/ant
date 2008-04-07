@@ -123,7 +123,7 @@ value to_top box = do
   ];
 
   match box.b_contents with
-  [ CompBox cmds -> shift_compound_vert box (get_baseline cmds)
+  [ CompBox cmds -> shift_compound_box box num_zero (get_baseline cmds)
   | _            -> box
   ]
 };

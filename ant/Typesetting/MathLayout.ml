@@ -208,7 +208,7 @@ value center_on_axis box axis_height = do
   if height =/ axis_height && depth =/ axis_height then
     box
   else
-    shift_compound_vert (wrap_in_compound_box b) (axis_height -/ (height -/ depth) // num_of_int 2)
+    shift_compound_box (wrap_in_compound_box b) num_zero (axis_height -/ (height -/ depth) // num_two)
 };
 
 (*
@@ -1052,7 +1052,7 @@ value make_root style box delim font_params math_params = do
 
   HBox.make HBox.LR
     (Compose.box_add_lig_kern
-      [shift_compound_vert (wrap_in_compound_box root) (box.b_height.d_base +/ real_clear);
+      [shift_compound_box (wrap_in_compound_box root) num_zero (box.b_height.d_base +/ real_clear);
        attach_overline box real_clear root.b_height.d_base]
     )
 };

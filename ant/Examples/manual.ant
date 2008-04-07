@@ -1,4 +1,4 @@
-\definecommand\version{0.8}
+\definecommand\version{0.9}
 \include{allib.ant}
 
 % font definitions
@@ -100,10 +100,12 @@ of \TeX\ since its source code is a total mess. Even after 20 years there are on
 minor modifications available.
 
 For these reasons I decided to rewrite \ant\ from scratch aiming for a simple, clean, and modular design.
-%\setparameter{this-paragraph}{ pre-break = «; post-break = » }%
 In particular it is easily possible to replace parts of \ant\ with other implementations, say,
 adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 \textsc{p\kern{0.03em}d\kern{0.03em}f} files, or a different page layout algorithm.
+
+%A matrix example\?:
+%$f(x) = \left( \vcentre{\begintable\,$\lambda$\,\newtableentry\,$1$\,\ntr\,$0$\,\newtableentry\,$\lambda$\,\endtable}\right)$
 
 %\vbox to 20pt{\vss\hbox to 20pt{%
 %\ALcommand{
@@ -117,8 +119,6 @@ adding an \textsc{x\kern{0.03em}m\kern{0.03em}l} parser, output routines for
 %     (Point,(u,0)),
 %     Cycle])
 %}}}
-
-%\image{test.pdf}
 
 The current version of \ant\ implements all the major features of \TeX\ but a lot of minor
 things are still missing.
@@ -1799,6 +1799,10 @@ put a line atop or below \csarg{body}.
 \cs{\left} \csarg{delimiter} \csarg{body} \cs{\middle} \csarg{body} \cs{\right} \csarg{delimiter}
 \end{code}
 adjusts the height of the delimiters to that of the \csarg{body}.
+\begin{code}
+  \cs{\vcentre} \csarg{body}
+\end{code}
+centres \csarg{body} vertically around the math axis.
 \begin{code}
   \cs{\displaystyle}
 

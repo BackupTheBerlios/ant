@@ -71,6 +71,7 @@ value rec get_location node = match node with
 | Node.Phantom loc _ _ _           -> loc
 | Node.HLeaders loc _ _            -> loc
 | Node.VInsert loc _ _             -> loc
+| Node.PositionBox loc _ _         -> loc
 | Node.Table loc _                 -> loc
 | Node.TableEntry loc _ _ _ _ _ _  -> loc
 | Node.Math loc _                  -> loc
@@ -127,6 +128,7 @@ value rec eval_node env builder node = try
   | Node.Phantom loc h v n           -> ev_phantom env builder loc h v n
   | Node.HLeaders loc w n            -> ev_hleaders env builder loc w n
   | Node.VInsert loc b ns            -> ev_vinsert env builder loc b ns
+  | Node.PositionBox loc f n         -> ev_position_box env builder loc f n
   | Node.Table loc n                 -> ev_table env builder loc n
   | Node.TableEntry loc _ _ _ _ _ _  -> ev_table_entry env builder loc
   | Node.Math loc n                  -> ev_math env builder loc n
@@ -1023,6 +1025,27 @@ and ev_vinsert env builder _loc below nodes = do
 
   Builder.add_cmd builder
     (new_command_box (`ParCmd (Box.VInsert below boxes)));
+  e
+}
+
+and ev_position_box env builder _loc f nodes = do
+{
+  if !tracing_engine then do
+  {
+    log_string "\n#E: position-box";
+  }
+  else ();
+
+  let (b, get) = Builder.simple_builder
+                   (current_font_metric env)
+                   (current_composer    env);
+  let e        = eval_grouped_list env b nodes;
+  let boxes    = get ();
+  let box      = HBox.make HBox.LR boxes;
+  let (dx, dy) = f e box.b_width box.b_height box.b_depth;
+
+  Builder.add_box builder
+    (shift_compound_box (wrap_in_compound_box box) dx dy);
   e
 }
 

@@ -111,7 +111,7 @@ value resize_box_horiz      : box -> num -> box;
 value resize_box_vert       : box -> num -> num -> box;
 value resize_box_horiz_upto : box -> num -> box;
 value resize_box_vert_upto  : box -> num -> num -> box;
-value shift_compound_vert   : box -> num -> box;
+value shift_compound_box    : box -> num -> num -> box;
 value make_phantom          : box -> box;
 value make_hphantom         : box -> box;
 value make_vphantom         : box -> box;

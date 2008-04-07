@@ -139,6 +139,7 @@ value sym_ParSkip              = decl_sym "ParSkip";
 value sym_PDF                  = decl_sym "PDF";
 value sym_Phantom              = decl_sym "Phantom";
 value sym_PK                   = decl_sym "PK";
+value sym_PositionBox          = decl_sym "PositionBox";
 value sym_PostProcessLine      = decl_sym "PostProcessLine";
 value sym_PostScript           = decl_sym "PostScript";
 value sym_Preamble             = decl_sym "Preamble";

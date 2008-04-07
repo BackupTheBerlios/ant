@@ -7,7 +7,7 @@ module Job = Engine.Job;
 
 value print_help () = do
 {
-  print_string "This is ant, version 0.8.\n\n";
+  print_string "This is ant, version 0.9.\n\n";
   print_string "USAGE: ant [options] <input-file>\n\n";
   print_string "Supported options are:\n\n";
   print_string "--format=<fmt>    where <fmt> is \"dvi\", \"xdvi\", \"ps\", \"pdf\", or \"svg\"\n";

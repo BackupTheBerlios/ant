@@ -131,6 +131,7 @@ value sym_ParSkip              : symbol;
 value sym_PDF                  : symbol;
 value sym_Phantom              : symbol;
 value sym_PK                   : symbol;
+value sym_PositionBox          : symbol;
 value sym_PostProcessLine      : symbol;
 value sym_PostScript           : symbol;
 value sym_Preamble             : symbol;

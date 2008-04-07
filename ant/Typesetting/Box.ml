@@ -533,6 +533,7 @@ value rec resize_box_vert_upto box height depth = do
     (min depth  (dim_max_value box.b_depth))
 };
 
+(*
 (* |shift_compound_vert <box> <amount>| shifts the contents of <box> upwards by <amount>. *)
 
 value shift_compound_vert box amount = match box.b_contents with
@@ -553,6 +554,31 @@ value shift_compound_vert box amount = match box.b_contents with
   }
 | _ -> raise (Invalid_argument "Box.shift_comound_vert applied to non-compound box!")
 ];
+*)
+
+(* |shift_compound_box <box> <shift-x> <shift-y>| shifts the contents of <box>
+   to the right by <shift-x> and upwards by <shift-y>. *)
+
+value shift_compound_box box shift_x shift_y = match box.b_contents with
+[ CompBox contents -> do
+  {
+    let dx = fixed_dim shift_x;
+    let dy = fixed_dim shift_y;
+
+    let shift_gfx cmd = match cmd with
+    [ PutBox x y b -> PutBox (dim_add x dx) (dim_add y dy) b
+    | _            -> cmd
+    ];
+
+    new_compound_box
+      (dim_add box.b_width  dx)
+      (dim_add box.b_height dy)
+      (dim_sub box.b_depth  dy)
+      (List.map shift_gfx contents)
+  }
+| _ -> raise (Invalid_argument "Box.shift_compound_box applied to non-compound box!")
+];
+
 
 (*
   |make_phantom <box>| creates an empty box of the same size as <box>. |make_hphantom| and |make_vphantom|

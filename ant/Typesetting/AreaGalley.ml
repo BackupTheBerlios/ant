@@ -192,12 +192,13 @@ value assemble_interval lines (top, height, bottom) line_params = do
       let top_skip = calc_top_skip first_line (fixed_dim top)    line_params;
       let bot_skip = calc_bot_skip last_line  (fixed_dim bottom) line_params;
 
-      shift_compound_vert
+      shift_compound_box
         (VBox.make_to (height +/ top +/ bottom)
                       ( [new_glue_box dim_zero top_skip False True]
                       @ lines
                       @ [new_glue_box dim_zero bot_skip False True;
                          new_glue_box dim_zero dim_zero False True]))
+        num_zero
         (minus_num (height +/ bottom))
     }
   ]

@@ -48,6 +48,7 @@ and node =
 | Phantom of UCStream.location and bool and bool and list node
 | HLeaders of UCStream.location and dim_arg and list node
 | VInsert of UCStream.location and bool and list node
+| PositionBox of UCStream.location and (environment -> dim -> dim -> dim -> (num * num)) and list node
 | Table of UCStream.location and list node
 | TableEntry of UCStream.location and int and int and int and int and int and list node
 | Math of UCStream.location and list node

@@ -192,6 +192,9 @@ value rec encode_node node = match node with
 | Node.VInsert loc b ns            -> make_node2 sym_VInsert loc
                                         (Types.Bool b)
                                         (encode_node_list ns)
+| Node.PositionBox loc f n         -> make_node2 sym_PositionBox loc
+                                        Types.Unbound  (* FIX *)
+                                        (encode_node_list n)
 | Node.Table loc n                 -> make_node1 sym_Table loc
                                         (encode_node_list n)
 | Node.TableEntry loc l r t bl b c -> make_node6 sym_TableEntry loc
@@ -456,6 +459,11 @@ value rec decode_node name node = match !node with
           let (loc, a, n) = decode_tuple2 name xs in
           Node.VInsert loc
             (decode_bool name a)
+            (decode_node_list name n)
+        else if s = sym_PositionBox then
+          let (loc, a, n) = decode_tuple2 name xs in
+          Node.PositionBox loc
+            (fun _ _ _ _ -> (num_zero, num_zero)) (* FIX *)
             (decode_node_list name n)
         else if s = sym_Table then
           let (loc, n) = decode_tuple1 name xs in

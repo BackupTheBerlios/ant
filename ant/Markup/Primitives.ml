@@ -1448,6 +1448,20 @@ value general_fraction ps = do
     add_node ps (Node.Fraction (location ps) num denom (List.hd left) (List.hd right) thick)
 };
 
+value vert_centre ps = do
+{
+  let centre env w h d = do
+  {
+    let params = MathLayout.get_font_params (Environment.current_math_font_params env) MathLayout.Text;
+    let shift  = params.FontMetric.axis_height -/ (h.d_base -/ d.d_base) // num_two;
+
+    (num_zero, shift)
+  };
+  let body = arg_execute ps `Math;
+
+  add_node ps (Node.PositionBox (location ps) centre body);
+};
+
 value set_math_style style ps = do
 {
   add_node ps (Node.MathStyle (location ps) style)
@@ -2901,6 +2915,7 @@ value initialise ps = do
   def_unexpandable_cmd "\\left"          left_delim;
   def_unexpandable_cmd "\\middle"        mid_delim;
   def_unexpandable_cmd "\\right"         right_delim;
+  def_unexpandable_cmd "\\vcentre"       vert_centre;
   def_unexpandable_cmd "\\indexposition" index_position;
 
   def_macro "\\limits"   "\\indexposition{vert}";
