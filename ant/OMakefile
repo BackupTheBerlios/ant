@@ -4,7 +4,7 @@
 PACKAGES_USED[]   = #german advi
 
 # Hyphenation patterns to be compiled into ant:
-HYPHEN_PATTERNS[] = british us #deutsch-traditional deutsch-new français
+HYPHEN_PATTERNS[] = british us #deutsch-old deutsch-neu français
 
 # Compilation options:
 
