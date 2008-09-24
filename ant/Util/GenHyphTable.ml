@@ -400,14 +400,28 @@ value main () = do
   {
     if i >= Array.length Sys.argv then
       []
-    else do
-    {
-      let stream = UCStream.of_file Sys.argv.(i);
+    else
+      try do
+      {
+        let _ = Unix.stat Sys.argv.(i);
+        let stream = UCStream.of_file Sys.argv.(i);
 
-      let x = parse_file stream;
+        let x = parse_file stream;
 
-      [x :: iter (i+1)]
-    }
+        [x :: iter (i+1)]
+      }
+      with
+      [ Unix.Unix_error err _ _ -> do
+        {
+          Printf.eprintf "%s: %s\n" Sys.argv.(i) (Unix.error_message err);
+          iter (i+1)
+        }
+      | _ -> do
+        {
+          Printf.eprintf "Cannot read file %s!\n" Sys.argv.(i);
+          iter (i+1)
+        }
+    ]
   }
 };
 

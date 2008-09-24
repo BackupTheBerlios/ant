@@ -10,7 +10,7 @@ OCAMLFLAGS += -I .
 
 section
   OCAML_LIBS = $(ROOT)/Tools/Tools $(ROOT)/lib/Unicode $(ROOT)/lib/Runtime
-  OCAML_OTHER_LIBS = $(CAMLIMAGES_MLLIBS)
+  OCAML_OTHER_LIBS = $(CAMLIMAGES_MLLIBS) unix
 
   OCamlProgram(GenHyphTable, GenHyphTable)
 
