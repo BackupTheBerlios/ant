@@ -39,12 +39,14 @@ OCamlLibraryCopy(Unicode-install, $(ROOT)/lib, Unicode, Unicode)
 Tables.c: Tables.c.top Tables.c.bot GenUnicodeTable
   if $(file-exists $(DATAFILE))
     echo "Generating unicode table ..."
-    (cat Tables.c.top; GenUnicodeTable <$(DATAFILE); cat Tables.c.bot) >Tables.c
+    (cat Tables.c.top; ./GenUnicodeTable <$(DATAFILE); cat Tables.c.bot) >Tables.c
   else
     if $(file-exists $@)
       touch $@
     else
-      echo "$(DATAFILE) not found. Please download it from ftp.unicode.org."; \
+      # Uncomment this line to download the file automatically:
+      # mkdir -p data && cd data && wget http://unicode.org/Public/UNIDATA/UnicodeData.txt
+      echo "$(DATAFILE) not found. Please download it from ftp.unicode.org."
       exit 1
 
 Tables.o: Tables.c

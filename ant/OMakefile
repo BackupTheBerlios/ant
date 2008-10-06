@@ -24,12 +24,15 @@ SELFAUTODIR    = $(shell kpsewhich '--expand-var=$$SELFAUTODIR')
 SELFAUTOPARENT = $(shell kpsewhich '--expand-var=$$SELFAUTOPARENT')
 
 # Compile flags for C files:
+KPATHSEA_CFLAGS = -I$(SELFAUTOPARENT)/include
+SELFAUTO_CFLAGS = $""-DSELFAUTOLOC='"$(SELFAUTOLOC)"' "" \
+                  $""-DSELFAUTODIR='"$(SELFAUTODIR)"' "" \
+                  $""-DSELFAUTOPARENT='"$(SELFAUTOPARENT)"' ""
+FREETYPE_CFLAGS = $(shell freetype-config --cflags)
+KPATHSEA_FLAGS  = $(mapprefix -ccopt, $(KPATHSEA_CFLAGS))
+SELFAUTO_FLAGS  = $(mapprefix -ccopt, $(SELFAUTO_CFLAGS))
+FREETYPE_FLAGS  = $(mapprefix -ccopt, $(FREETYPE_CFLAGS))
 KPATHSEA_LFLAGS = -cclib -L$(SELFAUTOPARENT)/lib
-KPATHSEA_CFLAGS = -ccopt -I$(SELFAUTOPARENT)/include
-SELFAUTO_FLAGS  = -ccopt $""-DSELFAUTOLOC='"$(SELFAUTOLOC)"' "" \
-                  -ccopt $""-DSELFAUTODIR='"$(SELFAUTODIR)"' "" \
-                  -ccopt $""-DSELFAUTOPARENT='"$(SELFAUTOPARENT)"' ""
-FREETYPE_FLAGS  = $(mapprefix -ccopt, $(shell freetype-config --cflags))
 X11_LFLAGS      = -cclib -L/usr/X11/lib
 
 if $(NATIVE_ENABLED)
