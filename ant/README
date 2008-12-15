@@ -6,6 +6,11 @@
          Achim Blumensath
 
 
+ant is a typesetting system inspired by TeX. ant itself it public
+domain, but some of the included third party material has a different
+license. Please, look into the files in question to determine whether
+this is the case.
+
 In order to compile ant you need:
 
  o OCaml version 3.10,
@@ -56,7 +61,7 @@ or by
   $ make OCAMLRUNPARAM="l=16M"   (if you use the bytecode version).
 
 (5) Further documentation can be found in the file “manual.pdf”. The
-directory “Examples” contains some example ant sources including the
+directory “Examples” contains some examples of ant sources including the
 source of the manual. Note that some of these examples use fonts not normally
 installed in a TeX system. To compile these documents you have to replace the
 corresponding \include{...} command by \include{fonts.ant} (which loads

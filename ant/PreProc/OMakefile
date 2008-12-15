@@ -5,7 +5,7 @@ MLCPPLIB = $(shell $(CAMLP4) -where)
 OCAMLFLAGS       += -pp "$(CAMLP4)" -I $(MLCPPLIB)
 OCAMLDEPFLAGS    += -pp "$(CAMLP4)" -I $(MLCPPLIB)
 OCAML_LINK_FLAGS += -linkall -I $(MLCPPLIB)
-OCAML_OTHER_LIBS = camlp4lib
+OCAML_OTHER_LIBS = dynlink camlp4lib
 
 if $(not $(NATIVE_CAMLP4))
   BYTE_ENABLED = true
