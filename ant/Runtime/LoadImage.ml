@@ -58,7 +58,7 @@ value get_dimensions file page = do
     | None     -> num_zero
     ];
 
-    let factor = if dpi >=/ num_zero then
+    let factor = if dpi >/ num_zero then
                    inch // dpi
                  else
                    inch // num_of_int 100;
