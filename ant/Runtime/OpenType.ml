@@ -1926,7 +1926,7 @@ value write_tables os tables ttf = do
 
   IO.write_string os p;
 
-  !chk = Int32.add !chk (check_sum p);
+  !chk := Int32.add !chk (check_sum p);
 
   (* Fix check sum in head table. *)
   (* We assume that the head table is the first element of <tables>! *)
