@@ -2888,7 +2888,7 @@ value initialise ps = do
 
   def_unexpandable_cmd "\\setgreycolour" set_grey_colour;
   def_unexpandable_cmd "\\setrgbcolour"  set_rgb_colour;
-  def_unexpandable_cmd "\\setcymkcolour" set_cmyk_colour;
+  def_unexpandable_cmd "\\setcmykcolour" set_cmyk_colour;
 
   (* accents *)
 
