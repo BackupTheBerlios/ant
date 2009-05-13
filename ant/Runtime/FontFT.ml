@@ -722,14 +722,14 @@ value read_ft file name params = do
   let glyph_metric = get_glyph_metric params extra_kern scale face;
 
   let space_glyph  = ft_get_char_index face 32;
-  let x_glyph      = ft_get_char_index face 102;
+  let x_glyph      = ft_get_char_index face 120;
   let m_glyph      = ft_get_char_index face 77;
   let space        = if space_glyph > 0 then                               (* width of " "  *)
                        glyph_metric.(space_glyph - 1).gm_width
                      else
                        size // num_of_int 3;
   let x_height     = if x_glyph > 0 then                                   (* height of "x" *)
-                       glyph_metric.(x_glyph - 1).gm_width
+                       glyph_metric.(x_glyph - 1).gm_height
                      else
                        size // num_of_int 2;
   let quad         = if m_glyph > 0 then                                   (* width of "M"  *)
