@@ -71,6 +71,8 @@ CAMLIMAGES_CLIBS   = -lgif -ljpeg -ltiff -lfreetype -lpng -lXpm
 CAMLIMAGES_MLLIBS  = $(addprefix $(CAMLIMAGES_DIR)/, ci_core ci_freetype ci_gif ci_jpeg \
                                                      ci_tiff ci_bmp ci_ppm ci_png ci_xvthumb ci_xpm ci_ps)
 
+CFLAGS += $(OCAML_LIB_DIR)
+
 switch $(MATH_LIB)
 case Gmp
   NUMLIB = gmp/gmp

@@ -9,7 +9,7 @@ MODULES[] =
 C_FILES[] = Tables
 O_FILES[] = $(addsuffix .o, $(C_FILES))
 
-DATAFILE = data/UnicodeData.txt
+DATAFILE = $(ROOT)/data/UnicodeData.txt
 
 .SCANNER: scan-ocaml-%: $(MLPP_TARGETS) $(ROOT)/Tools/Tools.$(CMA)
 
