@@ -586,7 +586,7 @@ value rec prim_negate x = match !x with
 (* integer arithmetic *)
 
 value prim_round    = unary_number_function round_num   "round";
-value prim_truncate = unary_number_function integer_num "trunacate";
+value prim_truncate = unary_number_function integer_num "truncate";
 value prim_ceiling  = unary_number_function ceiling_num "ceiling";
 value prim_floor    = unary_number_function floor_num   "floor";
 
