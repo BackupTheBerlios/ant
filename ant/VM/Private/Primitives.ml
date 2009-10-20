@@ -1219,14 +1219,14 @@ value rec unary_char_prim f name x = match !x with
 | _ -> runtime_error (name ^ ": invalid argument")
 ];
 
-value prim_is_letter    = unary_char_prim (fun c -> Bool (UChar.is_letter c))    "is_letter";
-value prim_is_mark      = unary_char_prim (fun c -> Bool (UChar.is_mark c))      "is_mark";
-value prim_is_number    = unary_char_prim (fun c -> Bool (UChar.is_number c))    "is_number";
-value prim_is_punct     = unary_char_prim (fun c -> Bool (UChar.is_punct c))     "is_punct";
-value prim_is_symbol    = unary_char_prim (fun c -> Bool (UChar.is_symbol c))    "is_symbol";
-value prim_is_separator = unary_char_prim (fun c -> Bool (UChar.is_separator c)) "is_separator";
-value prim_is_control   = unary_char_prim (fun c -> Bool (UChar.is_control c))   "is_control";
-value prim_is_space     = unary_char_prim (fun c -> Bool (UChar.is_space c))     "is_space";
+value prim_char_is_letter    = unary_char_prim (fun c -> Bool (UChar.is_letter c))    "char_is_letter";
+value prim_char_is_mark      = unary_char_prim (fun c -> Bool (UChar.is_mark c))      "char_is_mark";
+value prim_char_is_number    = unary_char_prim (fun c -> Bool (UChar.is_number c))    "char_is_number";
+value prim_char_is_punct     = unary_char_prim (fun c -> Bool (UChar.is_punct c))     "char_is_punct";
+value prim_char_is_symbol    = unary_char_prim (fun c -> Bool (UChar.is_symbol c))    "char_is_symbol";
+value prim_char_is_separator = unary_char_prim (fun c -> Bool (UChar.is_separator c)) "char_is_separator";
+value prim_char_is_control   = unary_char_prim (fun c -> Bool (UChar.is_control c))   "char_is_control";
+value prim_char_is_space     = unary_char_prim (fun c -> Bool (UChar.is_space c))     "char_is_space";
 value prim_to_upper     = unary_char_prim (fun c -> Char (UChar.to_upper c))     "to_upper";
 value prim_to_lower     = unary_char_prim (fun c -> Char (UChar.to_lower c))     "to_lower";
 value prim_to_title     = unary_char_prim (fun c -> Char (UChar.to_title c))     "to_title";
@@ -1516,14 +1516,14 @@ value initial_scope () = do
 
   (* characters *)
 
-  add1 "char_is_letter"     prim_is_letter;
-  add1 "char_is_mark"       prim_is_mark;
-  add1 "char_is_number"     prim_is_number;
-  add1 "char_is_punct"      prim_is_punct;
-  add1 "char_is_symbol"     prim_is_symbol;
-  add1 "char_is_separator"  prim_is_separator;
-  add1 "char_is_control"    prim_is_control;
-  add1 "char_is_space"      prim_is_space;
+  add1 "char_is_letter"     prim_char_is_letter;
+  add1 "char_is_mark"       prim_char_is_mark;
+  add1 "char_is_number"     prim_char_is_number;
+  add1 "char_is_punct"      prim_char_is_punct;
+  add1 "char_is_symbol"     prim_char_is_symbol;
+  add1 "char_is_separator"  prim_char_is_separator;
+  add1 "char_is_control"    prim_char_is_control;
+  add1 "char_is_space"      prim_char_is_space;
   add1 "to_upper"           prim_to_upper;
   add1 "to_lower"           prim_to_lower;
   add1 "to_title"           prim_to_title;
