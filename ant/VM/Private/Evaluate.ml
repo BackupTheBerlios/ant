@@ -1396,7 +1396,7 @@ and execute_function env f n bytecode pc = match f with
         else
           runtime_error "non-integral index"
       }
-    | _ -> runtime_error ("type error: integer expected but bot " ^ type_name !x)
+    | _ -> runtime_error ("type error: integer expected but got " ^ type_name !x)
     ]
   }
 | Opaque y -> do
