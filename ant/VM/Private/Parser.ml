@@ -389,7 +389,7 @@ and parse_expr_pri pri first_token lexer = match first_token with
 
         (TLocal decls e, tok)
       }
-    | _ -> syntax_error lexer "end exptected"
+    | _ -> syntax_error lexer "end expected"
     ]
   | tok -> match parse_decl tok lexer with
     [ (decl, SEMICOLON) -> do
